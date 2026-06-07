@@ -30,7 +30,7 @@ export default async function AuditPage() {
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-900">Audit Log</h2>
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden overflow-x-auto">
         {!logs || logs.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-8">Brak wpisów.</p>
         ) : (

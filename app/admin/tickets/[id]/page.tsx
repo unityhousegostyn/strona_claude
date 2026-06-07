@@ -34,6 +34,17 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
   }
 
   // Pobierz dane autora i wspólnoty osobno
+  // Signed URL załącznika (bucket prywatny)
+  let attachmentUrl: string | null = null
+  let attachmentName: string | null = null
+  if (ticket.attachment_path) {
+    const { data: signedData } = await admin.storage
+      .from('ticket-attachments')
+      .createSignedUrl(ticket.attachment_path, 3600)
+    attachmentUrl = signedData?.signedUrl ?? null
+    attachmentName = ticket.attachment_path.split('/').pop() ?? 'załącznik'
+  }
+
   const [{ data: author }, { data: community }, { data: rawComments }] = await Promise.all([
     admin.from('profiles').select('full_name, email').eq('id', ticket.created_by).single(),
     ticket.community_id
@@ -85,6 +96,16 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
           </span>
         </div>
         <p className="text-sm text-gray-700 whitespace-pre-wrap">{ticket.description}</p>
+        {attachmentUrl && (
+          <a
+            href={attachmentUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline bg-blue-50 px-3 py-1.5 rounded-lg"
+          >
+            📎 {attachmentName}
+          </a>
+        )}
       </div>
 
       <TicketComments

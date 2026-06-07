@@ -16,6 +16,7 @@ export default function TicketsPage() {
   const [showForm, setShowForm] = useState(false)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [attachment, setAttachment] = useState<File | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
 
   const fetchTickets = async (p: any) => {
@@ -57,19 +58,22 @@ export default function TicketsPage() {
 
   const handleSubmitTicket = async () => {
     setFormError(null)
+    const formData = new FormData()
+    formData.append('title', title)
+    formData.append('description', description)
+    formData.append('communityId', profile.community_id)
+    if (attachment) formData.append('attachment', attachment)
+
     startTransition(async () => {
-      try {
-        await createTicket({
-          title,
-          description,
-          communityId: profile.community_id,
-        })
+      const result = await createTicket(formData)
+      if (result?.error) {
+        setFormError(result.error)
+      } else {
         setTitle('')
         setDescription('')
+        setAttachment(null)
         setShowForm(false)
         await fetchTickets(profile)
-      } catch (e: any) {
-        setFormError(e.message ?? 'Błąd podczas wysyłania zgłoszenia')
       }
     })
   }
@@ -113,6 +117,19 @@ export default function TicketsPage() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Załącznik <span className="text-gray-400 font-normal">(opcjonalnie, max 10 MB)</span>
+            </label>
+            <input
+              type="file"
+              onChange={(e) => setAttachment(e.target.files?.[0] ?? null)}
+              className="block w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition"
+            />
+            {attachment && (
+              <p className="text-xs text-gray-500 mt-1">Wybrany: {attachment.name}</p>
+            )}
+          </div>
           <div className="flex gap-3">
             <button
               onClick={handleSubmitTicket}

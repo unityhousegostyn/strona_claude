@@ -89,7 +89,7 @@ export default async function DocumentsPage() {
         />
       )}
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden overflow-x-auto">
         {documents.length === 0 ? (
           <p className="text-center text-sm text-gray-400 py-8">Brak dokumentów.</p>
         ) : (

@@ -62,7 +62,7 @@ export default async function AdminLayout({
           userEmail={user.email ?? ''}
           unreadAnnouncements={unreadCount}
         />
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-4 lg:p-6 overflow-auto pt-[72px] lg:pt-6">
           {children}
         </main>
       </div>
