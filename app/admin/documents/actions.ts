@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { getSupabaseAdminClient, getSupabaseServerClient } from '@/lib/supabase/server'
 import { logActivity } from '@/lib/audit'
+import { extractText, splitIntoChunks } from '@/lib/docChunker'
 
 async function requireUploader() {
   const supabase = await getSupabaseServerClient()
@@ -67,6 +68,26 @@ export async function uploadDocument(formData: FormData) {
 
   if (error) throw new Error(error.message)
   await logActivity({ userId: user.id, action: 'upload_document', targetType: 'document', targetId: doc.id, meta: { name, target } })
+
+  // Ekstrakcja tekstu i zapis chunków dla AI chatbota
+  try {
+    const buffer = Buffer.from(arrayBuffer)
+    const text = await extractText(buffer, name)
+    if (text.trim().length > 0) {
+      const chunks = splitIntoChunks(text)
+      const chunkCommunityId = target === 'one' ? community_id : null
+      const rows = chunks.map((content, chunk_index) => ({
+        document_id: doc.id,
+        community_id: chunkCommunityId,
+        content,
+        chunk_index,
+      }))
+      await admin.from('document_chunks').insert(rows)
+    }
+  } catch (e) {
+    console.error('[uploadDocument] chunk extraction failed:', e)
+    // nie blokuj uploadu jeśli ekstrakcja tekstu się nie powiedzie
+  }
 
   if (target === 'selected' && community_ids.length > 0) {
     const rows = community_ids.map((cid) => ({ document_id: doc.id, community_id: cid }))
