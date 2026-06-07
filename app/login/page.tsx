@@ -1,16 +1,24 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser'
 import Link from 'next/link'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (searchParams.get('reset') === 'success') {
+      setSuccess('Hasło zostało zmienione. Możesz się teraz zalogować.')
+    }
+  }, [searchParams])
 
   const handleLogin = async () => {
     setLoading(true)
@@ -52,6 +60,11 @@ export default function LoginPage() {
         <h1 className="text-2xl font-bold text-gray-800">Logowanie</h1>
         <p className="text-sm text-gray-500">Panel zarządzania wspólnotą</p>
 
+        {success && (
+          <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">
+            {success}
+          </div>
+        )}
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
             {error}
@@ -89,11 +102,11 @@ export default function LoginPage() {
           {loading ? 'Logowanie...' : 'Zaloguj się'}
         </button>
 
-        <div className="text-center pt-2">
-          <Link
-            href="/register"
-            className="text-sm text-blue-600 hover:underline"
-          >
+        <div className="flex flex-col items-center gap-2 pt-2">
+          <Link href="/reset-password" className="text-sm text-gray-500 hover:text-gray-700 hover:underline">
+            Zapomniałeś hasła?
+          </Link>
+          <Link href="/register" className="text-sm text-blue-600 hover:underline">
             Nie masz konta? Zarejestruj się
           </Link>
         </div>
