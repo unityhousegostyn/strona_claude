@@ -2,12 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getSupabaseBrowserClient } from '@/lib/supabase/browser'
+import { createCommunity } from '../actions'
 
 export default function AddCommunityPage() {
   const router = useRouter()
-  const supabase = getSupabaseBrowserClient()
-
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
   const [loading, setLoading] = useState(false)
@@ -21,15 +19,13 @@ export default function AddCommunityPage() {
     setLoading(true)
     setError(null)
 
-    const { error } = await supabase.from('communities').insert({ name, address })
-
-    if (error) {
-      setError('Błąd podczas dodawania wspólnoty.')
+    try {
+      await createCommunity({ name, address })
+      router.push('/admin/communities')
+    } catch (e: any) {
+      setError(e.message ?? 'Błąd podczas dodawania wspólnoty.')
       setLoading(false)
-      return
     }
-
-    router.push('/admin/communities')
   }
 
   return (

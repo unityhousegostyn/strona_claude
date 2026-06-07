@@ -24,6 +24,13 @@ export async function createAnnouncement(formData: {
 
   if (!profile || profile.role === 'user') throw new Error('Brak uprawnień')
 
+  // Walidacja wejścia
+  const title = formData.title?.trim()
+  const content = formData.content?.trim()
+  if (!title || title.length < 3 || title.length > 150) throw new Error('Tytuł musi mieć 3–150 znaków')
+  if (!content || content.length < 10 || content.length > 5000) throw new Error('Treść musi mieć 10–5000 znaków')
+  if (!['all', 'one', 'selected'].includes(formData.target)) throw new Error('Nieprawidłowy cel ogłoszenia')
+
   // Admin może dodawać ogłoszenia tylko do swojej wspólnoty
   if (profile.role === 'admin') {
     if (formData.target !== 'one' || formData.community_id !== profile.community_id) {

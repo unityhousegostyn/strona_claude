@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser'
+import { updateCommunity, deleteCommunity } from '../actions'
 
 export default function EditCommunityPage() {
   const router = useRouter()
@@ -38,36 +39,26 @@ export default function EditCommunityPage() {
     setLoading(true)
     setError(null)
 
-    const { error } = await supabase
-      .from('communities')
-      .update({ name, address })
-      .eq('id', id)
-
-    if (error) {
-      setError('Błąd podczas zapisywania.')
+    try {
+      await updateCommunity(id as string, { name, address })
+      router.push('/admin/communities')
+    } catch (e: any) {
+      setError(e.message ?? 'Błąd podczas zapisywania.')
       setLoading(false)
-      return
     }
-
-    router.push('/admin/communities')
   }
 
   const handleDelete = async () => {
     if (!confirm('Czy na pewno chcesz usunąć tę wspólnotę? Tej operacji nie można cofnąć.')) return
     setDeleting(true)
 
-    const { error } = await supabase
-      .from('communities')
-      .delete()
-      .eq('id', id)
-
-    if (error) {
-      setError('Błąd podczas usuwania. Upewnij się że wspólnota nie ma przypisanych użytkowników.')
+    try {
+      await deleteCommunity(id as string)
+      router.push('/admin/communities')
+    } catch (e: any) {
+      setError(e.message ?? 'Błąd podczas usuwania.')
       setDeleting(false)
-      return
     }
-
-    router.push('/admin/communities')
   }
 
   return (

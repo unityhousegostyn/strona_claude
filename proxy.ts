@@ -36,6 +36,13 @@ export async function proxy(request: NextRequest) {
   const isAdminRoute = pathname.startsWith('/admin')
   const isLoginPage = pathname === '/login'
 
+  // Trasy dostępne tylko dla admin i super_admin
+  const adminOnlyPrefixes = [
+    '/admin/users',
+    '/admin/communities',
+  ]
+  const isAdminOnlyRoute = adminOnlyPrefixes.some((p) => pathname.startsWith(p))
+
   // 🔥 Jeśli user istnieje → pobierz profil
   let profile = null
   if (user) {
@@ -58,7 +65,12 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // 🔥 3. Jeśli user jest zalogowany i aktywny → nie wpuszczaj na /login
+  // 🔥 3. Blokada tras admin-only dla roli 'user'
+  if (isAdminOnlyRoute && profile?.role === 'user') {
+    return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+  }
+
+  // 🔥 4. Jeśli user jest zalogowany i aktywny → nie wpuszczaj na /login
   if (isLoginPage && user && profile && profile.status !== 'pending') {
     return NextResponse.redirect(new URL('/admin/dashboard', request.url))
   }

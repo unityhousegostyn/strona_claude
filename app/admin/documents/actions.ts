@@ -27,6 +27,14 @@ export async function saveDocument(data: {
 }) {
   const { user, profile } = await requireUploader()
 
+  // Walidacja wejścia
+  const name = data.name?.trim()
+  if (!name || name.length < 1 || name.length > 200) throw new Error('Nazwa pliku musi mieć 1–200 znaków')
+  if (!['all', 'one', 'selected'].includes(data.target)) throw new Error('Nieprawidłowy cel dokumentu')
+  if (!data.storage_path || data.storage_path.includes('..') || data.storage_path.length > 500) {
+    throw new Error('Nieprawidłowa ścieżka pliku')
+  }
+
   // Admin może dodawać dokumenty tylko do swojej wspólnoty
   if (profile.role === 'admin') {
     if (data.target !== 'one' || data.community_id !== profile.community_id) {
