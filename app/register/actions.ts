@@ -16,19 +16,20 @@ export async function registerUser(formData: FormData) {
   if (!parsed.success) {
     return {
       success: false,
-      message: parsed.error.issues[0].message, // ← poprawione
+      message: parsed.error.issues[0].message,
     };
   }
 
   const { email, password, full_name } = parsed.data;
 
+  // 2️⃣ Supabase (service role key)
   const supabase = getSupabaseServerClient();
 
-  // 2️⃣ Tworzenie użytkownika w Supabase Auth
+  // 3️⃣ Tworzenie użytkownika w Supabase Auth (admin)
   const { data, error } = await supabase.auth.admin.createUser({
     email,
     password,
-    email_confirm: true,
+    email_confirm: true, // email od razu potwierdzony
   });
 
   if (error) {
@@ -37,7 +38,14 @@ export async function registerUser(formData: FormData) {
 
   const userId = data.user?.id;
 
-  // 3️⃣ Tworzenie profilu w tabeli profiles
+  if (!userId) {
+    return {
+      success: false,
+      message: "Błąd: nie udało się pobrać ID użytkownika.",
+    };
+  }
+
+  // 4️⃣ Tworzenie profilu w tabeli profiles
   const { error: insertError } = await supabase
     .from("profiles")
     .insert({
@@ -45,7 +53,7 @@ export async function registerUser(formData: FormData) {
       email,
       full_name,
       role: "user",
-      status: "pending",
+      status: "pending", // użytkownik czeka na akceptację admina
       community_id: null,
     });
 
@@ -58,6 +66,6 @@ export async function registerUser(formData: FormData) {
 
   return {
     success: true,
-    message: "Rejestracja zakończona. Sprawdź email i poczekaj na akceptację.",
+    message: "Rejestracja zakończona. Konto oczekuje na akceptację administratora.",
   };
 }
