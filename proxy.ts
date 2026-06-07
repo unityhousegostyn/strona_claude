@@ -56,8 +56,8 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // 🔥 3. Jeśli user jest zalogowany → nie wpuszczaj na /login
-  if (isLoginPage && user) {
+  // 🔥 3. Jeśli user jest zalogowany i aktywny → nie wpuszczaj na /login
+  if (isLoginPage && user && profile && profile.status !== 'pending') {
     return NextResponse.redirect(new URL('/admin/dashboard', request.url))
   }
 
