@@ -1,6 +1,7 @@
 import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import PendingUsers from './PendingUsers'
+import Link from 'next/link'
 
 export default async function UsersPage() {
   // Auth check — anon client (RLS)
@@ -69,6 +70,7 @@ export default async function UsersPage() {
               <th className="text-left px-4 py-3 font-medium text-gray-600">Rola</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Wspólnota</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Dołączył</th>
+              {isSuperAdmin && <th className="px-4 py-3"></th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -86,6 +88,13 @@ export default async function UsersPage() {
                 <td className="px-4 py-3 text-gray-400">
                   {new Date(u.created_at).toLocaleDateString('pl-PL')}
                 </td>
+                {isSuperAdmin && (
+                  <td className="px-4 py-3 text-right">
+                    <Link href={`/admin/users/${u.id}`} className="text-sm text-blue-600 hover:underline">
+                      Edytuj
+                    </Link>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
