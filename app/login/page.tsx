@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser'
+import Link from 'next/link'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -69,6 +70,16 @@ export default function LoginPage() {
         >
           {loading ? 'Logowanie...' : 'Zaloguj się'}
         </button>
+
+        {/* 🔥 DODANY LINK DO REJESTRACJI */}
+        <div className="text-center pt-2">
+          <Link
+            href="/register"
+            className="text-sm text-blue-600 hover:underline"
+          >
+            Nie masz konta? Zarejestruj się
+          </Link>
+        </div>
       </div>
     </main>
   )
