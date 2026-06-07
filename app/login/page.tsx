@@ -15,17 +15,35 @@ export default function LoginPage() {
   const handleLogin = async () => {
     setLoading(true)
     setError(null)
-    const supabase = getSupabaseBrowserClient()
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    try {
+      const supabase = getSupabaseBrowserClient()
 
-    if (error) {
-      setError('Nieprawidłowy email lub hasło.')
+      console.log("🔍 Próba logowania:", { email })
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      console.log("➡️ Wynik logowania:", { data, error })
+
+      if (error) {
+        setError(error.message || 'Nieprawidłowy email lub hasło.')
+        setLoading(false)
+        return
+      }
+
+      // 🔥 WAŻNE: odśwież sesję proxy
+      await supabase.auth.getSession()
+
+      router.push('/admin/dashboard')
+    } catch (err: any) {
+      console.error("❌ Błąd krytyczny logowania:", err)
+      setError('Wystąpił błąd logowania.')
+    } finally {
       setLoading(false)
-      return
     }
-
-    router.push('/admin/dashboard')
   }
 
   return (
@@ -71,7 +89,6 @@ export default function LoginPage() {
           {loading ? 'Logowanie...' : 'Zaloguj się'}
         </button>
 
-        {/* 🔥 DODANY LINK DO REJESTRACJI */}
         <div className="text-center pt-2">
           <Link
             href="/register"
