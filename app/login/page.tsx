@@ -109,6 +109,19 @@ function LoginForm() {
           Nie masz konta? Zarejestruj się
         </Link>
       </div>
+
+      <div className="border-t border-gray-100 pt-4">
+        <p className="text-xs text-gray-400 text-center leading-relaxed">
+          Administratorem danych osobowych jest zarządca wspólnoty mieszkaniowej.
+          Dane przetwarzane są w celu obsługi panelu mieszkańca na podstawie art. 6 ust. 1 lit. b RODO.
+          Przysługuje Ci prawo dostępu, sprostowania, usunięcia danych oraz wniesienia skargi do UODO.
+          Szczegóły w{' '}
+          <Link href="/privacy" className="underline hover:text-gray-600">
+            Polityce Prywatności
+          </Link>
+          .
+        </p>
+      </div>
     </div>
   )
 }

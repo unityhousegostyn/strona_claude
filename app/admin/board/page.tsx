@@ -13,7 +13,9 @@ export default async function BoardPage() {
     .eq('id', user.id)
     .single()
   if (!profile) redirect('/login')
-  if (!profile.community_id) {
+  const isSuperAdmin = profile.role === 'super_admin'
+
+  if (!isSuperAdmin && !profile.community_id) {
     return (
       <div className="max-w-2xl">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">Tablica</h2>
@@ -24,13 +26,18 @@ export default async function BoardPage() {
 
   const admin = getSupabaseAdminClient()
 
-  // Pobierz posty dla wspólnoty
-  const { data: rawPosts } = await admin
+  // super_admin widzi wszystkie posty, pozostali tylko swoją wspólnotę
+  const postsQuery = admin
     .from('board_posts')
     .select('*')
-    .eq('community_id', profile.community_id)
     .order('pinned', { ascending: false })
     .order('created_at', { ascending: false })
+
+  if (!isSuperAdmin) {
+    postsQuery.eq('community_id', profile.community_id)
+  }
+
+  const { data: rawPosts } = await postsQuery
 
   const posts = rawPosts ?? []
 
@@ -67,6 +74,21 @@ export default async function BoardPage() {
     authorMap[a.id] = { full_name: a.full_name, email: a.email }
   }
 
+  // Pobierz nazwy wspólnot (dla super_admin)
+  let communityMap: Record<string, string> = {}
+  if (isSuperAdmin) {
+    const communityIds = [...new Set(posts.map((p: any) => p.community_id).filter(Boolean))]
+    if (communityIds.length > 0) {
+      const { data: communities } = await admin
+        .from('communities')
+        .select('id, name')
+        .in('id', communityIds)
+      for (const c of communities ?? []) {
+        communityMap[c.id] = c.name
+      }
+    }
+  }
+
   // Mapa odpowiedzi per post
   const repliesMap: Record<string, any[]> = {}
   for (const r of replies) {
@@ -78,6 +100,7 @@ export default async function BoardPage() {
   const enrichedPosts = posts.map((p: any) => ({
     ...p,
     author: authorMap[p.author_id] ?? null,
+    communityName: communityMap[p.community_id] ?? null,
     replies: repliesMap[p.id] ?? [],
   }))
 

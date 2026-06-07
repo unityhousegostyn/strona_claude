@@ -18,6 +18,7 @@ interface Post {
   created_at: string
   author_id: string
   author: { full_name: string | null; email: string } | null
+  communityName: string | null
   replies: Reply[]
 }
 
@@ -216,6 +217,11 @@ function PostCard({
             <p className="text-sm font-semibold text-gray-900">{authorName(post.author)}</p>
             <p className="text-xs text-gray-400">
               {new Date(post.created_at).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              {post.communityName && (
+                <span className="ml-1.5 bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-md font-medium">
+                  {post.communityName}
+                </span>
+              )}
             </p>
           </div>
         </div>
