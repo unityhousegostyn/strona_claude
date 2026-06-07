@@ -13,10 +13,11 @@ export async function createAnnouncement(formData: {
   target: 'all' | 'one' | 'selected'
   community_id: string | null
   community_ids: string[]
-}) {
+}): Promise<{ error?: string }> {
+  try {
   const supabase = await getSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Brak autoryzacji')
+  if (!user) return { error: 'Brak autoryzacji' }
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -24,19 +25,19 @@ export async function createAnnouncement(formData: {
     .eq('id', user.id)
     .single()
 
-  if (!profile || profile.role === 'user') throw new Error('Brak uprawnień')
+  if (!profile || profile.role === 'user') return { error: 'Brak uprawnień' }
 
   // Walidacja wejścia
   const title = formData.title?.trim()
   const content = formData.content?.trim()
-  if (!title || title.length < 3 || title.length > 150) throw new Error('Tytuł musi mieć 3–150 znaków')
-  if (!content || content.length < 10 || content.length > 5000) throw new Error('Treść musi mieć 10–5000 znaków')
-  if (!['all', 'one', 'selected'].includes(formData.target)) throw new Error('Nieprawidłowy cel ogłoszenia')
+  if (!title || title.length < 3 || title.length > 150) return { error: 'Tytuł musi mieć 3–150 znaków' }
+  if (!content || content.length < 10 || content.length > 5000) return { error: 'Treść musi mieć 10–5000 znaków' }
+  if (!['all', 'one', 'selected'].includes(formData.target)) return { error: 'Nieprawidłowy cel ogłoszenia' }
 
   // Admin może dodawać ogłoszenia tylko do swojej wspólnoty
   if (profile.role === 'admin') {
     if (formData.target !== 'one' || formData.community_id !== profile.community_id) {
-      throw new Error('Admin może dodawać ogłoszenia tylko do swojej wspólnoty')
+      return { error: 'Admin może dodawać ogłoszenia tylko do swojej wspólnoty' }
     }
   }
 
@@ -56,7 +57,7 @@ export async function createAnnouncement(formData: {
     .select('id')
     .single()
 
-  if (error) throw new Error(error.message)
+  if (error) return { error: error.message }
   await logActivity({ userId: user.id, action: 'create_announcement', targetType: 'announcement', targetId: announcement.id, meta: { title: formData.title, target: formData.target } })
 
   if (formData.target === 'selected' && formData.community_ids.length > 0) {
@@ -67,7 +68,7 @@ export async function createAnnouncement(formData: {
     const { error: junctionError } = await admin
       .from('announcement_communities')
       .insert(rows)
-    if (junctionError) throw new Error(junctionError.message)
+    if (junctionError) return { error: junctionError.message }
   }
 
   // Wyślij email do użytkowników docelowych wspólnot
@@ -93,4 +94,8 @@ export async function createAnnouncement(formData: {
   } catch {}
 
   revalidatePath('/admin/announcements')
+  return {}
+  } catch (e: any) {
+    return { error: e.message ?? 'Nieznany błąd' }
+  }
 }

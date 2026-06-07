@@ -36,19 +36,19 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
     if (target === 'selected' && selectedIds.length === 0) return setError('Wybierz co najmniej jedną wspólnotę.')
 
     startTransition(async () => {
-      try {
-        await createAnnouncement({
-          title,
-          content,
-          start_date: startDate,
-          end_date: endDate,
-          target,
-          community_id: target === 'one' ? communityId : null,
-          community_ids: target === 'selected' ? selectedIds : [],
-        })
+      const result = await createAnnouncement({
+        title,
+        content,
+        start_date: startDate,
+        end_date: endDate,
+        target,
+        community_id: target === 'one' ? communityId : null,
+        community_ids: target === 'selected' ? selectedIds : [],
+      })
+      if (result?.error) {
+        setError(result.error)
+      } else {
         router.push('/admin/announcements')
-      } catch (e: any) {
-        setError(e.message ?? 'Błąd podczas zapisywania.')
       }
     })
   }
