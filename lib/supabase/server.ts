@@ -14,9 +14,11 @@ export async function getSupabaseServerClient() {
         },
         setAll(cookiesToSet) {
           try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            )
+            cookiesToSet.forEach(({ name, value, options }) => {
+              // Sesja tylko na czas przeglądarki — brak maxAge/expires
+              const { maxAge, expires, ...sessionOptions } = options as any ?? {}
+              cookieStore.set(name, value, sessionOptions)
+            })
           } catch {
             // Server Component — nie można ustawiać cookies
           }

@@ -1,8 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { getSupabaseAdminClient } from '@/lib/supabase/server'
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { getSupabaseAdminClient, getSupabaseServerClient } from '@/lib/supabase/server'
 
 export async function createAnnouncement(formData: {
   title: string
@@ -16,6 +15,21 @@ export async function createAnnouncement(formData: {
   const supabase = await getSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Brak autoryzacji')
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, community_id')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || profile.role === 'user') throw new Error('Brak uprawnień')
+
+  // Admin może dodawać ogłoszenia tylko do swojej wspólnoty
+  if (profile.role === 'admin') {
+    if (formData.target !== 'one' || formData.community_id !== profile.community_id) {
+      throw new Error('Admin może dodawać ogłoszenia tylko do swojej wspólnoty')
+    }
+  }
 
   const admin = getSupabaseAdminClient()
 

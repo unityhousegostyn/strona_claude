@@ -3,6 +3,21 @@
 import { revalidatePath } from 'next/cache'
 import { getSupabaseAdminClient, getSupabaseServerClient } from '@/lib/supabase/server'
 
+async function requireUploader() {
+  const supabase = await getSupabaseServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Brak autoryzacji')
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, community_id')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || profile.role === 'user') throw new Error('Brak uprawnień')
+  return { user, profile }
+}
+
 export async function saveDocument(data: {
   name: string
   storage_path: string
@@ -10,9 +25,14 @@ export async function saveDocument(data: {
   community_id: string | null
   community_ids: string[]
 }) {
-  const supabase = await getSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Brak autoryzacji')
+  const { user, profile } = await requireUploader()
+
+  // Admin może dodawać dokumenty tylko do swojej wspólnoty
+  if (profile.role === 'admin') {
+    if (data.target !== 'one' || data.community_id !== profile.community_id) {
+      throw new Error('Admin może dodawać dokumenty tylko do swojej wspólnoty')
+    }
+  }
 
   const admin = getSupabaseAdminClient()
 
@@ -45,11 +65,16 @@ export async function saveDocument(data: {
 }
 
 export async function deleteDocument(docId: string, storagePath: string) {
-  const supabase = await getSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Brak autoryzacji')
+  const { profile } = await requireUploader()
 
   const admin = getSupabaseAdminClient()
+
+  // Admin może usuwać tylko dokumenty swojej wspólnoty
+  if (profile.role === 'admin') {
+    const { data: doc } = await admin.from('documents').select('community_id').eq('id', docId).single()
+    if (doc?.community_id !== profile.community_id) throw new Error('Brak uprawnień')
+  }
+
   await admin.storage.from('documents').remove([storagePath])
   await admin.from('documents').delete().eq('id', docId)
 
