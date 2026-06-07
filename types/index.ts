@@ -47,9 +47,13 @@ export interface Ticket {
 export interface Document {
   id: string
   name: string
-  url: string
-  community_id: string
+  storage_path: string
+  target: 'all' | 'one' | 'selected'
+  community_id: string | null
+  created_by: string
   created_at: string
+  community?: Community
+  document_communities?: { community: Community }[]
 }
 
 export interface UserWithProfile {
