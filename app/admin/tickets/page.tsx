@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser'
 import { toggleTicketStatus, createTicket } from './actions'
 
+type Tab = 'open' | 'closed'
+
 export default function TicketsPage() {
   const router = useRouter()
   const supabase = getSupabaseBrowserClient()
@@ -12,6 +14,7 @@ export default function TicketsPage() {
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [isPending, startTransition] = useTransition()
+  const [tab, setTab] = useState<Tab>('open')
 
   const [showForm, setShowForm] = useState(false)
   const [title, setTitle] = useState('')
@@ -78,8 +81,9 @@ export default function TicketsPage() {
     })
   }
 
-  const statusBadge = (status: string) =>
-    status === 'open' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+  const visible = tickets.filter((t) => t.status === (tab === 'open' ? 'open' : 'closed'))
+  const openCount = tickets.filter((t) => t.status === 'open').length
+  const closedCount = tickets.filter((t) => t.status === 'closed').length
 
   if (loading) return <p className="text-sm text-gray-400">Ładowanie...</p>
 
@@ -97,7 +101,42 @@ export default function TicketsPage() {
         )}
       </div>
 
-      {showForm && (
+      {/* Zakładki */}
+      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+        <button
+          onClick={() => setTab('open')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+            tab === 'open'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Aktywne
+          {openCount > 0 && (
+            <span className="bg-yellow-100 text-yellow-700 text-xs font-semibold px-1.5 py-0.5 rounded-full">
+              {openCount}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={() => setTab('closed')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+            tab === 'closed'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Archiwum
+          {closedCount > 0 && (
+            <span className="bg-gray-200 text-gray-600 text-xs font-semibold px-1.5 py-0.5 rounded-full">
+              {closedCount}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Formularz nowego zgłoszenia */}
+      {showForm && tab === 'open' && (
         <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
           <h3 className="font-semibold text-gray-800">Nowe zgłoszenie</h3>
           {formError && (
@@ -145,23 +184,36 @@ export default function TicketsPage() {
         </div>
       )}
 
+      {/* Lista zgłoszeń */}
       <div className="space-y-3">
-        {tickets.length === 0 && <p className="text-sm text-gray-400">Brak zgłoszeń.</p>}
-        {tickets.map((t: any) => (
+        {visible.length === 0 && (
+          <p className="text-sm text-gray-400">
+            {tab === 'open' ? 'Brak aktywnych zgłoszeń.' : 'Brak zgłoszeń w archiwum.'}
+          </p>
+        )}
+        {visible.map((t: any) => (
           <div
             key={t.id}
-            className="bg-white border border-gray-200 rounded-xl p-4 flex items-start justify-between gap-4 cursor-pointer hover:border-blue-200 transition"
+            className={`bg-white border rounded-xl p-4 flex items-start justify-between gap-4 cursor-pointer transition ${
+              tab === 'closed'
+                ? 'border-gray-100 opacity-75 hover:opacity-100 hover:border-gray-300'
+                : 'border-gray-200 hover:border-blue-200'
+            }`}
             onClick={() => router.push(`/admin/tickets/${t.id}`)}
           >
             <div>
-              <p className="font-semibold text-gray-900">{t.title}</p>
+              <p className={`font-semibold ${tab === 'closed' ? 'text-gray-500' : 'text-gray-900'}`}>
+                {t.title}
+              </p>
               <p className="text-sm text-gray-500 mt-1 line-clamp-1">{t.description}</p>
               <p className="text-xs text-gray-400 mt-2">
                 {t.community?.name} · {new Date(t.created_at).toLocaleDateString('pl-PL')}
               </p>
             </div>
             <div className="flex flex-col items-end gap-2 flex-shrink-0">
-              <span className={`text-xs font-medium px-2 py-1 rounded-full ${statusBadge(t.status)}`}>
+              <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                t.status === 'open' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+              }`}>
                 {t.status === 'open' ? 'Otwarte' : 'Zamknięte'}
               </span>
               {(profile?.role === 'admin' || profile?.role === 'super_admin') && (
@@ -170,7 +222,7 @@ export default function TicketsPage() {
                   disabled={isPending}
                   className="text-xs text-blue-600 hover:underline disabled:opacity-50"
                 >
-                  Zmień status
+                  {t.status === 'open' ? 'Zamknij' : 'Wznów'}
                 </button>
               )}
             </div>
