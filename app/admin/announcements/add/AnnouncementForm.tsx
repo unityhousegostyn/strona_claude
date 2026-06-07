@@ -55,13 +55,13 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
 
   return (
     <div className="max-w-xl space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Dodaj ogłoszenie</h2>
+      <h2 className="text-2xl font-bold text-gray-100">Dodaj ogłoszenie</h2>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>
+        <div className="bg-red-950/30 border border-red-900 text-red-400 text-sm rounded-lg px-4 py-3">{error}</div>
       )}
 
-      <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
 
         {/* Zasięg — tylko super_admin */}
         {isSuperAdmin && (
@@ -79,7 +79,7 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
                   className={`text-sm px-3 py-1.5 rounded-lg border font-medium transition ${
                     target === opt.value
                       ? 'bg-blue-600 border-blue-600 text-white'
-                      : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                      : 'border-gray-800 text-gray-400 hover:bg-gray-950'
                   }`}
                 >
                   {opt.label}
@@ -95,7 +95,7 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
             <select
               value={communityId}
               onChange={(e) => setCommunityId(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
               <option value="">Wybierz wspólnotę…</option>
               {communities.map((c) => (
@@ -108,14 +108,14 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
         {/* Wybrane wspólnoty — checkboxy */}
         {isSuperAdmin && target === 'selected' && (
           <Field label="Wybierz wspólnoty">
-            <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
+            <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-800 rounded-lg p-3">
               {communities.map((c) => (
-                <label key={c.id} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+                <label key={c.id} className="flex items-center gap-2 cursor-pointer text-sm text-gray-300">
                   <input
                     type="checkbox"
                     checked={selectedIds.includes(c.id)}
                     onChange={() => toggleCommunity(c.id)}
-                    className="rounded border-gray-300 text-blue-600"
+                    className="rounded border-gray-700 text-blue-600"
                   />
                   {c.name}
                 </label>
@@ -126,7 +126,7 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
 
         <Field label="Tytuł">
           <input
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Tytuł ogłoszenia"
@@ -135,7 +135,7 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
 
         <Field label="Treść">
           <textarea
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+            className="w-full border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 min-h-[100px]"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Treść ogłoszenia…"
@@ -144,10 +144,10 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
 
         <div className="grid grid-cols-2 gap-4">
           <Field label="Data rozpoczęcia">
-            <input type="date" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            <input type="date" className="w-full border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
           </Field>
           <Field label="Data zakończenia">
-            <input type="date" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            <input type="date" className="w-full border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
           </Field>
         </div>
       </div>
@@ -162,7 +162,7 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
         </button>
         <button
           onClick={() => router.back()}
-          className="text-sm text-gray-600 hover:text-gray-900 px-5 py-2.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
+          className="text-sm text-gray-400 hover:text-gray-100 px-5 py-2.5 rounded-lg border border-gray-800 hover:bg-gray-950 transition"
         >
           Anuluj
         </button>
@@ -174,7 +174,7 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+      <label className="block text-sm font-medium text-gray-300 mb-1">{label}</label>
       {children}
     </div>
   )

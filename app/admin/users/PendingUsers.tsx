@@ -50,7 +50,7 @@ export default function PendingUsers({ users, communities, isSuperAdmin, adminCo
             className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 flex items-center justify-between gap-4 flex-wrap"
           >
             <div>
-              <p className="font-medium text-gray-900 text-sm">
+              <p className="font-medium text-gray-100 text-sm">
                 {u.full_name ?? <span className="italic text-gray-400">Brak nazwy</span>}
               </p>
               <p className="text-xs text-gray-500 mt-0.5">
@@ -62,7 +62,7 @@ export default function PendingUsers({ users, communities, isSuperAdmin, adminCo
                 <select
                   value={selectedCommunity[u.id] ?? ''}
                   onChange={(e) => setSelectedCommunity((prev) => ({ ...prev, [u.id]: e.target.value }))}
-                  className="text-sm border border-gray-300 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="text-sm border border-gray-700 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 >
                   <option value="">Wybierz wspólnotę…</option>
                   {communities.map((c) => (
@@ -80,7 +80,7 @@ export default function PendingUsers({ users, communities, isSuperAdmin, adminCo
               <button
                 onClick={() => handleReject(u.id)}
                 disabled={isPending}
-                className="text-sm bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-3 py-1.5 rounded-lg border border-red-200 transition disabled:opacity-50"
+                className="text-sm bg-red-950/30 hover:bg-red-100 text-red-400 font-semibold px-3 py-1.5 rounded-lg border border-red-900 transition disabled:opacity-50"
               >
                 Odrzuć
               </button>

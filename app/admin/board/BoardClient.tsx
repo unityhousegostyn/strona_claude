@@ -115,7 +115,7 @@ export default function BoardClient({ initialPosts, currentUserId, currentRole, 
       {/* Filtr wspólnoty dla super_admin */}
       {isSuperAdmin && communities.length > 0 && (
         <div className="flex items-center gap-3">
-          <label className="text-sm font-medium text-gray-600 whitespace-nowrap">Wspólnota:</label>
+          <label className="text-sm font-medium text-gray-400 whitespace-nowrap">Wspólnota:</label>
           <select
             value={filterCommunity}
             onChange={(e) => setFilterCommunity(e.target.value)}
@@ -130,7 +130,7 @@ export default function BoardClient({ initialPosts, currentUserId, currentRole, 
       )}
 
       {/* Formularz nowego posta */}
-      <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3">
         <textarea
           className="input w-full min-h-[80px] resize-none"
           placeholder="Napisz wiadomość do sąsiadów..."
@@ -139,7 +139,7 @@ export default function BoardClient({ initialPosts, currentUserId, currentRole, 
           maxLength={1000}
         />
         {error && (
-          <p className="text-sm text-red-600">{error}</p>
+          <p className="text-sm text-red-400">{error}</p>
         )}
         <div className="flex items-center justify-between">
           <span className="text-xs text-gray-400">{newContent.length}/1000</span>
@@ -235,19 +235,19 @@ function PostCard({
   const initials = authorName(post.author).charAt(0).toUpperCase()
 
   return (
-    <div className={`bg-white border rounded-xl p-4 space-y-3 ${post.pinned ? 'border-blue-200 bg-blue-50/30' : 'border-gray-200'}`}>
+    <div className={`bg-gray-900 border rounded-xl p-4 space-y-3 ${post.pinned ? 'border-blue-800 bg-blue-950/40/30' : 'border-gray-800'}`}>
       {/* Nagłówek */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 rounded-full bg-blue-900/40 text-blue-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
             {initials}
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-900">{authorName(post.author)}</p>
+            <p className="text-sm font-semibold text-gray-100">{authorName(post.author)}</p>
             <p className="text-xs text-gray-400">
               {new Date(post.created_at).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
               {post.communityName && (
-                <span className="ml-1.5 bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-md font-medium">
+                <span className="ml-1.5 bg-gray-900 text-gray-500 px-1.5 py-0.5 rounded-md font-medium">
                   {post.communityName}
                 </span>
               )}
@@ -262,8 +262,8 @@ function PostCard({
               title={post.pinned ? 'Odepnij' : 'Przypnij'}
               className={`text-xs px-2 py-1 rounded-lg transition disabled:opacity-50 ${
                 post.pinned
-                  ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                  : 'text-gray-400 hover:bg-gray-100'
+                  ? 'bg-blue-900/40 text-blue-400 hover:bg-blue-200'
+                  : 'text-gray-400 hover:bg-gray-900'
               }`}
             >
               📌
@@ -273,7 +273,7 @@ function PostCard({
             <button
               onClick={() => onDelete(post.id)}
               disabled={isPending}
-              className="text-xs text-red-400 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 transition disabled:opacity-50"
+              className="text-xs text-red-400 hover:text-red-400 px-2 py-1 rounded-lg hover:bg-red-950/30 transition disabled:opacity-50"
             >
               Usuń
             </button>
@@ -282,10 +282,10 @@ function PostCard({
       </div>
 
       {/* Treść */}
-      <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">{post.content}</p>
+      <p className="text-sm text-gray-200 whitespace-pre-wrap leading-relaxed">{post.content}</p>
 
       {/* Odpowiedzi toggle */}
-      <div className="pt-1 border-t border-gray-100">
+      <div className="pt-1 border-t border-gray-800">
         <button
           onClick={() => onToggleReplies(post.id)}
           className="text-xs text-blue-600 hover:underline"
@@ -296,26 +296,26 @@ function PostCard({
         </button>
 
         {expanded && (
-          <div className="mt-3 space-y-3 pl-3 border-l-2 border-gray-100">
+          <div className="mt-3 space-y-3 pl-3 border-l-2 border-gray-800">
             {post.replies.map((r) => (
               <div key={r.id} className="flex items-start gap-2">
-                <div className="w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-xs font-bold flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-6 rounded-full bg-gray-900 text-gray-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
                   {authorName(r.author).charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-xs font-semibold text-gray-900">{authorName(r.author)}</span>
+                    <span className="text-xs font-semibold text-gray-100">{authorName(r.author)}</span>
                     <span className="text-xs text-gray-400">
                       {new Date(r.created_at).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-700 mt-0.5">{r.content}</p>
+                  <p className="text-sm text-gray-300 mt-0.5">{r.content}</p>
                 </div>
                 {(r.author_id === currentUserId || isAdminOrAbove) && (
                   <button
                     onClick={() => onDeleteReply(r.id, post.id)}
                     disabled={isPending}
-                    className="text-xs text-red-400 hover:text-red-600 flex-shrink-0 disabled:opacity-50"
+                    className="text-xs text-red-400 hover:text-red-400 flex-shrink-0 disabled:opacity-50"
                   >
                     ✕
                   </button>
@@ -341,7 +341,7 @@ function PostCard({
                 Wyślij
               </button>
             </div>
-            {replyErr && <p className="text-xs text-red-600">{replyErr}</p>}
+            {replyErr && <p className="text-xs text-red-400">{replyErr}</p>}
           </div>
         )}
       </div>

@@ -90,7 +90,7 @@ export default function TicketsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Zgłoszenia</h2>
+        <h2 className="text-2xl font-bold text-gray-100">Zgłoszenia</h2>
         {profile?.role === 'user' && (
           <button
             onClick={() => setShowForm(!showForm)}
@@ -102,18 +102,18 @@ export default function TicketsPage() {
       </div>
 
       {/* Zakładki */}
-      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+      <div className="flex gap-1 bg-gray-900 rounded-xl p-1 w-fit">
         <button
           onClick={() => setTab('open')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
             tab === 'open'
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
+              ? 'bg-gray-900 text-gray-100 shadow-lg shadow-black/30'
+              : 'text-gray-500 hover:text-gray-300'
           }`}
         >
           Aktywne
           {openCount > 0 && (
-            <span className="bg-yellow-100 text-yellow-700 text-xs font-semibold px-1.5 py-0.5 rounded-full">
+            <span className="bg-yellow-900/40 text-yellow-400 text-xs font-semibold px-1.5 py-0.5 rounded-full">
               {openCount}
             </span>
           )}
@@ -122,13 +122,13 @@ export default function TicketsPage() {
           onClick={() => setTab('closed')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
             tab === 'closed'
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
+              ? 'bg-gray-900 text-gray-100 shadow-lg shadow-black/30'
+              : 'text-gray-500 hover:text-gray-300'
           }`}
         >
           Archiwum
           {closedCount > 0 && (
-            <span className="bg-gray-200 text-gray-600 text-xs font-semibold px-1.5 py-0.5 rounded-full">
+            <span className="bg-gray-200 text-gray-400 text-xs font-semibold px-1.5 py-0.5 rounded-full">
               {closedCount}
             </span>
           )}
@@ -137,10 +137,10 @@ export default function TicketsPage() {
 
       {/* Formularz nowego zgłoszenia */}
       {showForm && tab === 'open' && (
-        <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
-          <h3 className="font-semibold text-gray-800">Nowe zgłoszenie</h3>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-3">
+          <h3 className="font-semibold text-gray-200">Nowe zgłoszenie</h3>
           {formError && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2">
+            <div className="bg-red-950/30 border border-red-900 text-red-400 text-sm rounded-lg px-3 py-2">
               {formError}
             </div>
           )}
@@ -157,13 +157,13 @@ export default function TicketsPage() {
             onChange={(e) => setDescription(e.target.value)}
           />
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Załącznik <span className="text-gray-400 font-normal">(opcjonalnie, max 10 MB)</span>
             </label>
             <input
               type="file"
               onChange={(e) => setAttachment(e.target.files?.[0] ?? null)}
-              className="block w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition"
+              className="block w-full text-sm text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-950/40 file:text-blue-400 hover:file:bg-blue-900/40 transition"
             />
             {attachment && (
               <p className="text-xs text-gray-500 mt-1">Wybrany: {attachment.name}</p>
@@ -177,7 +177,7 @@ export default function TicketsPage() {
             >
               {isPending ? 'Wysyłanie...' : 'Wyślij'}
             </button>
-            <button onClick={() => setShowForm(false)} className="text-sm text-gray-500 hover:text-gray-700">
+            <button onClick={() => setShowForm(false)} className="text-sm text-gray-500 hover:text-gray-300">
               Anuluj
             </button>
           </div>
@@ -194,15 +194,15 @@ export default function TicketsPage() {
         {visible.map((t: any) => (
           <div
             key={t.id}
-            className={`bg-white border rounded-xl p-4 flex items-start justify-between gap-4 cursor-pointer transition ${
+            className={`bg-gray-900 border rounded-xl p-4 flex items-start justify-between gap-4 cursor-pointer transition ${
               tab === 'closed'
-                ? 'border-gray-100 opacity-75 hover:opacity-100 hover:border-gray-300'
-                : 'border-gray-200 hover:border-blue-200'
+                ? 'border-gray-800 opacity-75 hover:opacity-100 hover:border-gray-700'
+                : 'border-gray-800 hover:border-blue-700'
             }`}
             onClick={() => router.push(`/admin/tickets/${t.id}`)}
           >
             <div>
-              <p className={`font-semibold ${tab === 'closed' ? 'text-gray-500' : 'text-gray-900'}`}>
+              <p className={`font-semibold ${tab === 'closed' ? 'text-gray-500' : 'text-gray-100'}`}>
                 {t.title}
               </p>
               <p className="text-sm text-gray-500 mt-1 line-clamp-1">{t.description}</p>
@@ -212,7 +212,7 @@ export default function TicketsPage() {
             </div>
             <div className="flex flex-col items-end gap-2 flex-shrink-0">
               <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                t.status === 'open' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+                t.status === 'open' ? 'bg-yellow-900/40 text-yellow-400' : 'bg-green-100 text-green-400'
               }`}>
                 {t.status === 'open' ? 'Otwarte' : 'Zamknięte'}
               </span>

@@ -29,16 +29,16 @@ export default async function AuditPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Audit Log</h2>
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden overflow-x-auto">
+      <h2 className="text-2xl font-bold text-gray-100">Audit Log</h2>
+      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden overflow-x-auto">
         {!logs || logs.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-8">Brak wpisów.</p>
         ) : (
           <ul className="divide-y divide-gray-100">
             {logs.map((log: any) => (
-              <li key={log.id} className="flex items-center gap-4 px-4 py-3 hover:bg-gray-50 transition">
+              <li key={log.id} className="flex items-center gap-4 px-4 py-3 hover:bg-gray-950 transition">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-900">{ACTION_LABELS[log.action] ?? log.action}</p>
+                  <p className="text-sm text-gray-100">{ACTION_LABELS[log.action] ?? log.action}</p>
                   <p className="text-xs text-gray-400 mt-0.5">
                     {log.actor?.full_name ?? log.actor?.email ?? 'system'}
                     {log.meta?.title ? ` — "${log.meta.title}"` : ''}

@@ -63,7 +63,7 @@ export default async function DashboardPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-gray-100">
             Witaj, {profile.full_name?.split(' ')[0] ?? 'Super Admin'} 👋
           </h2>
           <p className="text-sm text-gray-500 mt-1">Widok globalny — wszystkie wspólnoty</p>
@@ -83,7 +83,7 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-semibold text-gray-800">Ostatnie zgłoszenia</h3>
+              <h3 className="text-base font-semibold text-gray-200">Ostatnie zgłoszenia</h3>
               <Link href="/admin/tickets" className="text-sm text-blue-600 hover:underline">Zobacz wszystkie</Link>
             </div>
             <div className="space-y-2">
@@ -91,13 +91,13 @@ export default async function DashboardPage() {
                 ? <p className="text-sm text-gray-400">Brak zgłoszeń.</p>
                 : (recentTickets.data ?? []).map((t: any) => (
                   <Link key={t.id} href={`/admin/tickets/${t.id}`}
-                    className="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-200 transition">
+                    className="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-blue-700 transition">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-800 truncate">{t.title}</p>
+                      <p className="text-sm font-medium text-gray-200 truncate">{t.title}</p>
                       <p className="text-xs text-gray-400 mt-0.5">{commMap[t.community_id] ?? '—'}</p>
                     </div>
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ml-2 flex-shrink-0 ${
-                      t.status === 'open' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+                      t.status === 'open' ? 'bg-yellow-900/40 text-yellow-400' : 'bg-green-100 text-green-400'
                     }`}>{t.status === 'open' ? 'Otwarte' : 'Zamknięte'}</span>
                   </Link>
                 ))
@@ -107,7 +107,7 @@ export default async function DashboardPage() {
 
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-semibold text-gray-800">Ostatnie posty na tablicy</h3>
+              <h3 className="text-base font-semibold text-gray-200">Ostatnie posty na tablicy</h3>
               <Link href="/admin/board" className="text-sm text-blue-600 hover:underline">Tablica</Link>
             </div>
             <div className="space-y-2">
@@ -115,8 +115,8 @@ export default async function DashboardPage() {
                 ? <p className="text-sm text-gray-400">Brak postów.</p>
                 : (recentPosts.data ?? []).map((p: any) => (
                   <Link key={p.id} href="/admin/board"
-                    className="block bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-200 transition">
-                    <p className="text-sm text-gray-800 line-clamp-1">{p.content}</p>
+                    className="block bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-blue-700 transition">
+                    <p className="text-sm text-gray-200 line-clamp-1">{p.content}</p>
                     <p className="text-xs text-gray-400 mt-1">
                       {authorMap[p.author_id] ?? '—'} · {commMap[p.community_id] ?? '—'} · {new Date(p.created_at).toLocaleDateString('pl-PL')}
                     </p>
@@ -168,7 +168,7 @@ export default async function DashboardPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-gray-100">
             Witaj, {profile.full_name?.split(' ')[0] ?? 'Administratorze'} 👋
           </h2>
           <p className="text-sm text-gray-500 mt-1">{community?.name ?? '—'}</p>
@@ -186,7 +186,7 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-semibold text-gray-800">Otwarte zgłoszenia</h3>
+              <h3 className="text-base font-semibold text-gray-200">Otwarte zgłoszenia</h3>
               <Link href="/admin/tickets" className="text-sm text-blue-600 hover:underline">Zobacz wszystkie</Link>
             </div>
             {(openTickets.data ?? []).length === 0
@@ -194,9 +194,9 @@ export default async function DashboardPage() {
               : <div className="space-y-2">
                   {(openTickets.data ?? []).map((t: any) => (
                     <Link key={t.id} href={`/admin/tickets/${t.id}`}
-                      className="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-200 transition">
-                      <p className="text-sm font-medium text-gray-800 truncate">{t.title}</p>
-                      <span className="text-xs text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full ml-2 flex-shrink-0">Otwarte</span>
+                      className="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-blue-700 transition">
+                      <p className="text-sm font-medium text-gray-200 truncate">{t.title}</p>
+                      <span className="text-xs text-yellow-400 bg-yellow-950/30 px-2 py-0.5 rounded-full ml-2 flex-shrink-0">Otwarte</span>
                     </Link>
                   ))}
                 </div>
@@ -205,7 +205,7 @@ export default async function DashboardPage() {
 
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-semibold text-gray-800">Ostatnie posty na tablicy</h3>
+              <h3 className="text-base font-semibold text-gray-200">Ostatnie posty na tablicy</h3>
               <Link href="/admin/board" className="text-sm text-blue-600 hover:underline">Tablica</Link>
             </div>
             {(recentBoardPosts.data ?? []).length === 0
@@ -213,8 +213,8 @@ export default async function DashboardPage() {
               : <div className="space-y-2">
                   {(recentBoardPosts.data ?? []).map((p: any) => (
                     <Link key={p.id} href="/admin/board"
-                      className="block bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-200 transition">
-                      <p className="text-sm text-gray-800 line-clamp-1">{p.content}</p>
+                      className="block bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-blue-700 transition">
+                      <p className="text-sm text-gray-200 line-clamp-1">{p.content}</p>
                       <p className="text-xs text-gray-400 mt-1">
                         {authorMap[p.author_id] ?? '—'} · {new Date(p.created_at).toLocaleDateString('pl-PL')}
                       </p>
@@ -227,7 +227,7 @@ export default async function DashboardPage() {
 
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-gray-800">Ostatnie ogłoszenia</h3>
+            <h3 className="text-base font-semibold text-gray-200">Ostatnie ogłoszenia</h3>
             <Link href="/admin/announcements/add" className="text-sm text-blue-600 hover:underline">+ Dodaj</Link>
           </div>
           <AnnouncementList announcements={recentAnnouncements.data ?? []} />
@@ -272,15 +272,15 @@ export default async function DashboardPage() {
         </h2>
         <p className="text-blue-100 mt-1 text-sm">{community?.name ?? '—'} · {community?.address ?? ''}</p>
         <div className="flex gap-3 mt-4 flex-wrap">
-          <div className="bg-white/20 rounded-xl px-4 py-2 text-center">
+          <div className="bg-gray-900/20 rounded-xl px-4 py-2 text-center">
             <p className="text-xl font-bold">{unreadCount}</p>
             <p className="text-xs text-blue-100">Nowe ogłoszenia</p>
           </div>
-          <div className="bg-white/20 rounded-xl px-4 py-2 text-center">
+          <div className="bg-gray-900/20 rounded-xl px-4 py-2 text-center">
             <p className="text-xl font-bold">{openCount}</p>
             <p className="text-xs text-blue-100">Otwarte zgłoszenia</p>
           </div>
-          <div className="bg-white/20 rounded-xl px-4 py-2 text-center">
+          <div className="bg-gray-900/20 rounded-xl px-4 py-2 text-center">
             <p className="text-xl font-bold">{(boardPosts.data ?? []).length}</p>
             <p className="text-xs text-blue-100">Nowe posty</p>
           </div>
@@ -301,7 +301,7 @@ export default async function DashboardPage() {
         {/* Ostatnie ogłoszenia */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-gray-800">Ostatnie ogłoszenia</h3>
+            <h3 className="text-base font-semibold text-gray-200">Ostatnie ogłoszenia</h3>
             <Link href="/admin/announcements" className="text-sm text-blue-600 hover:underline">Zobacz wszystkie</Link>
           </div>
           {(announcements.data ?? []).length === 0
@@ -309,8 +309,8 @@ export default async function DashboardPage() {
             : <div className="space-y-2">
                 {(announcements.data ?? []).map((a: any) => (
                   <Link key={a.id} href={`/admin/announcements/${a.id}`}
-                    className="block bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-200 transition">
-                    <p className="text-sm font-medium text-gray-800 truncate">{a.title}</p>
+                    className="block bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-blue-700 transition">
+                    <p className="text-sm font-medium text-gray-200 truncate">{a.title}</p>
                     <p className="text-xs text-gray-400 mt-0.5">{new Date(a.created_at).toLocaleDateString('pl-PL')}</p>
                   </Link>
                 ))}
@@ -321,19 +321,19 @@ export default async function DashboardPage() {
         {/* Tablica — ostatnie posty */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-gray-800">Tablica sąsiedzka</h3>
+            <h3 className="text-base font-semibold text-gray-200">Tablica sąsiedzka</h3>
             <Link href="/admin/board" className="text-sm text-blue-600 hover:underline">Przejdź</Link>
           </div>
           {(boardPosts.data ?? []).length === 0
-            ? <div className="bg-white border border-dashed border-gray-200 rounded-xl p-5 text-center">
+            ? <div className="bg-gray-900 border border-dashed border-gray-800 rounded-xl p-5 text-center">
                 <p className="text-sm text-gray-400 mb-2">Tablica jest pusta.</p>
                 <Link href="/admin/board" className="text-sm text-blue-600 hover:underline">Napisz pierwszą wiadomość →</Link>
               </div>
             : <div className="space-y-2">
                 {(boardPosts.data ?? []).map((p: any) => (
                   <Link key={p.id} href="/admin/board"
-                    className="block bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-200 transition">
-                    <p className="text-sm text-gray-800 line-clamp-1">{p.content}</p>
+                    className="block bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-blue-700 transition">
+                    <p className="text-sm text-gray-200 line-clamp-1">{p.content}</p>
                     <p className="text-xs text-gray-400 mt-1">
                       {authorMap[p.author_id] ?? '—'} · {new Date(p.created_at).toLocaleDateString('pl-PL')}
                     </p>
@@ -347,21 +347,21 @@ export default async function DashboardPage() {
       {/* Moje zgłoszenia */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-base font-semibold text-gray-800">Moje zgłoszenia</h3>
+          <h3 className="text-base font-semibold text-gray-200">Moje zgłoszenia</h3>
           <Link href="/admin/tickets" className="text-sm text-blue-600 hover:underline">Nowe zgłoszenie</Link>
         </div>
         {(myTickets.data ?? []).length === 0
-          ? <div className="bg-white border border-dashed border-gray-200 rounded-xl p-6 text-center">
+          ? <div className="bg-gray-900 border border-dashed border-gray-800 rounded-xl p-6 text-center">
               <p className="text-sm text-gray-400 mb-3">Nie masz jeszcze żadnych zgłoszeń.</p>
               <Link href="/admin/tickets" className="text-sm text-blue-600 font-medium hover:underline">Zgłoś problem →</Link>
             </div>
           : <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {(myTickets.data ?? []).map((t: any) => (
                 <Link key={t.id} href={`/admin/tickets/${t.id}`}
-                  className="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-200 transition">
-                  <p className="text-sm font-medium text-gray-800 truncate">{t.title}</p>
+                  className="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-blue-700 transition">
+                  <p className="text-sm font-medium text-gray-200 truncate">{t.title}</p>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ml-2 flex-shrink-0 ${
-                    t.status === 'open' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+                    t.status === 'open' ? 'bg-yellow-900/40 text-yellow-400' : 'bg-green-100 text-green-400'
                   }`}>{t.status === 'open' ? 'Otwarte' : 'Zamknięte'}</span>
                 </Link>
               ))}
@@ -373,7 +373,7 @@ export default async function DashboardPage() {
       {(docs.data ?? []).length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-gray-800">Ostatnie dokumenty</h3>
+            <h3 className="text-base font-semibold text-gray-200">Ostatnie dokumenty</h3>
             <Link href="/admin/documents" className="text-sm text-blue-600 hover:underline">Zobacz wszystkie</Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -381,9 +381,9 @@ export default async function DashboardPage() {
               const ext = d.name.split('.').pop()?.toLowerCase()
               const icon = ext === 'pdf' ? '📄' : ['doc','docx'].includes(ext) ? '📝' : ['xls','xlsx'].includes(ext) ? '📊' : '📁'
               return (
-                <div key={d.id} className="bg-white border border-gray-200 rounded-xl p-4 text-center hover:border-blue-200 transition">
+                <div key={d.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center hover:border-blue-700 transition">
                   <p className="text-3xl mb-2">{icon}</p>
-                  <p className="text-xs font-medium text-gray-700 truncate">{d.name}</p>
+                  <p className="text-xs font-medium text-gray-300 truncate">{d.name}</p>
                   <p className="text-xs text-gray-400 mt-1">{new Date(d.created_at).toLocaleDateString('pl-PL')}</p>
                 </div>
               )
@@ -400,12 +400,12 @@ export default async function DashboardPage() {
 function StatCard({ label, value, icon, href, color }: {
   label: string; value: number; icon: string; href: string; color?: string
 }) {
-  const colorMap: Record<string, string> = { yellow: 'text-yellow-600', red: 'text-red-600' }
+  const colorMap: Record<string, string> = { yellow: 'text-yellow-400', red: 'text-red-400' }
   return (
-    <Link href={href} className="bg-white border border-gray-200 rounded-xl p-4 flex items-center gap-3 hover:border-blue-200 transition">
+    <Link href={href} className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-3 hover:border-blue-700 transition">
       <span className="text-2xl">{icon}</span>
       <div>
-        <p className={`text-xl font-bold ${colorMap[color ?? ''] ?? 'text-gray-900'}`}>{value}</p>
+        <p className={`text-xl font-bold ${colorMap[color ?? ''] ?? 'text-gray-100'}`}>{value}</p>
         <p className="text-xs text-gray-500">{label}</p>
       </div>
     </Link>
@@ -416,16 +416,16 @@ function QuickAction({ href, icon, label, badge, badgeColor }: {
   href: string; icon: string; label: string; badge?: string; badgeColor?: string
 }) {
   const badgeColors: Record<string, string> = {
-    blue: 'bg-blue-100 text-blue-700',
-    yellow: 'bg-yellow-100 text-yellow-700',
+    blue: 'bg-blue-900/40 text-blue-400',
+    yellow: 'bg-yellow-900/40 text-yellow-400',
   }
   return (
     <Link href={href}
-      className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col items-center gap-2 hover:border-blue-300 hover:bg-blue-50 transition text-center">
+      className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col items-center gap-2 hover:border-blue-600 hover:bg-blue-950/40 transition text-center">
       <span className="text-2xl">{icon}</span>
-      <span className="text-xs font-semibold text-gray-700">{label}</span>
+      <span className="text-xs font-semibold text-gray-300">{label}</span>
       {badge && (
-        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badgeColors[badgeColor ?? ''] ?? 'bg-gray-100 text-gray-600'}`}>
+        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badgeColors[badgeColor ?? ''] ?? 'bg-gray-900 text-gray-400'}`}>
           {badge}
         </span>
       )}
@@ -439,8 +439,8 @@ function AnnouncementList({ announcements }: { announcements: any[] }) {
     <div className="space-y-2">
       {announcements.map((a: any) => (
         <Link key={a.id} href={`/admin/announcements/${a.id}`}
-          className="block bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-200 transition">
-          <p className="text-sm font-medium text-gray-800 truncate">{a.title}</p>
+          className="block bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-blue-700 transition">
+          <p className="text-sm font-medium text-gray-200 truncate">{a.title}</p>
           <p className="text-xs text-gray-400 mt-0.5">{new Date(a.created_at).toLocaleDateString('pl-PL')}</p>
         </Link>
       ))}

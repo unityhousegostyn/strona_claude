@@ -53,41 +53,41 @@ function LoginForm() {
   }
 
   return (
-    <div className="bg-white shadow-md rounded-xl p-8 w-full max-w-sm space-y-5">
-      <h1 className="text-2xl font-bold text-gray-800">Logowanie</h1>
+    <div className="bg-gray-900 shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm space-y-5">
+      <h1 className="text-2xl font-bold text-gray-200">Logowanie</h1>
       <p className="text-sm text-gray-500">Panel zarządzania wspólnotą</p>
 
       {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">
+        <div className="bg-green-950/30 border border-green-900 text-green-400 text-sm rounded-lg px-4 py-3">
           {success}
         </div>
       )}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
+        <div className="bg-red-950/30 border border-red-900 text-red-400 text-sm rounded-lg px-4 py-3">
           {error}
         </div>
       )}
 
       <div className="space-y-3">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="input w-full"
             placeholder="jan@wspolnota.pl"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Hasło</label>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Hasło</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="input w-full"
             placeholder="••••••••"
           />
         </div>
@@ -102,7 +102,7 @@ function LoginForm() {
       </button>
 
       <div className="flex flex-col items-center gap-2 pt-2">
-        <Link href="/reset-password" className="text-sm text-gray-500 hover:text-gray-700 hover:underline">
+        <Link href="/reset-password" className="text-sm text-gray-500 hover:text-gray-300 hover:underline">
           Zapomniałeś hasła?
         </Link>
         <Link href="/register" className="text-sm text-blue-600 hover:underline">
@@ -110,13 +110,13 @@ function LoginForm() {
         </Link>
       </div>
 
-      <div className="border-t border-gray-100 pt-4">
+      <div className="border-t border-gray-800 pt-4">
         <p className="text-xs text-gray-400 text-center leading-relaxed">
           Administratorem danych osobowych jest zarządca wspólnoty mieszkaniowej.
           Dane przetwarzane są w celu obsługi panelu mieszkańca na podstawie art. 6 ust. 1 lit. b RODO.
           Przysługuje Ci prawo dostępu, sprostowania, usunięcia danych oraz wniesienia skargi do UODO.
           Szczegóły w{' '}
-          <Link href="/privacy" className="underline hover:text-gray-600">
+          <Link href="/privacy" className="underline hover:text-gray-400">
             Polityce Prywatności
           </Link>
           .
@@ -128,8 +128,8 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Suspense fallback={<div className="bg-white shadow-md rounded-xl p-8 w-full max-w-sm" />}>
+    <main className="min-h-screen flex items-center justify-center bg-gray-950">
+      <Suspense fallback={<div className="bg-gray-900 shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm" />}>
         <LoginForm />
       </Suspense>
     </main>

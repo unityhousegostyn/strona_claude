@@ -62,10 +62,10 @@ export default async function DocumentsPage() {
   }
 
   const targetLabel = (d: any) => {
-    if (d.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-blue-50 text-blue-700' }
-    if (d.target === 'one') return { text: communityMap[d.community_id] ?? '—', cls: 'bg-gray-100 text-gray-600' }
+    if (d.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-blue-950/40 text-blue-400' }
+    if (d.target === 'one') return { text: communityMap[d.community_id] ?? '—', cls: 'bg-gray-900 text-gray-400' }
     const names = (junctionMap[d.id] ?? []).map((cid) => communityMap[cid] ?? cid)
-    return { text: names.join(', ') || '—', cls: 'bg-purple-50 text-purple-700' }
+    return { text: names.join(', ') || '—', cls: 'bg-purple-950/30 text-purple-400' }
   }
 
   const fileIcon = (name: string) => {
@@ -79,7 +79,7 @@ export default async function DocumentsPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Dokumenty</h2>
+      <h2 className="text-2xl font-bold text-gray-100">Dokumenty</h2>
 
       {canUpload && (
         <DocumentUpload
@@ -89,7 +89,7 @@ export default async function DocumentsPage() {
         />
       )}
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden overflow-x-auto">
+      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden overflow-x-auto">
         {documents.length === 0 ? (
           <p className="text-center text-sm text-gray-400 py-8">Brak dokumentów.</p>
         ) : (
@@ -97,11 +97,11 @@ export default async function DocumentsPage() {
             {documents.map((d: any) => {
               const { text, cls } = targetLabel(d)
               return (
-                <li key={d.id} className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition gap-4">
+                <li key={d.id} className="flex items-center justify-between px-4 py-3 hover:bg-gray-950 transition gap-4">
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="text-xl flex-shrink-0">{fileIcon(d.name)}</span>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-800 truncate">{d.name}</p>
+                      <p className="text-sm font-medium text-gray-200 truncate">{d.name}</p>
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${cls}`}>
                           {text}
@@ -123,7 +123,7 @@ export default async function DocumentsPage() {
                     </a>
                     {canUpload && (
                       <form action={deleteDocument.bind(null, d.id, d.storage_path)}>
-                        <button type="submit" className="text-sm text-red-500 hover:text-red-700">
+                        <button type="submit" className="text-sm text-red-500 hover:text-red-400">
                           Usuń
                         </button>
                       </form>

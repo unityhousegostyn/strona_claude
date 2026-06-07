@@ -1,8 +1,15 @@
 @import "tailwindcss";
 
+@layer base {
+  body {
+    background-color: #030712; /* gray-950 */
+    color: #f3f4f6; /* gray-100 */
+  }
+}
+
 @layer components {
   .input {
-    @apply w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition;
+    @apply w-full bg-gray-800 border border-gray-700 text-gray-100 placeholder-gray-500 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition;
   }
 }
 

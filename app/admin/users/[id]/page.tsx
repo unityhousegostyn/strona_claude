@@ -31,18 +31,18 @@ export default async function UserEditPage({ params }: { params: Promise<{ id: s
   return (
     <div className="max-w-xl space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/admin/users" className="text-sm text-gray-400 hover:text-gray-600">← Użytkownicy</Link>
+        <Link href="/admin/users" className="text-sm text-gray-400 hover:text-gray-400">← Użytkownicy</Link>
       </div>
 
-      <h2 className="text-2xl font-bold text-gray-900">Edytuj użytkownika</h2>
+      <h2 className="text-2xl font-bold text-gray-100">Edytuj użytkownika</h2>
 
-      <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-2">
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-2">
         <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Informacje o koncie</h3>
         <div className="grid grid-cols-2 gap-y-2 text-sm">
           <span className="text-gray-500">Email</span>
-          <span className="text-gray-900 font-medium">{profile.email}</span>
+          <span className="text-gray-100 font-medium">{profile.email}</span>
           <span className="text-gray-500">Status</span>
-          <span className={`font-medium ${profile.status === 'active' ? 'text-green-600' : 'text-yellow-600'}`}>
+          <span className={`font-medium ${profile.status === 'active' ? 'text-green-600' : 'text-yellow-400'}`}>
             {profile.status === 'active' ? 'Aktywny' : 'Oczekujący'}
           </span>
           <span className="text-gray-500">Dołączył</span>

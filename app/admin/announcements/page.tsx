@@ -57,16 +57,16 @@ export default async function AnnouncementsPage() {
   const canEdit = isSuperAdmin || profile.role === 'admin'
 
   const targetLabel = (a: any) => {
-    if (a.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-blue-50 text-blue-700' }
-    if (a.target === 'one') return { text: communityMap[a.community_id] ?? '—', cls: 'bg-gray-100 text-gray-600' }
+    if (a.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-blue-950/40 text-blue-400' }
+    if (a.target === 'one') return { text: communityMap[a.community_id] ?? '—', cls: 'bg-gray-900 text-gray-400' }
     const names = (junctionMap[a.id] ?? []).map((cid) => communityMap[cid] ?? cid)
-    return { text: names.join(', ') || '—', cls: 'bg-purple-50 text-purple-700' }
+    return { text: names.join(', ') || '—', cls: 'bg-purple-950/30 text-purple-400' }
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Ogłoszenia</h2>
+        <h2 className="text-2xl font-bold text-gray-100">Ogłoszenia</h2>
         {canEdit && (
           <Link
             href="/admin/announcements/add"

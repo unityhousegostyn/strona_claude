@@ -56,7 +56,7 @@ export default async function AdminLayout({
 
   return (
     <ToastProvider>
-      <div className="flex min-h-screen bg-gray-100">
+      <div className="flex min-h-screen bg-gray-950">
         <SidebarNav
           profile={profileWithCommunity}
           userEmail={user.email ?? ''}

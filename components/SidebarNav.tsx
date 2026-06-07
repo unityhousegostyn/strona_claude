@@ -51,8 +51,8 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
 
   const NavContent = () => (
     <>
-      <div className="p-5 border-b border-gray-100">
-        <h1 className="text-lg font-bold text-gray-900">🏢 Wspólnoty</h1>
+      <div className="p-5 border-b border-gray-800">
+        <h1 className="text-lg font-bold text-gray-100">🏢 Wspólnoty</h1>
         <p className="text-xs text-gray-400 mt-0.5">Panel zarządzania</p>
       </div>
 
@@ -66,8 +66,8 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
               onClick={() => setMobileOpen(false)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
                 active
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  ? 'bg-blue-950/40 text-blue-400'
+                  : 'text-gray-400 hover:bg-gray-950 hover:text-gray-100'
               }`}
             >
               <span>{item.icon}</span>
@@ -82,23 +82,23 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-100 space-y-1">
+      <div className="p-4 border-t border-gray-800 space-y-1">
         <Link
           href="/admin/profile"
           onClick={() => setMobileOpen(false)}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-950 transition"
         >
-          <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center flex-shrink-0">
+          <div className="w-7 h-7 rounded-full bg-blue-900/40 text-blue-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
             {(profile.full_name ?? userEmail).charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-gray-900 truncate">{profile.full_name ?? userEmail}</p>
+            <p className="text-xs font-medium text-gray-100 truncate">{profile.full_name ?? userEmail}</p>
             <p className="text-xs text-gray-400">{roleLabel[profile.role]}</p>
           </div>
         </Link>
         <button
           onClick={handleLogout}
-          className="w-full text-left text-sm text-red-600 hover:text-red-700 font-medium px-3 py-2 rounded-lg hover:bg-red-50 transition"
+          className="w-full text-left text-sm text-red-400 hover:text-red-400 font-medium px-3 py-2 rounded-lg hover:bg-red-950/30 transition"
         >
           Wyloguj się
         </button>
@@ -109,11 +109,11 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
   return (
     <>
       {/* Mobile top bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-white border-b border-gray-200 flex items-center justify-between px-4 h-14">
-        <h1 className="text-base font-bold text-gray-900">🏢 Wspólnoty</h1>
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-4 h-14">
+        <h1 className="text-base font-bold text-gray-100">🏢 Wspólnoty</h1>
         <button
           onClick={() => setMobileOpen(true)}
-          className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition"
+          className="p-2 rounded-lg text-gray-400 hover:bg-gray-900 transition"
           aria-label="Otwórz menu"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,14 +135,14 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
 
       {/* Mobile drawer */}
       <aside className={`
-        lg:hidden fixed top-0 left-0 z-50 h-full w-72 bg-white shadow-xl flex flex-col transition-transform duration-300
+        lg:hidden fixed top-0 left-0 z-50 h-full w-72 bg-gray-900 shadow-2xl shadow-black/60 flex flex-col transition-transform duration-300
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="flex items-center justify-between p-4 border-b border-gray-100">
-          <h1 className="text-lg font-bold text-gray-900">🏢 Wspólnoty</h1>
+        <div className="flex items-center justify-between p-4 border-b border-gray-800">
+          <h1 className="text-lg font-bold text-gray-100">🏢 Wspólnoty</h1>
           <button
             onClick={() => setMobileOpen(false)}
-            className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition"
+            className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-900 transition"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -158,7 +158,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
-                  active ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'
+                  active ? 'bg-blue-950/40 text-blue-400' : 'text-gray-400 hover:bg-gray-950'
                 }`}
               >
                 <span>{item.icon}</span>
@@ -172,23 +172,23 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
             )
           })}
         </nav>
-        <div className="p-4 border-t border-gray-100 space-y-1">
+        <div className="p-4 border-t border-gray-800 space-y-1">
           <Link
             href="/admin/profile"
             onClick={() => setMobileOpen(false)}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-950 transition"
           >
-            <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center flex-shrink-0">
+            <div className="w-7 h-7 rounded-full bg-blue-900/40 text-blue-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
               {(profile.full_name ?? userEmail).charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-medium text-gray-900 truncate">{profile.full_name ?? userEmail}</p>
+              <p className="text-xs font-medium text-gray-100 truncate">{profile.full_name ?? userEmail}</p>
               <p className="text-xs text-gray-400">{roleLabel[profile.role]}</p>
             </div>
           </Link>
           <button
             onClick={handleLogout}
-            className="w-full text-left text-sm text-red-600 font-medium px-3 py-2 rounded-lg hover:bg-red-50 transition"
+            className="w-full text-left text-sm text-red-400 font-medium px-3 py-2 rounded-lg hover:bg-red-950/30 transition"
           >
             Wyloguj się
           </button>
@@ -196,7 +196,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
       </aside>
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-64 bg-white border-r border-gray-200 flex-col shrink-0">
+      <aside className="hidden lg:flex w-64 bg-gray-900 border-r border-gray-800 flex-col shrink-0">
         <NavContent />
       </aside>
     </>

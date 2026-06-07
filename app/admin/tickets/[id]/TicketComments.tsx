@@ -57,15 +57,15 @@ export default function TicketComments({ ticketId, comments: initial, currentUse
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-base font-semibold text-gray-800">Komentarze ({comments.length})</h3>
+        <h3 className="text-base font-semibold text-gray-200">Komentarze ({comments.length})</h3>
         {canChangeStatus && (
           <button
             onClick={handleToggleStatus}
             disabled={isPending}
             className={`text-sm font-medium px-3 py-1.5 rounded-lg border transition disabled:opacity-50 ${
               status === 'open'
-                ? 'border-green-200 text-green-700 hover:bg-green-50'
-                : 'border-yellow-200 text-yellow-700 hover:bg-yellow-50'
+                ? 'border-green-900 text-green-400 hover:bg-green-950/30'
+                : 'border-yellow-900 text-yellow-400 hover:bg-yellow-950/30'
             }`}
           >
             {status === 'open' ? 'Zamknij zgłoszenie' : 'Otwórz ponownie'}
@@ -82,12 +82,12 @@ export default function TicketComments({ ticketId, comments: initial, currentUse
           const isOwn = c.author_id === currentUserId
           return (
             <div key={c.id} className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : ''}`}>
-              <div className="w-7 h-7 rounded-full bg-gray-200 text-gray-600 text-xs font-bold flex items-center justify-center flex-shrink-0">
+              <div className="w-7 h-7 rounded-full bg-gray-200 text-gray-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
                 {(c.author?.full_name ?? c.author?.email ?? '?').charAt(0).toUpperCase()}
               </div>
               <div className={`max-w-[75%] ${isOwn ? 'items-end' : 'items-start'} flex flex-col gap-0.5`}>
                 <div className={`rounded-xl px-4 py-2.5 text-sm ${
-                  isOwn ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-gray-800'
+                  isOwn ? 'bg-blue-600 text-white' : 'bg-gray-900 border border-gray-800 text-gray-200'
                 }`}>
                   {c.content}
                 </div>

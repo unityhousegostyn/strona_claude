@@ -60,16 +60,16 @@ export default function DocumentUpload({ isSuperAdmin, adminCommunityId, communi
           + Dodaj dokument
         </button>
       ) : (
-        <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
-          <h3 className="font-semibold text-gray-800 text-sm">Nowy dokument</h3>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
+          <h3 className="font-semibold text-gray-200 text-sm">Nowy dokument</h3>
 
           {error && (
-            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
+            <p className="text-sm text-red-400 bg-red-950/30 border border-red-900 rounded-lg px-3 py-2">{error}</p>
           )}
 
           {isSuperAdmin && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Zasięg</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Zasięg</label>
               <div className="flex gap-2 flex-wrap">
                 {([
                   { value: 'all', label: '🌐 Wszystkie' },
@@ -83,7 +83,7 @@ export default function DocumentUpload({ isSuperAdmin, adminCommunityId, communi
                     className={`text-sm px-3 py-1.5 rounded-lg border font-medium transition ${
                       target === opt.value
                         ? 'bg-blue-600 border-blue-600 text-white'
-                        : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                        : 'border-gray-800 text-gray-400 hover:bg-gray-950'
                     }`}
                   >
                     {opt.label}
@@ -95,11 +95,11 @@ export default function DocumentUpload({ isSuperAdmin, adminCommunityId, communi
 
           {isSuperAdmin && target === 'one' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Wspólnota</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Wspólnota</label>
               <select
                 value={communityId}
                 onChange={(e) => setCommunityId(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
               >
                 <option value="">Wybierz wspólnotę…</option>
                 {communities.map((c) => (
@@ -111,15 +111,15 @@ export default function DocumentUpload({ isSuperAdmin, adminCommunityId, communi
 
           {isSuperAdmin && target === 'selected' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Wybierz wspólnoty</label>
-              <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3">
+              <label className="block text-sm font-medium text-gray-300 mb-1">Wybierz wspólnoty</label>
+              <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-800 rounded-lg p-3">
                 {communities.map((c) => (
-                  <label key={c.id} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+                  <label key={c.id} className="flex items-center gap-2 cursor-pointer text-sm text-gray-300">
                     <input
                       type="checkbox"
                       checked={selectedIds.includes(c.id)}
                       onChange={() => toggleCommunity(c.id)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="rounded border-gray-700 text-blue-600 focus:ring-blue-400"
                     />
                     {c.name}
                   </label>
@@ -138,7 +138,7 @@ export default function DocumentUpload({ isSuperAdmin, adminCommunityId, communi
             </button>
             <button
               onClick={() => { setShowPanel(false); setError(null) }}
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm text-gray-500 hover:text-gray-300"
             >
               Anuluj
             </button>

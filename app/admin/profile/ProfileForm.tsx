@@ -39,7 +39,7 @@ export default function ProfileForm({ fullName }: { fullName: string }) {
   return (
     <>
       {/* Zmiana imienia */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
         <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Imię i nazwisko</h3>
         <input
           className="input"
@@ -57,7 +57,7 @@ export default function ProfileForm({ fullName }: { fullName: string }) {
       </div>
 
       {/* Zmiana hasła */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
         <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Zmień hasło</h3>
         <div className="space-y-3">
           <input

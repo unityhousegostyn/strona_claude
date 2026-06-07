@@ -63,17 +63,17 @@ export default function EditCommunityPage() {
 
   return (
     <div className="max-w-xl space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Edytuj wspólnotę</h2>
+      <h2 className="text-2xl font-bold text-gray-100">Edytuj wspólnotę</h2>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
+        <div className="bg-red-950/30 border border-red-900 text-red-400 text-sm rounded-lg px-4 py-3">
           {error}
         </div>
       )}
 
-      <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Nazwa wspólnoty</label>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Nazwa wspólnoty</label>
           <input
             className="input"
             value={name}
@@ -81,7 +81,7 @@ export default function EditCommunityPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Adres</label>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Adres</label>
           <input
             className="input"
             value={address}
@@ -101,7 +101,7 @@ export default function EditCommunityPage() {
           </button>
           <button
             onClick={() => router.back()}
-            className="text-sm text-gray-600 hover:text-gray-900 px-5 py-2.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
+            className="text-sm text-gray-400 hover:text-gray-100 px-5 py-2.5 rounded-lg border border-gray-800 hover:bg-gray-950 transition"
           >
             Anuluj
           </button>
@@ -109,7 +109,7 @@ export default function EditCommunityPage() {
         <button
           onClick={handleDelete}
           disabled={deleting}
-          className="text-sm text-red-600 hover:text-red-700 font-medium px-5 py-2.5 rounded-lg border border-red-200 hover:bg-red-50 transition disabled:opacity-50"
+          className="text-sm text-red-400 hover:text-red-400 font-medium px-5 py-2.5 rounded-lg border border-red-900 hover:bg-red-950/30 transition disabled:opacity-50"
         >
           {deleting ? 'Usuwanie...' : 'Usuń wspólnotę'}
         </button>

@@ -46,14 +46,14 @@ export default async function UsersPage() {
   }
 
   const roleBadge: Record<string, string> = {
-    super_admin: 'bg-purple-100 text-purple-700',
-    admin: 'bg-blue-100 text-blue-700',
-    user: 'bg-gray-100 text-gray-600',
+    super_admin: 'bg-purple-100 text-purple-400',
+    admin: 'bg-blue-900/40 text-blue-400',
+    user: 'bg-gray-900 text-gray-400',
   }
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Użytkownicy</h2>
+      <h2 className="text-2xl font-bold text-gray-100">Użytkownicy</h2>
 
       <PendingUsers
         users={pendingUsers ?? []}
@@ -62,21 +62,21 @@ export default async function UsersPage() {
         adminCommunityId={profile.community_id}
       />
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden overflow-x-auto">
+      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-gray-950 border-b border-gray-800">
             <tr>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Imię i nazwisko</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Rola</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Wspólnota</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Dołączył</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-400">Imię i nazwisko</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-400">Rola</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-400">Wspólnota</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-400">Dołączył</th>
               {isSuperAdmin && <th className="px-4 py-3"></th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {(activeUsers ?? []).map((u: any) => (
-              <tr key={u.id} className="hover:bg-gray-50 transition">
-                <td className="px-4 py-3 font-medium text-gray-900">
+              <tr key={u.id} className="hover:bg-gray-950 transition">
+                <td className="px-4 py-3 font-medium text-gray-100">
                   {u.full_name ?? <span className="text-gray-400 italic">Brak nazwy</span>}
                 </td>
                 <td className="px-4 py-3">
@@ -84,7 +84,7 @@ export default async function UsersPage() {
                     {roleLabel[u.role]}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-gray-700">{u.community?.name ?? '—'}</td>
+                <td className="px-4 py-3 text-gray-300">{u.community?.name ?? '—'}</td>
                 <td className="px-4 py-3 text-gray-400">
                   {new Date(u.created_at).toLocaleDateString('pl-PL')}
                 </td>

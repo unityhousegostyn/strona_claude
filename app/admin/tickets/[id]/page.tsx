@@ -76,13 +76,13 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
   return (
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/admin/tickets" className="text-sm text-gray-400 hover:text-gray-600">← Zgłoszenia</Link>
+        <Link href="/admin/tickets" className="text-sm text-gray-400 hover:text-gray-400">← Zgłoszenia</Link>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-3">
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-3">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">{ticket.title}</h2>
+            <h2 className="text-xl font-bold text-gray-100">{ticket.title}</h2>
             <p className="text-sm text-gray-400 mt-1">
               {author?.full_name ?? author?.email ?? '—'} ·{' '}
               {community?.name ?? '—'} ·{' '}
@@ -90,18 +90,18 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
             </p>
           </div>
           <span className={`text-xs font-medium px-2.5 py-1 rounded-full flex-shrink-0 ${
-            ticket.status === 'open' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+            ticket.status === 'open' ? 'bg-yellow-900/40 text-yellow-400' : 'bg-green-100 text-green-400'
           }`}>
             {ticket.status === 'open' ? 'Otwarte' : 'Zamknięte'}
           </span>
         </div>
-        <p className="text-sm text-gray-700 whitespace-pre-wrap">{ticket.description}</p>
+        <p className="text-sm text-gray-300 whitespace-pre-wrap">{ticket.description}</p>
         {attachmentUrl && (
           <a
             href={attachmentUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline bg-blue-50 px-3 py-1.5 rounded-lg"
+            className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline bg-blue-950/40 px-3 py-1.5 rounded-lg"
           >
             📎 {attachmentName}
           </a>

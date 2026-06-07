@@ -55,10 +55,10 @@ export default function AnnouncementsList({ announcements, communityMap, junctio
   }
 
   const targetLabel = (a: Announcement) => {
-    if (a.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-blue-50 text-blue-700' }
-    if (a.target === 'one') return { text: communityMap[a.community_id!] ?? '—', cls: 'bg-gray-100 text-gray-600' }
+    if (a.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-blue-950/40 text-blue-400' }
+    if (a.target === 'one') return { text: communityMap[a.community_id!] ?? '—', cls: 'bg-gray-900 text-gray-400' }
     const names = (junctionMap[a.id] ?? []).map((cid) => communityMap[cid] ?? cid)
-    return { text: names.join(', ') || '—', cls: 'bg-purple-50 text-purple-700' }
+    return { text: names.join(', ') || '—', cls: 'bg-purple-950/30 text-purple-400' }
   }
 
   const activeCount = announcements.filter(isActive).length
@@ -67,11 +67,11 @@ export default function AnnouncementsList({ announcements, communityMap, junctio
   return (
     <div className="space-y-4">
       {/* Zakładki */}
-      <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
+      <div className="flex gap-1 bg-gray-900 rounded-lg p-1 w-fit">
         <button
           onClick={() => handleTabChange('active')}
           className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${
-            tab === 'active' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            tab === 'active' ? 'bg-gray-900 text-gray-100 shadow-lg shadow-black/30' : 'text-gray-500 hover:text-gray-300'
           }`}
         >
           Aktywne <span className="ml-1 text-xs text-blue-600 font-semibold">{activeCount}</span>
@@ -79,7 +79,7 @@ export default function AnnouncementsList({ announcements, communityMap, junctio
         <button
           onClick={() => handleTabChange('archive')}
           className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${
-            tab === 'archive' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            tab === 'archive' ? 'bg-gray-900 text-gray-100 shadow-lg shadow-black/30' : 'text-gray-500 hover:text-gray-300'
           }`}
         >
           Archiwum <span className="ml-1 text-xs text-gray-400 font-semibold">{archiveCount}</span>
@@ -104,15 +104,15 @@ export default function AnnouncementsList({ announcements, communityMap, junctio
           {paged.map((a) => {
             const { text, cls } = targetLabel(a)
             return (
-              <div key={a.id} className={`bg-white border rounded-xl p-4 ${tab === 'archive' ? 'opacity-70' : 'border-gray-200'}`}>
+              <div key={a.id} className={`bg-gray-900 border rounded-xl p-4 ${tab === 'archive' ? 'opacity-70' : 'border-gray-800'}`}>
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900">{a.title}</p>
+                    <p className="font-semibold text-gray-100">{a.title}</p>
                     <p className="text-sm text-gray-500 mt-1 line-clamp-2">{a.content}</p>
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${cls}`}>{text}</span>
                       {tab === 'archive' && (
-                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Archiwalne</span>
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-900 text-gray-500">Archiwalne</span>
                       )}
                       <span className="text-xs text-gray-400">{new Date(a.created_at).toLocaleDateString('pl-PL')}</span>
                       {a.end_date && (
@@ -140,7 +140,7 @@ export default function AnnouncementsList({ announcements, communityMap, junctio
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 transition"
+            className="px-3 py-1.5 text-sm border border-gray-800 rounded-lg hover:bg-gray-950 disabled:opacity-40 transition"
           >
             ← Poprzednia
           </button>
@@ -150,7 +150,7 @@ export default function AnnouncementsList({ announcements, communityMap, junctio
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 transition"
+            className="px-3 py-1.5 text-sm border border-gray-800 rounded-lg hover:bg-gray-950 disabled:opacity-40 transition"
           >
             Następna →
           </button>

@@ -55,7 +55,7 @@ export default function SearchAndPaginate<T extends { id: string }>({
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 transition"
+            className="px-3 py-1.5 text-sm border border-gray-800 rounded-lg hover:bg-gray-950 disabled:opacity-40 transition"
           >
             ← Poprzednia
           </button>
@@ -63,7 +63,7 @@ export default function SearchAndPaginate<T extends { id: string }>({
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 transition"
+            className="px-3 py-1.5 text-sm border border-gray-800 rounded-lg hover:bg-gray-950 disabled:opacity-40 transition"
           >
             Następna →
           </button>
