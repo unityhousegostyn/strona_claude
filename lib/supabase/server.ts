@@ -1,17 +1,41 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
-export function getSupabaseServerClient() {
+// Klient z sesją użytkownika (do auth checks w pages/layouts)
+export async function getSupabaseServerClient() {
+  const cookieStore = await cookies()
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!, // używamy service role key
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get() {
-          return undefined;
+        getAll() {
+          return cookieStore.getAll()
         },
-        set() {},
-        remove() {},
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // Server Component — nie można ustawiać cookies
+          }
+        },
       },
     }
-  );
+  )
+}
+
+// Klient admina (service role) — tylko do operacji admin (np. tworzenie użytkowników)
+export function getSupabaseAdminClient() {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      cookies: {
+        getAll() { return [] },
+        setAll() {},
+      },
+    }
+  )
 }

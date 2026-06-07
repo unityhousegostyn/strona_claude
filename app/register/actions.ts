@@ -1,6 +1,6 @@
 "use server";
 
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getSupabaseAdminClient } from "@/lib/supabase/server";
 import { RegisterSchema } from "./schema";
 
 export async function registerUser(formData: FormData) {
@@ -23,7 +23,7 @@ export async function registerUser(formData: FormData) {
   const { email, password, full_name } = parsed.data;
 
   // 2️⃣ Supabase (service role key)
-  const supabase = getSupabaseServerClient();
+  const supabase = getSupabaseAdminClient();
 
   // 3️⃣ Tworzenie użytkownika w Supabase Auth (admin)
   const { data, error } = await supabase.auth.admin.createUser({
