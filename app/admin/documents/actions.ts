@@ -19,55 +19,58 @@ async function requireUploader() {
   return { user, profile }
 }
 
-export async function saveDocument(data: {
-  name: string
-  storage_path: string
-  target: 'all' | 'one' | 'selected'
-  community_id: string | null
-  community_ids: string[]
-}) {
+export async function uploadDocument(formData: FormData) {
   const { user, profile } = await requireUploader()
 
-  // Walidacja wejścia
-  const name = data.name?.trim()
-  if (!name || name.length < 1 || name.length > 200) throw new Error('Nazwa pliku musi mieć 1–200 znaków')
-  if (!['all', 'one', 'selected'].includes(data.target)) throw new Error('Nieprawidłowy cel dokumentu')
-  if (!data.storage_path || data.storage_path.includes('..') || data.storage_path.length > 500) {
-    throw new Error('Nieprawidłowa ścieżka pliku')
-  }
+  const file = formData.get('file') as File | null
+  if (!file || file.size === 0) throw new Error('Brak pliku')
+  if (file.size > 20 * 1024 * 1024) throw new Error('Plik może mieć maksymalnie 20 MB')
+
+  const target = formData.get('target') as string
+  const community_id = formData.get('community_id') as string | null
+  const community_ids = formData.getAll('community_ids') as string[]
+
+  if (!['all', 'one', 'selected'].includes(target)) throw new Error('Nieprawidłowy cel dokumentu')
+
+  const name = file.name.trim()
+  if (!name || name.length > 200) throw new Error('Nazwa pliku musi mieć 1–200 znaków')
 
   // Admin może dodawać dokumenty tylko do swojej wspólnoty
   if (profile.role === 'admin') {
-    if (data.target !== 'one' || data.community_id !== profile.community_id) {
+    if (target !== 'one' || community_id !== profile.community_id) {
       throw new Error('Admin może dodawać dokumenty tylko do swojej wspólnoty')
     }
   }
 
   const admin = getSupabaseAdminClient()
 
+  // Upload pliku przez admin client — omija RLS
+  const storagePath = `${crypto.randomUUID()}/${name}`
+  const arrayBuffer = await file.arrayBuffer()
+  const { error: uploadError } = await admin.storage
+    .from('documents')
+    .upload(storagePath, arrayBuffer, { contentType: file.type, upsert: false })
+
+  if (uploadError) throw new Error('Błąd uploadu: ' + uploadError.message)
+
   const { data: doc, error } = await admin
     .from('documents')
     .insert({
-      name: data.name,
-      storage_path: data.storage_path,
-      target: data.target,
-      community_id: data.target === 'one' ? data.community_id : null,
+      name,
+      storage_path: storagePath,
+      target,
+      community_id: target === 'one' ? community_id : null,
       created_by: user.id,
     })
     .select('id')
     .single()
 
   if (error) throw new Error(error.message)
-  await logActivity({ userId: user.id, action: 'upload_document', targetType: 'document', targetId: doc.id, meta: { name: data.name, target: data.target } })
+  await logActivity({ userId: user.id, action: 'upload_document', targetType: 'document', targetId: doc.id, meta: { name, target } })
 
-  if (data.target === 'selected' && data.community_ids.length > 0) {
-    const rows = data.community_ids.map((cid) => ({
-      document_id: doc.id,
-      community_id: cid,
-    }))
-    const { error: junctionError } = await admin
-      .from('document_communities')
-      .insert(rows)
+  if (target === 'selected' && community_ids.length > 0) {
+    const rows = community_ids.map((cid) => ({ document_id: doc.id, community_id: cid }))
+    const { error: junctionError } = await admin.from('document_communities').insert(rows)
     if (junctionError) throw new Error(junctionError.message)
   }
 

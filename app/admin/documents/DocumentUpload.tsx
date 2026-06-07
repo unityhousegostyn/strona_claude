@@ -1,15 +1,11 @@
 'use client'
 
 import { useRef, useState, useTransition } from 'react'
-import { getSupabaseBrowserClient } from '@/lib/supabase/browser'
-import { saveDocument } from './actions'
+import { uploadDocument } from './actions'
 
 type Target = 'all' | 'one' | 'selected'
 
-interface Community {
-  id: string
-  name: string
-}
+interface Community { id: string; name: string }
 
 interface Props {
   isSuperAdmin: boolean
@@ -37,31 +33,19 @@ export default function DocumentUpload({ isSuperAdmin, adminCommunityId, communi
     if (target === 'one' && !communityId) return setError('Wybierz wspólnotę.')
     if (target === 'selected' && selectedIds.length === 0) return setError('Wybierz co najmniej jedną wspólnotę.')
 
-    const supabase = getSupabaseBrowserClient()
-    const storagePath = `${crypto.randomUUID()}/${file.name}`
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('target', target)
+    if (target === 'one') formData.append('community_id', communityId)
+    if (target === 'selected') selectedIds.forEach((id) => formData.append('community_ids', id))
 
     startTransition(async () => {
-      const { error: uploadError } = await supabase.storage
-        .from('documents')
-        .upload(storagePath, file, { upsert: false })
-
-      if (uploadError) {
-        setError('Błąd uploadu: ' + uploadError.message)
-        return
-      }
-
       try {
-        await saveDocument({
-          name: file.name,
-          storage_path: storagePath,
-          target,
-          community_id: target === 'one' ? communityId : null,
-          community_ids: target === 'selected' ? selectedIds : [],
-        })
+        await uploadDocument(formData)
         setShowPanel(false)
         if (fileRef.current) fileRef.current.value = ''
       } catch (err: any) {
-        setError(err.message)
+        setError(err.message ?? 'Błąd podczas przesyłania')
       }
     })
   }
@@ -83,7 +67,6 @@ export default function DocumentUpload({ isSuperAdmin, adminCommunityId, communi
             <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
           )}
 
-          {/* Zasięg — tylko super_admin */}
           {isSuperAdmin && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Zasięg</label>
