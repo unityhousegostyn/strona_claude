@@ -12,6 +12,7 @@ const navItems = (role: string) => {
     { href: '/admin/announcements', label: 'Ogłoszenia', icon: '📢' },
     { href: '/admin/tickets', label: 'Zgłoszenia', icon: '🎫' },
     { href: '/admin/board', label: 'Tablica', icon: '💬' },
+    { href: '/admin/contacts', label: 'Kontakty', icon: '📞' },
     { href: '/admin/documents', label: 'Dokumenty', icon: '📁' },
   ]
   if (role === 'super_admin') {
