@@ -3,7 +3,9 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import TicketComments from './TicketComments'
 
-export default async function TicketDetailPage({ params }: { params: { id: string } }) {
+export default async function TicketDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+
   const supabase = await getSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -16,7 +18,7 @@ export default async function TicketDetailPage({ params }: { params: { id: strin
   const { data: ticket } = await admin
     .from('tickets')
     .select('*, community:communities(name), author:profiles!created_by(full_name, email)')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (!ticket) redirect('/admin/tickets')
@@ -29,7 +31,7 @@ export default async function TicketDetailPage({ params }: { params: { id: strin
   const { data: comments } = await admin
     .from('ticket_comments')
     .select('*, author:profiles!author_id(full_name, email)')
-    .eq('ticket_id', params.id)
+    .eq('ticket_id', id)
     .order('created_at', { ascending: true })
 
   return (

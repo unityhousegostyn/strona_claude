@@ -3,7 +3,9 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { markAsRead } from './actions'
 
-export default async function AnnouncementDetailPage({ params }: { params: { id: string } }) {
+export default async function AnnouncementDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+
   const supabase = await getSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -15,7 +17,7 @@ export default async function AnnouncementDetailPage({ params }: { params: { id:
   const { data: announcement } = await admin
     .from('announcements')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (!announcement) redirect('/admin/announcements')
@@ -23,7 +25,7 @@ export default async function AnnouncementDetailPage({ params }: { params: { id:
   // Oznacz jako przeczytane
   await admin
     .from('read_announcements')
-    .upsert({ user_id: user.id, announcement_id: params.id }, { onConflict: 'user_id,announcement_id' })
+    .upsert({ user_id: user.id, announcement_id: id }, { onConflict: 'user_id,announcement_id' })
 
   const canEdit = profile.role === 'super_admin' || profile.role === 'admin'
 
@@ -37,7 +39,7 @@ export default async function AnnouncementDetailPage({ params }: { params: { id:
         <div className="flex items-start justify-between gap-4">
           <h2 className="text-xl font-bold text-gray-900">{announcement.title}</h2>
           {canEdit && (
-            <Link href={`/admin/announcements/edit/${params.id}`} className="text-sm text-blue-600 hover:underline flex-shrink-0">
+            <Link href={`/admin/announcements/edit/${id}`} className="text-sm text-blue-600 hover:underline flex-shrink-0">
               Edytuj
             </Link>
           )}

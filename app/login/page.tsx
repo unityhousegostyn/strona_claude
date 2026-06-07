@@ -15,8 +15,17 @@ function LoginForm() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (searchParams.get('reset') === 'success') {
+    const reset = searchParams.get('reset')
+    const status = searchParams.get('status')
+    const verified = searchParams.get('verified')
+    if (reset === 'success') {
       setSuccess('Hasło zostało zmienione. Możesz się teraz zalogować.')
+    } else if (verified === 'true') {
+      setSuccess('Email potwierdzony! Konto oczekuje teraz na akceptację administratora.')
+    } else if (status === 'unconfirmed') {
+      setSuccess('Potwierdź adres email klikając link w wiadomości którą wysłaliśmy.')
+    } else if (status === 'pending') {
+      setSuccess('Konto oczekuje na akceptację administratora.')
     }
   }, [searchParams])
 

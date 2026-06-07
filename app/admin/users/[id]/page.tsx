@@ -3,7 +3,9 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import UserEditForm from './UserEditForm'
 
-export default async function UserEditPage({ params }: { params: { id: string } }) {
+export default async function UserEditPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+
   const supabase = await getSupabaseServerClient()
   const { data: { user: currentUser } } = await supabase.auth.getUser()
   if (!currentUser) redirect('/login')
@@ -15,8 +17,8 @@ export default async function UserEditPage({ params }: { params: { id: string } 
 
   const { data: profile } = await admin
     .from('profiles')
-    .select('*, community:communities(name)')
-    .eq('id', params.id)
+    .select('*')
+    .eq('id', id)
     .single()
 
   if (!profile) redirect('/admin/users')
@@ -26,12 +28,6 @@ export default async function UserEditPage({ params }: { params: { id: string } 
     .select('id, name')
     .order('name')
 
-  const roleLabel: Record<string, string> = {
-    super_admin: 'Super Admin',
-    admin: 'Administrator',
-    user: 'Mieszkaniec',
-  }
-
   return (
     <div className="max-w-xl space-y-6">
       <div className="flex items-center gap-3">
@@ -40,7 +36,6 @@ export default async function UserEditPage({ params }: { params: { id: string } 
 
       <h2 className="text-2xl font-bold text-gray-900">Edytuj użytkownika</h2>
 
-      {/* Dane konta (tylko do odczytu) */}
       <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-2">
         <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Informacje o koncie</h3>
         <div className="grid grid-cols-2 gap-y-2 text-sm">
@@ -56,13 +51,13 @@ export default async function UserEditPage({ params }: { params: { id: string } 
       </div>
 
       <UserEditForm
-        userId={params.id}
+        userId={id}
         currentUserId={currentUser.id}
         initialFullName={profile.full_name ?? ''}
         initialRole={profile.role}
         initialCommunityId={profile.community_id ?? null}
         communities={communities ?? []}
-        isSelf={params.id === currentUser.id}
+        isSelf={id === currentUser.id}
       />
     </div>
   )

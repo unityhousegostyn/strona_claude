@@ -6,18 +6,41 @@ import Link from 'next/link'
 
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
+  const [result, setResult] = useState<{ success: boolean; message: string } | null>(null)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
-    setMessage('')
+    setResult(null)
 
     const formData = new FormData(e.currentTarget)
-    const result = await registerUser(formData)
+    const res = await registerUser(formData)
 
     setLoading(false)
-    setMessage(result.message)
+    setResult(res)
+  }
+
+  if (result?.success) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white shadow-md rounded-xl p-8 w-full max-w-sm space-y-5 text-center">
+          <div className="text-5xl">📧</div>
+          <h1 className="text-xl font-bold text-gray-800">Sprawdź swoją skrzynkę</h1>
+          <p className="text-sm text-gray-600 leading-relaxed">
+            Wysłaliśmy email z linkiem potwierdzającym. Kliknij go, żeby aktywować konto.
+          </p>
+          <p className="text-xs text-gray-400">
+            Po potwierdzeniu adresu Twoje konto trafi do kolejki — administrator wspólnoty zatwierdzi je wkrótce.
+          </p>
+          <Link
+            href="/login"
+            className="inline-block mt-2 text-sm text-blue-600 hover:underline"
+          >
+            Wróć do logowania
+          </Link>
+        </div>
+      </main>
+    )
   }
 
   return (
@@ -69,8 +92,10 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        {message && (
-          <p className="text-center text-sm text-gray-700">{message}</p>
+        {result && !result.success && (
+          <p className="text-center text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+            {result.message}
+          </p>
         )}
 
         <div className="text-center pt-2">

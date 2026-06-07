@@ -60,9 +60,14 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // 🔥 2. Blokada dla pending
+  // 🔥 2. Blokada dla niezweryfikowanego emaila
+  if (isAdminRoute && user && !user.email_confirmed_at) {
+    return NextResponse.redirect(new URL('/login?status=unconfirmed', request.url))
+  }
+
+  // 🔥 3. Blokada dla pending
   if (isAdminRoute && profile?.status === 'pending') {
-    return NextResponse.redirect(new URL('/login', request.url))
+    return NextResponse.redirect(new URL('/login?status=pending', request.url))
   }
 
   // 🔥 3. Blokada tras admin-only dla roli 'user'
