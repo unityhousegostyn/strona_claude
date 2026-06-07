@@ -1,4 +1,4 @@
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
 export default async function DashboardPage() {
@@ -15,6 +15,7 @@ export default async function DashboardPage() {
   if (!profile) redirect('/login')
 
   const role = profile.role
+  const admin = getSupabaseAdminClient()
 
   let communitiesCount = 0
   let usersCount = 0
@@ -23,10 +24,10 @@ export default async function DashboardPage() {
 
   if (role === 'super_admin') {
     const [c, u, t, a] = await Promise.all([
-      supabase.from('communities').select('id', { count: 'exact', head: true }),
-      supabase.from('profiles').select('id', { count: 'exact', head: true }),
-      supabase.from('tickets').select('id', { count: 'exact', head: true }),
-      supabase.from('announcements').select('*').order('created_at', { ascending: false }).limit(5),
+      admin.from('communities').select('id', { count: 'exact', head: true }),
+      admin.from('profiles').select('id', { count: 'exact', head: true }),
+      admin.from('tickets').select('id', { count: 'exact', head: true }),
+      admin.from('announcements').select('*').order('created_at', { ascending: false }).limit(5),
     ])
     communitiesCount = c.count ?? 0
     usersCount = u.count ?? 0
@@ -35,8 +36,8 @@ export default async function DashboardPage() {
   } else {
     const communityId = profile.community_id
     const [t, a] = await Promise.all([
-      supabase.from('tickets').select('id', { count: 'exact', head: true }).eq('community_id', communityId),
-      supabase.from('announcements').select('*').eq('community_id', communityId).order('created_at', { ascending: false }).limit(5),
+      admin.from('tickets').select('id', { count: 'exact', head: true }).eq('community_id', communityId),
+      admin.from('announcements').select('*').eq('community_id', communityId).order('created_at', { ascending: false }).limit(5),
     ])
     ticketsCount = t.count ?? 0
     announcements = a.data ?? []

@@ -1,8 +1,9 @@
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import PendingUsers from './PendingUsers'
 
 export default async function UsersPage() {
+  // Auth check — anon client (RLS)
   const supabase = await getSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -12,15 +13,17 @@ export default async function UsersPage() {
 
   const isSuperAdmin = profile.role === 'super_admin'
 
-  // Zapytania równoległe
-  const pendingQuery = supabase
+  // Zapytania o innych użytkowników — admin client (omija RLS)
+  const admin = getSupabaseAdminClient()
+
+  const pendingQuery = admin
     .from('profiles')
     .select('*')
     .eq('status', 'pending')
     .order('created_at', { ascending: false })
   if (!isSuperAdmin) pendingQuery.eq('community_id', profile.community_id)
 
-  const activeQuery = supabase
+  const activeQuery = admin
     .from('profiles')
     .select('*, community:communities(name)')
     .eq('status', 'active')
@@ -31,7 +34,7 @@ export default async function UsersPage() {
     pendingQuery,
     activeQuery,
     isSuperAdmin
-      ? supabase.from('communities').select('*').order('name')
+      ? admin.from('communities').select('*').order('name')
       : Promise.resolve({ data: [] }),
   ])
 

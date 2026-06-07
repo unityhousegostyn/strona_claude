@@ -1,4 +1,4 @@
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
@@ -10,7 +10,8 @@ export default async function CommunitiesPage() {
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
   if (!profile || profile.role !== 'super_admin') redirect('/admin/dashboard')
 
-  const { data: communities } = await supabase
+  const admin = getSupabaseAdminClient()
+  const { data: communities } = await admin
     .from('communities')
     .select('*')
     .order('created_at', { ascending: false })

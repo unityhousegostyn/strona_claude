@@ -1,4 +1,4 @@
-import { getSupabaseServerClient } from '@/lib/supabase/server'
+import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
@@ -10,7 +10,8 @@ export default async function AnnouncementsPage() {
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
   if (!profile) redirect('/login')
 
-  const query = supabase
+  const admin = getSupabaseAdminClient()
+  const query = admin
     .from('announcements')
     .select('*, community:communities(name)')
     .order('created_at', { ascending: false })
