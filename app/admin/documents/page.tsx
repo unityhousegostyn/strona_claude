@@ -15,21 +15,32 @@ export default async function DocumentsPage() {
   const isSuperAdmin = profile.role === 'super_admin'
   const canUpload = isSuperAdmin || profile.role === 'admin'
 
-  // Zapytanie 1: dokumenty + wspólnota (prosta relacja)
+  // Zapytanie 1: dokumenty — prosty select bez joina
   const { data: docs } = await admin
     .from('documents')
-    .select('*, community:communities(id, name)')
+    .select('*')
     .order('created_at', { ascending: false })
 
   // Zapytanie 2: junction table
   const { data: junctions } = await admin
     .from('document_communities')
-    .select('document_id, community:communities(id, name)')
+    .select('document_id, community_id')
 
-  const junctionMap: Record<string, { id: string; name: string }[]> = {}
+  // Zapytanie 3: wszystkie wspólnoty
+  const { data: allCommunities } = await admin
+    .from('communities')
+    .select('id, name')
+    .order('name')
+
+  const communityMap: Record<string, string> = {}
+  for (const c of allCommunities ?? []) {
+    communityMap[c.id] = c.name
+  }
+
+  const junctionMap: Record<string, string[]> = {}
   for (const j of junctions ?? []) {
     if (!junctionMap[j.document_id]) junctionMap[j.document_id] = []
-    if (j.community) junctionMap[j.document_id].push(j.community as any)
+    junctionMap[j.document_id].push(j.community_id)
   }
 
   const documents = isSuperAdmin
@@ -38,14 +49,12 @@ export default async function DocumentsPage() {
         if (d.target === 'all') return true
         if (d.target === 'one') return d.community_id === profile.community_id
         if (d.target === 'selected') {
-          return (junctionMap[d.id] ?? []).some((c) => c.id === profile.community_id)
+          return (junctionMap[d.id] ?? []).includes(profile.community_id)
         }
         return false
       })
 
-  const { data: communities } = isSuperAdmin
-    ? await admin.from('communities').select('id, name').order('name')
-    : { data: [] }
+  const communities = isSuperAdmin ? (allCommunities ?? []) : []
 
   const getPublicUrl = (storagePath: string) => {
     const { data } = admin.storage.from('documents').getPublicUrl(storagePath)
@@ -54,8 +63,8 @@ export default async function DocumentsPage() {
 
   const targetLabel = (d: any) => {
     if (d.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-blue-50 text-blue-700' }
-    if (d.target === 'one') return { text: (d.community as any)?.name ?? '—', cls: 'bg-gray-100 text-gray-600' }
-    const names = (junctionMap[d.id] ?? []).map((c) => c.name)
+    if (d.target === 'one') return { text: communityMap[d.community_id] ?? '—', cls: 'bg-gray-100 text-gray-600' }
+    const names = (junctionMap[d.id] ?? []).map((cid) => communityMap[cid] ?? cid)
     return { text: names.join(', ') || '—', cls: 'bg-purple-50 text-purple-700' }
   }
 

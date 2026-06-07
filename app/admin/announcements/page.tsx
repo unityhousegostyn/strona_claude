@@ -13,22 +13,32 @@ export default async function AnnouncementsPage() {
   const admin = getSupabaseAdminClient()
   const isSuperAdmin = profile.role === 'super_admin'
 
-  // Zapytanie 1: ogłoszenia + wspólnota (prosta relacja)
+  // Zapytanie 1: ogłoszenia — prosty select bez joina
   const { data: announcements } = await admin
     .from('announcements')
-    .select('*, community:communities(id, name)')
+    .select('*')
     .order('created_at', { ascending: false })
 
-  // Zapytanie 2: junction table — które ogłoszenia idą do których wspólnot
+  // Zapytanie 2: junction table — bez joina do communities
   const { data: junctions } = await admin
     .from('announcement_communities')
-    .select('announcement_id, community:communities(id, name)')
+    .select('announcement_id, community_id')
 
-  // Buduj mapę: announcement_id → lista nazw wspólnot
-  const junctionMap: Record<string, { id: string; name: string }[]> = {}
+  // Zapytanie 3: wszystkie wspólnoty do mapowania nazw
+  const { data: communities } = await admin
+    .from('communities')
+    .select('id, name')
+
+  const communityMap: Record<string, string> = {}
+  for (const c of communities ?? []) {
+    communityMap[c.id] = c.name
+  }
+
+  // Mapa: announcement_id → lista community_id
+  const junctionMap: Record<string, string[]> = {}
   for (const j of junctions ?? []) {
     if (!junctionMap[j.announcement_id]) junctionMap[j.announcement_id] = []
-    if (j.community) junctionMap[j.announcement_id].push(j.community as any)
+    junctionMap[j.announcement_id].push(j.community_id)
   }
 
   // Filtruj dla nie-super_admin
@@ -38,7 +48,7 @@ export default async function AnnouncementsPage() {
         if (a.target === 'all') return true
         if (a.target === 'one') return a.community_id === profile.community_id
         if (a.target === 'selected') {
-          return (junctionMap[a.id] ?? []).some((c) => c.id === profile.community_id)
+          return (junctionMap[a.id] ?? []).includes(profile.community_id)
         }
         return false
       })
@@ -47,8 +57,8 @@ export default async function AnnouncementsPage() {
 
   const targetLabel = (a: any) => {
     if (a.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-blue-50 text-blue-700' }
-    if (a.target === 'one') return { text: (a.community as any)?.name ?? '—', cls: 'bg-gray-100 text-gray-600' }
-    const names = (junctionMap[a.id] ?? []).map((c) => c.name)
+    if (a.target === 'one') return { text: communityMap[a.community_id] ?? '—', cls: 'bg-gray-100 text-gray-600' }
+    const names = (junctionMap[a.id] ?? []).map((cid) => communityMap[cid] ?? cid)
     return { text: names.join(', ') || '—', cls: 'bg-purple-50 text-purple-700' }
   }
 
