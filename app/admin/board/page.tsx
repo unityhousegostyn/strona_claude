@@ -76,16 +76,15 @@ export default async function BoardPage() {
 
   // Pobierz nazwy wspólnot (dla super_admin)
   let communityMap: Record<string, string> = {}
+  let communitiesList: { id: string; name: string }[] = []
   if (isSuperAdmin) {
-    const communityIds = [...new Set(posts.map((p: any) => p.community_id).filter(Boolean))]
-    if (communityIds.length > 0) {
-      const { data: communities } = await admin
-        .from('communities')
-        .select('id, name')
-        .in('id', communityIds)
-      for (const c of communities ?? []) {
-        communityMap[c.id] = c.name
-      }
+    const { data: allCommunities } = await admin
+      .from('communities')
+      .select('id, name')
+      .order('name')
+    communitiesList = allCommunities ?? []
+    for (const c of communitiesList) {
+      communityMap[c.id] = c.name
     }
   }
 
@@ -111,6 +110,7 @@ export default async function BoardPage() {
         initialPosts={enrichedPosts}
         currentUserId={user.id}
         currentRole={profile.role}
+        communities={communitiesList}
       />
     </div>
   )

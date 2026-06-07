@@ -22,13 +22,19 @@ interface Post {
   replies: Reply[]
 }
 
+interface Community {
+  id: string
+  name: string
+}
+
 interface Props {
   initialPosts: Post[]
   currentUserId: string
   currentRole: string
+  communities?: Community[]
 }
 
-export default function BoardClient({ initialPosts, currentUserId, currentRole }: Props) {
+export default function BoardClient({ initialPosts, currentUserId, currentRole, communities = [] }: Props) {
   const [posts, setPosts] = useState<Post[]>(initialPosts)
   const [newContent, setNewContent] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -36,8 +42,10 @@ export default function BoardClient({ initialPosts, currentUserId, currentRole }
   const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set())
   const [replyText, setReplyText] = useState<Record<string, string>>({})
   const [replyError, setReplyError] = useState<Record<string, string>>({})
+  const [filterCommunity, setFilterCommunity] = useState<string>('all')
 
   const isAdminOrAbove = currentRole === 'admin' || currentRole === 'super_admin'
+  const isSuperAdmin = currentRole === 'super_admin'
 
   const handlePost = () => {
     setError(null)
@@ -95,11 +103,32 @@ export default function BoardClient({ initialPosts, currentUserId, currentRole }
 
   const authorName = (a: Post['author']) => a?.full_name ?? a?.email ?? 'Użytkownik'
 
-  const pinned = posts.filter((p) => p.pinned)
-  const regular = posts.filter((p) => !p.pinned)
+  const filteredPosts = isSuperAdmin && filterCommunity !== 'all'
+    ? posts.filter((p) => (p as any).community_id === filterCommunity)
+    : posts
+
+  const pinned = filteredPosts.filter((p) => p.pinned)
+  const regular = filteredPosts.filter((p) => !p.pinned)
 
   return (
     <div className="space-y-6">
+      {/* Filtr wspólnoty dla super_admin */}
+      {isSuperAdmin && communities.length > 0 && (
+        <div className="flex items-center gap-3">
+          <label className="text-sm font-medium text-gray-600 whitespace-nowrap">Wspólnota:</label>
+          <select
+            value={filterCommunity}
+            onChange={(e) => setFilterCommunity(e.target.value)}
+            className="input text-sm py-1.5 pr-8"
+          >
+            <option value="all">Wszystkie wspólnoty</option>
+            {communities.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {/* Formularz nowego posta */}
       <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
         <textarea
