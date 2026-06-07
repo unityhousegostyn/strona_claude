@@ -6,7 +6,7 @@ export async function proxy(request: NextRequest) {
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, // ANON KEY – poprawnie
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
@@ -25,17 +25,38 @@ export async function proxy(request: NextRequest) {
     }
   )
 
+  // 🔥 Pobierz sesję
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
-  const isLoginPage = request.nextUrl.pathname === '/login'
+  const pathname = request.nextUrl.pathname
+  const isAdminRoute = pathname.startsWith('/admin')
+  const isLoginPage = pathname === '/login'
 
+  // 🔥 Jeśli user istnieje → pobierz profil
+  let profile = null
+  if (user) {
+    const { data } = await supabase
+      .from('profiles')
+      .select('role, status')
+      .eq('id', user.id)
+      .single()
+
+    profile = data
+  }
+
+  // 🔥 1. Blokada dla niezalogowanych na /admin
   if (isAdminRoute && !user) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
+  // 🔥 2. Blokada dla pending
+  if (isAdminRoute && profile?.status === 'pending') {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+
+  // 🔥 3. Jeśli user jest zalogowany → nie wpuszczaj na /login
   if (isLoginPage && user) {
     return NextResponse.redirect(new URL('/admin/dashboard', request.url))
   }
