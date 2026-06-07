@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser'
 import { toggleTicketStatus, createTicket } from './actions'
 
 export default function TicketsPage() {
+  const router = useRouter()
   const supabase = getSupabaseBrowserClient()
   const [tickets, setTickets] = useState<any[]>([])
   const [profile, setProfile] = useState<any>(null)
@@ -129,21 +131,25 @@ export default function TicketsPage() {
       <div className="space-y-3">
         {tickets.length === 0 && <p className="text-sm text-gray-400">Brak zgłoszeń.</p>}
         {tickets.map((t: any) => (
-          <div key={t.id} className="bg-white border border-gray-200 rounded-xl p-4 flex items-start justify-between gap-4">
+          <div
+            key={t.id}
+            className="bg-white border border-gray-200 rounded-xl p-4 flex items-start justify-between gap-4 cursor-pointer hover:border-blue-200 transition"
+            onClick={() => router.push(`/admin/tickets/${t.id}`)}
+          >
             <div>
               <p className="font-semibold text-gray-900">{t.title}</p>
-              <p className="text-sm text-gray-500 mt-1">{t.description}</p>
+              <p className="text-sm text-gray-500 mt-1 line-clamp-1">{t.description}</p>
               <p className="text-xs text-gray-400 mt-2">
                 {t.community?.name} · {new Date(t.created_at).toLocaleDateString('pl-PL')}
               </p>
             </div>
-            <div className="flex flex-col items-end gap-2">
+            <div className="flex flex-col items-end gap-2 flex-shrink-0">
               <span className={`text-xs font-medium px-2 py-1 rounded-full ${statusBadge(t.status)}`}>
                 {t.status === 'open' ? 'Otwarte' : 'Zamknięte'}
               </span>
               {(profile?.role === 'admin' || profile?.role === 'super_admin') && (
                 <button
-                  onClick={() => handleStatusToggle(t)}
+                  onClick={(e) => { e.stopPropagation(); handleStatusToggle(t) }}
                   disabled={isPending}
                   className="text-xs text-blue-600 hover:underline disabled:opacity-50"
                 >

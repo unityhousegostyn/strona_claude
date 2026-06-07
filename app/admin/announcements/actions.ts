@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { getSupabaseAdminClient, getSupabaseServerClient } from '@/lib/supabase/server'
+import { logActivity } from '@/lib/audit'
+import { sendAnnouncementEmail } from '@/lib/email'
 
 export async function createAnnouncement(formData: {
   title: string
@@ -55,6 +57,7 @@ export async function createAnnouncement(formData: {
     .single()
 
   if (error) throw new Error(error.message)
+  await logActivity({ userId: user.id, action: 'create_announcement', targetType: 'announcement', targetId: announcement.id, meta: { title: formData.title, target: formData.target } })
 
   if (formData.target === 'selected' && formData.community_ids.length > 0) {
     const rows = formData.community_ids.map((cid) => ({
@@ -66,6 +69,28 @@ export async function createAnnouncement(formData: {
       .insert(rows)
     if (junctionError) throw new Error(junctionError.message)
   }
+
+  // Wyślij email do użytkowników docelowych wspólnot
+  try {
+    let targetCommunityIds: string[] = []
+    if (formData.target === 'all') {
+      const { data: allCommunities } = await admin.from('communities').select('id')
+      targetCommunityIds = (allCommunities ?? []).map((c: any) => c.id)
+    } else if (formData.target === 'one' && formData.community_id) {
+      targetCommunityIds = [formData.community_id]
+    } else if (formData.target === 'selected') {
+      targetCommunityIds = formData.community_ids
+    }
+    if (targetCommunityIds.length > 0) {
+      const { data: recipients } = await admin
+        .from('profiles')
+        .select('email')
+        .in('community_id', targetCommunityIds)
+        .eq('status', 'active')
+      const emails = (recipients ?? []).map((r: any) => r.email).filter(Boolean)
+      await sendAnnouncementEmail({ to: emails, title: formData.title, content: formData.content })
+    }
+  } catch {}
 
   revalidatePath('/admin/announcements')
 }

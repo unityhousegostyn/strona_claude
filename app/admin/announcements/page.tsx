@@ -1,6 +1,7 @@
 import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import AnnouncementsList from './AnnouncementsList'
 
 export default async function AnnouncementsPage() {
   const supabase = await getSupabaseServerClient()
@@ -76,41 +77,12 @@ export default async function AnnouncementsPage() {
         )}
       </div>
 
-      {visible.length === 0 ? (
-        <p className="text-sm text-gray-400">Brak ogłoszeń.</p>
-      ) : (
-        <div className="space-y-3">
-          {visible.map((a: any) => {
-            const { text, cls } = targetLabel(a)
-            return (
-              <div key={a.id} className="bg-white border border-gray-200 rounded-xl p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900">{a.title}</p>
-                    <p className="text-sm text-gray-500 mt-1 line-clamp-2">{a.content}</p>
-                    <div className="flex items-center gap-2 mt-2 flex-wrap">
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${cls}`}>
-                        {text}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        {new Date(a.created_at).toLocaleDateString('pl-PL')}
-                      </span>
-                    </div>
-                  </div>
-                  {canEdit && (
-                    <Link
-                      href={`/admin/announcements/${a.id}`}
-                      className="text-sm text-blue-600 hover:underline whitespace-nowrap"
-                    >
-                      Edytuj
-                    </Link>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
+      <AnnouncementsList
+        announcements={visible}
+        communityMap={communityMap}
+        junctionMap={junctionMap}
+        canEdit={canEdit}
+      />
     </div>
   )
 }

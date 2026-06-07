@@ -18,15 +18,19 @@ const navItems = (role: string) => {
   if (role === 'super_admin' || role === 'admin') {
     base.push({ href: '/admin/users', label: 'Użytkownicy', icon: '👥' })
   }
+  if (role === 'super_admin') {
+    base.push({ href: '/admin/audit', label: 'Audit Log', icon: '🔍' })
+  }
   return base
 }
 
 interface Props {
   profile: Profile
   userEmail: string
+  unreadAnnouncements?: number
 }
 
-export default function SidebarNav({ profile, userEmail }: Props) {
+export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0 }: Props) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -63,17 +67,30 @@ export default function SidebarNav({ profile, userEmail }: Props) {
               }`}
             >
               <span>{item.icon}</span>
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {item.href === '/admin/announcements' && unreadAnnouncements > 0 && (
+                <span className="bg-blue-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                  {unreadAnnouncements > 99 ? '99+' : unreadAnnouncements}
+                </span>
+              )}
             </Link>
           )
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-100">
-        <div className="mb-3">
-          <p className="text-xs font-medium text-gray-900 truncate">{userEmail}</p>
-          <p className="text-xs text-gray-400">{roleLabel[profile.role]}</p>
-        </div>
+      <div className="p-4 border-t border-gray-100 space-y-1">
+        <Link
+          href="/admin/profile"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition"
+        >
+          <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center flex-shrink-0">
+            {(profile.full_name ?? userEmail).charAt(0).toUpperCase()}
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-gray-900 truncate">{profile.full_name ?? userEmail}</p>
+            <p className="text-xs text-gray-400">{roleLabel[profile.role]}</p>
+          </div>
+        </Link>
         <button
           onClick={handleLogout}
           className="w-full text-left text-sm text-red-600 hover:text-red-700 font-medium px-3 py-2 rounded-lg hover:bg-red-50 transition"

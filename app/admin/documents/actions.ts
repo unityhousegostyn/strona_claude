@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { getSupabaseAdminClient, getSupabaseServerClient } from '@/lib/supabase/server'
+import { logActivity } from '@/lib/audit'
 
 async function requireUploader() {
   const supabase = await getSupabaseServerClient()
@@ -57,6 +58,7 @@ export async function saveDocument(data: {
     .single()
 
   if (error) throw new Error(error.message)
+  await logActivity({ userId: user.id, action: 'upload_document', targetType: 'document', targetId: doc.id, meta: { name: data.name, target: data.target } })
 
   if (data.target === 'selected' && data.community_ids.length > 0) {
     const rows = data.community_ids.map((cid) => ({
@@ -73,7 +75,7 @@ export async function saveDocument(data: {
 }
 
 export async function deleteDocument(docId: string, storagePath: string) {
-  const { profile } = await requireUploader()
+  const { user, profile } = await requireUploader()
 
   const admin = getSupabaseAdminClient()
 
@@ -85,6 +87,7 @@ export async function deleteDocument(docId: string, storagePath: string) {
 
   await admin.storage.from('documents').remove([storagePath])
   await admin.from('documents').delete().eq('id', docId)
+  await logActivity({ userId: user.id, action: 'delete_document', targetType: 'document', targetId: docId })
 
   revalidatePath('/admin/documents')
 }
