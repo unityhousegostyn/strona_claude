@@ -41,12 +41,21 @@ export default function ContactsClient({ contacts, canEdit, isSuperAdmin, defaul
   const [isPending, startTransition] = useTransition()
   const [showForm, setShowForm] = useState(false)
   const [filterCategory, setFilterCategory] = useState('all')
+  const [filterCommunity, setFilterCommunity] = useState('all')
   const [form, setForm] = useState({
     name: '', role: '', category: 'manager',
     phone: '', email: '', description: '',
     communityId: defaultCommunityId ?? '',
   })
   const [formError, setFormError] = useState<string | null>(null)
+
+  // Sync form communityId when filter changes
+  const handleFilterCommunity = (val: string) => {
+    setFilterCommunity(val)
+    if (isSuperAdmin && val !== 'all') {
+      setForm(p => ({ ...p, communityId: val }))
+    }
+  }
   const [localContacts, setLocalContacts] = useState<Contact[]>(contacts)
 
   const handleSubmit = () => {
@@ -75,9 +84,13 @@ export default function ContactsClient({ contacts, canEdit, isSuperAdmin, defaul
     })
   }
 
+  const communityFiltered = isSuperAdmin && filterCommunity !== 'all'
+    ? localContacts.filter(c => c.community_id === filterCommunity)
+    : localContacts
+
   const filtered = filterCategory === 'all'
-    ? localContacts
-    : localContacts.filter(c => c.category === filterCategory)
+    ? communityFiltered
+    : communityFiltered.filter(c => c.category === filterCategory)
 
   const grouped = CATEGORIES.reduce((acc, cat) => {
     const items = filtered.filter(c => c.category === cat.value)
@@ -150,6 +163,23 @@ export default function ContactsClient({ contacts, canEdit, isSuperAdmin, defaul
             </button>
             <button onClick={() => setShowForm(false)} className="text-sm text-gray-500 hover:text-gray-300">Anuluj</button>
           </div>
+        </div>
+      )}
+
+      {/* Filtr wspólnoty (super_admin) */}
+      {isSuperAdmin && communities.length > 0 && (
+        <div className="flex items-center gap-3">
+          <label className="text-sm font-medium text-gray-400 whitespace-nowrap">Wspólnota:</label>
+          <select
+            value={filterCommunity}
+            onChange={(e) => handleFilterCommunity(e.target.value)}
+            className="input text-sm py-1.5"
+          >
+            <option value="all">Wszystkie wspólnoty</option>
+            {communities.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
         </div>
       )}
 
