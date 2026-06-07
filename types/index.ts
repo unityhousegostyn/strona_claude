@@ -24,10 +24,12 @@ export interface Announcement {
   start_date: string
   end_date: string
   attachment_url: string | null
-  community_id: string
+  target: 'all' | 'one' | 'selected'
+  community_id: string | null
   created_by: string
   created_at: string
   community?: Community
+  announcement_communities?: { community: Community }[]
 }
 
 export interface Ticket {
