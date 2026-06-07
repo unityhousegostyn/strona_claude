@@ -15,20 +15,30 @@ export default async function DocumentsPage() {
   const isSuperAdmin = profile.role === 'super_admin'
   const canUpload = isSuperAdmin || profile.role === 'admin'
 
-  const { data: all } = await admin
+  // Zapytanie 1: dokumenty + wspólnota (prosta relacja)
+  const { data: docs } = await admin
     .from('documents')
-    .select('*, community:communities(id, name), document_communities(community:communities(id, name))')
+    .select('*, community:communities(id, name)')
     .order('created_at', { ascending: false })
 
+  // Zapytanie 2: junction table
+  const { data: junctions } = await admin
+    .from('document_communities')
+    .select('document_id, community:communities(id, name)')
+
+  const junctionMap: Record<string, { id: string; name: string }[]> = {}
+  for (const j of junctions ?? []) {
+    if (!junctionMap[j.document_id]) junctionMap[j.document_id] = []
+    if (j.community) junctionMap[j.document_id].push(j.community as any)
+  }
+
   const documents = isSuperAdmin
-    ? (all ?? [])
-    : (all ?? []).filter((d: any) => {
+    ? (docs ?? [])
+    : (docs ?? []).filter((d: any) => {
         if (d.target === 'all') return true
         if (d.target === 'one') return d.community_id === profile.community_id
         if (d.target === 'selected') {
-          return (d.document_communities ?? []).some(
-            (dc: any) => dc.community?.id === profile.community_id
-          )
+          return (junctionMap[d.id] ?? []).some((c) => c.id === profile.community_id)
         }
         return false
       })
@@ -44,8 +54,8 @@ export default async function DocumentsPage() {
 
   const targetLabel = (d: any) => {
     if (d.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-blue-50 text-blue-700' }
-    if (d.target === 'one') return { text: d.community?.name ?? '—', cls: 'bg-gray-100 text-gray-600' }
-    const names = (d.document_communities ?? []).map((dc: any) => dc.community?.name).filter(Boolean)
+    if (d.target === 'one') return { text: (d.community as any)?.name ?? '—', cls: 'bg-gray-100 text-gray-600' }
+    const names = (junctionMap[d.id] ?? []).map((c) => c.name)
     return { text: names.join(', ') || '—', cls: 'bg-purple-50 text-purple-700' }
   }
 
