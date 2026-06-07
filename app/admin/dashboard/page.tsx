@@ -10,36 +10,53 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('*, community:communities(*)')
+    .select('*')
     .eq('id', user.id)
     .single()
-
   if (!profile) redirect('/login')
 
   const admin = getSupabaseAdminClient()
   const role = profile.role
   const communityId = profile.community_id
-  const community = (profile as any).community
+
+  // Wspólnota osobno
+  const { data: community } = profile.community_id
+    ? await admin.from('communities').select('*').eq('id', profile.community_id).single()
+    : { data: null }
 
   // ─── SUPER ADMIN ───────────────────────────────────────────────
   if (role === 'super_admin') {
-    const [c, u, t, a, allTickets, communities] = await Promise.all([
+    const [
+      commCount, userCount, ticketCount, pendingCount, boardCount,
+      allTickets, communities, recentTickets, recentPosts, postAuthors,
+    ] = await Promise.all([
       admin.from('communities').select('id', { count: 'exact', head: true }),
       admin.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'active'),
       admin.from('tickets').select('id', { count: 'exact', head: true }).eq('status', 'open'),
-      admin.from('announcements').select('*').order('created_at', { ascending: false }).limit(5),
+      admin.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      admin.from('board_posts').select('id', { count: 'exact', head: true }),
       admin.from('tickets').select('status, community_id'),
-      admin.from('communities').select('id, name'),
+      admin.from('communities').select('id, name').order('name'),
+      admin.from('tickets').select('id, title, status, created_at, community_id')
+        .order('created_at', { ascending: false }).limit(5),
+      admin.from('board_posts').select('id, content, created_at, author_id, community_id')
+        .order('created_at', { ascending: false }).limit(5),
+      admin.from('profiles').select('id, full_name, email'),
     ])
 
     const commMap: Record<string, string> = {}
     for (const c of communities.data ?? []) commMap[c.id] = c.name
+
+    const authorMap: Record<string, string> = {}
+    for (const a of postAuthors.data ?? []) {
+      authorMap[a.id] = a.full_name ?? a.email ?? '—'
+    }
+
     const statsMap: Record<string, { otwarte: number; zamknięte: number }> = {}
     for (const t of allTickets.data ?? []) {
       const key = t.community_id ?? 'Brak'
       if (!statsMap[key]) statsMap[key] = { otwarte: 0, zamknięte: 0 }
-      if (t.status === 'open') statsMap[key].otwarte++
-      else statsMap[key].zamknięte++
+      t.status === 'open' ? statsMap[key].otwarte++ : statsMap[key].zamknięte++
     }
     const chartData = Object.entries(statsMap).map(([id, v]) => ({ name: commMap[id] ?? id, ...v }))
 
@@ -52,21 +69,62 @@ export default async function DashboardPage() {
           <p className="text-sm text-gray-500 mt-1">Widok globalny — wszystkie wspólnoty</p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <StatCard label="Wspólnoty" value={c.count ?? 0} icon="🏢" href="/admin/communities" />
-          <StatCard label="Użytkownicy" value={u.count ?? 0} icon="👥" href="/admin/users" />
-          <StatCard label="Otwarte zgłoszenia" value={t.count ?? 0} icon="🎫" href="/admin/tickets" />
-          <StatCard label="Ogłoszenia" value={(a.data ?? []).length} icon="📢" href="/admin/announcements" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          <StatCard label="Wspólnoty" value={commCount.count ?? 0} icon="🏢" href="/admin/communities" />
+          <StatCard label="Użytkownicy" value={userCount.count ?? 0} icon="👥" href="/admin/users" />
+          <StatCard label="Otwarte zgłoszenia" value={ticketCount.count ?? 0} icon="🎫" href="/admin/tickets" color="yellow" />
+          <StatCard label="Oczekujących" value={pendingCount.count ?? 0} icon="⏳" href="/admin/users" color={pendingCount.count ? 'red' : undefined} />
+          <StatCard label="Posty na tablicy" value={boardCount.count ?? 0} icon="💬" href="/admin/board" />
+          <StatCard label="Wspólnoty aktywne" value={commCount.count ?? 0} icon="✅" href="/admin/communities" />
         </div>
 
         <StatsChart data={chartData} title="Zgłoszenia per wspólnota" />
 
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-gray-800">Ostatnie ogłoszenia</h3>
-            <Link href="/admin/announcements/add" className="text-sm text-blue-600 hover:underline">+ Dodaj</Link>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-semibold text-gray-800">Ostatnie zgłoszenia</h3>
+              <Link href="/admin/tickets" className="text-sm text-blue-600 hover:underline">Zobacz wszystkie</Link>
+            </div>
+            <div className="space-y-2">
+              {(recentTickets.data ?? []).length === 0
+                ? <p className="text-sm text-gray-400">Brak zgłoszeń.</p>
+                : (recentTickets.data ?? []).map((t: any) => (
+                  <Link key={t.id} href={`/admin/tickets/${t.id}`}
+                    className="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-200 transition">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-800 truncate">{t.title}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{commMap[t.community_id] ?? '—'}</p>
+                    </div>
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ml-2 flex-shrink-0 ${
+                      t.status === 'open' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+                    }`}>{t.status === 'open' ? 'Otwarte' : 'Zamknięte'}</span>
+                  </Link>
+                ))
+              }
+            </div>
           </div>
-          <AnnouncementList announcements={a.data ?? []} />
+
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-semibold text-gray-800">Ostatnie posty na tablicy</h3>
+              <Link href="/admin/board" className="text-sm text-blue-600 hover:underline">Tablica</Link>
+            </div>
+            <div className="space-y-2">
+              {(recentPosts.data ?? []).length === 0
+                ? <p className="text-sm text-gray-400">Brak postów.</p>
+                : (recentPosts.data ?? []).map((p: any) => (
+                  <Link key={p.id} href="/admin/board"
+                    className="block bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-200 transition">
+                    <p className="text-sm text-gray-800 line-clamp-1">{p.content}</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {authorMap[p.author_id] ?? '—'} · {commMap[p.community_id] ?? '—'} · {new Date(p.created_at).toLocaleDateString('pl-PL')}
+                    </p>
+                  </Link>
+                ))
+              }
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -75,14 +133,25 @@ export default async function DashboardPage() {
   // ─── ADMIN ─────────────────────────────────────────────────────
   if (role === 'admin') {
     const now = new Date()
-    const [t, openTickets, a, docs, pending, tickets] = await Promise.all([
+    const [
+      openTicketCount, openTickets, docCount, pendingCount, boardCount,
+      tickets, recentAnnouncements, recentBoardPosts, boardAuthors,
+    ] = await Promise.all([
       admin.from('tickets').select('id', { count: 'exact', head: true }).eq('community_id', communityId).eq('status', 'open'),
       admin.from('tickets').select('id, title, status, created_at').eq('community_id', communityId).eq('status', 'open').order('created_at', { ascending: false }).limit(5),
-      admin.from('announcements').select('*').order('created_at', { ascending: false }).limit(5),
       admin.from('documents').select('id', { count: 'exact', head: true }).or(`community_id.eq.${communityId},target.eq.all`),
       admin.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      admin.from('board_posts').select('id', { count: 'exact', head: true }).eq('community_id', communityId),
       admin.from('tickets').select('status, created_at').eq('community_id', communityId),
+      admin.from('announcements').select('*').order('created_at', { ascending: false }).limit(4),
+      admin.from('board_posts').select('id, content, created_at, author_id').eq('community_id', communityId).order('created_at', { ascending: false }).limit(4),
+      admin.from('profiles').select('id, full_name, email'),
     ])
+
+    const authorMap: Record<string, string> = {}
+    for (const a of boardAuthors.data ?? []) {
+      authorMap[a.id] = a.full_name ?? a.email ?? '—'
+    }
 
     const months: Record<string, { otwarte: number; zamknięte: number }> = {}
     for (let i = 5; i >= 0; i--) {
@@ -106,10 +175,10 @@ export default async function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <StatCard label="Otwarte zgłoszenia" value={t.count ?? 0} icon="🎫" href="/admin/tickets" color="yellow" />
-          <StatCard label="Dokumenty" value={docs.count ?? 0} icon="📁" href="/admin/documents" />
-          <StatCard label="Oczekujących" value={pending.count ?? 0} icon="⏳" href="/admin/users" color={pending.count ? 'red' : undefined} />
-          <StatCard label="Ogłoszenia" value={(a.data ?? []).length} icon="📢" href="/admin/announcements" />
+          <StatCard label="Otwarte zgłoszenia" value={openTicketCount.count ?? 0} icon="🎫" href="/admin/tickets" color="yellow" />
+          <StatCard label="Dokumenty" value={docCount.count ?? 0} icon="📁" href="/admin/documents" />
+          <StatCard label="Oczekujących" value={pendingCount.count ?? 0} icon="⏳" href="/admin/users" color={pendingCount.count ? 'red' : undefined} />
+          <StatCard label="Posty na tablicy" value={boardCount.count ?? 0} icon="💬" href="/admin/board" />
         </div>
 
         <StatsChart data={chartData} title="Zgłoszenia — ostatnie 6 miesięcy" />
@@ -120,34 +189,55 @@ export default async function DashboardPage() {
               <h3 className="text-base font-semibold text-gray-800">Otwarte zgłoszenia</h3>
               <Link href="/admin/tickets" className="text-sm text-blue-600 hover:underline">Zobacz wszystkie</Link>
             </div>
-            {(openTickets.data ?? []).length === 0 ? (
-              <p className="text-sm text-gray-400">Brak otwartych zgłoszeń.</p>
-            ) : (
-              <div className="space-y-2">
-                {(openTickets.data ?? []).map((t: any) => (
-                  <Link key={t.id} href={`/admin/tickets/${t.id}`}
-                    className="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-200 transition">
-                    <p className="text-sm font-medium text-gray-800 truncate">{t.title}</p>
-                    <span className="text-xs text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full ml-2 flex-shrink-0">Otwarte</span>
-                  </Link>
-                ))}
-              </div>
-            )}
+            {(openTickets.data ?? []).length === 0
+              ? <p className="text-sm text-gray-400">Brak otwartych zgłoszeń.</p>
+              : <div className="space-y-2">
+                  {(openTickets.data ?? []).map((t: any) => (
+                    <Link key={t.id} href={`/admin/tickets/${t.id}`}
+                      className="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-200 transition">
+                      <p className="text-sm font-medium text-gray-800 truncate">{t.title}</p>
+                      <span className="text-xs text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full ml-2 flex-shrink-0">Otwarte</span>
+                    </Link>
+                  ))}
+                </div>
+            }
           </div>
+
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-semibold text-gray-800">Ostatnie ogłoszenia</h3>
-              <Link href="/admin/announcements/add" className="text-sm text-blue-600 hover:underline">+ Dodaj</Link>
+              <h3 className="text-base font-semibold text-gray-800">Ostatnie posty na tablicy</h3>
+              <Link href="/admin/board" className="text-sm text-blue-600 hover:underline">Tablica</Link>
             </div>
-            <AnnouncementList announcements={a.data ?? []} />
+            {(recentBoardPosts.data ?? []).length === 0
+              ? <p className="text-sm text-gray-400">Brak postów na tablicy.</p>
+              : <div className="space-y-2">
+                  {(recentBoardPosts.data ?? []).map((p: any) => (
+                    <Link key={p.id} href="/admin/board"
+                      className="block bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-200 transition">
+                      <p className="text-sm text-gray-800 line-clamp-1">{p.content}</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {authorMap[p.author_id] ?? '—'} · {new Date(p.created_at).toLocaleDateString('pl-PL')}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+            }
           </div>
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-base font-semibold text-gray-800">Ostatnie ogłoszenia</h3>
+            <Link href="/admin/announcements/add" className="text-sm text-blue-600 hover:underline">+ Dodaj</Link>
+          </div>
+          <AnnouncementList announcements={recentAnnouncements.data ?? []} />
         </div>
       </div>
     )
   }
 
   // ─── USER (MIESZKANIEC) ─────────────────────────────────────────
-  const [myTickets, announcements, docs, unread] = await Promise.all([
+  const [myTickets, announcements, docs, unreadRes, boardPosts, boardAuthorsRes] = await Promise.all([
     admin.from('tickets').select('id, title, status, created_at')
       .eq('created_by', user.id).order('created_at', { ascending: false }).limit(5),
     admin.from('announcements').select('*')
@@ -159,9 +249,19 @@ export default async function DashboardPage() {
     admin.from('announcements').select('id', { count: 'exact', head: true })
       .not('id', 'in', `(SELECT announcement_id FROM read_announcements WHERE user_id = '${user.id}')`)
       .or(`target.eq.all,community_id.eq.${communityId}`),
+    admin.from('board_posts').select('id, content, created_at, author_id')
+      .eq('community_id', communityId)
+      .order('created_at', { ascending: false }).limit(4),
+    admin.from('profiles').select('id, full_name, email'),
   ])
 
+  const authorMap: Record<string, string> = {}
+  for (const a of boardAuthorsRes.data ?? []) {
+    authorMap[a.id] = a.full_name ?? a.email ?? '—'
+  }
+
   const openCount = (myTickets.data ?? []).filter((t: any) => t.status === 'open').length
+  const unreadCount = unreadRes.count ?? 0
 
   return (
     <div className="space-y-6">
@@ -171,14 +271,18 @@ export default async function DashboardPage() {
           Witaj, {profile.full_name?.split(' ')[0] ?? 'mieszkańcu'} 👋
         </h2>
         <p className="text-blue-100 mt-1 text-sm">{community?.name ?? '—'} · {community?.address ?? ''}</p>
-        <div className="flex gap-4 mt-4">
+        <div className="flex gap-3 mt-4 flex-wrap">
           <div className="bg-white/20 rounded-xl px-4 py-2 text-center">
-            <p className="text-xl font-bold">{unread.count ?? 0}</p>
+            <p className="text-xl font-bold">{unreadCount}</p>
             <p className="text-xs text-blue-100">Nowe ogłoszenia</p>
           </div>
           <div className="bg-white/20 rounded-xl px-4 py-2 text-center">
             <p className="text-xl font-bold">{openCount}</p>
             <p className="text-xs text-blue-100">Otwarte zgłoszenia</p>
+          </div>
+          <div className="bg-white/20 rounded-xl px-4 py-2 text-center">
+            <p className="text-xl font-bold">{(boardPosts.data ?? []).length}</p>
+            <p className="text-xs text-blue-100">Nowe posty</p>
           </div>
         </div>
       </div>
@@ -186,11 +290,11 @@ export default async function DashboardPage() {
       {/* Szybkie akcje */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <QuickAction href="/admin/announcements" icon="📢" label="Ogłoszenia"
-          badge={unread.count ? `${unread.count} nowych` : undefined} badgeColor="blue" />
+          badge={unreadCount ? `${unreadCount} nowych` : undefined} badgeColor="blue" />
         <QuickAction href="/admin/tickets" icon="🎫" label="Moje zgłoszenia"
           badge={openCount ? `${openCount} otwartych` : undefined} badgeColor="yellow" />
+        <QuickAction href="/admin/board" icon="💬" label="Tablica" />
         <QuickAction href="/admin/documents" icon="📁" label="Dokumenty" />
-        <QuickAction href="/admin/profile" icon="👤" label="Mój profil" />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -200,51 +304,69 @@ export default async function DashboardPage() {
             <h3 className="text-base font-semibold text-gray-800">Ostatnie ogłoszenia</h3>
             <Link href="/admin/announcements" className="text-sm text-blue-600 hover:underline">Zobacz wszystkie</Link>
           </div>
-          {(announcements.data ?? []).length === 0 ? (
-            <p className="text-sm text-gray-400">Brak ogłoszeń.</p>
-          ) : (
-            <div className="space-y-2">
-              {(announcements.data ?? []).map((a: any) => (
-                <Link key={a.id} href={`/admin/announcements/${a.id}`}
-                  className="block bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-200 transition">
-                  <p className="text-sm font-medium text-gray-800 truncate">{a.title}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{new Date(a.created_at).toLocaleDateString('pl-PL')}</p>
-                </Link>
-              ))}
-            </div>
-          )}
+          {(announcements.data ?? []).length === 0
+            ? <p className="text-sm text-gray-400">Brak ogłoszeń.</p>
+            : <div className="space-y-2">
+                {(announcements.data ?? []).map((a: any) => (
+                  <Link key={a.id} href={`/admin/announcements/${a.id}`}
+                    className="block bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-200 transition">
+                    <p className="text-sm font-medium text-gray-800 truncate">{a.title}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{new Date(a.created_at).toLocaleDateString('pl-PL')}</p>
+                  </Link>
+                ))}
+              </div>
+          }
         </div>
 
-        {/* Moje zgłoszenia */}
+        {/* Tablica — ostatnie posty */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-gray-800">Moje zgłoszenia</h3>
-            <Link href="/admin/tickets" className="text-sm text-blue-600 hover:underline">Nowe zgłoszenie</Link>
+            <h3 className="text-base font-semibold text-gray-800">Tablica sąsiedzka</h3>
+            <Link href="/admin/board" className="text-sm text-blue-600 hover:underline">Przejdź</Link>
           </div>
-          {(myTickets.data ?? []).length === 0 ? (
-            <div className="bg-white border border-dashed border-gray-200 rounded-xl p-6 text-center">
+          {(boardPosts.data ?? []).length === 0
+            ? <div className="bg-white border border-dashed border-gray-200 rounded-xl p-5 text-center">
+                <p className="text-sm text-gray-400 mb-2">Tablica jest pusta.</p>
+                <Link href="/admin/board" className="text-sm text-blue-600 hover:underline">Napisz pierwszą wiadomość →</Link>
+              </div>
+            : <div className="space-y-2">
+                {(boardPosts.data ?? []).map((p: any) => (
+                  <Link key={p.id} href="/admin/board"
+                    className="block bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-200 transition">
+                    <p className="text-sm text-gray-800 line-clamp-1">{p.content}</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {authorMap[p.author_id] ?? '—'} · {new Date(p.created_at).toLocaleDateString('pl-PL')}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+          }
+        </div>
+      </div>
+
+      {/* Moje zgłoszenia */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-base font-semibold text-gray-800">Moje zgłoszenia</h3>
+          <Link href="/admin/tickets" className="text-sm text-blue-600 hover:underline">Nowe zgłoszenie</Link>
+        </div>
+        {(myTickets.data ?? []).length === 0
+          ? <div className="bg-white border border-dashed border-gray-200 rounded-xl p-6 text-center">
               <p className="text-sm text-gray-400 mb-3">Nie masz jeszcze żadnych zgłoszeń.</p>
-              <Link href="/admin/tickets"
-                className="text-sm text-blue-600 font-medium hover:underline">
-                Zgłoś problem →
-              </Link>
+              <Link href="/admin/tickets" className="text-sm text-blue-600 font-medium hover:underline">Zgłoś problem →</Link>
             </div>
-          ) : (
-            <div className="space-y-2">
+          : <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {(myTickets.data ?? []).map((t: any) => (
                 <Link key={t.id} href={`/admin/tickets/${t.id}`}
                   className="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-200 transition">
                   <p className="text-sm font-medium text-gray-800 truncate">{t.title}</p>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ml-2 flex-shrink-0 ${
                     t.status === 'open' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
-                  }`}>
-                    {t.status === 'open' ? 'Otwarte' : 'Zamknięte'}
-                  </span>
+                  }`}>{t.status === 'open' ? 'Otwarte' : 'Zamknięte'}</span>
                 </Link>
               ))}
             </div>
-          )}
-        </div>
+        }
       </div>
 
       {/* Ostatnie dokumenty */}
@@ -278,10 +400,7 @@ export default async function DashboardPage() {
 function StatCard({ label, value, icon, href, color }: {
   label: string; value: number; icon: string; href: string; color?: string
 }) {
-  const colorMap: Record<string, string> = {
-    yellow: 'text-yellow-600',
-    red: 'text-red-600',
-  }
+  const colorMap: Record<string, string> = { yellow: 'text-yellow-600', red: 'text-red-600' }
   return (
     <Link href={href} className="bg-white border border-gray-200 rounded-xl p-4 flex items-center gap-3 hover:border-blue-200 transition">
       <span className="text-2xl">{icon}</span>
