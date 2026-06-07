@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
 import SidebarNav from '@/components/SidebarNav'
 import { ToastProvider } from '@/components/ToastContext'
+import AutoRefresh from '@/components/AutoRefresh'
 
 export default async function AdminLayout({
   children,
@@ -62,6 +63,9 @@ export default async function AdminLayout({
           userEmail={user.email ?? ''}
           unreadAnnouncements={unreadCount}
         />
+        {(profile.role === 'super_admin' || profile.role === 'admin') && (
+          <AutoRefresh intervalMs={60000} />
+        )}
         <main className="flex-1 p-4 lg:p-6 overflow-auto pt-[72px] lg:pt-6">
           {children}
         </main>
