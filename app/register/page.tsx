@@ -24,13 +24,13 @@ export default function RegisterPage() {
     return (
       <main className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="bg-white shadow-md rounded-xl p-8 w-full max-w-sm space-y-5 text-center">
-          <div className="text-5xl">📧</div>
-          <h1 className="text-xl font-bold text-gray-800">Sprawdź swoją skrzynkę</h1>
+          <div className="text-5xl">✅</div>
+          <h1 className="text-xl font-bold text-gray-800">Rejestracja zakończona!</h1>
           <p className="text-sm text-gray-600 leading-relaxed">
-            Wysłaliśmy email z linkiem potwierdzającym. Kliknij go, żeby aktywować konto.
+            Twoje konto zostało utworzone i oczekuje na akceptację administratora wspólnoty.
           </p>
           <p className="text-xs text-gray-400">
-            Po potwierdzeniu adresu Twoje konto trafi do kolejki — administrator wspólnoty zatwierdzi je wkrótce.
+            Otrzymasz dostęp po ręcznym zatwierdzeniu przez administratora.
           </p>
           <Link
             href="/login"
