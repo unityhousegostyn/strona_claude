@@ -1,5 +1,6 @@
 import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import PendingUsers from './PendingUsers'
 
 export default async function UsersPage() {
   const supabase = await getSupabaseServerClient()
@@ -9,16 +10,30 @@ export default async function UsersPage() {
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
   if (!profile || profile.role === 'user') redirect('/admin/dashboard')
 
-  const query = supabase
+  const isSuperAdmin = profile.role === 'super_admin'
+
+  // Zapytania równoległe
+  const pendingQuery = supabase
+    .from('profiles')
+    .select('*')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false })
+  if (!isSuperAdmin) pendingQuery.eq('community_id', profile.community_id)
+
+  const activeQuery = supabase
     .from('profiles')
     .select('*, community:communities(name)')
+    .eq('status', 'active')
     .order('created_at', { ascending: false })
+  if (!isSuperAdmin) activeQuery.eq('community_id', profile.community_id)
 
-  if (profile.role === 'admin') {
-    query.eq('community_id', profile.community_id)
-  }
-
-  const { data: users } = await query
+  const [{ data: pendingUsers }, { data: activeUsers }, { data: communities }] = await Promise.all([
+    pendingQuery,
+    activeQuery,
+    isSuperAdmin
+      ? supabase.from('communities').select('*').order('name')
+      : Promise.resolve({ data: [] }),
+  ])
 
   const roleLabel: Record<string, string> = {
     super_admin: 'Super Admin',
@@ -34,9 +49,14 @@ export default async function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Użytkownicy</h2>
-      </div>
+      <h2 className="text-2xl font-bold text-gray-900">Użytkownicy</h2>
+
+      <PendingUsers
+        users={pendingUsers ?? []}
+        communities={communities ?? []}
+        isSuperAdmin={isSuperAdmin}
+        adminCommunityId={profile.community_id}
+      />
 
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <table className="w-full text-sm">
@@ -49,7 +69,7 @@ export default async function UsersPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {(users ?? []).map((u: any) => (
+            {(activeUsers ?? []).map((u: any) => (
               <tr key={u.id} className="hover:bg-gray-50 transition">
                 <td className="px-4 py-3 font-medium text-gray-900">
                   {u.full_name ?? <span className="text-gray-400 italic">Brak nazwy</span>}
@@ -67,8 +87,8 @@ export default async function UsersPage() {
             ))}
           </tbody>
         </table>
-        {(!users || users.length === 0) && (
-          <p className="text-center text-sm text-gray-400 py-8">Brak użytkowników.</p>
+        {(!activeUsers || activeUsers.length === 0) && (
+          <p className="text-center text-sm text-gray-400 py-8">Brak aktywnych użytkowników.</p>
         )}
       </div>
     </div>

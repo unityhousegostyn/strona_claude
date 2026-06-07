@@ -10,6 +10,8 @@ export interface Community {
 export interface Profile {
   id: string
   role: Role
+  status: 'pending' | 'active'
+  full_name: string | null
   community_id: string | null
   created_at: string
   community?: Community
