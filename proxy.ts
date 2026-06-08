@@ -1,7 +1,61 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// ── Rate limiting (in-memory, per IP) ────────────────────────────────────────
+interface RateWindow { count: number; resetAt: number }
+const windows = new Map<string, RateWindow>()
+
+const LIMITS: Record<string, { max: number; windowMs: number }> = {
+  '/api/':     { max: 60,  windowMs: 60_000 },
+  '/login':    { max: 10,  windowMs: 60_000 },
+  '/register': { max: 5,   windowMs: 60_000 },
+  '/admin/':   { max: 200, windowMs: 60_000 },
+}
+
+function getRealIp(req: NextRequest): string {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    ?? req.headers.get('x-real-ip')
+    ?? 'unknown'
+}
+
+function checkRateLimit(ip: string, pathname: string): boolean {
+  const prefix = Object.keys(LIMITS).find(p => pathname.startsWith(p))
+  if (!prefix) return true
+  const limit = LIMITS[prefix]
+  const key = `${ip}:${prefix}`
+  const now = Date.now()
+  const win = windows.get(key)
+  if (!win || now > win.resetAt) {
+    windows.set(key, { count: 1, resetAt: now + limit.windowMs })
+    return true
+  }
+  if (win.count >= limit.max) return false
+  win.count++
+  return true
+}
+
+function addSecurityHeaders(res: NextResponse): void {
+  res.headers.set('X-Frame-Options', 'DENY')
+  res.headers.set('X-Content-Type-Options', 'nosniff')
+  res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  res.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  res.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+}
+
+// ── Proxy (Supabase auth + routing) ──────────────────────────────────────────
+
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl
+  const ip = getRealIp(request)
+
+  // Rate limiting
+  if (!checkRateLimit(ip, pathname)) {
+    return new NextResponse(
+      JSON.stringify({ error: 'Zbyt wiele zadań. Poczekaj chwilę.' }),
+      { status: 429, headers: { 'Content-Type': 'application/json', 'Retry-After': '60' } }
+    )
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -18,7 +72,6 @@ export async function proxy(request: NextRequest) {
           )
           supabaseResponse = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) => {
-            // Sesja tylko na czas przeglądarki — brak maxAge/expires
             const { maxAge, expires, ...sessionOptions } = options as any ?? {}
             supabaseResponse.cookies.set(name, value, sessionOptions)
           })
@@ -27,23 +80,13 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  // 🔥 Pobierz sesję
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  const pathname = request.nextUrl.pathname
-  const isAdminRoute = pathname.startsWith('/admin')
-  const isLoginPage = pathname === '/login'
+  const isAdminRoute    = pathname.startsWith('/admin')
+  const isLoginPage     = pathname === '/login'
+  const adminOnlyPrefixes = ['/admin/users', '/admin/communities']
+  const isAdminOnlyRoute  = adminOnlyPrefixes.some(p => pathname.startsWith(p))
 
-  // Trasy dostępne tylko dla admin i super_admin
-  const adminOnlyPrefixes = [
-    '/admin/users',
-    '/admin/communities',
-  ]
-  const isAdminOnlyRoute = adminOnlyPrefixes.some((p) => pathname.startsWith(p))
-
-  // 🔥 Jeśli user istnieje → pobierz profil
   let profile = null
   if (user) {
     const { data } = await supabase
@@ -51,33 +94,33 @@ export async function proxy(request: NextRequest) {
       .select('role, status')
       .eq('id', user.id)
       .single()
-
     profile = data
   }
 
-  // 🔥 1. Blokada dla niezalogowanych na /admin
+  // Niezalogowany na /admin
   if (isAdminRoute && !user) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // 🔥 2. Blokada dla pending — czeka na akceptację admina
+  // Konto oczekujące
   if (isAdminRoute && profile?.status === 'pending') {
     return NextResponse.redirect(new URL('/login?status=pending', request.url))
   }
 
-  // 🔥 3. Blokada tras admin-only dla roli 'user'
+  // Trasy tylko dla admin/super_admin
   if (isAdminOnlyRoute && profile?.role === 'user') {
     return NextResponse.redirect(new URL('/admin/dashboard', request.url))
   }
 
-  // 🔥 4. Jeśli user jest zalogowany i aktywny → nie wpuszczaj na /login
+  // Zalogowany nie wraca na /login
   if (isLoginPage && user && profile && profile.status !== 'pending') {
     return NextResponse.redirect(new URL('/admin/dashboard', request.url))
   }
 
+  addSecurityHeaders(supabaseResponse)
   return supabaseResponse
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/login'],
+  matcher: ['/admin/:path*', '/api/:path*', '/login', '/register'],
 }
