@@ -125,8 +125,29 @@ export function buildYearlyTable(
   const rows: MonthlyRow[] = []
   let balance = initialBalance
 
+  const now = new Date()
+  const currentYear  = now.getFullYear()
+  const currentMonth = now.getMonth() + 1  // 1-based
+
   for (let month = 1; month <= 12; month++) {
     const entry   = entries.find(e => e.month === month) ?? null
+
+    // Przyszłe miesiące bez wpłaty — pokaż jako puste (nie naliczaj)
+    const isFuture = year > currentYear || (year === currentYear && month > currentMonth)
+    if (isFuture && !entry) {
+      rows.push({
+        month,
+        monthName: MONTH_NAMES[month - 1],
+        hasRates: false,
+        balance_start: balance,
+        paid: 0, renovation: 0, operating: 0, manager: 0,
+        water: 0, garbage: 0, correction: 0, total_due: 0,
+        balance_end: balance,
+        entry: null,
+      })
+      continue
+    }
+
     const monthRates = getRatesForMonth(rates, year, month)
     const balance_start = balance
 
