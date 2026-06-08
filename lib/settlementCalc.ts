@@ -30,6 +30,7 @@ export interface SettlementRate {
   operating_rate_m2: number
   manager_fee_type: 'per_m2' | 'fixed'
   manager_fee_value: number
+  water_billing_type: 'ryczalt' | 'meter'  // 'ryczalt' = stała m³/mies, 'meter' = odczyt licznika
 }
 
 export interface SettlementEntry {
@@ -39,6 +40,7 @@ export interface SettlementEntry {
   month: number
   paid: number
   water_correction: number
+  water_m3: number   // zużycie wody w m³ (dla billing_type='meter')
   notes: string | null
 }
 
@@ -109,7 +111,9 @@ export function calcMonthCharges(
   const manager    = rates.manager_fee_type === 'per_m2'
     ? r(rates.manager_fee_value * apt.area_m2)
     : r(rates.manager_fee_value)                   // stała kwota
-  const water      = r(rates.water_ryczalt_m3 * rates.water_price_m3)
+  const water      = rates.water_billing_type === 'meter'
+    ? r((entry?.water_m3 ?? 0) * rates.water_price_m3)
+    : r(rates.water_ryczalt_m3 * rates.water_price_m3)
   const garbage    = r(apt.persons_count * rates.garbage_per_person)
   const correction = r(entry?.water_correction ?? 0)
   const paid       = r(entry?.paid ?? 0)

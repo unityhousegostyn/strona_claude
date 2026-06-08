@@ -129,6 +129,7 @@ export async function createRates(data: {
   operating_rate_m2: number
   manager_fee_type: 'per_m2' | 'fixed'
   manager_fee_value: number
+  water_billing_type: 'ryczalt' | 'meter'
 }): Promise<{ error?: string }> {
   const auth = await requireAdminOrAbove()
   if (auth.error !== null) return { error: auth.error }
@@ -154,6 +155,7 @@ export async function updateRates(id: string, data: {
   operating_rate_m2: number
   manager_fee_type: 'per_m2' | 'fixed'
   manager_fee_value: number
+  water_billing_type: 'ryczalt' | 'meter'
 }): Promise<{ error?: string }> {
   const auth = await requireAdminOrAbove()
   if (auth.error !== null) return { error: auth.error }
@@ -198,6 +200,7 @@ export async function upsertEntry(data: {
   month: number
   paid: number
   water_correction: number
+  water_m3?: number
   notes?: string | null
 }): Promise<{ error?: string }> {
   const auth = await requireAdminOrAbove()
@@ -216,6 +219,7 @@ export async function upsertEntry(data: {
     month: data.month,
     paid: data.paid,
     water_correction: data.water_correction,
+    water_m3: data.water_m3 ?? 0,
     notes: data.notes ?? null,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'apartment_id,year,month' })

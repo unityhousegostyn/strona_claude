@@ -27,6 +27,7 @@ const EMPTY_RATES = {
   effective_from: '', water_price_m3: '', water_ryczalt_m3: '',
   garbage_per_person: '', renovation_rate_m2: '', operating_rate_m2: '',
   manager_fee_type: 'per_m2' as 'per_m2' | 'fixed', manager_fee_value: '',
+  water_billing_type: 'ryczalt' as 'ryczalt' | 'meter',
 }
 
 export default function SettlementsMain({ communities, selectedCommunityId, apartments, rates, entries = [], isAdmin = false }: Props) {
@@ -91,6 +92,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
         operating_rate_m2: parseFloat(ratesForm.operating_rate_m2) || 0,
         manager_fee_type: ratesForm.manager_fee_type,
         manager_fee_value: parseFloat(ratesForm.manager_fee_value) || 0,
+        water_billing_type: ratesForm.water_billing_type,
       })
       if (result.error) { setError(result.error); return }
       setRatesForm(EMPTY_RATES)
@@ -118,6 +120,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
       operating_rate_m2: String(r.operating_rate_m2),
       manager_fee_type: r.manager_fee_type,
       manager_fee_value: String(r.manager_fee_value),
+      water_billing_type: r.water_billing_type ?? 'ryczalt',
     })
     setError(null)
   }
@@ -135,6 +138,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
         operating_rate_m2: parseFloat(editRateForm.operating_rate_m2) || 0,
         manager_fee_type: editRateForm.manager_fee_type,
         manager_fee_value: parseFloat(editRateForm.manager_fee_value) || 0,
+        water_billing_type: editRateForm.water_billing_type,
       })
       if (result.error) { setError(result.error); return }
       setEditRateId(null)
@@ -364,9 +368,17 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                       <input className="input w-48" type="date" value={ratesForm.effective_from}
                         onChange={e => setRatesForm(p => ({ ...p, effective_from: e.target.value }))} />
                     </div>
+                    <div className="sm:col-span-2 lg:col-span-3">
+                      <label className="block text-xs text-gray-400 mb-1">Model rozliczania wody</label>
+                      <select className="input w-full max-w-xs" value={ratesForm.water_billing_type}
+                        onChange={e => setRatesForm(p => ({ ...p, water_billing_type: e.target.value as 'ryczalt' | 'meter' }))}>
+                        <option value="ryczalt">Ryczałt (stała m³/miesiąc)</option>
+                        <option value="meter">Licznik (odczyt co miesiąc)</option>
+                      </select>
+                    </div>
                     {[
                       { key: 'water_price_m3', label: 'Cena wody (zł/m³)' },
-                      { key: 'water_ryczalt_m3', label: 'Ryczałt wody (m³/mies.)' },
+                      ...(ratesForm.water_billing_type === 'ryczalt' ? [{ key: 'water_ryczalt_m3', label: 'Ryczałt wody (m³/mies.)' }] : []),
                       { key: 'garbage_per_person', label: 'Śmieci (zł/os./mies.)' },
                       { key: 'renovation_rate_m2', label: 'Fundusz remontowy (zł/m²)' },
                       { key: 'operating_rate_m2', label: 'Fundusz eksploatacyjny (zł/m²)' },
@@ -440,9 +452,17 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                               <input className="input w-48" type="date" value={editRateForm.effective_from}
                                 onChange={e => setEditRateForm(p => ({ ...p, effective_from: e.target.value }))} />
                             </div>
+                            <div className="sm:col-span-2 lg:col-span-3">
+                              <label className="block text-xs text-gray-400 mb-1">Model rozliczania wody</label>
+                              <select className="input w-full max-w-xs" value={editRateForm.water_billing_type}
+                                onChange={e => setEditRateForm(p => ({ ...p, water_billing_type: e.target.value as 'ryczalt' | 'meter' }))}>
+                                <option value="ryczalt">Ryczałt (stała m³/miesiąc)</option>
+                                <option value="meter">Licznik (odczyt co miesiąc)</option>
+                              </select>
+                            </div>
                             {[
                               { key: 'water_price_m3', label: 'Cena wody (zł/m³)' },
-                              { key: 'water_ryczalt_m3', label: 'Ryczałt wody (m³/mies.)' },
+                              ...(editRateForm.water_billing_type === 'ryczalt' ? [{ key: 'water_ryczalt_m3', label: 'Ryczałt wody (m³/mies.)' }] : []),
                               { key: 'garbage_per_person', label: 'Śmieci (zł/os./mies.)' },
                               { key: 'renovation_rate_m2', label: 'Fundusz remontowy (zł/m²)' },
                               { key: 'operating_rate_m2', label: 'Fundusz eksploatacyjny (zł/m²)' },
@@ -483,7 +503,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                           {[
                             { label: 'Cena wody', value: `${r.water_price_m3} zł/m³` },
-                            { label: 'Ryczałt wody', value: `${r.water_ryczalt_m3} m³/mies.` },
+                            { label: 'Woda — model', value: (r.water_billing_type ?? 'ryczalt') === 'meter' ? `Licznik m³` : `Ryczałt ${r.water_ryczalt_m3} m³/mies.` },
                             { label: 'Śmieci', value: `${r.garbage_per_person} zł/os.` },
                             { label: 'Fund. remontowy', value: `${r.renovation_rate_m2} zł/m²` },
                             { label: 'Fund. eksploat.', value: `${r.operating_rate_m2} zł/m²` },

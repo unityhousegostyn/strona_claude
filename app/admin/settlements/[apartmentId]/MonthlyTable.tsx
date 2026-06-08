@@ -36,6 +36,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
   const [editMonth, setEditMonth] = useState<number | null>(null)
   const [editPaid, setEditPaid] = useState('')
   const [editCorrection, setEditCorrection] = useState('')
+  const [editWaterM3, setEditWaterM3] = useState('')
   const [editNotes, setEditNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -62,13 +63,15 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
   const totalCorrection = rows.reduce((s, r) => s + r.correction, 0)
   const finalBalance = rows[11]?.balance_end ?? 0
 
-  // Aktualny ryczałt m³ dla ostatnich stawek
+  // Aktualny model wody i stawki
   const latestRates = rates[0] ?? null
+  const isMeterBilling = (latestRates?.water_billing_type ?? 'ryczalt') === 'meter'
 
   function openEdit(row: MonthlyRow) {
     setEditMonth(row.month)
     setEditPaid(row.entry?.paid != null ? String(row.entry.paid) : '')
     setEditCorrection(row.entry?.water_correction != null ? String(row.entry.water_correction) : '')
+    setEditWaterM3(row.entry?.water_m3 != null ? String(row.entry.water_m3) : '')
     setEditNotes(row.entry?.notes ?? '')
     setSaveError(null)
   }
@@ -89,6 +92,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
       month: editMonth,
       paid: parseFloat(editPaid || '0'),
       water_correction: parseFloat(editCorrection || '0'),
+      water_m3: parseFloat(editWaterM3 || '0'),
       notes: editNotes || null,
     })
     setSaving(false)
@@ -188,7 +192,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                 <th className={headerClass}>Fund. rem.</th>
                 <th className={headerClass}>Fund. ekspl.</th>
                 <th className={headerClass}>Zarządca</th>
-                <th className={headerClass}>Ryczałt wody</th>
+                <th className={headerClass}>{isMeterBilling ? 'Woda (m³)' : 'Ryczałt wody'}</th>
                 <th className={headerClass}>Śmieci</th>
                 <th className={headerClass}>Korekta</th>
                 <th className={headerClass + ' font-bold text-gray-300'}>Razem</th>
@@ -254,17 +258,37 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                                 className="w-28 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-blue-500"
                               />
                             </div>
-                            <div>
-                              <label className="text-xs text-gray-400 block mb-1">Korekta wody (zł)</label>
-                              <input
-                                type="number"
-                                step="0.01"
-                                value={editCorrection}
-                                onChange={e => setEditCorrection(e.target.value)}
-                                placeholder="0.00"
-                                className="w-28 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-blue-500"
-                              />
-                            </div>
+                            {isMeterBilling ? (
+                              <div>
+                                <label className="text-xs text-gray-400 block mb-1">Zużycie wody (m³)</label>
+                                <input
+                                  type="number"
+                                  step="0.001"
+                                  min="0"
+                                  value={editWaterM3}
+                                  onChange={e => setEditWaterM3(e.target.value)}
+                                  placeholder="0.000"
+                                  className="w-28 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-blue-500"
+                                />
+                                {editWaterM3 && latestRates && (
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    = {(parseFloat(editWaterM3 || '0') * latestRates.water_price_m3).toFixed(2)} zł
+                                  </p>
+                                )}
+                              </div>
+                            ) : (
+                              <div>
+                                <label className="text-xs text-gray-400 block mb-1">Korekta wody (zł)</label>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  value={editCorrection}
+                                  onChange={e => setEditCorrection(e.target.value)}
+                                  placeholder="0.00"
+                                  className="w-28 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-blue-500"
+                                />
+                              </div>
+                            )}
                             <div className="flex-1 min-w-40">
                               <label className="text-xs text-gray-400 block mb-1">Uwagi</label>
                               <input
@@ -337,8 +361,8 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
         </div>
       </div>
 
-      {/* Rozliczenie kwartalne wody */}
-      {apartment.has_meter && (
+      {/* Rozliczenie kwartalne wody — tylko dla modelu ryczałtowego */}
+      {apartment.has_meter && !isMeterBilling && (
         <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-800">
             <h3 className="text-sm font-semibold text-gray-200">💧 Rozliczenie kwartalne wody</h3>
