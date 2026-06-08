@@ -4,8 +4,8 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createApartment, deleteApartment, createRates, deleteRates, updateRates } from './actions'
-import { pln, shareStr } from '@/lib/settlementCalc'
-import type { SettlementApartment, SettlementRate } from '@/lib/settlementCalc'
+import { pln, shareStr, buildYearlyTable } from '@/lib/settlementCalc'
+import type { SettlementApartment, SettlementRate, SettlementEntry } from '@/lib/settlementCalc'
 
 interface Community { id: string; name: string }
 
@@ -14,6 +14,7 @@ interface Props {
   selectedCommunityId: string | null
   apartments: SettlementApartment[]
   rates: SettlementRate[]
+  entries?: SettlementEntry[]
   isAdmin?: boolean
 }
 
@@ -28,7 +29,7 @@ const EMPTY_RATES = {
   manager_fee_type: 'per_m2' as 'per_m2' | 'fixed', manager_fee_value: '',
 }
 
-export default function SettlementsMain({ communities, selectedCommunityId, apartments, rates, isAdmin = false }: Props) {
+export default function SettlementsMain({ communities, selectedCommunityId, apartments, rates, entries = [], isAdmin = false }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [tab, setTab] = useState<'apartments' | 'rates'>('apartments')
@@ -294,7 +295,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-gray-800">
-                        {['Nr', 'Właściciel', 'Pow. m²', 'Udział KW', 'Osoby', 'Wodomierz', ''].map(h => (
+                        {['Nr', 'Właściciel', 'Pow. m²', 'Udział KW', 'Osoby', 'Wodomierz', `Saldo ${new Date().getFullYear()}`, ''].map(h => (
                           <th key={h} className="text-left text-xs text-gray-500 font-medium pb-2 pr-4">{h}</th>
                         ))}
                       </tr>
@@ -311,6 +312,19 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                             <span className={`text-xs px-2 py-0.5 rounded-full ${apt.has_meter ? 'bg-green-900/30 text-green-400' : 'bg-gray-800 text-gray-500'}`}>
                               {apt.has_meter ? 'Tak' : 'Nie'}
                             </span>
+                          </td>
+                          <td className="py-3 pr-4">
+                            {(() => {
+                              const aptEntries = entries.filter(e => e.apartment_id === apt.id)
+                              const rows = buildYearlyTable(apt, rates, aptEntries, new Date().getFullYear())
+                              const balance = rows[rows.length - 1]?.balance_end ?? 0
+                              if (balance === 0) return <span className="text-xs text-gray-500">—</span>
+                              return (
+                                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${balance > 0 ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}>
+                                  {balance > 0 ? '+' : ''}{pln(balance)}
+                                </span>
+                              )
+                            })()}
                           </td>
                           <td className="py-3 flex items-center gap-3">
                             <Link href={`/admin/settlements/${apt.id}`}

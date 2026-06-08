@@ -35,6 +35,8 @@ export default async function SettlementsPage({
     )
   }
 
+  const currentYear = new Date().getFullYear()
+
   // ── ADMIN: tylko własna wspólnota ────────────────────────────────────────
   if (profile.role === 'admin') {
     if (!profile.community_id) {
@@ -47,7 +49,7 @@ export default async function SettlementsPage({
       )
     }
 
-    const [communityRes, aptsRes, ratesRes] = await Promise.all([
+    const [communityRes, aptsRes, ratesRes, entriesRes] = await Promise.all([
       admin.from('communities').select('id, name').eq('id', profile.community_id).single(),
       admin.from('settlement_apartments')
         .select('*').eq('community_id', profile.community_id)
@@ -55,6 +57,9 @@ export default async function SettlementsPage({
       admin.from('settlement_rates')
         .select('*').eq('community_id', profile.community_id)
         .order('effective_from', { ascending: false }),
+      admin.from('settlement_entries')
+        .select('*').eq('community_id', profile.community_id)
+        .eq('year', currentYear),
     ])
 
     return (
@@ -63,6 +68,7 @@ export default async function SettlementsPage({
         selectedCommunityId={profile.community_id}
         apartments={aptsRes.data ?? []}
         rates={ratesRes.data ?? []}
+        entries={entriesRes.data ?? []}
         isAdmin={true}
       />
     )
@@ -75,18 +81,23 @@ export default async function SettlementsPage({
 
   let apartments: any[] = []
   let rates: any[] = []
+  let entries: any[] = []
 
   if (selectedId) {
-    const [aptsRes, ratesRes] = await Promise.all([
+    const [aptsRes, ratesRes, entriesRes] = await Promise.all([
       admin.from('settlement_apartments')
         .select('*').eq('community_id', selectedId)
         .eq('active', true).order('number'),
       admin.from('settlement_rates')
         .select('*').eq('community_id', selectedId)
         .order('effective_from', { ascending: false }),
+      admin.from('settlement_entries')
+        .select('*').eq('community_id', selectedId)
+        .eq('year', currentYear),
     ])
     apartments = aptsRes.data ?? []
     rates = ratesRes.data ?? []
+    entries = entriesRes.data ?? []
   }
 
   return (
@@ -95,6 +106,7 @@ export default async function SettlementsPage({
       selectedCommunityId={selectedId}
       apartments={apartments}
       rates={rates}
+      entries={entries}
       isAdmin={false}
     />
   )
