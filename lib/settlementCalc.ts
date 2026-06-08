@@ -137,8 +137,8 @@ export function buildYearlyTable(
   for (let month = 1; month <= 12; month++) {
     const entry   = entries.find(e => e.month === month) ?? null
 
-    // Przyszłe miesiące bez wpłaty — pokaż jako puste (nie naliczaj)
-    const isFuture = year > currentYear || (year === currentYear && month > currentMonth)
+    // Bieżący i przyszłe miesiące bez wpłaty — pokaż jako puste (nie naliczaj)
+    const isFuture = year > currentYear || (year === currentYear && month >= currentMonth)
     if (isFuture && !entry) {
       rows.push({
         month,
