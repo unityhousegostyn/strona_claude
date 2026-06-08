@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createApartment, deleteApartment, createRates, deleteRates } from './actions'
+import { createApartment, deleteApartment, createRates, deleteRates, updateRates } from './actions'
 import { pln, shareStr } from '@/lib/settlementCalc'
 import type { SettlementApartment, SettlementRate } from '@/lib/settlementCalc'
 
@@ -37,6 +37,8 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
   const [aptForm, setAptForm] = useState(EMPTY_APT)
   const [ratesForm, setRatesForm] = useState(EMPTY_RATES)
   const [error, setError] = useState<string | null>(null)
+  const [editRateId, setEditRateId] = useState<string | null>(null)
+  const [editRateForm, setEditRateForm] = useState(EMPTY_RATES)
 
   const handleCommunityChange = (id: string) => {
     router.push(`/admin/settlements?community=${id}`)
@@ -99,6 +101,42 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
     if (!confirm('Usunąć te stawki?')) return
     startTransition(async () => {
       await deleteRates(id)
+      router.refresh()
+    })
+  }
+
+  const handleEditRateOpen = (r: import('@/lib/settlementCalc').SettlementRate) => {
+    setEditRateId(r.id)
+    setEditRateForm({
+      effective_from: r.effective_from,
+      water_price_m3: String(r.water_price_m3),
+      water_ryczalt_m3: String(r.water_ryczalt_m3),
+      garbage_per_person: String(r.garbage_per_person),
+      renovation_rate_m2: String(r.renovation_rate_m2),
+      operating_rate_m2: String(r.operating_rate_m2),
+      manager_fee_type: r.manager_fee_type,
+      manager_fee_value: String(r.manager_fee_value),
+    })
+    setError(null)
+  }
+
+  const handleUpdateRates = () => {
+    if (!editRateId) return
+    setError(null)
+    startTransition(async () => {
+      const result = await updateRates(editRateId, {
+        effective_from: editRateForm.effective_from,
+        water_price_m3: parseFloat(editRateForm.water_price_m3) || 0,
+        water_ryczalt_m3: parseFloat(editRateForm.water_ryczalt_m3) || 0,
+        garbage_per_person: parseFloat(editRateForm.garbage_per_person) || 0,
+        renovation_rate_m2: parseFloat(editRateForm.renovation_rate_m2) || 0,
+        operating_rate_m2: parseFloat(editRateForm.operating_rate_m2) || 0,
+        manager_fee_type: editRateForm.manager_fee_type,
+        manager_fee_value: parseFloat(editRateForm.manager_fee_value) || 0,
+      })
+      if (result.error) { setError(result.error); return }
+      setEditRateId(null)
+      setEditRateForm(EMPTY_RATES)
       router.refresh()
     })
   }
@@ -361,30 +399,88 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
                           <span className="font-semibold text-gray-100">
-                            Od: {new Date(r.effective_from).toLocaleDateString('pl-PL')}
+                            Od: {r.effective_from.split('-').slice(0,2).reverse().join('.')+'.'+r.effective_from.split('-')[0]}
                           </span>
                           {i === 0 && (
                             <span className="text-xs bg-green-900/30 text-green-400 px-2 py-0.5 rounded-full">Aktualne</span>
                           )}
                         </div>
-                        <button onClick={() => handleDeleteRates(r.id)} disabled={isPending}
-                          className="text-xs text-gray-600 hover:text-red-400 transition">✕ Usuń</button>
+                        <div className="flex items-center gap-3">
+                          <button onClick={() => editRateId === r.id ? setEditRateId(null) : handleEditRateOpen(r)}
+                            disabled={isPending}
+                            className="text-xs text-blue-400 hover:text-blue-300 transition">
+                            {editRateId === r.id ? 'Zwiń' : '✏ Edytuj'}
+                          </button>
+                          <button onClick={() => handleDeleteRates(r.id)} disabled={isPending}
+                            className="text-xs text-gray-600 hover:text-red-400 transition">✕ Usuń</button>
+                        </div>
                       </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                        {[
-                          { label: 'Cena wody', value: `${r.water_price_m3} zł/m³` },
-                          { label: 'Ryczałt wody', value: `${r.water_ryczalt_m3} m³/mies.` },
-                          { label: 'Śmieci', value: `${r.garbage_per_person} zł/os.` },
-                          { label: 'Fund. remontowy', value: `${r.renovation_rate_m2} zł/m²` },
-                          { label: 'Fund. eksploat.', value: `${r.operating_rate_m2} zł/m²` },
-                          { label: 'Zarządca', value: r.manager_fee_type === 'per_m2' ? `${r.manager_fee_value} zł/m²` : `${r.manager_fee_value} zł/lokal (stała)` },
-                        ].map(item => (
-                          <div key={item.label}>
-                            <p className="text-gray-500">{item.label}</p>
-                            <p className="text-gray-200 font-medium mt-0.5">{item.value}</p>
+
+                      {/* Inline edit form */}
+                      {editRateId === r.id ? (
+                        <div className="space-y-4 pt-2 border-t border-gray-800">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <div className="sm:col-span-2 lg:col-span-3">
+                              <label className="block text-xs text-gray-400 mb-1">Obowiązuje od *</label>
+                              <input className="input w-48" type="date" value={editRateForm.effective_from}
+                                onChange={e => setEditRateForm(p => ({ ...p, effective_from: e.target.value }))} />
+                            </div>
+                            {[
+                              { key: 'water_price_m3', label: 'Cena wody (zł/m³)' },
+                              { key: 'water_ryczalt_m3', label: 'Ryczałt wody (m³/mies.)' },
+                              { key: 'garbage_per_person', label: 'Śmieci (zł/os./mies.)' },
+                              { key: 'renovation_rate_m2', label: 'Fundusz remontowy (zł/m²)' },
+                              { key: 'operating_rate_m2', label: 'Fundusz eksploatacyjny (zł/m²)' },
+                            ].map(f => (
+                              <div key={f.key}>
+                                <label className="block text-xs text-gray-400 mb-1">{f.label}</label>
+                                <input className="input w-full" type="number" step="0.0001" placeholder="0.00"
+                                  value={(editRateForm as any)[f.key]}
+                                  onChange={e => setEditRateForm(p => ({ ...p, [f.key]: e.target.value }))} />
+                              </div>
+                            ))}
+                            <div>
+                              <label className="block text-xs text-gray-400 mb-1">Zarządca — typ</label>
+                              <select className="input w-full" value={editRateForm.manager_fee_type}
+                                onChange={e => setEditRateForm(p => ({ ...p, manager_fee_type: e.target.value as 'per_m2' | 'fixed' }))}>
+                                <option value="per_m2">Wg m² (zł/m²)</option>
+                                <option value="fixed">Stała kwota (zł/lokal)</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-xs text-gray-400 mb-1">
+                                Zarządca — {editRateForm.manager_fee_type === 'per_m2' ? 'stawka zł/m²' : 'kwota stała zł/lokal'}
+                              </label>
+                              <input className="input w-full" type="number" step="0.01" placeholder="0.00"
+                                value={editRateForm.manager_fee_value}
+                                onChange={e => setEditRateForm(p => ({ ...p, manager_fee_value: e.target.value }))} />
+                            </div>
                           </div>
-                        ))}
-                      </div>
+                          <div className="flex gap-3">
+                            <button onClick={handleUpdateRates} disabled={isPending}
+                              className="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">
+                              {isPending ? 'Zapisywanie...' : 'Zapisz zmiany'}
+                            </button>
+                            <button onClick={() => setEditRateId(null)} className="text-sm text-gray-500 hover:text-gray-300">Anuluj</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                          {[
+                            { label: 'Cena wody', value: `${r.water_price_m3} zł/m³` },
+                            { label: 'Ryczałt wody', value: `${r.water_ryczalt_m3} m³/mies.` },
+                            { label: 'Śmieci', value: `${r.garbage_per_person} zł/os.` },
+                            { label: 'Fund. remontowy', value: `${r.renovation_rate_m2} zł/m²` },
+                            { label: 'Fund. eksploat.', value: `${r.operating_rate_m2} zł/m²` },
+                            { label: 'Zarządca', value: r.manager_fee_type === 'per_m2' ? `${r.manager_fee_value} zł/m²` : `${r.manager_fee_value} zł/lokal (stała)` },
+                          ].map(item => (
+                            <div key={item.label}>
+                              <p className="text-gray-500">{item.label}</p>
+                              <p className="text-gray-200 font-medium mt-0.5">{item.value}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

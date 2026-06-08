@@ -145,6 +145,34 @@ export async function createRates(data: {
   return {}
 }
 
+export async function updateRates(id: string, data: {
+  effective_from: string
+  water_price_m3: number
+  water_ryczalt_m3: number
+  garbage_per_person: number
+  renovation_rate_m2: number
+  operating_rate_m2: number
+  manager_fee_type: 'per_m2' | 'fixed'
+  manager_fee_value: number
+}): Promise<{ error?: string }> {
+  const auth = await requireAdminOrAbove()
+  if (auth.error !== null) return { error: auth.error }
+
+  const admin = getSupabaseAdminClient()
+  const { data: rate } = await admin.from('settlement_rates').select('community_id').eq('id', id).single()
+  if (!rate) return { error: 'Stawki nie istnieją' }
+  const guardErr = guardCommunity(auth, rate.community_id)
+  if (guardErr) return { error: guardErr }
+
+  if (!data.effective_from) return { error: 'Data obowiązywania jest wymagana' }
+
+  const { error } = await admin.from('settlement_rates').update(data).eq('id', id)
+  if (error) return { error: error.message }
+  await logActivity({ userId: auth.user!.id, action: 'update_rates', targetType: 'settlement_rates', targetId: id, meta: { effective_from: data.effective_from } })
+  revalidatePath('/admin/settlements')
+  return {}
+}
+
 export async function deleteRates(id: string): Promise<{ error?: string }> {
   const auth = await requireAdminOrAbove()
   if (auth.error !== null) return { error: auth.error }
