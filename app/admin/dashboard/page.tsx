@@ -1,19 +1,11 @@
 import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
+import { getAuthProfile } from '@/lib/getAuthProfile'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import StatsChart from './StatsChart'
 
 export default async function DashboardPage() {
-  const supabase = await getSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-  if (!profile) redirect('/login')
+  const { user, profile } = await getAuthProfile()
 
   const admin = getSupabaseAdminClient()
   const role = profile.role

@@ -1,20 +1,14 @@
 'use server'
+import { getAuthProfileAction } from '@/lib/getAuthProfile'
 
 import { revalidatePath } from 'next/cache'
-import { getSupabaseAdminClient, getSupabaseServerClient } from '@/lib/supabase/server'
+import { getSupabaseAdminClient } from '@/lib/supabase/server'
 
 export async function toggleTicketStatus(ticketId: string, currentStatus: string) {
-  const supabase = await getSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Brak autoryzacji')
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role, community_id')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile || profile.role === 'user') throw new Error('Brak uprawnień')
+  const auth = await getAuthProfileAction()
+  if (auth.error !== null) throw new Error(auth.error)
+  if (auth.profile.role === 'user') throw new Error('Brak uprawnień')
+  const { user, profile } = auth
 
   const admin = getSupabaseAdminClient()
 
@@ -39,15 +33,9 @@ export async function toggleTicketStatus(ticketId: string, currentStatus: string
 
 export async function createTicket(formData: FormData): Promise<{ error?: string }> {
   try {
-    const supabase = await getSupabaseServerClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Brak autoryzacji' }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role, community_id')
-      .eq('id', user.id)
-      .single()
+    const auth = await getAuthProfileAction()
+    if (auth.error !== null) return { error: auth.error }
+    const { user, profile } = auth
 
     if (!profile) return { error: 'Brak autoryzacji' }
 

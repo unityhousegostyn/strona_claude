@@ -1,16 +1,13 @@
 import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
+import { getAuthProfile } from '@/lib/getAuthProfile'
 import { redirect } from 'next/navigation'
 import PendingUsers from './PendingUsers'
 import Link from 'next/link'
 
 export default async function UsersPage() {
   // Auth check — anon client (RLS)
-  const supabase = await getSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-  if (!profile || profile.role === 'user') redirect('/admin/dashboard')
+  const { user, profile } = await getAuthProfile()
+  if (profile.role === 'user') redirect('/admin/dashboard')
 
   const isSuperAdmin = profile.role === 'super_admin'
 

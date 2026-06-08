@@ -1,5 +1,6 @@
 import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { getAuthProfile } from '@/lib/getAuthProfile'
 
 const ACTION_LABELS: Record<string, string> = {
   approve_user: '✅ Zaakceptowano użytkownika',
@@ -13,12 +14,8 @@ const ACTION_LABELS: Record<string, string> = {
 }
 
 export default async function AuditPage() {
-  const supabase = await getSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (!profile || profile.role !== 'super_admin') redirect('/admin/dashboard')
+  const { user, profile } = await getAuthProfile()
+  if (profile.role !== 'super_admin') redirect('/admin/dashboard')
 
   const admin = getSupabaseAdminClient()
   const { data: logs } = await admin

@@ -1,21 +1,14 @@
 'use server'
+import { getAuthProfileAction } from '@/lib/getAuthProfile'
 
 import { revalidatePath } from 'next/cache'
-import { getSupabaseAdminClient, getSupabaseServerClient } from '@/lib/supabase/server'
+import { getSupabaseAdminClient } from '@/lib/supabase/server'
 
 async function requireSuperAdmin() {
-  const supabase = await getSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Brak autoryzacji')
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile || profile.role !== 'super_admin') throw new Error('Tylko super_admin może zarządzać wspólnotami')
-  return { user, profile }
+  const auth = await getAuthProfileAction()
+  if (auth.error !== null) throw new Error(auth.error)
+  if (auth.profile.role !== 'super_admin') throw new Error('Tylko super_admin może zarządzać wspólnotami')
+  return { user: auth.user, profile: auth.profile }
 }
 
 export async function createCommunity(formData: { name: string; address: string }) {

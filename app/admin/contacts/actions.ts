@@ -1,7 +1,8 @@
 'use server'
+import { getAuthProfileAction } from '@/lib/getAuthProfile'
 
 import { revalidatePath } from 'next/cache'
-import { getSupabaseAdminClient, getSupabaseServerClient } from '@/lib/supabase/server'
+import { getSupabaseAdminClient } from '@/lib/supabase/server'
 
 export async function createContact(data: {
   name: string
@@ -13,12 +14,10 @@ export async function createContact(data: {
   communityId: string | null
 }): Promise<{ error?: string }> {
   try {
-    const supabase = await getSupabaseServerClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Brak autoryzacji' }
-
-    const { data: profile } = await supabase.from('profiles').select('role, community_id').eq('id', user.id).single()
-    if (!profile || profile.role === 'user') return { error: 'Brak uprawnień' }
+    const auth = await getAuthProfileAction()
+    if (auth.error !== null) return { error: auth.error }
+    if (auth.profile.role === 'user') return { error: 'Brak uprawnień' }
+    const { user, profile } = auth
 
     const name = data.name?.trim()
     const role = data.role?.trim()
@@ -49,12 +48,10 @@ export async function createContact(data: {
 
 export async function deleteContact(contactId: string): Promise<{ error?: string }> {
   try {
-    const supabase = await getSupabaseServerClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Brak autoryzacji' }
-
-    const { data: profile } = await supabase.from('profiles').select('role, community_id').eq('id', user.id).single()
-    if (!profile || profile.role === 'user') return { error: 'Brak uprawnień' }
+    const auth = await getAuthProfileAction()
+    if (auth.error !== null) return { error: auth.error }
+    if (auth.profile.role === 'user') return { error: 'Brak uprawnień' }
+    const { user, profile } = auth
 
     const admin = getSupabaseAdminClient()
 

@@ -1,15 +1,11 @@
 import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
+import { getAuthProfile } from '@/lib/getAuthProfile'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import AnnouncementsList from './AnnouncementsList'
 
 export default async function AnnouncementsPage() {
-  const supabase = await getSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-  if (!profile) redirect('/login')
+  const { user, profile } = await getAuthProfile()
 
   const admin = getSupabaseAdminClient()
   const isSuperAdmin = profile.role === 'super_admin'
@@ -49,7 +45,7 @@ export default async function AnnouncementsPage() {
         if (a.target === 'all') return true
         if (a.target === 'one') return a.community_id === profile.community_id
         if (a.target === 'selected') {
-          return (junctionMap[a.id] ?? []).includes(profile.community_id)
+          return (junctionMap[a.id] ?? []).includes(profile.community_id ?? '')
         }
         return false
       })

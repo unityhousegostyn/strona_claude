@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
-import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
+import { getAuthProfile } from '@/lib/getAuthProfile'
+import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import SettlementsMain from './SettlementsMain'
 
 export default async function SettlementsPage({
@@ -7,13 +8,7 @@ export default async function SettlementsPage({
 }: {
   searchParams: Promise<{ community?: string }>
 }) {
-  const supabase = await getSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: profile } = await supabase
-    .from('profiles').select('role, community_id').eq('id', user.id).single()
-  if (!profile) redirect('/login')
+  const { user, profile } = await getAuthProfile()
 
   const admin = getSupabaseAdminClient()
 

@@ -1,5 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
-import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
+import { getAuthProfile } from '@/lib/getAuthProfile'
+import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import MonthlyTable from './MonthlyTable'
 
@@ -10,13 +11,7 @@ export default async function ApartmentSettlementPage({
   params: Promise<{ apartmentId: string }>
   searchParams: Promise<{ year?: string }>
 }) {
-  const supabase = await getSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: profile } = await supabase
-    .from('profiles').select('role, community_id').eq('id', user.id).single()
-  if (!profile) redirect('/login')
+  const { user, profile } = await getAuthProfile()
 
   const { apartmentId } = await params
   const { year: yearParam } = await searchParams

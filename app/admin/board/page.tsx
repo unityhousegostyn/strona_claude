@@ -1,18 +1,10 @@
 import { redirect } from 'next/navigation'
+import { getAuthProfile } from '@/lib/getAuthProfile'
 import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
 import BoardClient from './BoardClient'
 
 export default async function BoardPage() {
-  const supabase = await getSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-  if (!profile) redirect('/login')
+  const { user, profile } = await getAuthProfile()
   const isSuperAdmin = profile.role === 'super_admin'
 
   if (!isSuperAdmin && !profile.community_id) {

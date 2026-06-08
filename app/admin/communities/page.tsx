@@ -1,14 +1,11 @@
 import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
+import { getAuthProfile } from '@/lib/getAuthProfile'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
 export default async function CommunitiesPage() {
-  const supabase = await getSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-  if (!profile || profile.role !== 'super_admin') redirect('/admin/dashboard')
+  const { user, profile } = await getAuthProfile()
+  if (profile.role !== 'super_admin') redirect('/admin/dashboard')
 
   const admin = getSupabaseAdminClient()
   const { data: communities } = await admin

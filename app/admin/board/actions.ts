@@ -1,20 +1,15 @@
 'use server'
+import { getAuthProfileAction } from '@/lib/getAuthProfile'
 
 import { revalidatePath } from 'next/cache'
-import { getSupabaseAdminClient, getSupabaseServerClient } from '@/lib/supabase/server'
+import { getSupabaseAdminClient } from '@/lib/supabase/server'
 
 export async function createPost(content: string): Promise<{ error?: string }> {
   try {
-    const supabase = await getSupabaseServerClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Brak autoryzacji' }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('community_id, role')
-      .eq('id', user.id)
-      .single()
-    if (!profile?.community_id) return { error: 'Brak przypisanej wspólnoty' }
+    const auth = await getAuthProfileAction()
+    if (auth.error !== null) return { error: auth.error }
+    const { user, profile } = auth
+    if (!profile.community_id) return { error: 'Brak przypisanej wspólnoty' }
 
     const trimmed = content?.trim()
     if (!trimmed || trimmed.length < 3) return { error: 'Wiadomość musi mieć min. 3 znaki' }
@@ -37,15 +32,9 @@ export async function createPost(content: string): Promise<{ error?: string }> {
 
 export async function deletePost(postId: string): Promise<{ error?: string }> {
   try {
-    const supabase = await getSupabaseServerClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Brak autoryzacji' }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role, community_id')
-      .eq('id', user.id)
-      .single()
+    const auth = await getAuthProfileAction()
+    if (auth.error !== null) return { error: auth.error }
+    const { user, profile } = auth
     if (!profile) return { error: 'Brak autoryzacji' }
 
     const admin = getSupabaseAdminClient()
@@ -75,15 +64,9 @@ export async function deletePost(postId: string): Promise<{ error?: string }> {
 
 export async function togglePin(postId: string, pinned: boolean): Promise<{ error?: string }> {
   try {
-    const supabase = await getSupabaseServerClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Brak autoryzacji' }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role, community_id')
-      .eq('id', user.id)
-      .single()
+    const auth = await getAuthProfileAction()
+    if (auth.error !== null) return { error: auth.error }
+    const { user, profile } = auth
 
     if (!profile || profile.role === 'user') return { error: 'Brak uprawnień' }
 
@@ -98,9 +81,9 @@ export async function togglePin(postId: string, pinned: boolean): Promise<{ erro
 
 export async function createReply(postId: string, content: string): Promise<{ error?: string }> {
   try {
-    const supabase = await getSupabaseServerClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Brak autoryzacji' }
+    const auth = await getAuthProfileAction()
+    if (auth.error !== null) return { error: auth.error }
+    const { user } = auth
 
     const trimmed = content?.trim()
     if (!trimmed || trimmed.length < 2) return { error: 'Odpowiedź musi mieć min. 2 znaki' }
@@ -123,15 +106,9 @@ export async function createReply(postId: string, content: string): Promise<{ er
 
 export async function deleteReply(replyId: string): Promise<{ error?: string }> {
   try {
-    const supabase = await getSupabaseServerClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Brak autoryzacji' }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role, community_id')
-      .eq('id', user.id)
-      .single()
+    const auth = await getAuthProfileAction()
+    if (auth.error !== null) return { error: auth.error }
+    const { user, profile } = auth
     if (!profile) return { error: 'Brak autoryzacji' }
 
     const admin = getSupabaseAdminClient()

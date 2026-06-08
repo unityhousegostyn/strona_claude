@@ -1,24 +1,21 @@
 'use server'
+import { getAuthProfileAction } from '@/lib/getAuthProfile'
 
 import { revalidatePath } from 'next/cache'
-import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
+import { getSupabaseAdminClient } from '@/lib/supabase/server'
 
 type AuthResult =
   | { error: string; user: null; role: null; communityId: null }
   | { error: null; user: { id: string }; role: 'super_admin' | 'admin'; communityId: string | null }
 
 async function requireAdminOrAbove(): Promise<AuthResult> {
-  const supabase = await getSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Brak autoryzacji', user: null, role: null, communityId: null }
-
-  const { data: profile } = await supabase
-    .from('profiles').select('role, community_id').eq('id', user.id).single()
-  if (!profile) return { error: 'Brak profilu', user: null, role: null, communityId: null }
+  const auth = await getAuthProfileAction()
+  if (auth.error !== null) return { error: auth.error, user: null, role: null, communityId: null }
+  const profile = auth.profile!
+  const user = auth.user!
   if (profile.role !== 'super_admin' && profile.role !== 'admin')
     return { error: 'Brak uprawnień', user: null, role: null, communityId: null }
-
-  return { error: null, user, role: profile.role, communityId: profile.community_id ?? null }
+  return { error: null, user: { id: user.id }, role: profile.role as 'super_admin' | 'admin', communityId: profile.community_id ?? null }
 }
 
 function guardCommunity(
@@ -45,7 +42,7 @@ export async function createApartment(data: {
   notes?: string | null
 }): Promise<{ error?: string }> {
   const auth = await requireAdminOrAbove()
-  if (auth.error) return { error: auth.error }
+  if (auth.error !== null) return { error: auth.error }
   const guardErr = guardCommunity(auth, data.community_id)
   if (guardErr) return { error: guardErr }
 
@@ -86,7 +83,7 @@ export async function updateApartment(id: string, data: {
   active?: boolean
 }): Promise<{ error?: string }> {
   const auth = await requireAdminOrAbove()
-  if (auth.error) return { error: auth.error }
+  if (auth.error !== null) return { error: auth.error }
 
   const admin = getSupabaseAdminClient()
   const { data: apt } = await admin.from('settlement_apartments').select('community_id').eq('id', id).single()
@@ -102,7 +99,7 @@ export async function updateApartment(id: string, data: {
 
 export async function deleteApartment(id: string): Promise<{ error?: string }> {
   const auth = await requireAdminOrAbove()
-  if (auth.error) return { error: auth.error }
+  if (auth.error !== null) return { error: auth.error }
 
   const admin = getSupabaseAdminClient()
   const { data: apt } = await admin.from('settlement_apartments').select('community_id').eq('id', id).single()
@@ -130,7 +127,7 @@ export async function createRates(data: {
   manager_fee_value: number
 }): Promise<{ error?: string }> {
   const auth = await requireAdminOrAbove()
-  if (auth.error) return { error: auth.error }
+  if (auth.error !== null) return { error: auth.error }
   const guardErr = guardCommunity(auth, data.community_id)
   if (guardErr) return { error: guardErr }
 
@@ -145,7 +142,7 @@ export async function createRates(data: {
 
 export async function deleteRates(id: string): Promise<{ error?: string }> {
   const auth = await requireAdminOrAbove()
-  if (auth.error) return { error: auth.error }
+  if (auth.error !== null) return { error: auth.error }
 
   const admin = getSupabaseAdminClient()
   const { data: rate } = await admin.from('settlement_rates').select('community_id').eq('id', id).single()
@@ -171,7 +168,7 @@ export async function upsertEntry(data: {
   notes?: string | null
 }): Promise<{ error?: string }> {
   const auth = await requireAdminOrAbove()
-  if (auth.error) return { error: auth.error }
+  if (auth.error !== null) return { error: auth.error }
   const guardErr = guardCommunity(auth, data.community_id)
   if (guardErr) return { error: guardErr }
 
@@ -208,7 +205,7 @@ export async function upsertWaterReconciliation(data: {
   notes?: string | null
 }): Promise<{ error?: string }> {
   const auth = await requireAdminOrAbove()
-  if (auth.error) return { error: auth.error }
+  if (auth.error !== null) return { error: auth.error }
 
   const admin = getSupabaseAdminClient()
   const { data: apt } = await admin.from('settlement_apartments').select('community_id').eq('id', data.apartment_id).single()

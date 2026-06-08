@@ -1,23 +1,16 @@
 'use server'
+import { getAuthProfileAction } from '@/lib/getAuthProfile'
 
 import { revalidatePath } from 'next/cache'
-import { getSupabaseAdminClient, getSupabaseServerClient } from '@/lib/supabase/server'
+import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import { logActivity } from '@/lib/audit'
 import { sendAccountApprovedEmail } from '@/lib/email'
 
 async function requireAdminOrSuperAdmin() {
-  const supabase = await getSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Brak autoryzacji')
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role, community_id')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile || profile.role === 'user') throw new Error('Brak uprawnień')
-  return { user, profile }
+  const auth = await getAuthProfileAction()
+  if (auth.error !== null) throw new Error(auth.error)
+  if (auth.profile.role === 'user') throw new Error('Brak uprawnień')
+  return { user: auth.user, profile: auth.profile }
 }
 
 export async function approveUser(userId: string, communityId: string) {

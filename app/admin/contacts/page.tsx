@@ -1,14 +1,10 @@
 import { redirect } from 'next/navigation'
+import { getAuthProfile } from '@/lib/getAuthProfile'
 import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
 import ContactsClient from './ContactsClient'
 
 export default async function ContactsPage() {
-  const supabase = await getSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-  if (!profile) redirect('/login')
+  const { user, profile } = await getAuthProfile()
 
   const admin = getSupabaseAdminClient()
   const isSuperAdmin = profile.role === 'super_admin'

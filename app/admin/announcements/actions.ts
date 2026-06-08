@@ -1,7 +1,8 @@
 'use server'
+import { getAuthProfileAction } from '@/lib/getAuthProfile'
 
 import { revalidatePath } from 'next/cache'
-import { getSupabaseAdminClient, getSupabaseServerClient } from '@/lib/supabase/server'
+import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import { logActivity } from '@/lib/audit'
 import { sendAnnouncementEmail } from '@/lib/email'
 
@@ -15,17 +16,10 @@ export async function createAnnouncement(formData: {
   community_ids: string[]
 }): Promise<{ error?: string }> {
   try {
-  const supabase = await getSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Brak autoryzacji' }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role, community_id')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile || profile.role === 'user') return { error: 'Brak uprawnień' }
+  const auth = await getAuthProfileAction()
+  if (auth.error !== null) return { error: auth.error }
+  if (auth.profile.role === 'user') return { error: 'Brak uprawnień' }
+  const { user, profile } = auth
 
   // Walidacja wejścia
   const title = formData.title?.trim()
