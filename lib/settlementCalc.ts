@@ -70,14 +70,19 @@ export function getRatesForMonth(
   year: number,
   month: number
 ): SettlementRate | null {
-  // Pierwszy dzień danego miesiąca
-  const target = new Date(year, month - 1, 1)
+  // Porównanie rok*100+miesiąc — unika problemów z timezone przy Date('YYYY-MM-DD')
+  const targetYM = year * 100 + month
 
   const valid = rates
-    .filter(r => new Date(r.effective_from) <= target)
-    .sort((a, b) =>
-      new Date(b.effective_from).getTime() - new Date(a.effective_from).getTime()
-    )
+    .filter(r => {
+      const [ry, rm] = r.effective_from.split('-').map(Number)
+      return ry * 100 + rm <= targetYM
+    })
+    .sort((a, b) => {
+      const [ay, am] = a.effective_from.split('-').map(Number)
+      const [by, bm] = b.effective_from.split('-').map(Number)
+      return (by * 100 + bm) - (ay * 100 + am)
+    })
 
   return valid[0] ?? null
 }
