@@ -188,7 +188,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                 <th className={headerClass}>Fund. rem.</th>
                 <th className={headerClass}>Fund. ekspl.</th>
                 <th className={headerClass}>Zarządca</th>
-                <th className={headerClass}>Woda</th>
+                <th className={headerClass}>Ryczałt wody</th>
                 <th className={headerClass}>Śmieci</th>
                 <th className={headerClass}>Korekta</th>
                 <th className={headerClass + ' font-bold text-gray-300'}>Razem</th>
@@ -303,7 +303,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                 <td className={colClass + ' text-gray-200'}>{pln(totalRenovation)}</td>
                 <td className={colClass + ' text-gray-200'}>{pln(totalOperating)}</td>
                 <td className={colClass + ' text-gray-200'}>{pln(totalManager)}</td>
-                <td className={colClass + ' text-gray-200'}>{pln(totalWater)}</td>
+                <td className={colClass + ' text-gray-200'} title={`Ryczałt wody`}>{pln(totalWater)}</td>
                 <td className={colClass + ' text-gray-200'}>{pln(totalGarbage)}</td>
                 <td className={colClass + ' text-yellow-400'}>{totalCorrection !== 0 ? pln(totalCorrection) : '—'}</td>
                 <td className={colClass + ' text-gray-100 font-bold'}>{pln(totalDue)}</td>
