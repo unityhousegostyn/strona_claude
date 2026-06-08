@@ -3,6 +3,7 @@ import { getAuthProfileAction } from '@/lib/getAuthProfile'
 
 import { revalidatePath } from 'next/cache'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
+import { logActivity } from '@/lib/audit'
 
 export async function createContact(data: {
   name: string
@@ -39,6 +40,7 @@ export async function createContact(data: {
     })
 
     if (error) return { error: error.message }
+    await logActivity({ userId: user.id, action: 'create_contact', targetType: 'contact', meta: { name, communityId } })
     revalidatePath('/admin/contacts')
     return {}
   } catch (e: any) {
@@ -61,6 +63,7 @@ export async function deleteContact(contactId: string): Promise<{ error?: string
     }
 
     await admin.from('contacts').delete().eq('id', contactId)
+    await logActivity({ userId: user.id, action: 'delete_contact', targetType: 'contact', targetId: contactId })
     revalidatePath('/admin/contacts')
     return {}
   } catch (e: any) {

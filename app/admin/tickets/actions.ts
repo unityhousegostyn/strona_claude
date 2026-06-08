@@ -3,6 +3,7 @@ import { getAuthProfileAction } from '@/lib/getAuthProfile'
 
 import { revalidatePath } from 'next/cache'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
+import { logActivity } from '@/lib/audit'
 
 export async function toggleTicketStatus(ticketId: string, currentStatus: string) {
   const auth = await getAuthProfileAction()
@@ -26,7 +27,7 @@ export async function toggleTicketStatus(ticketId: string, currentStatus: string
   const newStatus = currentStatus === 'open' ? 'closed' : 'open'
   const { error } = await admin.from('tickets').update({ status: newStatus }).eq('id', ticketId)
   if (error) throw new Error('Błąd podczas zmiany statusu')
-
+  await logActivity({ userId: user.id, action: 'toggle_ticket_status', targetType: 'ticket', targetId: ticketId, meta: { from: currentStatus, to: newStatus } })
   revalidatePath('/admin/tickets')
   return newStatus
 }
@@ -74,6 +75,7 @@ export async function createTicket(formData: FormData): Promise<{ error?: string
     })
 
     if (error) return { error: 'Błąd podczas tworzenia zgłoszenia: ' + error.message }
+    await logActivity({ userId: user.id, action: 'create_ticket', targetType: 'ticket', meta: { title, communityId } })
     revalidatePath('/admin/tickets')
     return {}
   } catch (e: any) {

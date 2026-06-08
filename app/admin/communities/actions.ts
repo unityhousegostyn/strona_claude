@@ -3,6 +3,7 @@ import { getAuthProfileAction } from '@/lib/getAuthProfile'
 
 import { revalidatePath } from 'next/cache'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
+import { logActivity } from '@/lib/audit'
 
 async function requireSuperAdmin() {
   const auth = await getAuthProfileAction()
@@ -21,9 +22,10 @@ export async function createCommunity(formData: { name: string; address: string 
   if (!address || address.length < 5 || address.length > 200) throw new Error('Adres musi mieć 5–200 znaków')
 
   const admin = getSupabaseAdminClient()
-  const { error } = await admin.from('communities').insert({ name, address })
+  const { data: newComm, error } = await admin.from('communities').insert({ name, address }).select('id').single()
   if (error) throw new Error('Błąd podczas dodawania wspólnoty')
-
+  const { user } = await requireSuperAdmin()
+  await logActivity({ userId: user!.id, action: 'create_community', targetType: 'community', targetId: newComm?.id, meta: { name, address } })
   revalidatePath('/admin/communities')
 }
 
@@ -40,7 +42,8 @@ export async function updateCommunity(id: string, formData: { name: string; addr
   const admin = getSupabaseAdminClient()
   const { error } = await admin.from('communities').update({ name, address }).eq('id', id)
   if (error) throw new Error('Błąd podczas zapisywania')
-
+  const { user } = await requireSuperAdmin()
+  await logActivity({ userId: user!.id, action: 'update_community', targetType: 'community', targetId: id, meta: { name } })
   revalidatePath('/admin/communities')
 }
 
@@ -61,6 +64,7 @@ export async function deleteCommunity(id: string) {
 
   const { error } = await admin.from('communities').delete().eq('id', id)
   if (error) throw new Error('Błąd podczas usuwania')
-
+  const { user } = await requireSuperAdmin()
+  await logActivity({ userId: user!.id, action: 'delete_community', targetType: 'community', targetId: id })
   revalidatePath('/admin/communities')
 }

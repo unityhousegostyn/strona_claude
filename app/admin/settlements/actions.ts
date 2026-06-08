@@ -3,6 +3,7 @@ import { getAuthProfileAction } from '@/lib/getAuthProfile'
 
 import { revalidatePath } from 'next/cache'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
+import { logActivity } from '@/lib/audit'
 
 type AuthResult =
   | { error: string; user: null; role: null; communityId: null }
@@ -66,6 +67,7 @@ export async function createApartment(data: {
   })
 
   if (error) return { error: error.message }
+  await logActivity({ userId: auth.user!.id, action: 'create_apartment', targetType: 'settlement_apartment', meta: { community_id: data.community_id, number: data.number } })
   revalidatePath('/admin/settlements')
   return {}
 }
@@ -93,6 +95,7 @@ export async function updateApartment(id: string, data: {
 
   const { error } = await admin.from('settlement_apartments').update(data).eq('id', id)
   if (error) return { error: error.message }
+  await logActivity({ userId: auth.user!.id, action: 'update_apartment', targetType: 'settlement_apartment', targetId: id })
   revalidatePath('/admin/settlements')
   return {}
 }
@@ -109,6 +112,7 @@ export async function deleteApartment(id: string): Promise<{ error?: string }> {
 
   const { error } = await admin.from('settlement_apartments').update({ active: false }).eq('id', id)
   if (error) return { error: error.message }
+  await logActivity({ userId: auth.user!.id, action: 'deactivate_apartment', targetType: 'settlement_apartment', targetId: id })
   revalidatePath('/admin/settlements')
   return {}
 }
@@ -136,6 +140,7 @@ export async function createRates(data: {
   const admin = getSupabaseAdminClient()
   const { error } = await admin.from('settlement_rates').insert(data)
   if (error) return { error: error.message }
+  await logActivity({ userId: auth.user!.id, action: 'create_rates', targetType: 'settlement_rates', meta: { community_id: data.community_id, effective_from: data.effective_from } })
   revalidatePath('/admin/settlements')
   return {}
 }
@@ -188,6 +193,7 @@ export async function upsertEntry(data: {
   }, { onConflict: 'apartment_id,year,month' })
 
   if (error) return { error: error.message }
+  await logActivity({ userId: auth.user!.id, action: 'upsert_entry', targetType: 'settlement_entry', meta: { apartment_id: data.apartment_id, year: data.year, month: data.month, paid: data.paid } })
   revalidatePath(`/admin/settlements/${data.apartment_id}`)
   return {}
 }
