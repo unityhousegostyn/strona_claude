@@ -97,6 +97,17 @@ export default async function ApartmentSettlementPage({
         </div>
       </div>
 
+      {/* Akcje */}
+      <div className="flex items-center gap-3">
+        <Link
+          href={`/admin/settlements/${apartmentId}/print?year=${year}`}
+          target="_blank"
+          className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700 px-3 py-1.5 rounded-lg transition font-medium"
+        >
+          🖨️ Pobierz PDF
+        </Link>
+      </div>
+
       {/* Rok */}
       <div className="flex items-center gap-3">
         <label className="text-sm text-gray-400">Rok obrachunkowy:</label>

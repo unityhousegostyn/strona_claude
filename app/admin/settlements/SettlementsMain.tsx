@@ -32,7 +32,8 @@ const EMPTY_RATES = {
 export default function SettlementsMain({ communities, selectedCommunityId, apartments, rates, entries = [], isAdmin = false }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [tab, setTab] = useState<'apartments' | 'rates'>('apartments')
+  const [tab, setTab] = useState<'apartments' | 'rates' | 'report'>('apartments')
+  const [reportFilter, setReportFilter] = useState<'all' | 'debt' | 'overpay'>('all')
   const [showAptForm, setShowAptForm] = useState(false)
   const [showRatesForm, setShowRatesForm] = useState(false)
   const [aptForm, setAptForm] = useState(EMPTY_APT)
@@ -174,7 +175,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
         <>
           {/* Zakładki */}
           <div className="flex gap-1 bg-gray-900 rounded-xl p-1 w-fit border border-gray-800">
-            {(['apartments', 'rates'] as const).map(t => (
+            {(['apartments', 'rates', 'report'] as const).map(t => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
@@ -182,7 +183,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                   tab === t ? 'bg-gray-800 text-gray-100' : 'text-gray-500 hover:text-gray-300'
                 }`}
               >
-                {t === 'apartments' ? `🏠 Lokale (${apartments.length})` : '📊 Stawki'}
+                {t === 'apartments' ? `🏠 Lokale (${apartments.length})` : t === 'rates' ? '📊 Stawki' : '📋 Raport'}
               </button>
             ))}
           </div>
@@ -501,6 +502,130 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
               )}
             </div>
           )}
+
+          {/* ── RAPORT ── */}
+          {tab === 'report' && (() => {
+            const year = new Date().getFullYear()
+
+            const reportRows = apartments.map(apt => {
+              const aptEntries = entries.filter(e => e.apartment_id === apt.id)
+              const rows = buildYearlyTable(apt, rates, aptEntries, year)
+              const totalPaid = rows.reduce((s, r) => s + r.paid, 0)
+              const totalDue  = rows.reduce((s, r) => s + r.total_due, 0)
+              const balance   = rows[rows.length - 1]?.balance_end ?? 0
+              return { apt, totalPaid, totalDue, balance }
+            })
+
+            const filtered = reportRows.filter(r =>
+              reportFilter === 'all' ? true :
+              reportFilter === 'debt' ? r.balance < 0 :
+              r.balance > 0
+            )
+
+            const sumPaid = reportRows.reduce((s, r) => s + r.totalPaid, 0)
+            const sumDue  = reportRows.reduce((s, r) => s + r.totalDue, 0)
+            const sumBalance = reportRows.reduce((s, r) => s + r.balance, 0)
+            const debtCount  = reportRows.filter(r => r.balance < 0).length
+            const overpayCount = reportRows.filter(r => r.balance > 0).length
+
+            return (
+              <div className="space-y-4">
+                {/* Karty podsumowania */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                    <p className="text-xs text-gray-500">Łącznie naliczono</p>
+                    <p className="text-xl font-bold text-gray-100 mt-1">{pln(sumDue)}</p>
+                  </div>
+                  <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                    <p className="text-xs text-gray-500">Łącznie wpłacono</p>
+                    <p className="text-xl font-bold text-blue-400 mt-1">{pln(sumPaid)}</p>
+                  </div>
+                  <div className={`bg-gray-900 border rounded-xl p-4 ${sumBalance >= 0 ? 'border-green-900' : 'border-red-900'}`}>
+                    <p className="text-xs text-gray-500">Saldo wspólnoty</p>
+                    <p className={`text-xl font-bold mt-1 ${sumBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>{pln(sumBalance)}</p>
+                  </div>
+                  <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                    <p className="text-xs text-gray-500">Zalegający / nadpłacający</p>
+                    <p className="text-xl font-bold mt-1">
+                      <span className="text-red-400">{debtCount}</span>
+                      <span className="text-gray-600 mx-1">/</span>
+                      <span className="text-green-400">{overpayCount}</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Filtr */}
+                <div className="flex gap-2">
+                  {(['all', 'debt', 'overpay'] as const).map(f => (
+                    <button key={f} onClick={() => setReportFilter(f)}
+                      className={`text-xs px-3 py-1.5 rounded-lg font-medium transition border ${
+                        reportFilter === f
+                          ? f === 'debt' ? 'bg-red-900/30 border-red-800 text-red-400'
+                            : f === 'overpay' ? 'bg-green-900/30 border-green-800 text-green-400'
+                            : 'bg-gray-800 border-gray-700 text-gray-100'
+                          : 'border-gray-800 text-gray-500 hover:text-gray-300'
+                      }`}>
+                      {f === 'all' ? `Wszystkie (${reportRows.length})` : f === 'debt' ? `⚠ Zaległości (${debtCount})` : `✓ Nadpłaty (${overpayCount})`}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Tabela */}
+                <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm min-w-[700px]">
+                      <thead>
+                        <tr className="border-b border-gray-800 bg-gray-950">
+                          {['Nr', 'Właściciel', 'Pow. m²', 'Osoby', 'Naliczono', 'Wpłacono', 'Saldo', ''].map(h => (
+                            <th key={h} className="px-3 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filtered.map(({ apt, totalPaid, totalDue, balance }) => (
+                          <tr key={apt.id} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition">
+                            <td className="px-3 py-2.5 font-semibold text-gray-100">{apt.number}</td>
+                            <td className="px-3 py-2.5 text-gray-300">{apt.owner_name}</td>
+                            <td className="px-3 py-2.5 text-gray-400 text-xs">{Number(apt.area_m2).toFixed(2)}</td>
+                            <td className="px-3 py-2.5 text-gray-400">{apt.persons_count}</td>
+                            <td className="px-3 py-2.5 text-gray-200">{pln(totalDue)}</td>
+                            <td className="px-3 py-2.5 text-blue-300 font-medium">{pln(totalPaid)}</td>
+                            <td className="px-3 py-2.5">
+                              {balance === 0
+                                ? <span className="text-gray-500 text-xs">—</span>
+                                : <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${balance > 0 ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}>
+                                    {balance > 0 ? '+' : ''}{pln(balance)}
+                                  </span>
+                              }
+                            </td>
+                            <td className="px-3 py-2.5">
+                              <Link href={`/admin/settlements/${apt.id}`}
+                                className="text-xs text-blue-400 hover:text-blue-300 transition font-medium">
+                                Szczegóły →
+                              </Link>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr className="bg-gray-800/60 border-t-2 border-gray-700 font-semibold">
+                          <td colSpan={4} className="px-3 py-2.5 text-sm text-gray-400">RAZEM {year}</td>
+                          <td className="px-3 py-2.5 text-sm text-gray-200">{pln(sumDue)}</td>
+                          <td className="px-3 py-2.5 text-sm text-blue-300">{pln(sumPaid)}</td>
+                          <td className="px-3 py-2.5">
+                            <span className={`text-sm font-bold ${sumBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                              {sumBalance > 0 ? '+' : ''}{pln(sumBalance)}
+                            </span>
+                          </td>
+                          <td />
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
         </>
       )}
     </div>
