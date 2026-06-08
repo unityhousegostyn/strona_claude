@@ -169,7 +169,7 @@ export async function updateRates(id: string, data: {
   const { error } = await admin.from('settlement_rates').update(data).eq('id', id)
   if (error) return { error: error.message }
   await logActivity({ userId: auth.user!.id, action: 'update_rates', targetType: 'settlement_rates', targetId: id, meta: { effective_from: data.effective_from } })
-  revalidatePath('/admin/settlements')
+  revalidatePath('/admin/settlements', 'layout')
   return {}
 }
 
