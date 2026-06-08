@@ -1,0 +1,119 @@
+import { redirect, notFound } from 'next/navigation'
+import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
+import Link from 'next/link'
+import MonthlyTable from './MonthlyTable'
+
+export default async function ApartmentSettlementPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ apartmentId: string }>
+  searchParams: Promise<{ year?: string }>
+}) {
+  const supabase = await getSupabaseServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: profile } = await supabase
+    .from('profiles').select('role').eq('id', user.id).single()
+  if (!profile || profile.role !== 'super_admin') redirect('/admin/dashboard')
+
+  const { apartmentId } = await params
+  const { year: yearParam } = await searchParams
+  const year = yearParam ? parseInt(yearParam) : new Date().getFullYear()
+
+  const admin = getSupabaseAdminClient()
+
+  const [aptRes, ratesRes, entriesRes, reconcRes] = await Promise.all([
+    admin.from('settlement_apartments').select('*').eq('id', apartmentId).single(),
+    admin.from('settlement_rates').select('*')
+      .eq('community_id', (await admin.from('settlement_apartments').select('community_id').eq('id', apartmentId).single()).data?.community_id ?? '')
+      .order('effective_from', { ascending: false }),
+    admin.from('settlement_entries').select('*')
+      .eq('apartment_id', apartmentId).eq('year', year),
+    admin.from('settlement_water_reconciliation').select('*')
+      .eq('apartment_id', apartmentId).eq('year', year),
+  ])
+
+  if (!aptRes.data) notFound()
+
+  const apartment = aptRes.data
+  const rates = ratesRes.data ?? []
+  const entries = entriesRes.data ?? []
+  const reconciliations = reconcRes.data ?? []
+
+  return (
+    <div className="space-y-6 max-w-6xl">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 text-sm text-gray-500">
+        <Link href="/admin/settlements" className="hover:text-gray-300 transition">Rozliczenia</Link>
+        <span>›</span>
+        <span className="text-gray-300">Lokal {apartment.number}</span>
+      </div>
+
+      {/* Header lokalu */}
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <div className="flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-100">Lokal nr {apartment.number}</h2>
+            <p className="text-sm text-gray-400 mt-1">{apartment.owner_name}</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+            <div>
+              <p className="text-xs text-gray-500">Powierzchnia</p>
+              <p className="font-semibold text-gray-200 mt-0.5">{Number(apartment.area_m2).toFixed(4)} m²</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Udział KW</p>
+              <p className="font-semibold text-gray-200 mt-0.5">
+                {apartment.share_numerator && apartment.share_denominator
+                  ? `${apartment.share_numerator}/${apartment.share_denominator}`
+                  : '—'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Osoby</p>
+              <p className="font-semibold text-gray-200 mt-0.5">{apartment.persons_count}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Wodomierz</p>
+              <p className="font-semibold text-gray-200 mt-0.5">{apartment.has_meter ? '✓ Tak' : '✗ Nie'}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Rok */}
+      <div className="flex items-center gap-3">
+        <label className="text-sm text-gray-400">Rok obrachunkowy:</label>
+        <div className="flex gap-1">
+          {[year - 1, year, year + 1].map(y => (
+            <Link key={y} href={`/admin/settlements/${apartmentId}?year=${y}`}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                y === year
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-900 text-gray-400 hover:text-gray-200 border border-gray-800'
+              }`}>
+              {y}
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {rates.length === 0 && (
+        <div className="bg-yellow-900/20 border border-yellow-800 text-yellow-400 text-sm rounded-xl px-4 py-3">
+          ⚠️ Brak stawek dla tej wspólnoty. Dodaj stawki w zakładce &quot;Stawki&quot; na stronie rozliczeń.
+        </div>
+      )}
+
+      {/* Tabela miesięczna */}
+      <MonthlyTable
+        apartment={apartment}
+        rates={rates}
+        entries={entries}
+        reconciliations={reconciliations}
+        year={year}
+      />
+    </div>
+  )
+}
