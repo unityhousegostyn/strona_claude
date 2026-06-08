@@ -15,8 +15,8 @@ export default async function ApartmentSettlementPage({
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase
-    .from('profiles').select('role').eq('id', user.id).single()
-  if (!profile || profile.role !== 'super_admin') redirect('/admin/dashboard')
+    .from('profiles').select('role, community_id').eq('id', user.id).single()
+  if (!profile) redirect('/login')
 
   const { apartmentId } = await params
   const { year: yearParam } = await searchParams
@@ -24,10 +24,28 @@ export default async function ApartmentSettlementPage({
 
   const admin = getSupabaseAdminClient()
 
-  const [aptRes, ratesRes, entriesRes, reconcRes] = await Promise.all([
-    admin.from('settlement_apartments').select('*').eq('id', apartmentId).single(),
+  const aptRes = await admin
+    .from('settlement_apartments').select('*').eq('id', apartmentId).single()
+  if (!aptRes.data) notFound()
+
+  const apartment = aptRes.data
+
+  // Sprawdź uprawnienia
+  if (profile.role === 'user') {
+    // User widzi tylko swoje mieszkanie
+    if (apartment.owner_id !== user.id) redirect('/admin/settlements')
+  } else if (profile.role === 'admin') {
+    // Admin widzi tylko mieszkania swojej wspólnoty
+    if (apartment.community_id !== profile.community_id) redirect('/admin/settlements')
+  } else if (profile.role !== 'super_admin') {
+    redirect('/admin/dashboard')
+  }
+
+  const readonly = profile.role === 'user'
+
+  const [ratesRes, entriesRes, reconcRes] = await Promise.all([
     admin.from('settlement_rates').select('*')
-      .eq('community_id', (await admin.from('settlement_apartments').select('community_id').eq('id', apartmentId).single()).data?.community_id ?? '')
+      .eq('community_id', apartment.community_id)
       .order('effective_from', { ascending: false }),
     admin.from('settlement_entries').select('*')
       .eq('apartment_id', apartmentId).eq('year', year),
@@ -35,9 +53,6 @@ export default async function ApartmentSettlementPage({
       .eq('apartment_id', apartmentId).eq('year', year),
   ])
 
-  if (!aptRes.data) notFound()
-
-  const apartment = aptRes.data
   const rates = ratesRes.data ?? []
   const entries = entriesRes.data ?? []
   const reconciliations = reconcRes.data ?? []
@@ -46,8 +61,12 @@ export default async function ApartmentSettlementPage({
     <div className="space-y-6 max-w-6xl">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-500">
-        <Link href="/admin/settlements" className="hover:text-gray-300 transition">Rozliczenia</Link>
-        <span>›</span>
+        {profile.role !== 'user' && (
+          <>
+            <Link href="/admin/settlements" className="hover:text-gray-300 transition">Rozliczenia</Link>
+            <span>›</span>
+          </>
+        )}
         <span className="text-gray-300">Lokal {apartment.number}</span>
       </div>
 
@@ -102,17 +121,18 @@ export default async function ApartmentSettlementPage({
 
       {rates.length === 0 && (
         <div className="bg-yellow-900/20 border border-yellow-800 text-yellow-400 text-sm rounded-xl px-4 py-3">
-          ⚠️ Brak stawek dla tej wspólnoty. Dodaj stawki w zakładce &quot;Stawki&quot; na stronie rozliczeń.
+          ⚠️ Brak stawek dla tej wspólnoty.
+          {profile.role !== 'user' && ' Dodaj stawki w zakładce „Stawki" na stronie rozliczeń.'}
         </div>
       )}
 
-      {/* Tabela miesięczna */}
       <MonthlyTable
         apartment={apartment}
         rates={rates}
         entries={entries}
         reconciliations={reconciliations}
         year={year}
+        readonly={readonly}
       />
     </div>
   )

@@ -28,9 +28,10 @@ interface Props {
   entries: SettlementEntry[]
   reconciliations: Reconciliation[]
   year: number
+  readonly?: boolean
 }
 
-export default function MonthlyTable({ apartment, rates, entries, reconciliations, year }: Props) {
+export default function MonthlyTable({ apartment, rates, entries, reconciliations, year, readonly = false }: Props) {
   const router = useRouter()
   const [editMonth, setEditMonth] = useState<number | null>(null)
   const [editPaid, setEditPaid] = useState('')
@@ -223,18 +224,21 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                       <td className={colClass + ' font-semibold ' + (row.balance_end >= 0 ? 'text-green-400' : 'text-red-400')}>
                         {pln(row.balance_end)}
                       </td>
-                      <td className="px-2 py-2">
-                        <button
-                          onClick={() => isEditing ? closeEdit() : openEdit(row)}
-                          className="text-xs text-blue-400 hover:text-blue-300 transition"
-                        >
-                          {isEditing ? 'Anuluj' : '✏️'}
-                        </button>
-                      </td>
+                      {!readonly && (
+                        <td className="px-2 py-2">
+                          <button
+                            onClick={() => isEditing ? closeEdit() : openEdit(row)}
+                            className="text-xs text-blue-400 hover:text-blue-300 transition"
+                          >
+                            {isEditing ? 'Anuluj' : '✏️'}
+                          </button>
+                        </td>
+                      )}
+                      {readonly && <td />}
                     </tr>
 
                     {/* Formularz edycji */}
-                    {isEditing && (
+                    {isEditing && !readonly && (
                       <tr key={`edit-${row.month}`} className="bg-blue-950/20 border-b border-blue-900/30">
                         <td colSpan={12} className="px-4 py-3">
                           <div className="flex flex-wrap items-end gap-3">
@@ -368,12 +372,14 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                         <span className="text-xs text-gray-500">Brak odczytu</span>
                       )}
                     </div>
-                    <button
-                      onClick={() => isEditingQ ? setEditQuarter(null) : openQuarter(q)}
-                      className="text-xs text-blue-400 hover:text-blue-300 transition ml-4"
-                    >
-                      {isEditingQ ? 'Anuluj' : (rec ? '✏️ Edytuj' : '+ Dodaj odczyt')}
-                    </button>
+                    {!readonly && (
+                      <button
+                        onClick={() => isEditingQ ? setEditQuarter(null) : openQuarter(q)}
+                        className="text-xs text-blue-400 hover:text-blue-300 transition ml-4"
+                      >
+                        {isEditingQ ? 'Anuluj' : (rec ? '✏️ Edytuj' : '+ Dodaj odczyt')}
+                      </button>
+                    )}
                   </div>
 
                   {isEditingQ && (

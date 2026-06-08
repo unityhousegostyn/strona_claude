@@ -14,6 +14,7 @@ interface Props {
   selectedCommunityId: string | null
   apartments: SettlementApartment[]
   rates: SettlementRate[]
+  isAdmin?: boolean
 }
 
 const EMPTY_APT = {
@@ -27,7 +28,7 @@ const EMPTY_RATES = {
   manager_fee_type: 'per_m2' as 'per_m2' | 'fixed', manager_fee_value: '',
 }
 
-export default function SettlementsMain({ communities, selectedCommunityId, apartments, rates }: Props) {
+export default function SettlementsMain({ communities, selectedCommunityId, apartments, rates, isAdmin = false }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [tab, setTab] = useState<'apartments' | 'rates'>('apartments')
@@ -113,7 +114,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
           <h2 className="text-2xl font-bold text-gray-100">Rozliczenia</h2>
           <p className="text-sm text-gray-500 mt-0.5">Moduł rozliczeń wspólnoty — tylko super admin</p>
         </div>
-        {communities.length > 0 && (
+        {communities.length > 0 && !isAdmin && (
           <select
             value={selectedCommunityId ?? ''}
             onChange={e => handleCommunityChange(e.target.value)}

@@ -15,9 +15,9 @@ const navItems = (role: string) => {
     { href: '/admin/contacts', label: 'Kontakty', icon: '📞' },
     { href: '/admin/documents', label: 'Dokumenty', icon: '📁' },
   ]
+  base.push({ href: '/admin/settlements', label: 'Rozliczenia', icon: '💰' })
   if (role === 'super_admin') {
     base.push({ href: '/admin/communities', label: 'Wspólnoty', icon: '🏢' })
-    base.push({ href: '/admin/settlements', label: 'Rozliczenia', icon: '💰' })
   }
   if (role === 'super_admin' || role === 'admin') {
     base.push({ href: '/admin/users', label: 'Użytkownicy', icon: '👥' })
