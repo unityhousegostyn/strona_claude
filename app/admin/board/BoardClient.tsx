@@ -49,8 +49,13 @@ export default function BoardClient({ initialPosts, currentUserId, currentRole, 
 
   const handlePost = () => {
     setError(null)
+    if (isSuperAdmin && filterCommunity === 'all') {
+      setError('Wybierz wspólnotę przed publikacją')
+      return
+    }
     startTransition(async () => {
-      const result = await createPost(newContent)
+      const communityId = isSuperAdmin ? filterCommunity : undefined
+      const result = await createPost(newContent, communityId)
       if (result.error) { setError(result.error); return }
       setNewContent('')
       // Odśwież przez router zamiast lokalnego state — Server Component przeładuje dane

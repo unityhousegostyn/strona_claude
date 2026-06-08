@@ -37,8 +37,8 @@ export default function PendingUsers({ users, communities, isSuperAdmin, adminCo
 
   return (
     <div className="space-y-3">
-      <h3 className="text-base font-semibold text-orange-700 flex items-center gap-2">
-        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-100 text-orange-700 text-xs font-bold">
+      <h3 className="text-base font-semibold text-orange-400 flex items-center gap-2">
+        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-900/40 text-orange-400 text-xs font-bold">
           {users.length}
         </span>
         Oczekujące na akceptację
@@ -47,10 +47,10 @@ export default function PendingUsers({ users, communities, isSuperAdmin, adminCo
         {users.map((u) => (
           <div
             key={u.id}
-            className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 flex items-center justify-between gap-4 flex-wrap"
+            className="bg-orange-950/20 border border-orange-800 rounded-xl px-4 py-3 flex items-center justify-between gap-4 flex-wrap"
           >
             <div>
-              <p className="font-medium text-gray-100 text-sm">
+              <p className="font-medium text-gray-200 text-sm">
                 {u.full_name ?? <span className="italic text-gray-400">Brak nazwy</span>}
               </p>
               <p className="text-xs text-gray-500 mt-0.5">
@@ -62,7 +62,7 @@ export default function PendingUsers({ users, communities, isSuperAdmin, adminCo
                 <select
                   value={selectedCommunity[u.id] ?? ''}
                   onChange={(e) => setSelectedCommunity((prev) => ({ ...prev, [u.id]: e.target.value }))}
-                  className="text-sm border border-gray-700 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="text-sm bg-gray-900 text-gray-200 border border-gray-700 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 >
                   <option value="">Wybierz wspólnotę…</option>
                   {communities.map((c) => (

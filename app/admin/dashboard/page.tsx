@@ -3,6 +3,10 @@ import { getAuthProfile } from '@/lib/getAuthProfile'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import StatsChart from './StatsChart'
+import {
+  buildYearlyTable, pln,
+  type SettlementApartment, type SettlementRate, type SettlementEntry,
+} from '@/lib/settlementCalc'
 
 export default async function DashboardPage() {
   const { user, profile } = await getAuthProfile()
@@ -229,6 +233,35 @@ export default async function DashboardPage() {
   }
 
   // ─── USER (MIESZKANIEC) ─────────────────────────────────────────
+  const currentYear = new Date().getFullYear()
+
+  // Rozliczenia — znajdź lokal użytkownika
+  const { data: myApartment } = await admin
+    .from('settlement_apartments')
+    .select('*')
+    .eq('owner_id', user.id)
+    .maybeSingle()
+
+  let settlementRows: ReturnType<typeof buildYearlyTable> = []
+  let settlementApartmentId: string | null = null
+
+  if (myApartment) {
+    settlementApartmentId = myApartment.id
+    const [ratesRes, entriesRes] = await Promise.all([
+      admin.from('settlement_rates').select('*')
+        .eq('community_id', myApartment.community_id)
+        .order('effective_from', { ascending: false }),
+      admin.from('settlement_entries').select('*')
+        .eq('apartment_id', myApartment.id).eq('year', currentYear),
+    ])
+    settlementRows = buildYearlyTable(
+      myApartment as SettlementApartment,
+      (ratesRes.data ?? []) as SettlementRate[],
+      (entriesRes.data ?? []) as SettlementEntry[],
+      currentYear,
+    )
+  }
+
   const [myTickets, announcements, docs, unreadRes, boardPosts, boardAuthorsRes] = await Promise.all([
     admin.from('tickets').select('id, title, status, created_at')
       .eq('created_by', user.id).order('created_at', { ascending: false }).limit(5),
@@ -288,6 +321,101 @@ export default async function DashboardPage() {
         <QuickAction href="/admin/board" icon="💬" label="Tablica" />
         <QuickAction href="/admin/documents" icon="📁" label="Dokumenty" />
       </div>
+
+      {/* Karta rozliczeniowa */}
+      {myApartment && (() => {
+        const currentMonth = new Date().getMonth() + 1
+        const currentRow = settlementRows.find(r => r.month === currentMonth)
+        const finalBalance = settlementRows[11]?.balance_end ?? 0
+        const totalPaid = settlementRows.reduce((s, r) => s + r.paid, 0)
+        const totalDue = settlementRows.reduce((s, r) => s + r.total_due, 0)
+
+        return (
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-100">Rozliczenie {currentYear}</h3>
+                <p className="text-xs text-gray-500 mt-0.5">Lokal {myApartment.number} · {myApartment.owner_name}</p>
+              </div>
+              <Link
+                href={`/admin/settlements/${myApartment.id}`}
+                className="text-sm text-blue-600 hover:underline"
+              >
+                Pełny widok →
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {/* Saldo końcowe */}
+              <div className={`rounded-xl p-3 ${finalBalance >= 0 ? 'bg-green-950/30 border border-green-900' : 'bg-red-950/30 border border-red-900'}`}>
+                <p className="text-xs text-gray-500 mb-1">Saldo {currentYear}</p>
+                <p className={`text-lg font-bold ${finalBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {pln(finalBalance)}
+                </p>
+                <p className={`text-xs mt-0.5 ${finalBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {finalBalance >= 0 ? 'Nadpłata' : 'Niedopłata'}
+                </p>
+              </div>
+
+              {/* Bieżący miesiąc */}
+              <div className="bg-gray-950 border border-gray-800 rounded-xl p-3">
+                <p className="text-xs text-gray-500 mb-1">Naliczono ten mies.</p>
+                <p className="text-lg font-bold text-gray-100">
+                  {currentRow?.hasRates ? pln(currentRow.total_due) : '—'}
+                </p>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  {currentRow?.hasRates ? 'do zapłaty' : 'brak stawek'}
+                </p>
+              </div>
+
+              {/* Wpłacono w roku */}
+              <div className="bg-gray-950 border border-gray-800 rounded-xl p-3">
+                <p className="text-xs text-gray-500 mb-1">Wpłacono {currentYear}</p>
+                <p className="text-lg font-bold text-blue-400">{pln(totalPaid)}</p>
+                <p className="text-xs text-gray-600 mt-0.5">łącznie</p>
+              </div>
+
+              {/* Naliczono w roku */}
+              <div className="bg-gray-950 border border-gray-800 rounded-xl p-3">
+                <p className="text-xs text-gray-500 mb-1">Naliczono {currentYear}</p>
+                <p className="text-lg font-bold text-gray-300">{pln(totalDue)}</p>
+                <p className="text-xs text-gray-600 mt-0.5">łącznie</p>
+              </div>
+            </div>
+
+            {/* Pasek miesięczny — miniaturowa wizualizacja */}
+            <div className="mt-4">
+              <div className="flex gap-1 items-end h-8">
+                {settlementRows.map((row) => {
+                  const max = Math.max(...settlementRows.map(r => r.total_due), 1)
+                  const height = row.hasRates ? Math.max(4, Math.round((row.total_due / max) * 32)) : 4
+                  const isCurrentMonth = row.month === currentMonth
+                  const isPast = row.month < currentMonth
+                  return (
+                    <div
+                      key={row.month}
+                      title={`${row.monthName}: ${pln(row.total_due)}`}
+                      style={{ height: `${height}px` }}
+                      className={`flex-1 rounded-sm transition ${
+                        isCurrentMonth
+                          ? 'bg-blue-500'
+                          : isPast && row.paid > 0
+                          ? 'bg-green-700/60'
+                          : isPast
+                          ? 'bg-red-800/60'
+                          : 'bg-gray-800'
+                      }`}
+                    />
+                  )
+                })}
+              </div>
+              <div className="flex justify-between text-xs text-gray-700 mt-1">
+                <span>Sty</span><span>Cze</span><span>Gru</span>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* Ostatnie ogłoszenia */}

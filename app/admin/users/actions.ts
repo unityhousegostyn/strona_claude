@@ -39,6 +39,47 @@ export async function approveUser(userId: string, communityId: string) {
   revalidatePath('/admin/users')
 }
 
+export async function addUser(data: {
+  email: string
+  full_name: string
+  password: string
+  role: 'user' | 'admin'
+  community_id: string
+}): Promise<{ error?: string }> {
+  try {
+    const { user: actor, profile: actorProfile } = await requireAdminOrSuperAdmin()
+
+    if (actorProfile.role === 'admin') {
+      if (data.community_id !== actorProfile.community_id) return { error: 'Brak uprawnień do tej wspólnoty' }
+      if (data.role !== 'user') return { error: 'Administrator może dodawać tylko mieszkańców' }
+    }
+
+    const admin = getSupabaseAdminClient()
+
+    const { data: created, error: authError } = await admin.auth.admin.createUser({
+      email: data.email,
+      password: data.password,
+      email_confirm: true,
+    })
+    if (authError) return { error: authError.message }
+
+    const { error: profileError } = await admin.from('profiles').upsert({
+      id: created.user.id,
+      full_name: data.full_name,
+      role: data.role,
+      community_id: data.community_id,
+      status: 'active',
+    })
+    if (profileError) return { error: profileError.message }
+
+    await logActivity({ userId: actor.id, action: 'create_user', targetType: 'user', targetId: created.user.id })
+    revalidatePath('/admin/users')
+    return {}
+  } catch (e: any) {
+    return { error: e.message ?? 'Nieznany błąd' }
+  }
+}
+
 export async function rejectUser(userId: string) {
   const { user, profile } = await requireAdminOrSuperAdmin()
 

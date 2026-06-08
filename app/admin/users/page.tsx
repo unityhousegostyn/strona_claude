@@ -2,6 +2,7 @@ import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/
 import { getAuthProfile } from '@/lib/getAuthProfile'
 import { redirect } from 'next/navigation'
 import PendingUsers from './PendingUsers'
+import AddUserForm from './AddUserForm'
 import Link from 'next/link'
 
 export default async function UsersPage() {
@@ -50,7 +51,14 @@ export default async function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-100">Użytkownicy</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-100">Użytkownicy</h2>
+        <AddUserForm
+          communities={communities ?? []}
+          isSuperAdmin={isSuperAdmin}
+          adminCommunityId={profile.community_id}
+        />
+      </div>
 
       <PendingUsers
         users={pendingUsers ?? []}
@@ -70,7 +78,7 @@ export default async function UsersPage() {
               {isSuperAdmin && <th className="px-4 py-3"></th>}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-gray-800">
             {(activeUsers ?? []).map((u: any) => (
               <tr key={u.id} className="hover:bg-gray-950 transition">
                 <td className="px-4 py-3 font-medium text-gray-100">

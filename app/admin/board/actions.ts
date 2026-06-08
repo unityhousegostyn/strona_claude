@@ -4,12 +4,14 @@ import { getAuthProfileAction } from '@/lib/getAuthProfile'
 import { revalidatePath } from 'next/cache'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
 
-export async function createPost(content: string): Promise<{ error?: string }> {
+export async function createPost(content: string, communityId?: string): Promise<{ error?: string }> {
   try {
     const auth = await getAuthProfileAction()
     if (auth.error !== null) return { error: auth.error }
     const { user, profile } = auth
-    if (!profile.community_id) return { error: 'Brak przypisanej wspólnoty' }
+
+    const effectiveCommunityId = communityId ?? profile.community_id
+    if (!effectiveCommunityId) return { error: 'Brak przypisanej wspólnoty' }
 
     const trimmed = content?.trim()
     if (!trimmed || trimmed.length < 3) return { error: 'Wiadomość musi mieć min. 3 znaki' }
@@ -18,7 +20,7 @@ export async function createPost(content: string): Promise<{ error?: string }> {
     const admin = getSupabaseAdminClient()
     const { error } = await admin.from('board_posts').insert({
       content: trimmed,
-      community_id: profile.community_id,
+      community_id: effectiveCommunityId,
       author_id: user.id,
     })
 
