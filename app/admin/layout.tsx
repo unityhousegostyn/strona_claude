@@ -4,6 +4,7 @@ import SidebarNav from '@/components/SidebarNav'
 import { ToastProvider } from '@/components/ToastContext'
 import AutoRefresh from '@/components/AutoRefresh'
 import ChatWidget from '@/components/ChatWidget'
+import InactivityLogout from '@/components/InactivityLogout'
 
 export default async function AdminLayout({
   children,
@@ -91,7 +92,7 @@ export default async function AdminLayout({
           pendingUsers={pendingUsersCount}
         />
         {(profile.role === 'super_admin' || profile.role === 'admin') && (
-          <AutoRefresh intervalMs={60000} />
+          <><AutoRefresh intervalMs={60000} /><InactivityLogout /></>
         )}
         <main className="flex-1 p-4 lg:p-6 overflow-auto pt-[72px] lg:pt-6">
           {children}
