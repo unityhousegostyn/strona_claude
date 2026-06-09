@@ -6,8 +6,16 @@ import { usePathname, useRouter } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser'
 import { Profile } from '@/types'
 
-const navItems = (role: string) => {
-  const base = [
+type NavItem = { href: string; label: string; icon: string }
+type NavGroup = { group: string; icon: string; subItems: NavItem[] }
+type NavEntry = NavItem | NavGroup
+
+function isGroup(entry: NavEntry): entry is NavGroup {
+  return 'group' in entry
+}
+
+const navEntries = (role: string): NavEntry[] => {
+  const entries: NavEntry[] = [
     { href: '/admin/dashboard', label: 'Dashboard', icon: '🏠' },
     { href: '/admin/announcements', label: 'Ogłoszenia', icon: '📢' },
     { href: '/admin/tickets', label: 'Zgłoszenia', icon: '🎫' },
@@ -15,21 +23,31 @@ const navItems = (role: string) => {
     { href: '/admin/contacts', label: 'Kontakty', icon: '📞' },
     { href: '/admin/documents', label: 'Dokumenty', icon: '📁' },
     { href: '/admin/votes', label: 'Głosowania', icon: '🗳️' },
+    { href: '/admin/settlements', label: 'Rozliczenia', icon: '🧾' },
   ]
-  base.push({ href: '/admin/settlements', label: 'Rozliczenia', icon: '💰' })
-  if (role === 'super_admin') {
-    base.push({ href: '/admin/expenses', label: 'Koszty', icon: '💸' })
+
+  if (role === 'super_admin' || role === 'admin') {
+    entries.push({
+      group: 'Finanse',
+      icon: '💳',
+      subItems: [
+        { href: '/admin/finanse/przychody', label: 'Przychody', icon: '💰' },
+        { href: '/admin/finanse/koszty', label: 'Koszty', icon: '💸' },
+        { href: '/admin/finanse/raporty', label: 'Raporty', icon: '📊' },
+      ],
+    })
   }
+
   if (role === 'super_admin') {
-    base.push({ href: '/admin/communities', label: 'Wspólnoty', icon: '🏢' })
+    entries.push({ href: '/admin/communities', label: 'Wspólnoty', icon: '🏢' })
   }
   if (role === 'super_admin' || role === 'admin') {
-    base.push({ href: '/admin/users', label: 'Użytkownicy', icon: '👥' })
+    entries.push({ href: '/admin/users', label: 'Użytkownicy', icon: '👥' })
   }
   if (role === 'super_admin') {
-    base.push({ href: '/admin/audit', label: 'Audit Log', icon: '🔍' })
+    entries.push({ href: '/admin/audit', label: 'Audit Log', icon: '🔍' })
   }
-  return base
+  return entries
 }
 
 interface Props {
@@ -43,6 +61,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
   const pathname = usePathname()
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [financeOpen, setFinanceOpen] = useState(pathname.startsWith('/admin/finanse'))
 
   const handleLogout = async () => {
     const supabase = getSupabaseBrowserClient()
@@ -56,6 +75,76 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
     user: 'Mieszkaniec',
   }
 
+  const renderEntry = (entry: NavEntry, closeMobile: () => void) => {
+    if (isGroup(entry)) {
+      const anyActive = entry.subItems.some(s => pathname.startsWith(s.href))
+      return (
+        <div key={entry.group}>
+          <button
+            onClick={() => setFinanceOpen(o => !o)}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
+              anyActive ? 'text-blue-400' : 'text-gray-400 hover:bg-gray-950 hover:text-gray-100'
+            }`}
+          >
+            <span>{entry.icon}</span>
+            <span className="flex-1 text-left">{entry.group}</span>
+            <svg
+              className={`w-3.5 h-3.5 transition-transform ${financeOpen ? 'rotate-90' : ''}`}
+              fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+          {financeOpen && (
+            <div className="ml-4 mt-0.5 space-y-0.5 border-l border-gray-800 pl-3">
+              {entry.subItems.map(sub => {
+                const active = pathname.startsWith(sub.href)
+                return (
+                  <Link
+                    key={sub.href}
+                    href={sub.href}
+                    onClick={closeMobile}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                      active ? 'bg-blue-950/40 text-blue-400' : 'text-gray-400 hover:bg-gray-950 hover:text-gray-100'
+                    }`}
+                  >
+                    <span className="text-base">{sub.icon}</span>
+                    <span>{sub.label}</span>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    const active = pathname.startsWith(entry.href)
+    return (
+      <Link
+        key={entry.href}
+        href={entry.href}
+        onClick={closeMobile}
+        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
+          active ? 'bg-blue-950/40 text-blue-400' : 'text-gray-400 hover:bg-gray-950 hover:text-gray-100'
+        }`}
+      >
+        <span>{entry.icon}</span>
+        <span className="flex-1">{entry.label}</span>
+        {entry.href === '/admin/announcements' && unreadAnnouncements > 0 && (
+          <span className="bg-blue-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+            {unreadAnnouncements > 99 ? '99+' : unreadAnnouncements}
+          </span>
+        )}
+        {entry.href === '/admin/users' && pendingUsers > 0 && (
+          <span className="bg-red-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+            {pendingUsers > 99 ? '99+' : pendingUsers}
+          </span>
+        )}
+      </Link>
+    )
+  }
+
   const NavContent = () => (
     <>
       <div className="p-5 border-b border-gray-800">
@@ -64,34 +153,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
       </div>
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {navItems(profile.role).map((item) => {
-          const active = pathname.startsWith(item.href)
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
-                active
-                  ? 'bg-blue-950/40 text-blue-400'
-                  : 'text-gray-400 hover:bg-gray-950 hover:text-gray-100'
-              }`}
-            >
-              <span>{item.icon}</span>
-              <span className="flex-1">{item.label}</span>
-              {item.href === '/admin/announcements' && unreadAnnouncements > 0 && (
-                <span className="bg-blue-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-                  {unreadAnnouncements > 99 ? '99+' : unreadAnnouncements}
-                </span>
-              )}
-              {item.href === '/admin/users' && pendingUsers > 0 && (
-                <span className="bg-red-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-                  {pendingUsers > 99 ? '99+' : pendingUsers}
-                </span>
-              )}
-            </Link>
-          )
-        })}
+        {navEntries(profile.role).map(entry => renderEntry(entry, () => setMobileOpen(false)))}
       </nav>
 
       <div className="p-4 border-t border-gray-800 space-y-1">
@@ -131,18 +193,12 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
-          {unreadAnnouncements > 0 && (
-            <span className="absolute top-2 right-2 w-2 h-2 bg-blue-600 rounded-full" />
-          )}
         </button>
       </div>
 
       {/* Mobile overlay */}
       {mobileOpen && (
-        <div
-          className="lg:hidden fixed inset-0 z-40 bg-black/40"
-          onClick={() => setMobileOpen(false)}
-        />
+        <div className="lg:hidden fixed inset-0 z-40 bg-black/40" onClick={() => setMobileOpen(false)} />
       )}
 
       {/* Mobile drawer */}
@@ -152,49 +208,17 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
       `}>
         <div className="flex items-center justify-between p-4 border-b border-gray-800">
           <h1 className="text-lg font-bold text-gray-100">🏢 Wspólnoty</h1>
-          <button
-            onClick={() => setMobileOpen(false)}
-            className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-900 transition"
-          >
+          <button onClick={() => setMobileOpen(false)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-900 transition">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {navItems(profile.role).map((item) => {
-            const active = pathname.startsWith(item.href)
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
-                  active ? 'bg-blue-950/40 text-blue-400' : 'text-gray-400 hover:bg-gray-950'
-                }`}
-              >
-                <span>{item.icon}</span>
-                <span className="flex-1">{item.label}</span>
-                {item.href === '/admin/announcements' && unreadAnnouncements > 0 && (
-                  <span className="bg-blue-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-                    {unreadAnnouncements > 99 ? '99+' : unreadAnnouncements}
-                  </span>
-                )}
-                {item.href === '/admin/users' && pendingUsers > 0 && (
-                  <span className="bg-red-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-                    {pendingUsers > 99 ? '99+' : pendingUsers}
-                  </span>
-                )}
-              </Link>
-            )
-          })}
+          {navEntries(profile.role).map(entry => renderEntry(entry, () => setMobileOpen(false)))}
         </nav>
         <div className="p-4 border-t border-gray-800 space-y-1">
-          <Link
-            href="/admin/profile"
-            onClick={() => setMobileOpen(false)}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-950 transition"
-          >
+          <Link href="/admin/profile" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-950 transition">
             <div className="w-7 h-7 rounded-full bg-blue-900/40 text-blue-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
               {(profile.full_name ?? userEmail).charAt(0).toUpperCase()}
             </div>
@@ -203,10 +227,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
               <p className="text-xs text-gray-400">{roleLabel[profile.role]}</p>
             </div>
           </Link>
-          <button
-            onClick={handleLogout}
-            className="w-full text-left text-sm text-red-400 font-medium px-3 py-2 rounded-lg hover:bg-red-950/30 transition"
-          >
+          <button onClick={handleLogout} className="w-full text-left text-sm text-red-400 font-medium px-3 py-2 rounded-lg hover:bg-red-950/30 transition">
             Wyloguj się
           </button>
         </div>

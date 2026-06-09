@@ -1,0 +1,217 @@
+'use client'
+
+import { useState, useTransition, useRef, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import { addIncome, deleteIncome } from './actions'
+import type { IncomeCategory } from './income-categories'
+
+interface IncomeEntry {
+  id: string; community_id: string; category: string; description: string
+  amount: number; income_date: string; year: number; month: number; created_at: string
+}
+interface Props {
+  incomeEntries: IncomeEntry[]
+  settlementsMap: Record<string, Record<string, number>>
+  communities: { id: string; name: string }[]
+  commMap: Record<string, string>
+  isSuperAdmin: boolean
+  defaultCommunityId: string
+  categories: { value: IncomeCategory; label: string }[]
+  currentYear: number
+}
+
+const pln = (v: number) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v)
+const MONTHS = ['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru']
+
+export default function PrzychodyClient({ incomeEntries, settlementsMap, communities, commMap, isSuperAdmin, defaultCommunityId, categories, currentYear }: Props) {
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const [filterComm, setFilterComm] = useState(isSuperAdmin ? '' : defaultCommunityId)
+  const [filterYear, setFilterYear] = useState(currentYear)
+  const [tab, setTab] = useState<'list' | 'summary'>('list')
+
+  const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState({ community_id: defaultCommunityId, category: 'inne' as IncomeCategory, description: '', amount: '', income_date: new Date().toISOString().slice(0,10) })
+  const [formError, setFormError] = useState<string | null>(null)
+
+  const [csvDragOver, setCsvDragOver] = useState(false)
+  const [csvFileName, setCsvFileName] = useState<string | null>(null)
+  const [importResult, setImportResult] = useState<{ imported: number; errors: string[] } | null>(null)
+  const [importComm, setImportComm] = useState(defaultCommunityId)
+
+  const handleCsvFile = useCallback((file: File) => {
+    setCsvFileName(file.name); setImportResult(null)
+    const reader = new FileReader()
+    reader.onload = async (ev) => {
+      const text = ev.target?.result as string
+      const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+      const startIdx = lines[0]?.toLowerCase().startsWith('lokal') || lines[0]?.toLowerCase().startsWith('data') ? 1 : 0
+      let imported = 0
+      const errors: string[] = []
+      for (let i = startIdx; i < lines.length; i++) {
+        const parts = lines[i].split(/[;,]/).map(p => p.trim().replace(/^"|"$/g, ''))
+        const [dateStr, descStr, catStr, amtStr] = parts
+        if (!dateStr || !amtStr) continue
+        const amt = parseFloat(amtStr.replace(',', '.'))
+        if (isNaN(amt) || amt <= 0) { errors.push(`Wiersz ${i+1}: nieprawidłowa kwota`); continue }
+        const validCats = categories.map(c => c.value)
+        const cat = (validCats.includes(catStr as IncomeCategory) ? catStr : 'inne') as IncomeCategory
+        startTransition(async () => {
+          const res = await addIncome({ community_id: importComm, category: cat, description: descStr || 'Import CSV', amount: amt, income_date: dateStr })
+          if (!res.error) imported++
+          else errors.push(`Wiersz ${i+1}: ${res.error}`)
+        })
+      }
+      setTimeout(() => {
+        setImportResult({ imported, errors }); setCsvFileName(null)
+        if (imported > 0) router.refresh()
+      }, 800)
+    }
+    reader.readAsText(file, 'utf-8')
+  }, [importComm, router, startTransition, categories])
+
+  const filtered = incomeEntries.filter(e => {
+    if (filterComm && e.community_id !== filterComm) return false
+    if (e.year !== filterYear) return false
+    return true
+  })
+
+  // Łącz wpłaty mieszkańców + przychody ogólne (community_income)
+  const monthlySettlements: Record<number, number> = {}
+  const monthlyOther: Record<number, number> = {}
+  for (let m = 1; m <= 12; m++) {
+    const commIds = filterComm ? [filterComm] : communities.map(c => c.id)
+    monthlySettlements[m] = commIds.reduce((s, cid) => s + (settlementsMap[cid]?.[`${filterYear}:${m}`] ?? 0), 0)
+    monthlyOther[m] = filtered.filter(e => e.month === m).reduce((s, e) => s + e.amount, 0)
+  }
+  const totalSettlements = Object.values(monthlySettlements).reduce((s, v) => s + v, 0)
+  const totalOther = filtered.reduce((s, e) => s + e.amount, 0)
+  const totalAll = totalSettlements + totalOther
+  const maxBar = Math.max(...Object.values(monthlySettlements).map((v,i) => v + (monthlyOther[i+1] ?? 0)), 1)
+
+  const catLabel = (cat: string) => categories.find(c => c.value === cat)?.label ?? cat
+  const catColors: Record<string, string> = { odsetki:'bg-yellow-950/40 text-yellow-400', zwrot:'bg-green-950/40 text-green-400', dotacja:'bg-blue-950/40 text-blue-400', inne:'bg-gray-800 text-gray-400' }
+
+  const handleAdd = () => {
+    if (!form.description.trim()) { setFormError('Opis jest wymagany'); return }
+    const amt = parseFloat(form.amount.replace(',', '.'))
+    if (isNaN(amt) || amt <= 0) { setFormError('Podaj kwotę większą od 0'); return }
+    setFormError(null)
+    startTransition(async () => {
+      const res = await addIncome({ ...form, amount: amt })
+      if (res.error) { setFormError(res.error); return }
+      setShowForm(false); setForm(p => ({ ...p, description: '', amount: '' })); router.refresh()
+    })
+  }
+  const handleDelete = (id: string) => {
+    if (!confirm('Usunąć ten przychód?')) return
+    startTransition(async () => { await deleteIncome(id); router.refresh() })
+  }
+
+  return (
+    <div className="space-y-6 max-w-5xl">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-100">💰 Przychody wspólnoty</h2>
+          <p className="text-sm text-gray-500 mt-0.5">Odsetki od lokat, zwroty, dotacje i inne dochody</p>
+        </div>
+        <button onClick={() => setShowForm(!showForm)} className="bg-green-700 hover:bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">+ Dodaj przychód</button>
+      </div>
+
+      {showForm && (
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
+          <h3 className="font-semibold text-gray-200">Nowy przychód</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {isSuperAdmin && <div><label className="text-xs text-gray-400 block mb-1">Wspólnota *</label><select className="input w-full" value={form.community_id} onChange={e=>setForm(p=>({...p,community_id:e.target.value}))}>{communities.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></div>}
+            <div><label className="text-xs text-gray-400 block mb-1">Kategoria *</label><select className="input w-full" value={form.category} onChange={e=>setForm(p=>({...p,category:e.target.value as IncomeCategory}))}>{categories.map(c=><option key={c.value} value={c.value}>{c.label}</option>)}</select></div>
+            <div className="sm:col-span-2"><label className="text-xs text-gray-400 block mb-1">Opis *</label><input className="input w-full" placeholder="np. Odsetki od lokaty bankowej" value={form.description} onChange={e=>setForm(p=>({...p,description:e.target.value}))} /></div>
+            <div><label className="text-xs text-gray-400 block mb-1">Kwota (zł) *</label><input className="input w-full" type="number" step="0.01" min="0" value={form.amount} onChange={e=>setForm(p=>({...p,amount:e.target.value}))} /></div>
+            <div><label className="text-xs text-gray-400 block mb-1">Data *</label><input className="input w-full" type="date" value={form.income_date} onChange={e=>setForm(p=>({...p,income_date:e.target.value}))} /></div>
+          </div>
+          {formError && <p className="text-sm text-red-400">{formError}</p>}
+          <div className="flex gap-3">
+            <button onClick={handleAdd} disabled={isPending} className="bg-green-700 text-white text-sm font-semibold px-5 py-2 rounded-lg disabled:opacity-50">{isPending ? 'Zapisuję...' : 'Dodaj przychód'}</button>
+            <button onClick={() => setShowForm(false)} className="text-sm text-gray-500 hover:text-gray-300">Anuluj</button>
+          </div>
+        </div>
+      )}
+
+      {/* Import CSV */}
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3">
+        <div><p className="text-sm font-semibold text-gray-300">📥 Import przychodów z CSV</p><p className="text-xs text-gray-500 mt-0.5">Format: <code className="text-gray-400">data;opis;kategoria;kwota</code> (kategorie: odsetki, zwrot, dotacja, inne)</p></div>
+        {isSuperAdmin && <select className="input text-sm w-full sm:w-auto" value={importComm} onChange={e=>setImportComm(e.target.value)}>{communities.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select>}
+        <div onDragOver={e=>{e.preventDefault();setCsvDragOver(true)}} onDragLeave={()=>setCsvDragOver(false)} onDrop={e=>{e.preventDefault();setCsvDragOver(false);const f=e.dataTransfer.files[0];if(f)handleCsvFile(f)}} onClick={()=>fileRef.current?.click()} className={`cursor-pointer rounded-xl border-2 border-dashed transition-all py-8 px-4 text-center select-none ${csvDragOver?'border-green-500 bg-green-950/20':csvFileName?'border-green-700 bg-green-950/20':'border-gray-700 bg-gray-800/30 hover:border-gray-500'}`}>
+          <input ref={fileRef} type="file" accept=".csv,.txt" className="hidden" onChange={e=>{const f=e.target.files?.[0];if(f)handleCsvFile(f);if(fileRef.current)fileRef.current.value=''}} />
+          <div className="text-3xl mb-2">{isPending?'⏳':csvFileName?'✅':'📂'}</div>
+          {isPending?<p className="text-sm text-gray-400">Importowanie...</p>:csvFileName?<p className="text-sm font-medium text-green-400">{csvFileName}</p>:<><p className="text-sm font-medium text-gray-300">Przeciągnij plik CSV tutaj</p><p className="text-xs text-gray-500 mt-1">lub kliknij żeby wybrać z dysku</p></>}
+        </div>
+        <a href={`data:text/plain;charset=utf-8,${encodeURIComponent('data;opis;kategoria;kwota\n2026-01-15;Odsetki od lokaty PKO BP;odsetki;376.88\n2026-03-15;Odsetki od lokaty PKO BP;odsetki;423.45')}`} download="szablon_przychodow.csv" className="text-xs text-green-400 hover:text-green-300 underline">Pobierz szablon</a>
+        {importResult && <div className={`text-sm rounded-lg p-3 ${importResult.imported>0?'bg-green-950/30 border border-green-800 text-green-400':'bg-red-950/30 border border-red-800 text-red-400'}`}>{importResult.imported>0&&<p className="font-semibold">✓ Zaimportowano {importResult.imported} wpisów.</p>}{importResult.errors.map((err,i)=><p key={i} className="text-xs mt-1">⚠ {err}</p>)}</div>}
+      </div>
+
+      {/* Filtry + tabs */}
+      <div className="flex flex-wrap gap-3 items-center">
+        {isSuperAdmin && <select className="input text-sm" value={filterComm} onChange={e=>setFilterComm(e.target.value)}><option value="">Wszystkie wspólnoty</option>{communities.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select>}
+        <select className="input text-sm" value={filterYear} onChange={e=>setFilterYear(Number(e.target.value))}><option value={currentYear}>{currentYear}</option><option value={currentYear-1}>{currentYear-1}</option><option value={currentYear-2}>{currentYear-2}</option></select>
+        <div className="ml-auto flex gap-1 bg-gray-900 rounded-lg p-1">
+          {(['list','summary'] as const).map(t=><button key={t} onClick={()=>setTab(t)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${tab===t?'bg-gray-800 text-gray-100':'text-gray-500 hover:text-gray-300'}`}>{t==='list'?'📋 Lista':'📊 Podsumowanie'}</button>)}
+        </div>
+      </div>
+
+      {tab==='summary'?(
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center"><p className="text-xs text-gray-500 mb-1">Wpłaty mieszkańców</p><p className="text-2xl font-bold text-blue-400">{pln(totalSettlements)}</p></div>
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center"><p className="text-xs text-gray-500 mb-1">Inne przychody</p><p className="text-2xl font-bold text-yellow-400">{pln(totalOther)}</p></div>
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center"><p className="text-xs text-gray-500 mb-1">Razem przychody</p><p className="text-2xl font-bold text-green-400">{pln(totalAll)}</p></div>
+          </div>
+
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <h3 className="text-sm font-semibold text-gray-400 mb-1">Przychody miesięcznie — {filterYear}</h3>
+            <div className="flex gap-4 text-xs text-gray-500 mb-4">
+              <span><span className="inline-block w-3 h-3 rounded-sm bg-blue-600/60 mr-1"/>Wpłaty mieszkańców</span>
+              <span><span className="inline-block w-3 h-3 rounded-sm bg-yellow-500/60 mr-1"/>Inne przychody</span>
+            </div>
+            <div className="flex items-end gap-1 h-32">
+              {MONTHS.map((name,idx)=>{const m=idx+1;const sett=monthlySettlements[m]??0;const oth=monthlyOther[m]??0;const tot=sett+oth;const hS=Math.max(oth>0?2:0,Math.round((sett/maxBar)*120));const hO=Math.max(oth>0?2:0,Math.round((oth/maxBar)*120));return(<div key={m} className="flex-1 flex flex-col items-center gap-0.5"><div className="flex flex-col justify-end w-full" style={{height:120}}><div title={`Inne: ${pln(oth)}`} style={{height:hO}} className="bg-yellow-500/60 rounded-t-sm"/><div title={`Wpłaty: ${pln(sett)}`} style={{height:hS}} className="bg-blue-600/60"/></div><span className="text-xs text-gray-600">{name}</span></div>)})}
+            </div>
+          </div>
+
+          {filtered.length > 0 && (
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <h3 className="text-sm font-semibold text-gray-400 mb-4">Inne przychody według kategorii</h3>
+              {(() => {
+                const byCat: Record<string, number> = {}
+                for (const e of filtered) byCat[e.category] = (byCat[e.category] ?? 0) + e.amount
+                return Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([cat,amt])=>{
+                  const pct = totalOther > 0 ? Math.round(amt/totalOther*100) : 0
+                  return (<div key={cat} className="flex items-center gap-3 mb-3"><span className={`text-xs px-2 py-0.5 rounded-full w-32 text-center flex-shrink-0 ${catColors[cat]??catColors.inne}`}>{catLabel(cat)}</span><div className="flex-1 bg-gray-800 rounded-full h-2"><div className="bg-yellow-500 h-2 rounded-full" style={{width:`${pct}%`}}/></div><span className="text-sm font-semibold text-gray-200 w-28 text-right">{pln(amt)}</span></div>)
+                })
+              })()}
+            </div>
+          )}
+        </div>
+      ):(
+        <div>
+          {filtered.length === 0 ? (
+            <div className="text-center py-16 text-gray-500"><p className="text-3xl mb-3">💰</p><p>Brak przychodów za {filterYear} rok.</p><button onClick={() => setShowForm(true)} className="mt-4 text-sm text-green-400 hover:underline">+ Dodaj pierwszy przychód</button></div>
+          ) : (
+            <div className="space-y-2">
+              {filtered.map(e => (
+                <div key={e.id} className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap hover:border-gray-700 transition">
+                  <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${catColors[e.category] ?? catColors.inne}`}>{catLabel(e.category)}</span>
+                  <div className="flex-1 min-w-0"><p className="text-sm font-medium text-gray-200 truncate">{e.description}</p><p className="text-xs text-gray-500 mt-0.5">{new Date(e.income_date).toLocaleDateString('pl-PL')}{isSuperAdmin && ` · ${commMap[e.community_id] ?? '—'}`}</p></div>
+                  <p className="text-sm font-bold text-green-400 flex-shrink-0">{pln(e.amount)}</p>
+                  <button onClick={() => handleDelete(e.id)} disabled={isPending} className="text-xs text-gray-600 hover:text-red-400 transition flex-shrink-0">✕</button>
+                </div>
+              ))}
+              <div className="mt-4 pt-4 border-t border-gray-800 flex justify-between items-center"><p className="text-sm text-gray-500">{filtered.length} pozycji</p><p className="text-base font-bold text-green-400">Razem: {pln(totalOther)}</p></div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
