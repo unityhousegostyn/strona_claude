@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useRef } from 'react'
+import { useState, useTransition, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { addExpense, updateExpense, deleteExpense, importExpensesCSV } from './actions'
 import type { ExpenseCategory } from './categories'
@@ -68,6 +68,24 @@ export default function ExpensesClient({
   // Import CSV
   const [importResult, setImportResult] = useState<{ imported: number; errors: string[] } | null>(null)
   const [importComm, setImportComm] = useState(defaultCommunityId)
+  const [csvDragOver, setCsvDragOver] = useState(false)
+  const [csvFileName, setCsvFileName] = useState<string | null>(null)
+
+  const handleFile = useCallback((file: File) => {
+    setCsvFileName(file.name)
+    setImportResult(null)
+    const reader = new FileReader()
+    reader.onload = ev => {
+      const text = ev.target?.result as string
+      startTransition(async () => {
+        const res = await importExpensesCSV(importComm, text)
+        setImportResult(res)
+        setCsvFileName(null)
+        router.refresh()
+      })
+    }
+    reader.readAsText(file, 'utf-8')
+  }, [importComm, startTransition, router])
 
   // Filtrowanie
   const filtered = expenses.filter(e => {
@@ -135,17 +153,8 @@ export default function ExpensesClient({
   const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      const text = ev.target?.result as string
-      startTransition(async () => {
-        const res = await importExpensesCSV(importComm, text)
-        setImportResult(res)
-        if (fileRef.current) fileRef.current.value = ''
-        router.refresh()
-      })
-    }
-    reader.readAsText(file, 'utf-8')
+    handleFile(file)
+    if (fileRef.current) fileRef.current.value = ''
   }
 
   const catLabel = (cat: string) => categories.find(c => c.value === cat)?.label ?? cat
@@ -234,40 +243,63 @@ export default function ExpensesClient({
 
       {/* Import CSV */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div>
-            <p className="text-sm font-semibold text-gray-300">📥 Import z pliku CSV</p>
-            <p className="text-xs text-gray-500 mt-0.5">Format: <code className="text-gray-400">data;opis;kategoria;kwota;nr_faktury</code> (separator: ; lub ,)</p>
-          </div>
+        <div>
+          <p className="text-sm font-semibold text-gray-300">📥 Import z pliku CSV</p>
+          <p className="text-xs text-gray-500 mt-0.5">Format: <code className="text-gray-400">data;opis;kategoria;kwota;nr_faktury</code></p>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          {isSuperAdmin && (
-            <select className="input text-sm" value={importComm}
-              onChange={e => setImportComm(e.target.value)}>
-              {communities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
+
+        {isSuperAdmin && (
+          <select className="input text-sm w-full sm:w-auto" value={importComm}
+            onChange={e => setImportComm(e.target.value)}>
+            {communities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        )}
+
+        {/* Drag & drop zone */}
+        <div
+          onDragOver={e => { e.preventDefault(); setCsvDragOver(true) }}
+          onDragLeave={() => setCsvDragOver(false)}
+          onDrop={e => { e.preventDefault(); setCsvDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f) }}
+          onClick={() => fileRef.current?.click()}
+          className={`cursor-pointer rounded-xl border-2 border-dashed transition-all py-8 px-4 text-center select-none ${
+            csvDragOver
+              ? 'border-blue-500 bg-blue-950/20 scale-[1.01]'
+              : csvFileName
+              ? 'border-green-700 bg-green-950/20'
+              : 'border-gray-700 bg-gray-800/30 hover:border-gray-500 hover:bg-gray-800/60'
+          }`}
+        >
+          <input ref={fileRef} type="file" accept=".csv,.txt" className="hidden" onChange={handleFileImport} />
+          <div className="text-3xl mb-2">{isPending ? '⏳' : csvFileName ? '✅' : '📂'}</div>
+          {isPending ? (
+            <p className="text-sm text-gray-400">Importowanie...</p>
+          ) : csvFileName ? (
+            <p className="text-sm font-medium text-green-400">{csvFileName}</p>
+          ) : (
+            <>
+              <p className="text-sm font-medium text-gray-300">Przeciągnij plik CSV tutaj</p>
+              <p className="text-xs text-gray-500 mt-1">lub kliknij żeby wybrać z dysku</p>
+            </>
           )}
-          <label className="cursor-pointer bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium px-4 py-2 rounded-lg transition">
-            Wybierz plik CSV
-            <input ref={fileRef} type="file" accept=".csv,.txt" className="hidden" onChange={handleFileImport} />
-          </label>
+        </div>
+
+        <div className="flex items-center gap-3">
           <a
             href={`data:text/plain;charset=utf-8,${encodeURIComponent('data;opis;kategoria;kwota;nr_faktury\n2026-06-01;Faktura ZGKIM za wodę;woda;1250.00;FV/100/2026\n2026-06-01;Wywóz odpadów;śmieci;320.00;FV/101/2026')}`}
             download="szablon_kosztow.csv"
-            className="text-xs text-blue-500 hover:underline"
+            className="text-xs text-blue-400 hover:text-blue-300 underline underline-offset-2 transition"
           >
             Pobierz szablon
           </a>
+          <span className="text-xs text-gray-600">Kategorie: {categories.map(c => c.value).join(', ')}</span>
         </div>
+
         {importResult && (
-          <div className={`text-sm rounded-lg p-3 ${importResult.imported > 0 ? 'bg-green-950/30 text-green-400' : 'bg-red-950/30 text-red-400'}`}>
-            {importResult.imported > 0 && <p>✓ Zaimportowano {importResult.imported} wpisów.</p>}
-            {importResult.errors.map((err, i) => <p key={i} className="text-xs text-red-400">{err}</p>)}
+          <div className={`text-sm rounded-lg p-3 ${importResult.imported > 0 ? 'bg-green-950/30 border border-green-800 text-green-400' : 'bg-red-950/30 border border-red-800 text-red-400'}`}>
+            {importResult.imported > 0 && <p className="font-semibold">✓ Zaimportowano {importResult.imported} wpisów.</p>}
+            {importResult.errors.map((err, i) => <p key={i} className="text-xs mt-1">⚠ {err}</p>)}
           </div>
         )}
-        <div className="text-xs text-gray-600">
-          Dostępne kategorie: {categories.map(c => c.value).join(', ')}
-        </div>
       </div>
 
       {/* Filtry */}
