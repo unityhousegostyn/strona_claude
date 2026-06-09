@@ -43,7 +43,7 @@ export default async function ProfilePage() {
         </div>
       </div>
 
-      <ProfileForm fullName={profile.full_name ?? ''} />
+      <ProfileForm fullName={profile.full_name ?? ''} hasPin={!!profile.voting_pin_hash} />
     </div>
   )
 }
