@@ -22,9 +22,11 @@ export default async function DashboardPage() {
 
   // ─── SUPER ADMIN ───────────────────────────────────────────────
   if (role === 'super_admin') {
+    const currentYear = new Date().getFullYear()
     const [
       commCount, userCount, ticketCount, pendingCount, boardCount,
       allTickets, communities, recentTickets, recentPosts, postAuthors,
+      allApartments, allVotes, yearEntries, activeUsers,
     ] = await Promise.all([
       admin.from('communities').select('id', { count: 'exact', head: true }),
       admin.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'active'),
@@ -38,6 +40,10 @@ export default async function DashboardPage() {
       admin.from('board_posts').select('id, content, created_at, author_id, community_id')
         .order('created_at', { ascending: false }).limit(5),
       admin.from('profiles').select('id, full_name, email'),
+      admin.from('settlement_apartments').select('id, community_id').eq('active', true),
+      admin.from('votes').select('id, community_id, status, title, deadline, created_at').order('created_at', { ascending: false }),
+      admin.from('settlement_entries').select('paid, apartment:settlement_apartments!inner(community_id)').eq('year', currentYear),
+      admin.from('profiles').select('id, community_id').eq('role', 'user').eq('status', 'active'),
     ])
 
     const commMap: Record<string, string> = {}
@@ -48,13 +54,33 @@ export default async function DashboardPage() {
       authorMap[a.id] = a.full_name ?? a.email ?? '—'
     }
 
-    const statsMap: Record<string, { otwarte: number; zamknięte: number }> = {}
-    for (const t of allTickets.data ?? []) {
-      const key = t.community_id ?? 'Brak'
-      if (!statsMap[key]) statsMap[key] = { otwarte: 0, zamknięte: 0 }
-      t.status === 'open' ? statsMap[key].otwarte++ : statsMap[key].zamknięte++
+    // Per-community stats
+    interface CommStats { apartments: number; users: number; openTickets: number; openVotes: number; totalPaid: number }
+    const commStats: Record<string, CommStats> = {}
+    for (const c of communities.data ?? []) {
+      commStats[c.id] = { apartments: 0, users: 0, openTickets: 0, openVotes: 0, totalPaid: 0 }
     }
-    const chartData = Object.entries(statsMap).map(([id, v]) => ({ name: commMap[id] ?? id, ...v }))
+    for (const a of allApartments.data ?? []) {
+      if (commStats[a.community_id]) commStats[a.community_id].apartments++
+    }
+    for (const u of activeUsers.data ?? []) {
+      if (u.community_id && commStats[u.community_id]) commStats[u.community_id].users++
+    }
+    for (const t of allTickets.data ?? []) {
+      if (t.community_id && commStats[t.community_id] && t.status === 'open') commStats[t.community_id].openTickets++
+    }
+    for (const v of allVotes.data ?? []) {
+      const isActive = v.status === 'open' && (!v.deadline || new Date(v.deadline) > new Date())
+      if (isActive && commStats[v.community_id]) commStats[v.community_id].openVotes++
+    }
+    for (const e of yearEntries.data ?? []) {
+      const commId = (e.apartment as any)?.community_id
+      if (commId && commStats[commId]) commStats[commId].totalPaid += e.paid ?? 0
+    }
+
+    const totalApartments = (allApartments.data ?? []).length
+    const openVotesCount = (allVotes.data ?? []).filter(v => v.status === 'open' && (!v.deadline || new Date(v.deadline) > new Date())).length
+    const activeVotesList = (allVotes.data ?? []).filter(v => v.status === 'open' && (!v.deadline || new Date(v.deadline) > new Date())).slice(0, 3)
 
     return (
       <div className="space-y-6">
@@ -65,17 +91,82 @@ export default async function DashboardPage() {
           <p className="text-sm text-gray-500 mt-1">Widok globalny — wszystkie wspólnoty</p>
         </div>
 
+        {/* Stat cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           <StatCard label="Wspólnoty" value={commCount.count ?? 0} icon="🏢" href="/admin/communities" />
-          <StatCard label="Użytkownicy" value={userCount.count ?? 0} icon="👥" href="/admin/users" />
-          <StatCard label="Otwarte zgłoszenia" value={ticketCount.count ?? 0} icon="🎫" href="/admin/tickets" color="yellow" />
+          <StatCard label="Mieszkań łącznie" value={totalApartments} icon="🏠" href="/admin/communities" />
+          <StatCard label="Aktywni użytkownicy" value={userCount.count ?? 0} icon="👥" href="/admin/users" />
           <StatCard label="Oczekujących" value={pendingCount.count ?? 0} icon="⏳" href="/admin/users" color={pendingCount.count ? 'red' : undefined} />
-          <StatCard label="Posty na tablicy" value={boardCount.count ?? 0} icon="💬" href="/admin/board" />
-          <StatCard label="Wspólnoty aktywne" value={commCount.count ?? 0} icon="✅" href="/admin/communities" />
+          <StatCard label="Otwarte zgłoszenia" value={ticketCount.count ?? 0} icon="🎫" href="/admin/tickets" color={ticketCount.count ? 'yellow' : undefined} />
+          <StatCard label="Aktywne głosowania" value={openVotesCount} icon="🗳️" href="/admin/votes" color={openVotesCount ? 'blue' : undefined} />
         </div>
 
-        <StatsChart data={chartData} title="Zgłoszenia per wspólnota" />
+        {/* Per-community overview */}
+        <div>
+          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Przegląd wspólnot</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {(communities.data ?? []).map((c) => {
+              const s = commStats[c.id] ?? { apartments: 0, users: 0, openTickets: 0, openVotes: 0, totalPaid: 0 }
+              return (
+                <div key={c.id} className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold text-gray-100">{c.name}</h4>
+                    <Link href="/admin/communities" className="text-xs text-gray-600 hover:text-blue-400 transition">Edytuj →</Link>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="bg-gray-950 rounded-lg p-3 text-center">
+                      <p className="text-lg font-bold text-gray-100">{s.apartments}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Mieszkań</p>
+                    </div>
+                    <div className="bg-gray-950 rounded-lg p-3 text-center">
+                      <p className="text-lg font-bold text-gray-100">{s.users}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Mieszkańców</p>
+                    </div>
+                    <div className={`rounded-lg p-3 text-center ${s.openTickets > 0 ? 'bg-yellow-950/30' : 'bg-gray-950'}`}>
+                      <p className={`text-lg font-bold ${s.openTickets > 0 ? 'text-yellow-400' : 'text-gray-100'}`}>{s.openTickets}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Zgłoszenia</p>
+                    </div>
+                    <div className="bg-gray-950 rounded-lg p-3 text-center">
+                      <p className="text-lg font-bold text-blue-400">{pln(s.totalPaid)}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Wpłacono {currentYear}</p>
+                    </div>
+                  </div>
+                  {s.openVotes > 0 && (
+                    <div className="flex items-center gap-2 text-xs text-green-400 bg-green-950/20 border border-green-900/40 rounded-lg px-3 py-2">
+                      <span>🗳️</span>
+                      <span>{s.openVotes} aktywne głosowanie{s.openVotes > 1 ? 'a' : ''}</span>
+                      <Link href="/admin/votes" className="ml-auto underline hover:no-underline">Zobacz</Link>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
 
+        {/* Aktywne głosowania */}
+        {activeVotesList.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-semibold text-gray-200">Aktywne głosowania</h3>
+              <Link href="/admin/votes" className="text-sm text-blue-600 hover:underline">Wszystkie</Link>
+            </div>
+            <div className="space-y-2">
+              {activeVotesList.map((v: any) => (
+                <Link key={v.id} href="/admin/votes"
+                  className="flex items-center justify-between bg-gray-900 border border-green-900/40 rounded-xl px-4 py-3 hover:border-green-700 transition">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-200 truncate">{v.title}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{commMap[v.community_id] ?? '—'}{v.deadline ? ` · do ${new Date(v.deadline).toLocaleDateString('pl-PL')}` : ''}</p>
+                  </div>
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full ml-2 flex-shrink-0 bg-green-900/30 text-green-400">● Otwarte</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Ostatnie zgłoszenia + posty */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <div className="flex items-center justify-between mb-3">
@@ -120,6 +211,17 @@ export default async function DashboardPage() {
                 ))
               }
             </div>
+          </div>
+        </div>
+
+        {/* Szybkie akcje */}
+        <div>
+          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Szybkie akcje</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <QuickAction href="/admin/users" icon="👥" label="Użytkownicy" badge={pendingCount.count ? `${pendingCount.count} czeka` : undefined} badgeColor="red" />
+            <QuickAction href="/admin/communities" icon="🏢" label="Wspólnoty" />
+            <QuickAction href="/admin/votes" icon="🗳️" label="Głosowania" badge={openVotesCount ? `${openVotesCount} aktywnych` : undefined} badgeColor="blue" />
+            <QuickAction href="/admin/audit" icon="🔍" label="Audit Log" />
           </div>
         </div>
       </div>
@@ -520,7 +622,7 @@ export default async function DashboardPage() {
 function StatCard({ label, value, icon, href, color }: {
   label: string; value: number; icon: string; href: string; color?: string
 }) {
-  const colorMap: Record<string, string> = { yellow: 'text-yellow-400', red: 'text-red-400' }
+  const colorMap: Record<string, string> = { yellow: 'text-yellow-400', red: 'text-red-400', blue: 'text-blue-400' }
   return (
     <Link href={href} className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-3 hover:border-blue-700 transition">
       <span className="text-2xl">{icon}</span>
