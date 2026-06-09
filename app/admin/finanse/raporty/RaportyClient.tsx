@@ -22,6 +22,7 @@ interface Entry {
 interface Expense {
   community_id: string; category: string; description: string
   amount: number; expense_date: string; year: number; month: number
+  invoice_number?: string | null
 }
 interface CommunityIncome {
   community_id: string; category: string; description: string
@@ -72,7 +73,7 @@ function calcMonthlyCharge(apt: Apartment, rate: Rate): number {
 
 // ── Report types ───────────────────────────────────────────────────────────────
 
-type ReportType = 'sprawozdanie' | 'rozliczenie' | 'zadluzenia' | 'plan' | 'remontowy'
+type ReportType = 'sprawozdanie' | 'rozliczenie' | 'zadluzenia' | 'plan' | 'remontowy' | 'faktury'
 
 const REPORTS: { type: ReportType; icon: string; title: string; subtitle: string; art: string }[] = [
   { type: 'sprawozdanie', icon: '📋', title: 'Roczne sprawozdanie finansowe', subtitle: 'Wpłaty, koszty, saldo — gotowe na zebranie roczne', art: 'Art. 29 UoWL' },
@@ -80,6 +81,7 @@ const REPORTS: { type: ReportType; icon: string; title: string; subtitle: string
   { type: 'zadluzenia', icon: '⚠️', title: 'Lista zadłużeń', subtitle: 'Lokale z zaległościami — podstawa windykacji', art: 'Art. 16 UoWL' },
   { type: 'plan', icon: '📊', title: 'Plan gospodarczy vs wykonanie', subtitle: 'Budżet vs faktyczne wydatki per kategoria', art: 'Art. 22 ust. 3 pkt 1 UoWL' },
   { type: 'remontowy', icon: '🔨', title: 'Fundusz remontowy', subtitle: 'Naliczenia vs wydatki na remonty — saldo skumulowane', art: 'Art. 29 ust. 1a UoWL' },
+  { type: 'faktury', icon: '🧾', title: 'Rejestr faktur / Szczegółowy rejestr kosztów', subtitle: 'Każda faktura z datą, wystawcą i kwotą — rozbicie na miesiące', art: 'Art. 29 UoWL' },
 ]
 
 // ── Main component ─────────────────────────────────────────────────────────────
@@ -535,6 +537,90 @@ export default function RaportyClient({
                 </ReportSection>
 
                 <LegalFooter text="Zarząd prowadzi ewidencję funduszu remontowego zgodnie z art. 29 ust. 1a UoWL. Środki funduszu są własnością wspólnoty i nie podlegają podziałowi między właścicieli (uchwała SN z 21.12.2007, III CZP 65/07)." />
+              </div>
+            )}
+
+            {/* ── 6. REJESTR FAKTUR ── */}
+            {activeReport === 'faktury' && (
+              <div className="space-y-6">
+                <ReportHeader
+                  title="Szczegółowy rejestr kosztów"
+                  subtitle={`Wspólnota Mieszkaniowa ${commName} · rok ${filterYear}`}
+                  art="Art. 29 ust. 1 UoWL — ewidencja pozaksięgowa kosztów zarządu"
+                />
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <KpiCard label="Łączne koszty" value={pln(totalExpenses)} color="red" />
+                  <KpiCard label="Liczba faktur / wpisów" value={String(commExpenses.length)} color="blue" />
+                  <KpiCard label="Liczba kategorii" value={String(new Set(commExpenses.map(e => e.category)).size)} color="blue" />
+                </div>
+
+                {(() => {
+                  // group by month
+                  const months: number[] = []
+                  for (let m = 1; m <= 12; m++) {
+                    if (commExpenses.some(e => e.month === m)) months.push(m)
+                  }
+                  if (months.length === 0) return (
+                    <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+                      <p className="text-gray-500 text-sm">Brak kosztów w roku {filterYear}.</p>
+                    </div>
+                  )
+                  let grandTotal = 0
+                  return (
+                    <div className="space-y-4">
+                      {months.map(m => {
+                        const rows = commExpenses
+                          .filter(e => e.month === m)
+                          .sort((a, b) => a.expense_date.localeCompare(b.expense_date))
+                        const monthTotal = rows.reduce((s, e) => s + e.amount, 0)
+                        grandTotal += monthTotal
+                        return (
+                          <ReportSection key={m} title={`${MONTHS_FULL[m - 1]} ${filterYear}`}>
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-sm">
+                                <thead>
+                                  <tr className="border-b border-gray-700">
+                                    <th className="text-left py-2 pr-3 text-gray-400 font-medium w-24">Data</th>
+                                    <th className="text-left py-2 pr-3 text-gray-400 font-medium">Od kogo / opis</th>
+                                    <th className="text-left py-2 pr-3 text-gray-400 font-medium w-32">Kategoria</th>
+                                    <th className="text-left py-2 pr-3 text-gray-400 font-medium w-28">Nr faktury</th>
+                                    <th className="text-right py-2 text-gray-400 font-medium w-28">Kwota</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {rows.map((e, i) => (
+                                    <tr key={i} className="border-b border-gray-800/50 hover:bg-gray-800/20">
+                                      <td className="py-2 pr-3 text-gray-400 text-xs">{e.expense_date}</td>
+                                      <td className="py-2 pr-3 text-gray-200">{e.description}</td>
+                                      <td className="py-2 pr-3 text-gray-400 text-xs">{EXP_CAT_LABELS[e.category] ?? e.category}</td>
+                                      <td className="py-2 pr-3 text-gray-400 text-xs font-mono">{e.invoice_number ?? '—'}</td>
+                                      <td className="text-right py-2 text-gray-200 font-medium">{pln(e.amount)}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                                <tfoot>
+                                  <tr className="border-t border-gray-600">
+                                    <td colSpan={4} className="py-2 pr-3 text-sm font-semibold text-gray-300">Razem {MONTHS_SHORT[m - 1]}</td>
+                                    <td className="text-right py-2 font-bold text-red-400">{pln(monthTotal)}</td>
+                                  </tr>
+                                </tfoot>
+                              </table>
+                            </div>
+                          </ReportSection>
+                        )
+                      })}
+
+                      {/* Grand total */}
+                      <div className="bg-gray-800/60 border border-gray-700 rounded-xl p-4 flex items-center justify-between">
+                        <span className="font-bold text-gray-100 text-sm">SUMA ROCZNA {filterYear}</span>
+                        <span className="font-bold text-red-400 text-lg">{pln(grandTotal)}</span>
+                      </div>
+                    </div>
+                  )
+                })()}
+
+                <LegalFooter text="Rejestr faktur prowadzony zgodnie z art. 29 ust. 1 ustawy o własności lokali. Zarząd zobowiązany jest do przechowywania dokumentacji przez okres wynikający z przepisów prawa podatkowego i rachunkowego." />
               </div>
             )}
 

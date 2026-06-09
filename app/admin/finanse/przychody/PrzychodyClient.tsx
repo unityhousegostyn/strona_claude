@@ -30,6 +30,7 @@ export default function PrzychodyClient({ incomeEntries, settlementsMap, communi
 
   const [filterComm, setFilterComm] = useState(isSuperAdmin ? '' : defaultCommunityId)
   const [filterYear, setFilterYear] = useState(currentYear)
+  const [filterMonth, setFilterMonth] = useState(0)
   const [search, setSearch] = useState('')
   const [tab, setTab] = useState<'list' | 'summary'>('list')
 
@@ -80,6 +81,7 @@ export default function PrzychodyClient({ incomeEntries, settlementsMap, communi
   const filtered = incomeEntries.filter(e => {
     if (filterComm && e.community_id !== filterComm) return false
     if (e.year !== filterYear) return false
+    if (filterMonth && e.month !== filterMonth) return false
     if (search.trim()) {
       const q = search.trim().toLowerCase()
       const matchDesc = e.description.toLowerCase().includes(q)
@@ -179,6 +181,10 @@ export default function PrzychodyClient({ incomeEntries, settlementsMap, communi
       <div className="flex flex-wrap gap-3 items-center">
         {isSuperAdmin && <select className="input text-sm" value={filterComm} onChange={e=>setFilterComm(e.target.value)}><option value="">Wszystkie wspólnoty</option>{communities.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select>}
         <select className="input text-sm" value={filterYear} onChange={e=>setFilterYear(Number(e.target.value))}><option value={currentYear}>{currentYear}</option><option value={currentYear-1}>{currentYear-1}</option><option value={currentYear-2}>{currentYear-2}</option></select>
+        <select className="input text-sm" value={filterMonth} onChange={e=>setFilterMonth(Number(e.target.value))}>
+          <option value={0}>Wszystkie miesiące</option>
+          {MONTHS.map((m,i)=><option key={i+1} value={i+1}>{m}</option>)}
+        </select>
         <div className="relative flex-1 min-w-[180px]">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">🔍</span>
           <input

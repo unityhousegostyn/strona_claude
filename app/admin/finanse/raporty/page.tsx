@@ -43,7 +43,7 @@ export default async function RaportyPage() {
       .select('apartment_id, community_id, year, month, paid, water_m3, water_correction, notes')
       .in('community_id', safeIds),
     admin.from('community_expenses')
-      .select('community_id, category, description, amount, expense_date, year, month')
+      .select('community_id, category, description, amount, expense_date, year, month, invoice_number')
       .in('community_id', safeIds),
     admin.from('community_income')
       .select('community_id, category, description, amount, income_date, year, month')
