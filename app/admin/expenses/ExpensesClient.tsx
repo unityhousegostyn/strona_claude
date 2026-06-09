@@ -78,10 +78,15 @@ export default function ExpensesClient({
     reader.onload = ev => {
       const text = ev.target?.result as string
       startTransition(async () => {
-        const res = await importExpensesCSV(importComm, text)
-        setImportResult(res)
-        setCsvFileName(null)
-        router.refresh()
+        try {
+          const res = await importExpensesCSV(importComm, text)
+          setImportResult(res)
+          setCsvFileName(null)
+          if (res.imported > 0) router.refresh()
+        } catch (err: any) {
+          setImportResult({ imported: 0, errors: [err?.message ?? 'Nieznany błąd'] })
+          setCsvFileName(null)
+        }
       })
     }
     reader.readAsText(file, 'utf-8')
