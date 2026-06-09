@@ -194,6 +194,9 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
           {MONTHS.map((m,i)=><option key={i+1} value={i+1}>{m}</option>)}
         </select>
         <select className="input text-sm" value={filterCat} onChange={e=>setFilterCat(e.target.value)}><option value="">Wszystkie kategorie</option>{categories.map(c=><option key={c.value} value={c.value}>{c.label}</option>)}</select>
+        {(filterMonth !== 0 || filterCat !== '' || search !== '' || (isSuperAdmin && filterComm !== '')) && (
+          <button onClick={() => { setFilterMonth(0); setFilterCat(''); setSearch(''); if (isSuperAdmin) setFilterComm('') }} className="text-xs text-gray-500 hover:text-gray-300 border border-gray-700 hover:border-gray-500 px-3 py-1.5 rounded-lg transition">✕ Wyczyść filtry</button>
+        )}
         <div className="relative flex-1 min-w-[180px]">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">🔍</span>
           <input
@@ -253,6 +256,55 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
           )}
 
           {filtered.length===0?<div className="text-center py-16 text-gray-500"><p className="text-3xl mb-3">💸</p><p>Brak kosztów.</p></div>:
+          (!filterComm && isSuperAdmin) ? (
+            // Grupowanie po wspólnotach gdy super_admin i "Wszystkie"
+            <div className="space-y-6">
+              {communities.map(comm => {
+                const commFiltered = filtered.filter(e => e.community_id === comm.id)
+                if (commFiltered.length === 0) return null
+                const commTotal = commFiltered.reduce((s, e) => s + e.amount, 0)
+                return (
+                  <div key={comm.id}>
+                    <div className="flex items-center gap-3 mb-3 px-1">
+                      <div className="flex-1 h-px bg-gray-700" />
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-gray-300 bg-gray-800 border border-gray-700 px-3 py-1 rounded-full">{comm.name}</span>
+                        <span className="text-xs text-red-400 font-semibold">{pln(commTotal)}</span>
+                        <span className="text-xs text-gray-500">({commFiltered.length} wpisów)</span>
+                      </div>
+                      <div className="flex-1 h-px bg-gray-700" />
+                    </div>
+                    <div className="space-y-2">
+                      {commFiltered.map(e => editId===e.id?(
+                        <div key={e.id} className="bg-gray-900 border border-blue-800 rounded-xl p-4 space-y-3">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <select className="input text-sm" value={editForm.category} onChange={x=>setEditForm(p=>({...p,category:x.target.value as ExpenseCategory}))}>{categories.map(c=><option key={c.value} value={c.value}>{c.label}</option>)}</select>
+                            <input className="input text-sm sm:col-span-2" value={editForm.description} onChange={x=>setEditForm(p=>({...p,description:x.target.value}))}/>
+                            <input className="input text-sm" type="number" step="0.01" value={editForm.amount} onChange={x=>setEditForm(p=>({...p,amount:x.target.value}))}/>
+                            <input className="input text-sm" type="date" value={editForm.expense_date} onChange={x=>setEditForm(p=>({...p,expense_date:x.target.value}))}/>
+                            <input className="input text-sm" placeholder="Nr faktury" value={editForm.invoice_number??''} onChange={x=>setEditForm(p=>({...p,invoice_number:x.target.value}))}/>
+                          </div>
+                          {editError&&<p className="text-xs text-red-400">{editError}</p>}
+                          <div className="flex gap-2"><button onClick={handleUpdate} disabled={isPending} className="bg-blue-600 text-white text-xs font-semibold px-4 py-1.5 rounded-lg disabled:opacity-50">{isPending?'Zapisuję...':'Zapisz'}</button><button onClick={()=>setEditId(null)} className="text-xs text-gray-500 hover:text-gray-300">Anuluj</button></div>
+                        </div>
+                      ):(
+                        <div key={e.id} onClick={() => toggleSelect(e.id)} className={`bg-gray-900 border rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap cursor-pointer transition ${selectedIds.has(e.id) ? 'border-blue-600 bg-blue-950/10' : 'border-gray-800 hover:border-gray-700'}`}>
+                          <input type="checkbox" className="w-4 h-4 accent-blue-500 flex-shrink-0" checked={selectedIds.has(e.id)} onChange={() => toggleSelect(e.id)} onClick={ev => ev.stopPropagation()} />
+                          <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${catColors[e.category]??catColors.inne}`}>{catLabel(e.category)}</span>
+                          <div className="flex-1 min-w-0"><p className="text-sm font-medium text-gray-200 truncate">{e.description}</p><p className="text-xs text-gray-500 mt-0.5">{new Date(e.expense_date).toLocaleDateString('pl-PL')}{e.invoice_number&&` · ${e.invoice_number}`}</p></div>
+                          <p className="text-sm font-bold text-red-400 flex-shrink-0">{pln(e.amount)}</p>
+                          <div className="flex items-center gap-2 flex-shrink-0" onClick={ev => ev.stopPropagation()}>
+                            <button onClick={()=>{setEditId(e.id);setEditForm({category:e.category as ExpenseCategory,description:e.description,amount:String(e.amount),expense_date:e.expense_date,invoice_number:e.invoice_number??''});setEditError(null)}} className="text-xs text-blue-600 hover:underline">Edytuj</button>
+                            <button onClick={()=>handleDelete(e.id)} className="text-gray-600 hover:text-red-400 transition text-sm">✕</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
           <div className="space-y-2">
             {filtered.map(e=>editId===e.id?(
               <div key={e.id} className="bg-gray-900 border border-blue-800 rounded-xl p-4 space-y-3">
@@ -279,7 +331,8 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
               </div>
             ))}
             <div className="mt-4 pt-4 border-t border-gray-800 flex justify-between items-center"><p className="text-sm text-gray-500">{filtered.length} pozycji</p><p className="text-base font-bold text-red-400">Razem: {pln(totalExpenses)}</p></div>
-          </div>}
+          </div>
+          )}
         </div>
       )}
     </div>
