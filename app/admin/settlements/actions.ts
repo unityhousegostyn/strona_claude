@@ -272,3 +272,84 @@ export async function upsertWaterReconciliation(data: {
   revalidatePath(`/admin/settlements/${data.apartment_id}`)
   return {}
 }
+
+// ── IMPORT WPŁAT Z CSV ───────────────────────────────────────────────────────
+// Format: lokal;rok;miesiac;wplata;woda_m3;korekta_wody;uwagi
+// Przykład: 14;2026;1;350.00;3.5;0;
+export async function importEntriesCSV(
+  community_id: string,
+  csvText: string,
+): Promise<{ imported: number; errors: string[]; skipped: number }> {
+  const auth = await requireAdminOrAbove()
+  if (auth.error !== null) return { imported: 0, skipped: 0, errors: [auth.error] }
+  const guardErr = guardCommunity(auth, community_id)
+  if (guardErr) return { imported: 0, skipped: 0, errors: [guardErr] }
+
+  const admin = getSupabaseAdminClient()
+
+  // Pobierz lokale tej wspólnoty (numer → id)
+  const { data: apts } = await admin
+    .from('settlement_apartments')
+    .select('id, number')
+    .eq('community_id', community_id)
+  const aptMap: Record<string, string> = {}
+  for (const a of apts ?? []) aptMap[a.number.trim()] = a.id
+
+  const lines = csvText.split('\n').map(l => l.trim()).filter(Boolean)
+  const startIdx = lines[0]?.toLowerCase().startsWith('lokal') ? 1 : 0
+
+  const rows: any[] = []
+  const errors: string[] = []
+  let skipped = 0
+
+  for (let i = startIdx; i < lines.length; i++) {
+    const parts = lines[i].split(/[;,]/).map(p => p.trim().replace(/^"|"$/g, ''))
+    const [lokal, rokStr, miesStr, wplataStr, woda_m3Str, korekta_wodyStr, notes] = parts
+
+    if (!lokal) { skipped++; continue }
+
+    const apt_id = aptMap[lokal]
+    if (!apt_id) { errors.push(`Wiersz ${i + 1}: nieznany lokal "${lokal}"`); continue }
+
+    const year = parseInt(rokStr)
+    const month = parseInt(miesStr)
+    const paid = parseFloat((wplataStr ?? '0').replace(',', '.'))
+    const water_m3 = parseFloat((woda_m3Str ?? '0').replace(',', '.')) || 0
+    const water_correction = parseFloat((korekta_wodyStr ?? '0').replace(',', '.')) || 0
+
+    if (isNaN(year) || year < 2020 || year > 2100)
+      { errors.push(`Wiersz ${i + 1}: nieprawidłowy rok "${rokStr}"`); continue }
+    if (isNaN(month) || month < 1 || month > 12)
+      { errors.push(`Wiersz ${i + 1}: nieprawidłowy miesiąc "${miesStr}"`); continue }
+    if (isNaN(paid) || paid < 0)
+      { errors.push(`Wiersz ${i + 1}: nieprawidłowa wpłata "${wplataStr}"`); continue }
+
+    rows.push({
+      apartment_id: apt_id,
+      community_id,
+      year,
+      month,
+      paid,
+      water_m3,
+      water_correction,
+      notes: notes || null,
+      updated_at: new Date().toISOString(),
+    })
+  }
+
+  if (rows.length > 0) {
+    const { error } = await admin
+      .from('settlement_entries')
+      .upsert(rows, { onConflict: 'apartment_id,year,month' })
+    if (error) return { imported: 0, skipped, errors: [error.message, ...errors] }
+    await logActivity({
+      userId: auth.user!.id,
+      action: 'import_entries_csv',
+      targetType: 'settlement_entry',
+      meta: { community_id, count: rows.length },
+    })
+  }
+
+  revalidatePath('/admin/settlements')
+  return { imported: rows.length, skipped, errors }
+}

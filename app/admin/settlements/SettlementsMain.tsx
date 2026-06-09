@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createApartment, deleteApartment, createRates, deleteRates, updateRates } from './actions'
+import { createApartment, deleteApartment, createRates, deleteRates, updateRates, importEntriesCSV } from './actions'
 import { pln, shareStr, buildYearlyTable } from '@/lib/settlementCalc'
 import type { SettlementApartment, SettlementRate, SettlementEntry } from '@/lib/settlementCalc'
 
@@ -33,7 +33,7 @@ const EMPTY_RATES = {
 export default function SettlementsMain({ communities, selectedCommunityId, apartments, rates, entries = [], isAdmin = false }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [tab, setTab] = useState<'apartments' | 'rates' | 'report'>('apartments')
+  const [tab, setTab] = useState<'apartments' | 'rates' | 'report' | 'import'>('apartments')
   const [reportFilter, setReportFilter] = useState<'all' | 'debt' | 'overpay'>('all')
   const [showAptForm, setShowAptForm] = useState(false)
   const [showRatesForm, setShowRatesForm] = useState(false)
@@ -42,6 +42,56 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
   const [error, setError] = useState<string | null>(null)
   const [editRateId, setEditRateId] = useState<string | null>(null)
   const [editRateForm, setEditRateForm] = useState(EMPTY_RATES)
+
+  // Import CSV
+  const [csvDragOver, setCsvDragOver] = useState(false)
+  const [csvFileName, setCsvFileName] = useState<string | null>(null)
+  const [csvText, setCsvText] = useState<string | null>(null)
+  const [csvPreview, setCsvPreview] = useState<string[][]>([])
+  const [importResult, setImportResult] = useState<{ imported: number; skipped: number; errors: string[] } | null>(null)
+  const [importing, setImporting] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFile = useCallback((file: File) => {
+    if (!file) return
+    setCsvFileName(file.name)
+    setImportResult(null)
+    const reader = new FileReader()
+    reader.onload = e => {
+      const text = e.target?.result as string
+      setCsvText(text)
+      const lines = text.split('\n').filter(l => l.trim())
+      setCsvPreview(lines.slice(0, 6).map(l => l.split(/[;,]/).map(p => p.trim().replace(/^"|"$/g, ''))))
+    }
+    reader.readAsText(file, 'utf-8')
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setCsvDragOver(false)
+    const file = e.dataTransfer.files[0]
+    if (file) handleFile(file)
+  }, [handleFile])
+
+  const handleImport = () => {
+    if (!csvText || !selectedCommunityId) return
+    setImporting(true)
+    startTransition(async () => {
+      const result = await importEntriesCSV(selectedCommunityId, csvText)
+      setImportResult(result)
+      setImporting(false)
+      if (result.imported > 0) { setCsvText(null); setCsvFileName(null); setCsvPreview([]); router.refresh() }
+    })
+  }
+
+  const downloadTemplate = () => {
+    const header = 'lokal;rok;miesiac;wplata;woda_m3;korekta_wody;uwagi'
+    const example = '14;2026;1;350.00;3.5;0;\n14;2026;2;350.00;3.2;0;'
+    const blob = new Blob([header + '\n' + example], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href = url; a.download = 'szablon_wplat.csv'; a.click()
+    URL.revokeObjectURL(url)
+  }
 
   const handleCommunityChange = (id: string) => {
     router.push(`/admin/settlements?community=${id}`)
@@ -179,7 +229,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
         <>
           {/* Zakładki */}
           <div className="flex gap-1 bg-gray-900 rounded-xl p-1 w-fit border border-gray-800">
-            {(['apartments', 'rates', 'report'] as const).map(t => (
+            {(['apartments', 'rates', 'report', 'import'] as const).map(t => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
@@ -187,7 +237,10 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                   tab === t ? 'bg-gray-800 text-gray-100' : 'text-gray-500 hover:text-gray-300'
                 }`}
               >
-                {t === 'apartments' ? `🏠 Lokale (${apartments.length})` : t === 'rates' ? '📊 Stawki' : '📋 Raport'}
+                {t === 'apartments' ? `🏠 Lokale (${apartments.length})`
+                  : t === 'rates' ? '📊 Stawki'
+                  : t === 'report' ? '📋 Raport'
+                  : '📥 Import'}
               </button>
             ))}
           </div>
@@ -646,6 +699,117 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
               </div>
             )
           })()}
+          {/* ── IMPORT CSV ── */}
+          {tab === 'import' && (
+            <div className="space-y-5 max-w-2xl">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-100">Import wpłat z CSV</h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  Zaimportuj wpłaty mieszkańców hurtowo. Istniejące wpisy (lokal + rok + miesiąc) zostaną nadpisane.
+                </p>
+              </div>
+
+              {/* Format */}
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-2">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Format CSV</p>
+                <code className="block text-xs text-green-400 bg-gray-950 rounded p-3 font-mono">
+                  lokal;rok;miesiac;wplata;woda_m3;korekta_wody;uwagi<br />
+                  14;2026;1;350.00;3.5;0;<br />
+                  7;2026;1;280.00;0;0;
+                </code>
+                <p className="text-xs text-gray-500">Kolumny <span className="text-gray-300">woda_m3, korekta_wody, uwagi</span> są opcjonalne (domyślnie 0).</p>
+                <button onClick={downloadTemplate}
+                  className="text-xs text-blue-400 hover:text-blue-300 underline underline-offset-2 transition">
+                  Pobierz szablon CSV
+                </button>
+              </div>
+
+              {/* Drag & drop zone */}
+              <div
+                onDragOver={e => { e.preventDefault(); setCsvDragOver(true) }}
+                onDragLeave={() => setCsvDragOver(false)}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={`relative cursor-pointer rounded-2xl border-2 border-dashed transition-all p-10 text-center select-none ${
+                  csvDragOver
+                    ? 'border-blue-500 bg-blue-950/20 scale-[1.01]'
+                    : csvFileName
+                    ? 'border-green-700 bg-green-950/20'
+                    : 'border-gray-700 bg-gray-900/50 hover:border-gray-500 hover:bg-gray-900'
+                }`}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv,.txt"
+                  className="hidden"
+                  onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
+                />
+                <div className="text-4xl mb-3">{csvFileName ? '✅' : '📂'}</div>
+                {csvFileName ? (
+                  <>
+                    <p className="text-sm font-semibold text-green-400">{csvFileName}</p>
+                    <p className="text-xs text-gray-500 mt-1">Kliknij żeby wybrać inny plik</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-semibold text-gray-300">Przeciągnij plik CSV tutaj</p>
+                    <p className="text-xs text-gray-500 mt-1">lub kliknij żeby wybrać z dysku</p>
+                  </>
+                )}
+              </div>
+
+              {/* Podgląd */}
+              {csvPreview.length > 0 && (
+                <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+                  <p className="text-xs text-gray-400 px-4 py-2 border-b border-gray-800">
+                    Podgląd (pierwsze {csvPreview.length} wierszy)
+                  </p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs font-mono">
+                      <tbody>
+                        {csvPreview.map((row, i) => (
+                          <tr key={i} className={`border-b border-gray-800/50 ${i === 0 ? 'bg-gray-800/40 text-gray-400' : 'text-gray-300'}`}>
+                            {row.map((cell, j) => (
+                              <td key={j} className="px-3 py-1.5 whitespace-nowrap">{cell || <span className="text-gray-700">—</span>}</td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Wynik importu */}
+              {importResult && (
+                <div className={`rounded-xl border p-4 text-sm space-y-1 ${
+                  importResult.errors.length === 0
+                    ? 'bg-green-950/30 border-green-800 text-green-400'
+                    : 'bg-yellow-950/30 border-yellow-800 text-yellow-400'
+                }`}>
+                  <p className="font-semibold">
+                    ✓ Zaimportowano {importResult.imported} wpis{importResult.imported === 1 ? '' : importResult.imported < 5 ? 'y' : 'ów'}
+                    {importResult.skipped > 0 && <span className="text-gray-400 font-normal"> · pominięto {importResult.skipped}</span>}
+                  </p>
+                  {importResult.errors.map((e, i) => (
+                    <p key={i} className="text-xs text-red-400">⚠ {e}</p>
+                  ))}
+                </div>
+              )}
+
+              {/* Przycisk import */}
+              {csvText && (
+                <button
+                  onClick={handleImport}
+                  disabled={importing || isPending}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition"
+                >
+                  {importing || isPending ? 'Importowanie...' : '📥 Importuj wpłaty'}
+                </button>
+              )}
+            </div>
+          )}
         </>
       )}
     </div>
