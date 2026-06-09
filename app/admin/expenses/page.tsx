@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { getAuthProfile } from '@/lib/getAuthProfile'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import ExpensesClient from './ExpensesClient'
-import { EXPENSE_CATEGORIES } from './actions'
+import { EXPENSE_CATEGORIES } from './categories'
 
 export default async function ExpensesPage() {
   const { profile } = await getAuthProfile()

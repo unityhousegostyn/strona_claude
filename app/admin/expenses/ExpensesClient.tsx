@@ -3,7 +3,7 @@
 import { useState, useTransition, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { addExpense, updateExpense, deleteExpense, importExpensesCSV } from './actions'
-import type { ExpenseCategory } from './actions'
+import type { ExpenseCategory } from './categories'
 
 interface Expense {
   id: string
