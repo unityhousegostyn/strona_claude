@@ -32,6 +32,7 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
   const [filterComm, setFilterComm] = useState(isSuperAdmin ? '' : defaultCommunityId)
   const [filterYear, setFilterYear] = useState(currentYear)
   const [filterCat, setFilterCat] = useState('')
+  const [search, setSearch] = useState('')
   const [tab, setTab] = useState<'list' | 'summary'>('list')
 
   const [showForm, setShowForm] = useState(false)
@@ -68,6 +69,13 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
     if (filterComm && e.community_id !== filterComm) return false
     if (e.year !== filterYear) return false
     if (filterCat && e.category !== filterCat) return false
+    if (search.trim()) {
+      const q = search.trim().toLowerCase()
+      const matchDesc = e.description.toLowerCase().includes(q)
+      const matchAmt = String(e.amount).replace('.', ',').includes(q) || String(e.amount).includes(q)
+      const matchInv = e.invoice_number?.toLowerCase().includes(q)
+      if (!matchDesc && !matchAmt && !matchInv) return false
+    }
     return true
   })
 
@@ -156,7 +164,17 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
         {isSuperAdmin && <select className="input text-sm" value={filterComm} onChange={e=>setFilterComm(e.target.value)}><option value="">Wszystkie wspólnoty</option>{communities.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select>}
         <select className="input text-sm" value={filterYear} onChange={e=>setFilterYear(Number(e.target.value))}><option value={currentYear}>{currentYear}</option><option value={currentYear-1}>{currentYear-1}</option></select>
         <select className="input text-sm" value={filterCat} onChange={e=>setFilterCat(e.target.value)}><option value="">Wszystkie kategorie</option>{categories.map(c=><option key={c.value} value={c.value}>{c.label}</option>)}</select>
-        <div className="ml-auto flex gap-1 bg-gray-900 rounded-lg p-1">
+        <div className="relative flex-1 min-w-[180px]">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">🔍</span>
+          <input
+            className="input w-full pl-8 text-sm"
+            placeholder="Szukaj opisu, kwoty, nr faktury…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+          {search && <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 text-xs">✕</button>}
+        </div>
+        <div className="flex gap-1 bg-gray-900 rounded-lg p-1">
           {(['list','summary'] as const).map(t=><button key={t} onClick={()=>setTab(t)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${tab===t?'bg-gray-800 text-gray-100':'text-gray-500 hover:text-gray-300'}`}>{t==='list'?'📋 Lista':'📊 Podsumowanie'}</button>)}
         </div>
       </div>
