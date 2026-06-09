@@ -38,22 +38,47 @@ export default async function AdminLayout({
 
   const profileWithCommunity = { ...profile, community }
 
-  // Liczba nieprzeczytanych ogłoszeń — bezpieczne pobieranie
+  // Liczba nieprzeczytanych aktywnych ogłoszeń
   let unreadCount = 0
+  let pendingUsersCount = 0
   try {
-    const { count: total } = await admin
+    const now = new Date()
+
+    // Pobierz tylko aktywne ogłoszenia (nie archiwalne)
+    const { data: allAnns } = await admin
       .from('announcements')
-      .select('id', { count: 'exact', head: true })
+      .select('id, start_date, end_date')
+
+    const activeAnns = (allAnns ?? []).filter((a: any) => {
+      if (a.end_date && new Date(a.end_date) < now) return false
+      if (a.start_date && new Date(a.start_date) > now) return false
+      return true
+    })
+    const activeIds = activeAnns.map((a: any) => a.id)
 
     const { data: readRows } = await admin
       .from('read_announcements')
       .select('announcement_id')
       .eq('user_id', user.id)
+      .in('announcement_id', activeIds.length ? activeIds : ['00000000-0000-0000-0000-000000000000'])
 
     const readCount = (readRows ?? []).length
-    unreadCount = Math.max(0, (total ?? 0) - readCount)
+    unreadCount = Math.max(0, activeIds.length - readCount)
   } catch {
     unreadCount = 0
+  }
+
+  // Oczekujący użytkownicy — widoczne tylko dla admin/super_admin
+  if (profile.role === 'super_admin' || profile.role === 'admin') {
+    try {
+      const { count } = await admin
+        .from('profiles')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'pending')
+      pendingUsersCount = count ?? 0
+    } catch {
+      pendingUsersCount = 0
+    }
   }
 
   return (
@@ -63,6 +88,7 @@ export default async function AdminLayout({
           profile={profileWithCommunity}
           userEmail={user.email ?? ''}
           unreadAnnouncements={unreadCount}
+          pendingUsers={pendingUsersCount}
         />
         {(profile.role === 'super_admin' || profile.role === 'admin') && (
           <AutoRefresh intervalMs={60000} />

@@ -33,9 +33,10 @@ interface Props {
   profile: Profile
   userEmail: string
   unreadAnnouncements?: number
+  pendingUsers?: number
 }
 
-export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0 }: Props) {
+export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0, pendingUsers = 0 }: Props) {
   const pathname = usePathname()
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -78,6 +79,11 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
               {item.href === '/admin/announcements' && unreadAnnouncements > 0 && (
                 <span className="bg-blue-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
                   {unreadAnnouncements > 99 ? '99+' : unreadAnnouncements}
+                </span>
+              )}
+              {item.href === '/admin/users' && pendingUsers > 0 && (
+                <span className="bg-red-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                  {pendingUsers > 99 ? '99+' : pendingUsers}
                 </span>
               )}
             </Link>
@@ -169,6 +175,11 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
                 {item.href === '/admin/announcements' && unreadAnnouncements > 0 && (
                   <span className="bg-blue-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
                     {unreadAnnouncements > 99 ? '99+' : unreadAnnouncements}
+                  </span>
+                )}
+                {item.href === '/admin/users' && pendingUsers > 0 && (
+                  <span className="bg-red-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                    {pendingUsers > 99 ? '99+' : pendingUsers}
                   </span>
                 )}
               </Link>
