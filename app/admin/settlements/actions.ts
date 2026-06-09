@@ -349,7 +349,7 @@ export async function importEntriesCSV(
     const { error } = await admin
       .from('settlement_entries')
       .upsert(rows, { onConflict: 'apartment_id,year,month' })
-    if (error) return { imported: 0, skipped, errors: [error.message, ...errors] }
+    if (error) return { imported: 0, skipped, errors: [(error as any).message ?? String(error), ...errors] }
     await logActivity({
       userId: auth.user!.id,
       action: 'import_entries_csv',
