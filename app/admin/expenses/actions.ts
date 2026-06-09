@@ -94,62 +94,65 @@ export async function importExpensesCSV(
   community_id: string,
   csvText: string,
 ): Promise<{ imported: number; errors: string[] }> {
-  const { user, profile } = await getActor()
-  if (profile.role === 'user') return { imported: 0, errors: ['Brak uprawnień'] }
-  if (profile.role === 'admin' && profile.community_id !== community_id)
-    return { imported: 0, errors: ['Brak uprawnień do tej wspólnoty'] }
+  try {
+    const auth = await getAuthProfileAction()
+    if (auth.error !== null) return { imported: 0, errors: [auth.error] }
+    const { user, profile } = { user: auth.user!, profile: auth.profile! }
 
-  const validCategories = EXPENSE_CATEGORIES.map(c => c.value)
-  const lines = csvText.split('\n').map(l => l.trim()).filter(Boolean)
-  const rows: any[] = []
-  const errors: string[] = []
+    if (profile.role === 'user') return { imported: 0, errors: ['Brak uprawnień'] }
+    if (profile.role === 'admin' && profile.community_id !== community_id)
+      return { imported: 0, errors: ['Brak uprawnień do tej wspólnoty'] }
 
-  // Pomiń nagłówek jeśli istnieje
-  const startIdx = lines[0]?.toLowerCase().startsWith('data') ? 1 : 0
+    const validCategories = EXPENSE_CATEGORIES.map(c => c.value)
+    const lines = csvText.split('\n').map(l => l.trim()).filter(Boolean)
+    const rows: any[] = []
+    const errors: string[] = []
 
-  for (let i = startIdx; i < lines.length; i++) {
-    const parts = lines[i].split(/[;,]/).map(p => p.trim().replace(/^"|"$/g, ''))
-    if (parts.length < 4) {
-      errors.push(`Wiersz ${i + 1}: za mało kolumn (oczekiwano min. 4)`)
-      continue
-    }
-    const [expense_date, description, category, amountStr, invoice_number] = parts
-    const amount = parseFloat(amountStr?.replace(',', '.') ?? '')
+    const startIdx = lines[0]?.toLowerCase().startsWith('data') ? 1 : 0
 
-    if (!expense_date || !/^\d{4}-\d{2}-\d{2}$/.test(expense_date)) {
-      errors.push(`Wiersz ${i + 1}: nieprawidłowa data "${expense_date}" (oczekiwano RRRR-MM-DD)`)
-      continue
+    for (let i = startIdx; i < lines.length; i++) {
+      const parts = lines[i].split(/[;,]/).map(p => p.trim().replace(/^"|"$/g, ''))
+      if (parts.length < 4) {
+        errors.push(`Wiersz ${i + 1}: za mało kolumn`)
+        continue
+      }
+      const [expense_date, description, category, amountStr, invoice_number] = parts
+      const amount = parseFloat(amountStr?.replace(',', '.') ?? '')
+
+      if (!expense_date || !/^\d{4}-\d{2}-\d{2}$/.test(expense_date)) {
+        errors.push(`Wiersz ${i + 1}: nieprawidłowa data "${expense_date}"`)
+        continue
+      }
+      if (!description) { errors.push(`Wiersz ${i + 1}: brak opisu`); continue }
+      if (!validCategories.includes(category as ExpenseCategory)) {
+        errors.push(`Wiersz ${i + 1}: nieznana kategoria "${category}"`)
+        continue
+      }
+      if (isNaN(amount) || amount <= 0) {
+        errors.push(`Wiersz ${i + 1}: nieprawidłowa kwota "${amountStr}"`)
+        continue
+      }
+      rows.push({
+        community_id,
+        category,
+        description,
+        amount,
+        expense_date,
+        invoice_number: invoice_number || null,
+        created_by: user.id,
+      })
     }
-    if (!description) {
-      errors.push(`Wiersz ${i + 1}: brak opisu`)
-      continue
+
+    if (rows.length > 0) {
+      const admin = getSupabaseAdminClient()
+      const { error } = await admin.from('community_expenses').insert(rows)
+      if (error) return { imported: 0, errors: [`DB: ${error.message}`, ...errors] }
     }
-    if (!validCategories.includes(category as ExpenseCategory)) {
-      errors.push(`Wiersz ${i + 1}: nieznana kategoria "${category}"`)
-      continue
-    }
-    if (isNaN(amount) || amount <= 0) {
-      errors.push(`Wiersz ${i + 1}: nieprawidłowa kwota "${amountStr}"`)
-      continue
-    }
-    rows.push({
-      community_id,
-      category,
-      description,
-      amount,
-      expense_date,
-      invoice_number: invoice_number || null,
-      created_by: user.id,
-    })
+
+    revalidatePath('/admin/expenses')
+    revalidatePath('/admin/dashboard')
+    return { imported: rows.length, errors }
+  } catch (e: any) {
+    return { imported: 0, errors: [`Błąd serwera: ${e?.message ?? String(e)}`] }
   }
-
-  if (rows.length > 0) {
-    const admin = getSupabaseAdminClient()
-    const { error } = await admin.from('community_expenses').insert(rows)
-    if (error) return { imported: 0, errors: [error.message, ...errors] }
-  }
-
-  revalidatePath('/admin/expenses')
-  revalidatePath('/admin/dashboard')
-  return { imported: rows.length, errors }
 }
