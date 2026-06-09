@@ -6,8 +6,6 @@ import { getAuthProfileAction } from '@/lib/getAuthProfile'
 import type { ExpenseCategory } from './categories'
 import { EXPENSE_CATEGORIES } from './categories'
 
-export type { ExpenseCategory }
-
 async function getActor() {
   const auth = await getAuthProfileAction()
   if (auth.error !== null) throw new Error(auth.error)
