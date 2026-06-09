@@ -1,0 +1,459 @@
+'use client'
+
+import { useState, useTransition, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import { addExpense, updateExpense, deleteExpense, importExpensesCSV } from './actions'
+import type { ExpenseCategory } from './actions'
+
+interface Expense {
+  id: string
+  community_id: string
+  category: string
+  description: string
+  amount: number
+  expense_date: string
+  year: number
+  month: number
+  invoice_number: string | null
+  created_at: string
+}
+
+interface Props {
+  expenses: Expense[]
+  communities: { id: string; name: string }[]
+  commMap: Record<string, string>
+  incomeMap: Record<string, Record<string, number>>
+  isSuperAdmin: boolean
+  defaultCommunityId: string
+  categories: { value: ExpenseCategory; label: string }[]
+  currentYear: number
+}
+
+const pln = (v: number) =>
+  new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v)
+
+const MONTHS = ['Sty', 'Lut', 'Mar', 'Kwi', 'Maj', 'Cze', 'Lip', 'Sie', 'Wrz', 'Paź', 'Lis', 'Gru']
+
+export default function ExpensesClient({
+  expenses, communities, commMap, incomeMap, isSuperAdmin,
+  defaultCommunityId, categories, currentYear,
+}: Props) {
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  // Filtry
+  const [filterComm, setFilterComm] = useState(isSuperAdmin ? '' : defaultCommunityId)
+  const [filterYear, setFilterYear] = useState(currentYear)
+  const [filterCat, setFilterCat] = useState('')
+  const [tab, setTab] = useState<'list' | 'summary'>('list')
+
+  // Formularz dodawania
+  const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState({
+    community_id: defaultCommunityId,
+    category: 'inne' as ExpenseCategory,
+    description: '',
+    amount: '',
+    expense_date: new Date().toISOString().slice(0, 10),
+    invoice_number: '',
+  })
+  const [formError, setFormError] = useState<string | null>(null)
+
+  // Edycja
+  const [editId, setEditId] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState<Partial<typeof form>>({})
+  const [editError, setEditError] = useState<string | null>(null)
+
+  // Import CSV
+  const [importResult, setImportResult] = useState<{ imported: number; errors: string[] } | null>(null)
+  const [importComm, setImportComm] = useState(defaultCommunityId)
+
+  // Filtrowanie
+  const filtered = expenses.filter(e => {
+    if (filterComm && e.community_id !== filterComm) return false
+    if (e.year !== filterYear) return false
+    if (filterCat && e.category !== filterCat) return false
+    return true
+  })
+
+  // Sumy per miesiąc (dla wykresu/podsumowania)
+  const monthlyExpenses: Record<number, number> = {}
+  const monthlyIncome: Record<number, number> = {}
+  for (let m = 1; m <= 12; m++) {
+    monthlyExpenses[m] = filtered.filter(e => e.month === m).reduce((s, e) => s + e.amount, 0)
+    const commIds = filterComm ? [filterComm] : communities.map(c => c.id)
+    monthlyIncome[m] = commIds.reduce((s, cid) => s + (incomeMap[cid]?.[`${filterYear}:${m}`] ?? 0), 0)
+  }
+
+  const totalExpenses = filtered.reduce((s, e) => s + e.amount, 0)
+  const totalIncome = Object.values(monthlyIncome).reduce((s, v) => s + v, 0)
+
+  // Per kategoria
+  const byCat: Record<string, number> = {}
+  for (const e of filtered) byCat[e.category] = (byCat[e.category] ?? 0) + e.amount
+
+  const handleAdd = () => {
+    setFormError(null)
+    startTransition(async () => {
+      const res = await addExpense({
+        ...form,
+        amount: parseFloat(form.amount.replace(',', '.')),
+      })
+      if (res.error) { setFormError(res.error); return }
+      setShowForm(false)
+      setForm(p => ({ ...p, description: '', amount: '', invoice_number: '' }))
+      router.refresh()
+    })
+  }
+
+  const handleUpdate = () => {
+    if (!editId || !editForm.description || !editForm.amount || !editForm.expense_date) return
+    setEditError(null)
+    startTransition(async () => {
+      const res = await updateExpense(editId, {
+        category: editForm.category as ExpenseCategory,
+        description: editForm.description!,
+        amount: parseFloat(String(editForm.amount).replace(',', '.')),
+        expense_date: editForm.expense_date!,
+        invoice_number: editForm.invoice_number,
+      })
+      if (res.error) { setEditError(res.error); return }
+      setEditId(null)
+      router.refresh()
+    })
+  }
+
+  const handleDelete = (id: string) => {
+    if (!confirm('Usunąć ten koszt?')) return
+    startTransition(async () => {
+      await deleteExpense(id)
+      router.refresh()
+    })
+  }
+
+  const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string
+      startTransition(async () => {
+        const res = await importExpensesCSV(importComm, text)
+        setImportResult(res)
+        if (fileRef.current) fileRef.current.value = ''
+        router.refresh()
+      })
+    }
+    reader.readAsText(file, 'utf-8')
+  }
+
+  const catLabel = (cat: string) => categories.find(c => c.value === cat)?.label ?? cat
+
+  const catColors: Record<string, string> = {
+    zarząd: 'bg-blue-950/40 text-blue-400',
+    woda: 'bg-cyan-950/40 text-cyan-400',
+    śmieci: 'bg-green-950/40 text-green-400',
+    remonty: 'bg-orange-950/40 text-orange-400',
+    ubezpieczenie: 'bg-purple-950/40 text-purple-400',
+    energia: 'bg-yellow-950/40 text-yellow-400',
+    fundusz_remontowy: 'bg-red-950/40 text-red-400',
+    inne: 'bg-gray-800 text-gray-400',
+  }
+
+  const maxBar = Math.max(...Object.values(monthlyExpenses), ...Object.values(monthlyIncome), 1)
+
+  return (
+    <div className="space-y-6 max-w-5xl">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-100">💸 Koszty wspólnoty</h2>
+          <p className="text-sm text-gray-500 mt-0.5">Faktury, remonty i inne wydatki</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowForm(!showForm)}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+            + Dodaj koszt
+          </button>
+        </div>
+      </div>
+
+      {/* Formularz dodawania */}
+      {showForm && (
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
+          <h3 className="font-semibold text-gray-200">Nowy koszt</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {isSuperAdmin && (
+              <div>
+                <label className="text-xs text-gray-400 block mb-1">Wspólnota *</label>
+                <select className="input w-full" value={form.community_id}
+                  onChange={e => setForm(p => ({ ...p, community_id: e.target.value }))}>
+                  {communities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+            )}
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">Kategoria *</label>
+              <select className="input w-full" value={form.category}
+                onChange={e => setForm(p => ({ ...p, category: e.target.value as ExpenseCategory }))}>
+                {categories.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+              </select>
+            </div>
+            <div className="sm:col-span-2">
+              <label className="text-xs text-gray-400 block mb-1">Opis *</label>
+              <input className="input w-full" placeholder="np. Faktura ZGKIM za wodę 06/2026"
+                value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} />
+            </div>
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">Kwota (zł) *</label>
+              <input className="input w-full" type="number" step="0.01" min="0" placeholder="0.00"
+                value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} />
+            </div>
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">Data *</label>
+              <input className="input w-full" type="date" value={form.expense_date}
+                onChange={e => setForm(p => ({ ...p, expense_date: e.target.value }))} />
+            </div>
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">Nr faktury</label>
+              <input className="input w-full" placeholder="FV/123/2026"
+                value={form.invoice_number} onChange={e => setForm(p => ({ ...p, invoice_number: e.target.value }))} />
+            </div>
+          </div>
+          {formError && <p className="text-sm text-red-400">{formError}</p>}
+          <div className="flex gap-3">
+            <button onClick={handleAdd} disabled={isPending}
+              className="bg-blue-600 text-white text-sm font-semibold px-5 py-2 rounded-lg disabled:opacity-50">
+              {isPending ? 'Zapisuję...' : 'Dodaj koszt'}
+            </button>
+            <button onClick={() => setShowForm(false)} className="text-sm text-gray-500 hover:text-gray-300">Anuluj</button>
+          </div>
+        </div>
+      )}
+
+      {/* Import CSV */}
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <p className="text-sm font-semibold text-gray-300">📥 Import z pliku CSV</p>
+            <p className="text-xs text-gray-500 mt-0.5">Format: <code className="text-gray-400">data;opis;kategoria;kwota;nr_faktury</code> (separator: ; lub ,)</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 flex-wrap">
+          {isSuperAdmin && (
+            <select className="input text-sm" value={importComm}
+              onChange={e => setImportComm(e.target.value)}>
+              {communities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          )}
+          <label className="cursor-pointer bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium px-4 py-2 rounded-lg transition">
+            Wybierz plik CSV
+            <input ref={fileRef} type="file" accept=".csv,.txt" className="hidden" onChange={handleFileImport} />
+          </label>
+          <a
+            href={`data:text/plain;charset=utf-8,${encodeURIComponent('data;opis;kategoria;kwota;nr_faktury\n2026-06-01;Faktura ZGKIM za wodę;woda;1250.00;FV/100/2026\n2026-06-01;Wywóz odpadów;śmieci;320.00;FV/101/2026')}`}
+            download="szablon_kosztow.csv"
+            className="text-xs text-blue-500 hover:underline"
+          >
+            Pobierz szablon
+          </a>
+        </div>
+        {importResult && (
+          <div className={`text-sm rounded-lg p-3 ${importResult.imported > 0 ? 'bg-green-950/30 text-green-400' : 'bg-red-950/30 text-red-400'}`}>
+            {importResult.imported > 0 && <p>✓ Zaimportowano {importResult.imported} wpisów.</p>}
+            {importResult.errors.map((err, i) => <p key={i} className="text-xs text-red-400">{err}</p>)}
+          </div>
+        )}
+        <div className="text-xs text-gray-600">
+          Dostępne kategorie: {categories.map(c => c.value).join(', ')}
+        </div>
+      </div>
+
+      {/* Filtry */}
+      <div className="flex flex-wrap gap-3 items-center">
+        {isSuperAdmin && (
+          <select className="input text-sm" value={filterComm} onChange={e => setFilterComm(e.target.value)}>
+            <option value="">Wszystkie wspólnoty</option>
+            {communities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        )}
+        <select className="input text-sm" value={filterYear} onChange={e => setFilterYear(Number(e.target.value))}>
+          <option value={currentYear}>{currentYear}</option>
+          <option value={currentYear - 1}>{currentYear - 1}</option>
+        </select>
+        <select className="input text-sm" value={filterCat} onChange={e => setFilterCat(e.target.value)}>
+          <option value="">Wszystkie kategorie</option>
+          {categories.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+        </select>
+
+        {/* Tabs */}
+        <div className="ml-auto flex gap-1 bg-gray-900 rounded-lg p-1">
+          {(['list', 'summary'] as const).map(t => (
+            <button key={t} onClick={() => setTab(t)}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${tab === t ? 'bg-gray-800 text-gray-100' : 'text-gray-500 hover:text-gray-300'}`}>
+              {t === 'list' ? '📋 Lista' : '📊 Podsumowanie'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {tab === 'summary' ? (
+        <div className="space-y-6">
+          {/* Saldo: Wpłaty vs Koszty */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+              <p className="text-xs text-gray-500 mb-1">Wpłaty mieszkańców</p>
+              <p className="text-2xl font-bold text-blue-400">{pln(totalIncome)}</p>
+              <p className="text-xs text-gray-600">{filterYear}</p>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+              <p className="text-xs text-gray-500 mb-1">Koszty wspólnoty</p>
+              <p className="text-2xl font-bold text-red-400">{pln(totalExpenses)}</p>
+              <p className="text-xs text-gray-600">{filterYear}</p>
+            </div>
+            <div className={`rounded-xl p-4 text-center border ${totalIncome - totalExpenses >= 0 ? 'bg-green-950/20 border-green-900' : 'bg-red-950/20 border-red-900'}`}>
+              <p className="text-xs text-gray-500 mb-1">Saldo</p>
+              <p className={`text-2xl font-bold ${totalIncome - totalExpenses >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {pln(totalIncome - totalExpenses)}
+              </p>
+              <p className="text-xs text-gray-600">{totalIncome - totalExpenses >= 0 ? 'Nadwyżka' : 'Deficyt'}</p>
+            </div>
+          </div>
+
+          {/* Wykres miesięczny */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <h3 className="text-sm font-semibold text-gray-400 mb-4">Wpłaty vs Koszty — miesiącami</h3>
+            <div className="flex items-end gap-1 h-32">
+              {MONTHS.map((name, idx) => {
+                const m = idx + 1
+                const inc = monthlyIncome[m] ?? 0
+                const exp = monthlyExpenses[m] ?? 0
+                const hInc = Math.max(2, Math.round((inc / maxBar) * 120))
+                const hExp = Math.max(2, Math.round((exp / maxBar) * 120))
+                return (
+                  <div key={m} className="flex-1 flex flex-col items-center gap-0.5">
+                    <div className="flex items-end gap-0.5 w-full justify-center" style={{ height: 120 }}>
+                      <div title={`Wpłaty: ${pln(inc)}`}
+                        style={{ height: hInc }} className="flex-1 bg-blue-600/60 rounded-t-sm" />
+                      <div title={`Koszty: ${pln(exp)}`}
+                        style={{ height: hExp }} className="flex-1 bg-red-500/60 rounded-t-sm" />
+                    </div>
+                    <span className="text-xs text-gray-600">{name}</span>
+                  </div>
+                )
+              })}
+            </div>
+            <div className="flex gap-4 mt-3 text-xs text-gray-500">
+              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-blue-600/60 rounded-sm inline-block" />Wpłaty</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-red-500/60 rounded-sm inline-block" />Koszty</span>
+            </div>
+          </div>
+
+          {/* Per kategoria */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <h3 className="text-sm font-semibold text-gray-400 mb-4">Koszty według kategorii</h3>
+            {Object.keys(byCat).length === 0
+              ? <p className="text-sm text-gray-400">Brak kosztów.</p>
+              : <div className="space-y-3">
+                  {Object.entries(byCat).sort((a, b) => b[1] - a[1]).map(([cat, amt]) => {
+                    const pct = totalExpenses > 0 ? Math.round(amt / totalExpenses * 100) : 0
+                    return (
+                      <div key={cat} className="flex items-center gap-3">
+                        <span className={`text-xs px-2 py-0.5 rounded-full w-32 text-center flex-shrink-0 ${catColors[cat] ?? catColors.inne}`}>
+                          {catLabel(cat)}
+                        </span>
+                        <div className="flex-1 bg-gray-800 rounded-full h-2">
+                          <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="text-sm font-semibold text-gray-200 w-28 text-right">{pln(amt)}</span>
+                        <span className="text-xs text-gray-500 w-10 text-right">{pct}%</span>
+                      </div>
+                    )
+                  })}
+                </div>
+            }
+          </div>
+        </div>
+      ) : (
+        /* Lista */
+        <div>
+          {filtered.length === 0
+            ? <div className="text-center py-16 text-gray-500">
+                <p className="text-3xl mb-3">💸</p>
+                <p>Brak kosztów dla wybranych filtrów.</p>
+              </div>
+            : <div className="space-y-2">
+                {filtered.map(e => (
+                  editId === e.id ? (
+                    /* Wiersz edycji */
+                    <div key={e.id} className="bg-gray-900 border border-blue-800 rounded-xl p-4 space-y-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <select className="input text-sm" value={editForm.category}
+                          onChange={x => setEditForm(p => ({ ...p, category: x.target.value as ExpenseCategory }))}>
+                          {categories.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                        </select>
+                        <input className="input text-sm sm:col-span-2" value={editForm.description}
+                          onChange={x => setEditForm(p => ({ ...p, description: x.target.value }))} />
+                        <input className="input text-sm" type="number" step="0.01" value={editForm.amount}
+                          onChange={x => setEditForm(p => ({ ...p, amount: x.target.value }))} />
+                        <input className="input text-sm" type="date" value={editForm.expense_date}
+                          onChange={x => setEditForm(p => ({ ...p, expense_date: x.target.value }))} />
+                        <input className="input text-sm" placeholder="Nr faktury" value={editForm.invoice_number ?? ''}
+                          onChange={x => setEditForm(p => ({ ...p, invoice_number: x.target.value }))} />
+                      </div>
+                      {editError && <p className="text-xs text-red-400">{editError}</p>}
+                      <div className="flex gap-2">
+                        <button onClick={handleUpdate} disabled={isPending}
+                          className="bg-blue-600 text-white text-xs font-semibold px-4 py-1.5 rounded-lg disabled:opacity-50">
+                          {isPending ? 'Zapisuję...' : 'Zapisz'}
+                        </button>
+                        <button onClick={() => setEditId(null)} className="text-xs text-gray-500 hover:text-gray-300">Anuluj</button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Wiersz normalny */
+                    <div key={e.id} className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap hover:border-gray-700 transition">
+                      <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${catColors[e.category] ?? catColors.inne}`}>
+                        {catLabel(e.category)}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-200 truncate">{e.description}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {new Date(e.expense_date).toLocaleDateString('pl-PL')}
+                          {isSuperAdmin && ` · ${commMap[e.community_id] ?? '—'}`}
+                          {e.invoice_number && ` · ${e.invoice_number}`}
+                        </p>
+                      </div>
+                      <p className="text-sm font-bold text-red-400 flex-shrink-0">{pln(e.amount)}</p>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <button onClick={() => {
+                          setEditId(e.id)
+                          setEditForm({
+                            category: e.category as ExpenseCategory,
+                            description: e.description,
+                            amount: String(e.amount),
+                            expense_date: e.expense_date,
+                            invoice_number: e.invoice_number ?? '',
+                          })
+                          setEditError(null)
+                        }} className="text-xs text-blue-600 hover:underline">Edytuj</button>
+                        <button onClick={() => handleDelete(e.id)} disabled={isPending}
+                          className="text-xs text-gray-600 hover:text-red-400 transition">✕</button>
+                      </div>
+                    </div>
+                  )
+                ))}
+              </div>
+          }
+          {filtered.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-gray-800 flex justify-between items-center">
+              <p className="text-sm text-gray-500">{filtered.length} pozycji</p>
+              <p className="text-base font-bold text-red-400">Razem: {pln(totalExpenses)}</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}

@@ -26,7 +26,7 @@ export default async function DashboardPage() {
     const [
       commCount, userCount, ticketCount, pendingCount, boardCount,
       allTickets, communities, recentTickets, recentPosts, postAuthors,
-      allApartments, allVotes, yearEntries, activeUsers,
+      allApartments, allVotes, yearEntries, activeUsers, yearExpenses,
     ] = await Promise.all([
       admin.from('communities').select('id', { count: 'exact', head: true }),
       admin.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'active'),
@@ -44,6 +44,7 @@ export default async function DashboardPage() {
       admin.from('votes').select('id, community_id, status, title, deadline, created_at').order('created_at', { ascending: false }),
       admin.from('settlement_entries').select('paid, apartment:settlement_apartments!inner(community_id)').eq('year', currentYear),
       admin.from('profiles').select('id, community_id').eq('role', 'user').eq('status', 'active'),
+      admin.from('community_expenses').select('community_id, amount').eq('year', currentYear),
     ])
 
     const commMap: Record<string, string> = {}
@@ -55,10 +56,10 @@ export default async function DashboardPage() {
     }
 
     // Per-community stats
-    interface CommStats { apartments: number; users: number; openTickets: number; openVotes: number; totalPaid: number }
+    interface CommStats { apartments: number; users: number; openTickets: number; openVotes: number; totalPaid: number; totalExpenses: number }
     const commStats: Record<string, CommStats> = {}
     for (const c of communities.data ?? []) {
-      commStats[c.id] = { apartments: 0, users: 0, openTickets: 0, openVotes: 0, totalPaid: 0 }
+      commStats[c.id] = { apartments: 0, users: 0, openTickets: 0, openVotes: 0, totalPaid: 0, totalExpenses: 0 }
     }
     for (const a of allApartments.data ?? []) {
       if (commStats[a.community_id]) commStats[a.community_id].apartments++
@@ -76,6 +77,9 @@ export default async function DashboardPage() {
     for (const e of yearEntries.data ?? []) {
       const commId = (e.apartment as any)?.community_id
       if (commId && commStats[commId]) commStats[commId].totalPaid += e.paid ?? 0
+    }
+    for (const e of yearExpenses.data ?? []) {
+      if (commStats[e.community_id]) commStats[e.community_id].totalExpenses += e.amount ?? 0
     }
 
     const totalApartments = (allApartments.data ?? []).length
@@ -126,9 +130,11 @@ export default async function DashboardPage() {
                       <p className={`text-lg font-bold ${s.openTickets > 0 ? 'text-yellow-400' : 'text-gray-100'}`}>{s.openTickets}</p>
                       <p className="text-xs text-gray-500 mt-0.5">Zgłoszenia</p>
                     </div>
-                    <div className="bg-gray-950 rounded-lg p-3 text-center">
-                      <p className="text-lg font-bold text-blue-400">{pln(s.totalPaid)}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">Wpłacono {currentYear}</p>
+                    <div className={`rounded-lg p-3 text-center ${s.totalPaid - s.totalExpenses >= 0 ? 'bg-green-950/20' : 'bg-red-950/20'}`}>
+                      <p className={`text-lg font-bold ${s.totalPaid - s.totalExpenses >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {pln(s.totalPaid - s.totalExpenses)}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">Saldo {currentYear}</p>
                     </div>
                   </div>
                   {s.openVotes > 0 && (
