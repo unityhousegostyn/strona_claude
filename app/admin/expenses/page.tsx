@@ -3,6 +3,7 @@ import { getAuthProfile } from '@/lib/getAuthProfile'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import ExpensesClient from './ExpensesClient'
 import { EXPENSE_CATEGORIES } from './categories'
+import { INCOME_CATEGORIES } from './income-categories'
 
 export default async function ExpensesPage() {
   const { profile } = await getAuthProfile()
@@ -51,6 +52,14 @@ export default async function ExpensesPage() {
   const commMap: Record<string, string> = {}
   for (const c of communities) commMap[c.id] = c.name
 
+  // Przychody ogólne (odsetki, zwroty)
+  const { data: incomeEntries } = await admin
+    .from('community_income')
+    .select('*')
+    .in('community_id', communityIds.length ? communityIds : ['00000000-0000-0000-0000-000000000000'])
+    .gte('year', currentYear - 1)
+    .order('income_date', { ascending: false })
+
   return (
     <ExpensesClient
       expenses={expenses ?? []}
@@ -60,6 +69,8 @@ export default async function ExpensesPage() {
       isSuperAdmin={isSuperAdmin}
       defaultCommunityId={profile.community_id ?? communities[0]?.id ?? ''}
       categories={EXPENSE_CATEGORIES}
+      incomeCategories={INCOME_CATEGORIES}
+      incomeEntries={incomeEntries ?? []}
       currentYear={currentYear}
     />
   )

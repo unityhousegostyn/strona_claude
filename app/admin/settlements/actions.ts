@@ -295,6 +295,14 @@ export async function importEntriesCSV(
   const aptMap: Record<string, string> = {}
   for (const a of apts ?? []) aptMap[a.number.trim()] = a.id
 
+  // DEBUG
+  const aptNumbers = Object.keys(aptMap)
+  if (aptNumbers.length === 0) {
+    return { imported: 0, skipped: 0, errors: [`DEBUG community_id="${community_id}" → 0 lokali w bazie`] }
+  }
+  return { imported: 0, skipped: 0, errors: [`DEBUG community_id="${community_id}" → lokale: ${aptNumbers.join(', ')}`] }
+  // END DEBUG
+
   const lines = csvText.split('\n').map(l => l.trim()).filter(Boolean)
   const startIdx = lines[0]?.toLowerCase().startsWith('lokal') ? 1 : 0
 

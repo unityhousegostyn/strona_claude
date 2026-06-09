@@ -3,7 +3,9 @@
 import { useState, useTransition, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { addExpense, updateExpense, deleteExpense, importExpensesCSV } from './actions'
+import { addIncome, deleteIncome } from './income-actions'
 import type { ExpenseCategory } from './categories'
+import type { IncomeCategory } from './income-categories'
 
 interface Expense {
   id: string
@@ -18,6 +20,17 @@ interface Expense {
   created_at: string
 }
 
+interface IncomeEntry {
+  id: string
+  community_id: string
+  category: string
+  description: string
+  amount: number
+  income_date: string
+  year: number
+  month: number
+}
+
 interface Props {
   expenses: Expense[]
   communities: { id: string; name: string }[]
@@ -26,6 +39,8 @@ interface Props {
   isSuperAdmin: boolean
   defaultCommunityId: string
   categories: { value: ExpenseCategory; label: string }[]
+  incomeCategories: { value: IncomeCategory; label: string }[]
+  incomeEntries: IncomeEntry[]
   currentYear: number
 }
 
@@ -36,7 +51,7 @@ const MONTHS = ['Sty', 'Lut', 'Mar', 'Kwi', 'Maj', 'Cze', 'Lip', 'Sie', 'Wrz', '
 
 export default function ExpensesClient({
   expenses, communities, commMap, incomeMap, isSuperAdmin,
-  defaultCommunityId, categories, currentYear,
+  defaultCommunityId, categories, incomeCategories, incomeEntries, currentYear,
 }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -46,7 +61,7 @@ export default function ExpensesClient({
   const [filterComm, setFilterComm] = useState(isSuperAdmin ? '' : defaultCommunityId)
   const [filterYear, setFilterYear] = useState(currentYear)
   const [filterCat, setFilterCat] = useState('')
-  const [tab, setTab] = useState<'list' | 'summary'>('list')
+  const [tab, setTab] = useState<'list' | 'summary' | 'income'>('list')
 
   // Formularz dodawania
   const [showForm, setShowForm] = useState(false)
@@ -161,6 +176,55 @@ export default function ExpensesClient({
     handleFile(file)
     if (fileRef.current) fileRef.current.value = ''
   }
+
+  // Przychody ogólne
+  const [incForm, setIncForm] = useState({
+    community_id: defaultCommunityId,
+    category: 'odsetki' as IncomeCategory,
+    description: '',
+    amount: '',
+    income_date: new Date().toISOString().slice(0, 10),
+  })
+  const [incFormError, setIncFormError] = useState<string | null>(null)
+  const [showIncForm, setShowIncForm] = useState(false)
+
+  const handleAddIncome = () => {
+    setIncFormError(null)
+    startTransition(async () => {
+      const res = await addIncome({
+        ...incForm,
+        amount: parseFloat(incForm.amount.replace(',', '.')),
+      })
+      if (res.error) { setIncFormError(res.error); return }
+      setShowIncForm(false)
+      setIncForm(p => ({ ...p, description: '', amount: '' }))
+      router.refresh()
+    })
+  }
+
+  const handleDeleteIncome = (id: string) => {
+    if (!confirm('Usunąć ten przychód?')) return
+    startTransition(async () => {
+      await deleteIncome(id)
+      router.refresh()
+    })
+  }
+
+  const incCatLabel = (cat: string) => incomeCategories.find(c => c.value === cat)?.label ?? cat
+
+  const incCatColors: Record<string, string> = {
+    odsetki: 'bg-emerald-950/40 text-emerald-400',
+    zwrot: 'bg-blue-950/40 text-blue-400',
+    dotacja: 'bg-purple-950/40 text-purple-400',
+    inne: 'bg-gray-800 text-gray-400',
+  }
+
+  const filteredIncome = incomeEntries.filter(e => {
+    if (filterComm && e.community_id !== filterComm) return false
+    if (e.year !== filterYear) return false
+    return true
+  })
+  const totalIncomeEntries = filteredIncome.reduce((s, e) => s + e.amount, 0)
 
   const catLabel = (cat: string) => categories.find(c => c.value === cat)?.label ?? cat
 
@@ -326,16 +390,106 @@ export default function ExpensesClient({
 
         {/* Tabs */}
         <div className="ml-auto flex gap-1 bg-gray-900 rounded-lg p-1">
-          {(['list', 'summary'] as const).map(t => (
+          {(['list', 'summary', 'income'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${tab === t ? 'bg-gray-800 text-gray-100' : 'text-gray-500 hover:text-gray-300'}`}>
-              {t === 'list' ? '📋 Lista' : '📊 Podsumowanie'}
+              {t === 'list' ? '📋 Lista' : t === 'summary' ? '📊 Podsumowanie' : '💰 Przychody'}
             </button>
           ))}
         </div>
       </div>
 
-      {tab === 'summary' ? (
+      {tab === 'income' ? (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-semibold text-gray-200">Przychody wspólnoty</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Odsetki od lokat, zwroty, dotacje</p>
+            </div>
+            <button onClick={() => setShowIncForm(!showIncForm)}
+              className="bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+              + Dodaj przychód
+            </button>
+          </div>
+
+          {showIncForm && (
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
+              <h3 className="font-semibold text-gray-200">Nowy przychód</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {isSuperAdmin && (
+                  <div>
+                    <label className="text-xs text-gray-400 block mb-1">Wspólnota *</label>
+                    <select className="input w-full" value={incForm.community_id}
+                      onChange={e => setIncForm(p => ({ ...p, community_id: e.target.value }))}>
+                      {communities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </div>
+                )}
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Kategoria *</label>
+                  <select className="input w-full" value={incForm.category}
+                    onChange={e => setIncForm(p => ({ ...p, category: e.target.value as IncomeCategory }))}>
+                    {incomeCategories.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                  </select>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="text-xs text-gray-400 block mb-1">Opis *</label>
+                  <input className="input w-full" placeholder="np. Odsetki od lokaty NR00001"
+                    value={incForm.description} onChange={e => setIncForm(p => ({ ...p, description: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Kwota (zł) *</label>
+                  <input className="input w-full" type="number" step="0.01" min="0" placeholder="0.00"
+                    value={incForm.amount} onChange={e => setIncForm(p => ({ ...p, amount: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Data *</label>
+                  <input className="input w-full" type="date" value={incForm.income_date}
+                    onChange={e => setIncForm(p => ({ ...p, income_date: e.target.value }))} />
+                </div>
+              </div>
+              {incFormError && <p className="text-sm text-red-400">{incFormError}</p>}
+              <div className="flex gap-3">
+                <button onClick={handleAddIncome} disabled={isPending}
+                  className="bg-emerald-700 text-white text-sm font-semibold px-5 py-2 rounded-lg disabled:opacity-50">
+                  {isPending ? 'Zapisuję...' : 'Dodaj przychód'}
+                </button>
+                <button onClick={() => setShowIncForm(false)} className="text-sm text-gray-500 hover:text-gray-300">Anuluj</button>
+              </div>
+            </div>
+          )}
+
+          {filteredIncome.length === 0
+            ? <div className="text-center py-16 text-gray-500">
+                <p className="text-3xl mb-3">💰</p>
+                <p>Brak przychodów dla wybranych filtrów.</p>
+              </div>
+            : <div className="space-y-2">
+                {filteredIncome.map(e => (
+                  <div key={e.id} className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap hover:border-gray-700 transition">
+                    <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${incCatColors[e.category] ?? incCatColors.inne}`}>
+                      {incCatLabel(e.category)}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-200 truncate">{e.description}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {new Date(e.income_date).toLocaleDateString('pl-PL')}
+                        {isSuperAdmin && ` · ${commMap[e.community_id] ?? '—'}`}
+                      </p>
+                    </div>
+                    <p className="text-sm font-bold text-emerald-400 flex-shrink-0">{pln(e.amount)}</p>
+                    <button onClick={() => handleDeleteIncome(e.id)} disabled={isPending}
+                      className="text-xs text-gray-600 hover:text-red-400 transition flex-shrink-0">✕</button>
+                  </div>
+                ))}
+                <div className="mt-4 pt-4 border-t border-gray-800 flex justify-between items-center">
+                  <p className="text-sm text-gray-500">{filteredIncome.length} pozycji</p>
+                  <p className="text-base font-bold text-emerald-400">Razem: {pln(totalIncomeEntries)}</p>
+                </div>
+              </div>
+          }
+        </div>
+      ) : tab === 'summary' ? (
         <div className="space-y-6">
           {/* Saldo: Wpłaty vs Koszty */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
