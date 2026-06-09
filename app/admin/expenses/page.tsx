@@ -6,7 +6,7 @@ import { EXPENSE_CATEGORIES } from './actions'
 
 export default async function ExpensesPage() {
   const { profile } = await getAuthProfile()
-  if (profile.role === 'user') redirect('/admin/dashboard')
+  if (profile.role !== 'super_admin') redirect('/admin/dashboard')
 
   const admin = getSupabaseAdminClient()
   const isSuperAdmin = profile.role === 'super_admin'

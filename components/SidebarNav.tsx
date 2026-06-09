@@ -17,7 +17,7 @@ const navItems = (role: string) => {
     { href: '/admin/votes', label: 'Głosowania', icon: '🗳️' },
   ]
   base.push({ href: '/admin/settlements', label: 'Rozliczenia', icon: '💰' })
-  if (role === 'super_admin' || role === 'admin') {
+  if (role === 'super_admin') {
     base.push({ href: '/admin/expenses', label: 'Koszty', icon: '💸' })
   }
   if (role === 'super_admin') {
