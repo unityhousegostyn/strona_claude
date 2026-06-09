@@ -48,6 +48,34 @@ export async function addIncome(data: {
   }
 }
 
+export async function updateIncome(id: string, data: {
+  category: IncomeCategory
+  description: string
+  amount: number
+  income_date: string
+}): Promise<{ error?: string }> {
+  try {
+    const { profile } = await getActor()
+    if (profile.role === 'user') return { error: 'Brak uprawnień' }
+    if (!data.description.trim()) return { error: 'Opis jest wymagany' }
+    if (!data.amount || data.amount <= 0) return { error: 'Kwota musi być większa niż 0' }
+    const admin = getSupabaseAdminClient()
+    const { error } = await admin.from('community_income').update({
+      category: data.category,
+      description: data.description.trim(),
+      amount: data.amount,
+      income_date: data.income_date,
+    }).eq('id', id)
+    if (error) return { error: error.message }
+    revalidatePath('/admin/finanse/przychody')
+    revalidatePath('/admin/finanse/koszty')
+    revalidatePath('/admin/dashboard')
+    return {}
+  } catch (e: any) {
+    return { error: e?.message ?? String(e) }
+  }
+}
+
 export async function deleteIncome(id: string): Promise<{ error?: string }> {
   try {
     const { profile } = await getActor()

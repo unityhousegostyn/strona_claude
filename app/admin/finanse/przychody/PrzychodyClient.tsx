@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { addIncome, deleteIncome } from './actions'
+import { addIncome, updateIncome, deleteIncome } from './actions'
 import type { IncomeCategory } from './income-categories'
 
 interface IncomeEntry {
@@ -35,6 +35,10 @@ export default function PrzychodyClient({ incomeEntries, settlementsMap, communi
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ community_id: defaultCommunityId, category: 'inne' as IncomeCategory, description: '', amount: '', income_date: new Date().toISOString().slice(0,10) })
   const [formError, setFormError] = useState<string | null>(null)
+
+  const [editId, setEditId] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState<{ category: IncomeCategory; description: string; amount: string; income_date: string }>({ category: 'inne', description: '', amount: '', income_date: '' })
+  const [editError, setEditError] = useState<string | null>(null)
 
   const [csvDragOver, setCsvDragOver] = useState(false)
   const [csvFileName, setCsvFileName] = useState<string | null>(null)
@@ -105,6 +109,19 @@ export default function PrzychodyClient({ incomeEntries, settlementsMap, communi
       setShowForm(false); setForm(p => ({ ...p, description: '', amount: '' })); router.refresh()
     })
   }
+  const handleUpdate = () => {
+    if (!editId) return
+    const amt = parseFloat(editForm.amount.replace(',', '.'))
+    if (!editForm.description.trim()) { setEditError('Opis jest wymagany'); return }
+    if (isNaN(amt) || amt <= 0) { setEditError('Podaj kwotę większą od 0'); return }
+    setEditError(null)
+    startTransition(async () => {
+      const res = await updateIncome(editId, { ...editForm, amount: amt })
+      if (res.error) { setEditError(res.error); return }
+      setEditId(null); router.refresh()
+    })
+  }
+
   const handleDelete = (id: string) => {
     if (!confirm('Usunąć ten przychód?')) return
     startTransition(async () => { await deleteIncome(id); router.refresh() })
@@ -199,12 +216,31 @@ export default function PrzychodyClient({ incomeEntries, settlementsMap, communi
             <div className="text-center py-16 text-gray-500"><p className="text-3xl mb-3">💰</p><p>Brak przychodów za {filterYear} rok.</p><button onClick={() => setShowForm(true)} className="mt-4 text-sm text-green-400 hover:underline">+ Dodaj pierwszy przychód</button></div>
           ) : (
             <div className="space-y-2">
-              {filtered.map(e => (
+              {filtered.map(e => editId === e.id ? (
+                <div key={e.id} className="bg-gray-900 border border-green-800 rounded-xl p-4 space-y-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <select className="input text-sm" value={editForm.category} onChange={x => setEditForm(p => ({ ...p, category: x.target.value as IncomeCategory }))}>
+                      {categories.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                    </select>
+                    <input className="input text-sm sm:col-span-2" placeholder="Opis" value={editForm.description} onChange={x => setEditForm(p => ({ ...p, description: x.target.value }))} />
+                    <input className="input text-sm" type="number" step="0.01" placeholder="Kwota" value={editForm.amount} onChange={x => setEditForm(p => ({ ...p, amount: x.target.value }))} />
+                    <input className="input text-sm" type="date" value={editForm.income_date} onChange={x => setEditForm(p => ({ ...p, income_date: x.target.value }))} />
+                  </div>
+                  {editError && <p className="text-xs text-red-400">{editError}</p>}
+                  <div className="flex gap-2">
+                    <button onClick={handleUpdate} disabled={isPending} className="bg-green-700 text-white text-xs font-semibold px-4 py-1.5 rounded-lg disabled:opacity-50">{isPending ? 'Zapisuję...' : 'Zapisz'}</button>
+                    <button onClick={() => setEditId(null)} className="text-xs text-gray-500 hover:text-gray-300">Anuluj</button>
+                  </div>
+                </div>
+              ) : (
                 <div key={e.id} className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap hover:border-gray-700 transition">
                   <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${catColors[e.category] ?? catColors.inne}`}>{catLabel(e.category)}</span>
                   <div className="flex-1 min-w-0"><p className="text-sm font-medium text-gray-200 truncate">{e.description}</p><p className="text-xs text-gray-500 mt-0.5">{new Date(e.income_date).toLocaleDateString('pl-PL')}{isSuperAdmin && ` · ${commMap[e.community_id] ?? '—'}`}</p></div>
                   <p className="text-sm font-bold text-green-400 flex-shrink-0">{pln(e.amount)}</p>
-                  <button onClick={() => handleDelete(e.id)} disabled={isPending} className="text-xs text-gray-600 hover:text-red-400 transition flex-shrink-0">✕</button>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <button onClick={() => { setEditId(e.id); setEditForm({ category: e.category as IncomeCategory, description: e.description, amount: String(e.amount), income_date: e.income_date }); setEditError(null) }} className="text-xs text-blue-600 hover:underline">Edytuj</button>
+                    <button onClick={() => handleDelete(e.id)} disabled={isPending} className="text-xs text-gray-600 hover:text-red-400 transition">✕</button>
+                  </div>
                 </div>
               ))}
               <div className="mt-4 pt-4 border-t border-gray-800 flex justify-between items-center"><p className="text-sm text-gray-500">{filtered.length} pozycji</p><p className="text-base font-bold text-green-400">Razem: {pln(totalOther)}</p></div>
