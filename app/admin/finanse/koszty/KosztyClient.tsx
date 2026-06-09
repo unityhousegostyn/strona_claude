@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { addExpense, updateExpense, deleteExpense, importExpensesCSV } from './actions'
+import { addExpense, updateExpense, deleteExpense, importExpensesCSV, bulkUpdateCategory } from './actions'
 import type { ExpenseCategory } from './categories'
 
 interface Expense {
@@ -41,6 +41,10 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
   const [editId, setEditId] = useState<string | null>(null)
   const [editForm, setEditForm] = useState<Partial<typeof form>>({})
   const [editError, setEditError] = useState<string | null>(null)
+
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [bulkCat, setBulkCat] = useState<ExpenseCategory>('remonty')
+  const [bulkResult, setBulkResult] = useState<string | null>(null)
 
   const [importResult, setImportResult] = useState<{ imported: number; errors: string[] } | null>(null)
   const [importComm, setImportComm] = useState(defaultCommunityId)
@@ -90,6 +94,26 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
   const totalIncome = Object.values(monthlyIncome).reduce((s, v) => s + v, 0)
   const byCat: Record<string, number> = {}
   for (const e of filtered) byCat[e.category] = (byCat[e.category] ?? 0) + e.amount
+
+  const toggleSelect = (id: string) => setSelectedIds(prev => {
+    const next = new Set(prev)
+    next.has(id) ? next.delete(id) : next.add(id)
+    return next
+  })
+  const toggleAll = () => setSelectedIds(prev =>
+    prev.size === filtered.length ? new Set() : new Set(filtered.map(e => e.id))
+  )
+  const handleBulkCategory = () => {
+    if (!selectedIds.size) return
+    setBulkResult(null)
+    startTransition(async () => {
+      const res = await bulkUpdateCategory(Array.from(selectedIds), bulkCat)
+      if (res.error) { setBulkResult('❌ ' + res.error); return }
+      setBulkResult(`✓ Zmieniono kategorię dla ${res.updated} wpisów`)
+      setSelectedIds(new Set())
+      router.refresh()
+    })
+  }
 
   const handleAdd = () => {
     setFormError(null)
@@ -199,6 +223,29 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
         </div>
       ):(
         <div>
+          {/* Bulk action bar */}
+          {filtered.length > 0 && (
+            <div className="flex items-center gap-3 mb-3 flex-wrap">
+              <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer select-none">
+                <input type="checkbox" className="w-3.5 h-3.5 accent-blue-500" checked={selectedIds.size === filtered.length && filtered.length > 0} onChange={toggleAll} />
+                {selectedIds.size > 0 ? `Zaznaczono ${selectedIds.size} z ${filtered.length}` : `Zaznacz wszystkie (${filtered.length})`}
+              </label>
+              {selectedIds.size > 0 && (
+                <div className="flex items-center gap-2 ml-2 flex-wrap">
+                  <span className="text-xs text-gray-400">→ zmień kategorię na:</span>
+                  <select className="input text-xs py-1" value={bulkCat} onChange={e => setBulkCat(e.target.value as ExpenseCategory)}>
+                    {categories.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                  </select>
+                  <button onClick={handleBulkCategory} disabled={isPending} className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-50 transition">
+                    {isPending ? '...' : `Zastosuj (${selectedIds.size})`}
+                  </button>
+                  <button onClick={() => setSelectedIds(new Set())} className="text-xs text-gray-500 hover:text-gray-300">Odznacz</button>
+                </div>
+              )}
+              {bulkResult && <span className={`text-xs ml-2 ${bulkResult.startsWith('✓') ? 'text-green-400' : 'text-red-400'}`}>{bulkResult}</span>}
+            </div>
+          )}
+
           {filtered.length===0?<div className="text-center py-16 text-gray-500"><p className="text-3xl mb-3">💸</p><p>Brak kosztów.</p></div>:
           <div className="space-y-2">
             {filtered.map(e=>editId===e.id?(
@@ -214,11 +261,12 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
                 <div className="flex gap-2"><button onClick={handleUpdate} disabled={isPending} className="bg-blue-600 text-white text-xs font-semibold px-4 py-1.5 rounded-lg disabled:opacity-50">{isPending?'Zapisuję...':'Zapisz'}</button><button onClick={()=>setEditId(null)} className="text-xs text-gray-500 hover:text-gray-300">Anuluj</button></div>
               </div>
             ):(
-              <div key={e.id} className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap hover:border-gray-700 transition">
+              <div key={e.id} onClick={() => toggleSelect(e.id)} className={`bg-gray-900 border rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap cursor-pointer transition ${selectedIds.has(e.id) ? 'border-blue-600 bg-blue-950/10' : 'border-gray-800 hover:border-gray-700'}`}>
+                <input type="checkbox" className="w-4 h-4 accent-blue-500 flex-shrink-0" checked={selectedIds.has(e.id)} onChange={() => toggleSelect(e.id)} onClick={ev => ev.stopPropagation()} />
                 <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${catColors[e.category]??catColors.inne}`}>{catLabel(e.category)}</span>
                 <div className="flex-1 min-w-0"><p className="text-sm font-medium text-gray-200 truncate">{e.description}</p><p className="text-xs text-gray-500 mt-0.5">{new Date(e.expense_date).toLocaleDateString('pl-PL')}{isSuperAdmin&&` · ${commMap[e.community_id]??'—'}`}{e.invoice_number&&` · ${e.invoice_number}`}</p></div>
                 <p className="text-sm font-bold text-red-400 flex-shrink-0">{pln(e.amount)}</p>
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-2 flex-shrink-0" onClick={ev => ev.stopPropagation()}>
                   <button onClick={()=>{setEditId(e.id);setEditForm({category:e.category as ExpenseCategory,description:e.description,amount:String(e.amount),expense_date:e.expense_date,invoice_number:e.invoice_number??''});setEditError(null)}} className="text-xs text-blue-600 hover:underline">Edytuj</button>
                   <button onClick={()=>handleDelete(e.id)} disabled={isPending} className="text-xs text-gray-600 hover:text-red-400 transition">✕</button>
                 </div>

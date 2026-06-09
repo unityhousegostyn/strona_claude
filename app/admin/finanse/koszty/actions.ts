@@ -154,3 +154,26 @@ export async function importExpensesCSV(
     return { imported: 0, errors: [`Błąd serwera: ${e?.message ?? String(e)}`] }
   }
 }
+
+// ── BULK UPDATE KATEGORII ────────────────────────────────────────
+export async function bulkUpdateCategory(
+  ids: string[],
+  category: ExpenseCategory
+): Promise<{ error?: string; updated?: number }> {
+  try {
+    const { profile } = await getActor()
+    if (profile.role === 'user') return { error: 'Brak uprawnień' }
+    if (!ids.length) return { error: 'Brak zaznaczonych wpisów' }
+    const admin = getSupabaseAdminClient()
+    const { error } = await admin
+      .from('community_expenses')
+      .update({ category })
+      .in('id', ids)
+    if (error) return { error: error.message }
+    revalidatePath('/admin/finanse/koszty')
+    revalidatePath('/admin/dashboard')
+    return { updated: ids.length }
+  } catch (e: any) {
+    return { error: e?.message ?? String(e) }
+  }
+}
