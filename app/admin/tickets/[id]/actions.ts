@@ -2,6 +2,7 @@
 
 import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
 import { logActivity } from '@/lib/audit'
+import { sendNewCommentEmail } from '@/lib/email'
 
 export async function addComment(ticketId: string, content: string) {
   const supabase = await getSupabaseServerClient()
@@ -10,7 +11,7 @@ export async function addComment(ticketId: string, content: string) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, community_id')
+    .select('role, community_id, full_name, email')
     .eq('id', user.id)
     .single()
 
@@ -21,8 +22,12 @@ export async function addComment(ticketId: string, content: string) {
 
   const admin = getSupabaseAdminClient()
 
-  // Sprawdź dostęp do ticketu
-  const { data: ticket } = await admin.from('tickets').select('community_id').eq('id', ticketId).single()
+  const { data: ticket } = await admin
+    .from('tickets')
+    .select('community_id, title, created_by')
+    .eq('id', ticketId)
+    .single()
+
   if (!ticket) throw new Error('Zgłoszenie nie istnieje')
   if (profile.role !== 'super_admin' && ticket.community_id !== profile.community_id) {
     throw new Error('Brak dostępu do tego zgłoszenia')
@@ -36,5 +41,25 @@ export async function addComment(ticketId: string, content: string) {
 
   if (error) throw new Error('Błąd podczas dodawania komentarza')
   await logActivity({ userId: user.id, action: 'add_comment', targetType: 'ticket', targetId: ticketId })
+
+  // Email do autora zgłoszenia — tylko jeśli komentarz dodaje ktoś inny
+  if (ticket.created_by && ticket.created_by !== user.id) {
+    const { data: ticketAuthor } = await admin
+      .from('profiles')
+      .select('email')
+      .eq('id', ticket.created_by)
+      .single()
+
+    if (ticketAuthor?.email) {
+      sendNewCommentEmail({
+        to: ticketAuthor.email,
+        ticketTitle: ticket.title,
+        authorName: profile.full_name ?? profile.email ?? 'Administrator',
+        comment: trimmed,
+        ticketId,
+      }).catch(() => {}) // nie blokuj odpowiedzi jeśli email się nie wyśle
+    }
+  }
+
   return comment
 }
