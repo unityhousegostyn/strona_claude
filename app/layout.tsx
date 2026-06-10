@@ -15,6 +15,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Panel Wspólnoty",
   description: "Panel zarządzania wspólnotą mieszkaniową",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Panel Wspólnoty",
+  },
 };
 
 export default function RootLayout({

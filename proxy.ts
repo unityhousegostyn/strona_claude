@@ -117,10 +117,19 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/admin/dashboard', request.url))
   }
 
+  // Sprawdź poziom MFA — jeśli użytkownik ma 2FA a nie zweryfikował, przekieruj
+  if (user && isAdminRoute && !pathname.startsWith('/mfa-verify')) {
+    const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+    if (aalData?.nextLevel === 'aal2' && aalData?.currentLevel !== 'aal2') {
+      const mfaUrl = new URL('/mfa-verify', request.url)
+      return NextResponse.redirect(mfaUrl)
+    }
+  }
+
   addSecurityHeaders(supabaseResponse)
   return supabaseResponse
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/:path*', '/login', '/register'],
+  matcher: ['/admin/:path*', '/api/:path*', '/login', '/register', '/mfa-verify'],
 }

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { updateUser, deactivateUser, deleteUserPermanently, assignApartment } from './actions'
+import { updateUser, deactivateUser, deleteUserPermanently, assignApartment, sendPasswordResetLink } from './actions'
 import { useToast } from '@/components/ToastContext'
 
 interface Community { id: string; name: string }
@@ -32,6 +32,20 @@ export default function UserEditForm({
   const [communityId, setCommunityId] = useState(initialCommunityId ?? '')
   const [apartmentId, setApartmentId] = useState(currentApartmentId ?? '')
   const [aptSaving, setAptSaving] = useState(false)
+  const [resetSending, setResetSending] = useState(false)
+
+  const handleSendPasswordReset = async () => {
+    setResetSending(true)
+    try {
+      const result = await sendPasswordResetLink(userId)
+      if (result.error) showToast(result.error, 'error')
+      else showToast('Link do resetowania hasła wysłany na e-mail użytkownika ✓')
+    } catch (e: any) {
+      showToast(e.message ?? 'Błąd', 'error')
+    } finally {
+      setResetSending(false)
+    }
+  }
 
   const handleSave = () => {
     startTransition(async () => {
@@ -188,7 +202,15 @@ export default function UserEditForm({
         </div>
 
         {!isSelf && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap justify-end">
+            <button
+              onClick={handleSendPasswordReset}
+              disabled={resetSending}
+              className="text-sm text-blue-400 hover:text-blue-300 font-medium px-4 py-2.5 rounded-lg border border-blue-900 hover:bg-blue-950/30 transition disabled:opacity-50"
+              title="Wysyła link resetowania hasła na e-mail użytkownika"
+            >
+              {resetSending ? 'Wysyłanie...' : '🔑 Reset hasła'}
+            </button>
             <button
               onClick={handleDeactivate}
               disabled={isPending}

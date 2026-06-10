@@ -1,0 +1,74 @@
+{
+  "nav": {
+    "home": "Strona główna",
+    "announcements": "Ogłoszenia",
+    "tickets": "Zgłoszenia",
+    "board": "Tablica",
+    "documents": "Dokumenty",
+    "contacts": "Kontakty",
+    "votes": "Uchwały - głosowanie",
+    "settlements": "Rozliczenia",
+    "profile": "Profil",
+    "users": "Użytkownicy",
+    "communities": "Wspólnoty",
+    "audit": "Dziennik audytu",
+    "finanse": "Finanse",
+    "koszty": "Koszty",
+    "przychody": "Przychody",
+    "raporty": "Raporty"
+  },
+  "common": {
+    "save": "Zapisz",
+    "cancel": "Anuluj",
+    "delete": "Usuń",
+    "edit": "Edytuj",
+    "add": "Dodaj",
+    "search": "Szukaj",
+    "loading": "Ładowanie...",
+    "error": "Błąd",
+    "success": "Sukces",
+    "confirm": "Potwierdź",
+    "back": "Wróć",
+    "logout": "Wyloguj",
+    "yes": "Tak",
+    "no": "Nie"
+  },
+  "auth": {
+    "login": "Zaloguj się",
+    "email": "Email",
+    "password": "Hasło",
+    "forgotPassword": "Zapomniałeś hasła?",
+    "noAccount": "Nie masz konta? Zarejestruj się",
+    "loginError": "Nieprawidłowy email lub hasło."
+  },
+  "profile": {
+    "title": "Mój profil",
+    "fullName": "Imię i nazwisko",
+    "role": "Rola",
+    "community": "Wspólnota",
+    "status": "Status",
+    "active": "Aktywny",
+    "pending": "Oczekujący",
+    "changePassword": "Zmień hasło",
+    "newPassword": "Nowe hasło (min. 8 znaków)",
+    "confirmPassword": "Powtórz nowe hasło",
+    "language": "Język interfejsu"
+  },
+  "tickets": {
+    "title": "Zgłoszenia",
+    "new": "Nowe zgłoszenie",
+    "open": "Aktywne",
+    "closed": "Archiwum",
+    "noOpen": "Brak aktywnych zgłoszeń.",
+    "noArchive": "Brak zgłoszeń w archiwum.",
+    "status_open": "Otwarte",
+    "status_closed": "Zamknięte",
+    "close": "Zamknij",
+    "reopen": "Wznów"
+  },
+  "announcements": {
+    "title": "Ogłoszenia",
+    "new": "Nowe ogłoszenie",
+    "noItems": "Brak ogłoszeń."
+  }
+}

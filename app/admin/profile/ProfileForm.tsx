@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { updateProfile, changePassword, setPin } from './actions'
+import { updateProfile, changePassword, setPin, deleteOwnAccount } from './actions'
 import { useToast } from '@/components/ToastContext'
 
 export default function ProfileForm({ fullName, hasPin }: { fullName: string; hasPin: boolean }) {
   const { showToast } = useToast()
   const [isPending, startTransition] = useTransition()
+  const [deleteConfirm, setDeleteConfirm] = useState('')
+  const [showDeleteSection, setShowDeleteSection] = useState(false)
 
   const [name, setName] = useState(fullName)
   const [password, setPassword] = useState('')
@@ -138,6 +140,53 @@ export default function ProfileForm({ fullName, hasPin }: { fullName: string; ha
         >
           {isPending ? 'Zmienianie...' : 'Zmień hasło'}
         </button>
+      </div>
+
+      {/* RODO: usunięcie konta */}
+      <div className="bg-gray-900 border border-red-900/40 rounded-xl p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-red-400 uppercase tracking-wide">Strefa niebezpieczna</h3>
+            <p className="text-xs text-gray-500 mt-1">Trwałe usunięcie konta zgodnie z art. 17 RODO (prawo do bycia zapomnianym)</p>
+          </div>
+          {!showDeleteSection && (
+            <button onClick={() => setShowDeleteSection(true)} className="text-xs text-red-400 hover:text-red-300 border border-red-900/50 px-3 py-1.5 rounded-lg transition">
+              Usuń konto
+            </button>
+          )}
+        </div>
+        {showDeleteSection && (
+          <div className="space-y-3 pt-2 border-t border-red-900/30">
+            <p className="text-sm text-gray-400">
+              Usunięcie konta jest <strong className="text-red-400">nieodwracalne</strong>. Utracisz dostęp do panelu. Aby potwierdzić, wpisz <strong className="text-gray-200">USUŃ KONTO</strong>:
+            </p>
+            <input
+              className="input border-red-900/50 focus:border-red-600"
+              placeholder="USUŃ KONTO"
+              value={deleteConfirm}
+              onChange={e => setDeleteConfirm(e.target.value)}
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  if (deleteConfirm !== 'USUŃ KONTO') { showToast('Wpisz dokładnie: USUŃ KONTO', 'error'); return }
+                  startTransition(async () => {
+                    const result = await deleteOwnAccount()
+                    if (result.error) { showToast(result.error, 'error'); return }
+                    window.location.href = '/login'
+                  })
+                }}
+                disabled={isPending || deleteConfirm !== 'USUŃ KONTO'}
+                className="bg-red-700 hover:bg-red-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-40"
+              >
+                {isPending ? 'Usuwanie...' : 'Usuń konto na zawsze'}
+              </button>
+              <button onClick={() => { setShowDeleteSection(false); setDeleteConfirm('') }} className="text-sm text-gray-500 hover:text-gray-300">
+                Anuluj
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </>
   )

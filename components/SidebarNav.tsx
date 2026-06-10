@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser'
 import { Profile } from '@/types'
+import { useI18n } from '@/lib/i18n'
 
 type NavItem = { href: string; label: string; icon: string }
 type NavGroup = { group: string; icon: string; subItems: NavItem[] }
@@ -14,38 +15,40 @@ function isGroup(entry: NavEntry): entry is NavGroup {
   return 'group' in entry
 }
 
-const navEntries = (role: string): NavEntry[] => {
+function useNavEntries(role: string): NavEntry[] {
+  const { t } = useI18n()
+
   const entries: NavEntry[] = [
-    { href: '/admin/dashboard', label: 'Strona główna', icon: '🏠' },
-    { href: '/admin/announcements', label: 'Ogłoszenia', icon: '📢' },
-    { href: '/admin/tickets', label: 'Zgłoszenia', icon: '🎫' },
-    { href: '/admin/board', label: 'Tablica', icon: '💬' },
-    { href: '/admin/contacts', label: 'Kontakty', icon: '📞' },
-    { href: '/admin/documents', label: 'Dokumenty', icon: '📁' },
-    { href: '/admin/votes', label: 'Uchwały - głosowanie', icon: '🗳️' },
-    { href: '/admin/settlements', label: 'Rozliczenia', icon: '🧾' },
+    { href: '/admin/dashboard', label: t('nav.home'), icon: '🏠' },
+    { href: '/admin/announcements', label: t('nav.announcements'), icon: '📢' },
+    { href: '/admin/tickets', label: t('nav.tickets'), icon: '🎫' },
+    { href: '/admin/board', label: t('nav.board'), icon: '💬' },
+    { href: '/admin/contacts', label: t('nav.contacts'), icon: '📞' },
+    { href: '/admin/documents', label: t('nav.documents'), icon: '📁' },
+    { href: '/admin/votes', label: t('nav.votes'), icon: '🗳️' },
+    { href: '/admin/settlements', label: t('nav.settlements'), icon: '🧾' },
   ]
 
   if (role === 'super_admin' || role === 'admin') {
     entries.push({
-      group: 'Finanse',
+      group: t('nav.finanse'),
       icon: '💳',
       subItems: [
-        { href: '/admin/finanse/przychody', label: 'Przychody', icon: '💰' },
-        { href: '/admin/finanse/koszty', label: 'Koszty', icon: '💸' },
-        { href: '/admin/finanse/raporty', label: 'Raporty', icon: '📊' },
+        { href: '/admin/finanse/przychody', label: t('nav.przychody'), icon: '💰' },
+        { href: '/admin/finanse/koszty', label: t('nav.koszty'), icon: '💸' },
+        { href: '/admin/finanse/raporty', label: t('nav.raporty'), icon: '📊' },
       ],
     })
   }
 
   if (role === 'super_admin') {
-    entries.push({ href: '/admin/communities', label: 'Wspólnoty', icon: '🏢' })
+    entries.push({ href: '/admin/communities', label: t('nav.communities'), icon: '🏢' })
   }
   if (role === 'super_admin' || role === 'admin') {
-    entries.push({ href: '/admin/users', label: 'Użytkownicy', icon: '👥' })
+    entries.push({ href: '/admin/users', label: t('nav.users'), icon: '👥' })
   }
   if (role === 'super_admin') {
-    entries.push({ href: '/admin/audit', label: 'Audit Log', icon: '🔍' })
+    entries.push({ href: '/admin/audit', label: t('nav.audit'), icon: '🔍' })
   }
   return entries
 }
@@ -62,6 +65,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [financeOpen, setFinanceOpen] = useState(pathname.startsWith('/admin/finanse'))
+  const navItems = useNavEntries(profile.role)
 
   const handleLogout = async () => {
     const supabase = getSupabaseBrowserClient()
@@ -153,7 +157,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
       </div>
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {navEntries(profile.role).map(entry => renderEntry(entry, () => setMobileOpen(false)))}
+        {navItems.map(entry => renderEntry(entry, () => setMobileOpen(false)))}
       </nav>
 
       <div className="p-4 border-t border-gray-800 space-y-1">
@@ -215,7 +219,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
           </button>
         </div>
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {navEntries(profile.role).map(entry => renderEntry(entry, () => setMobileOpen(false)))}
+          {navItems.map(entry => renderEntry(entry, () => setMobileOpen(false)))}
         </nav>
         <div className="p-4 border-t border-gray-800 space-y-1">
           <Link href="/admin/profile" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-950 transition">

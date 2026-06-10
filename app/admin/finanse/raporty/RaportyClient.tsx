@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { exportToExcel, exportMultiSheet } from '@/lib/exportExcel'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -179,6 +180,69 @@ export default function RaportyClient({
     window.print()
   }
 
+  const handleExportExcel = () => {
+    if (!activeReport) return
+    const fname = `${activeReport}_${commName}_${filterYear}`.replace(/\s/g, '_')
+
+    if (activeReport === 'sprawozdanie') {
+      const rows = Array.from({ length: 12 }, (_, i) => i + 1).map(m => ({
+        'Miesiąc': MONTHS_FULL[m - 1],
+        'Wpłaty mieszkańców': monthlyPaid[m] ?? 0,
+        'Inne przychody': monthlyOtherIncome[m] ?? 0,
+        'Koszty': monthlyExpenses[m] ?? 0,
+        'Saldo': (monthlyPaid[m] + monthlyOtherIncome[m]) - monthlyExpenses[m],
+      }))
+      exportToExcel(rows, fname, 'Sprawozdanie')
+    } else if (activeReport === 'rozliczenie') {
+      const rows = aptReconciliation.map(r => ({
+        'Lokal': r.apt.number,
+        'Właściciel': r.apt.owner_name,
+        'Powierzchnia (m²)': r.apt.area_m2,
+        'Naliczone (zł)': Math.round(r.charged * 100) / 100,
+        'Wpłacone (zł)': Math.round(r.paid * 100) / 100,
+        'Saldo (zł)': Math.round(r.balance * 100) / 100,
+        'Status': r.balance >= -0.01 ? 'OK' : 'Zaległość',
+      }))
+      exportToExcel(rows, fname, 'Rozliczenie')
+    } else if (activeReport === 'zadluzenia') {
+      const rows = debtors.map(r => ({
+        'Lokal': r.apt.number,
+        'Właściciel': r.apt.owner_name,
+        'Zaległość (zł)': Math.round(Math.abs(r.balance) * 100) / 100,
+        'Wpłacone': Math.round(r.paid * 100) / 100,
+        'Naliczone': Math.round(r.charged * 100) / 100,
+      }))
+      exportToExcel(rows, fname, 'Zadłużenia')
+    } else if (activeReport === 'plan') {
+      const allCats = [...new Set([...Object.keys(planByCategory), ...Object.keys(executionByCategory)])]
+      const rows = allCats.map(cat => ({
+        'Kategoria': EXP_CAT_LABELS[cat] ?? cat,
+        'Plan (zł)': Math.round((planByCategory[cat] ?? 0) * 100) / 100,
+        'Wykonanie (zł)': Math.round((executionByCategory[cat] ?? 0) * 100) / 100,
+        'Różnica (zł)': Math.round(((executionByCategory[cat] ?? 0) - (planByCategory[cat] ?? 0)) * 100) / 100,
+      }))
+      exportToExcel(rows, fname, 'Plan vs Wykonanie')
+    } else if (activeReport === 'remontowy') {
+      const rows = renovFundCumulative.map(r => ({
+        'Rok': r.year,
+        'Naliczenia (zł)': Math.round(r.naliczenia * 100) / 100,
+        'Wydatki (zł)': Math.round(r.wydatki * 100) / 100,
+        'Saldo roczne (zł)': Math.round(r.saldo * 100) / 100,
+        'Saldo skumulowane (zł)': Math.round(r.cumulative * 100) / 100,
+      }))
+      exportToExcel(rows, fname, 'Fundusz remontowy')
+    } else if (activeReport === 'faktury') {
+      const rows = commExpenses.map(e => ({
+        'Data': e.expense_date,
+        'Opis': e.description,
+        'Kategoria': EXP_CAT_LABELS[e.category] ?? e.category,
+        'Kwota (zł)': e.amount,
+        'Nr faktury': e.invoice_number ?? '',
+      }))
+      exportToExcel(rows, fname, 'Faktury')
+    }
+  }
+
   return (
     <div className="space-y-6 max-w-5xl">
       {/* Header */}
@@ -236,6 +300,9 @@ export default function RaportyClient({
               Wróć do listy raportów
             </button>
             <div className="flex-1" />
+            <button onClick={handleExportExcel} className="flex items-center gap-2 text-sm bg-gray-800 hover:bg-gray-700 text-gray-200 px-4 py-2 rounded-lg transition">
+              📊 Eksport Excel
+            </button>
             <button onClick={handlePrint} className="flex items-center gap-2 text-sm bg-gray-800 hover:bg-gray-700 text-gray-200 px-4 py-2 rounded-lg transition">
               🖨️ Drukuj / zapisz PDF
             </button>

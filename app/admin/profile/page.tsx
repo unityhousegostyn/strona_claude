@@ -1,6 +1,9 @@
 import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import ProfileForm from './ProfileForm'
+import MFASetup from './MFASetup'
+import PushSubscribe from '@/components/PushSubscribe'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 export default async function ProfilePage() {
   const supabase = await getSupabaseServerClient()
@@ -44,6 +47,17 @@ export default async function ProfilePage() {
       </div>
 
       <ProfileForm fullName={profile.full_name ?? ''} hasPin={!!profile.voting_pin_hash} />
+
+      <MFASetup />
+
+      <PushSubscribe />
+
+      {/* Język interfejsu */}
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Język interfejsu</h3>
+        <p className="text-xs text-gray-600">Wybierz język wyświetlania panelu. Ustawienie jest zapisywane w przeglądarce.</p>
+        <LanguageSwitcher />
+      </div>
     </div>
   )
 }

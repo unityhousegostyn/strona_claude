@@ -16,6 +16,7 @@ export default function TicketsPage() {
   const [isPending, startTransition] = useTransition()
   const [tab, setTab] = useState<Tab>('open')
 
+  const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -89,7 +90,14 @@ export default function TicketsPage() {
     })
   }
 
-  const visible = tickets.filter((t) => t.status === (tab === 'open' ? 'open' : 'closed'))
+  const visible = tickets.filter((t) => {
+    if (t.status !== (tab === 'open' ? 'open' : 'closed')) return false
+    if (search.trim()) {
+      const q = search.trim().toLowerCase()
+      return t.title.toLowerCase().includes(q) || t.description?.toLowerCase().includes(q)
+    }
+    return true
+  })
   const openCount = tickets.filter((t) => t.status === 'open').length
   const closedCount = tickets.filter((t) => t.status === 'closed').length
 
@@ -105,6 +113,18 @@ export default function TicketsPage() {
         >
           + Nowe zgłoszenie
         </button>
+      </div>
+
+      {/* Wyszukiwarka */}
+      <div className="relative">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">🔍</span>
+        <input
+          className="input w-full pl-8 text-sm"
+          placeholder="Szukaj zgłoszeń..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+        {search && <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 text-xs">✕</button>}
       </div>
 
       {/* Zakładki */}

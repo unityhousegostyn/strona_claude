@@ -3,6 +3,7 @@
 import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { hashPin, verifyPin } from '@/lib/pin'
+import { logActivity } from '@/lib/audit'
 
 export async function updateProfile(data: { full_name: string }) {
   const supabase = await getSupabaseServerClient()
@@ -53,6 +54,25 @@ export async function setPin(data: { pin: string; pinConfirm: string }): Promise
 
   if (error) return { error: 'Błąd podczas zapisywania PINu' }
   revalidatePath('/admin/profile')
+  return {}
+}
+
+// ── RODO: usunięcie własnego konta ────────────────────────────────────────────
+export async function deleteOwnAccount(): Promise<{ error?: string }> {
+  const supabase = await getSupabaseServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Brak autoryzacji' }
+
+  const admin = getSupabaseAdminClient()
+  const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role === 'super_admin') {
+    return { error: 'Konto Super Administratora nie może zostać usunięte przez panel. Skontaktuj się z dostawcą systemu.' }
+  }
+
+  await logActivity({ userId: user.id, action: 'delete_own_account', targetType: 'user', targetId: user.id })
+  await admin.from('profiles').delete().eq('id', user.id)
+  const { error } = await admin.auth.admin.deleteUser(user.id)
+  if (error) return { error: 'Błąd podczas usuwania konta: ' + error.message }
   return {}
 }
 

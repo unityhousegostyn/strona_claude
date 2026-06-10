@@ -3,7 +3,7 @@ import { getAuthProfile } from '@/lib/getAuthProfile'
 import { redirect } from 'next/navigation'
 import PendingUsers from './PendingUsers'
 import AddUserForm from './AddUserForm'
-import Link from 'next/link'
+import UsersClient from './UsersClient'
 
 export default async function UsersPage() {
   // Auth check — anon client (RLS)
@@ -37,18 +37,6 @@ export default async function UsersPage() {
       : Promise.resolve({ data: [] }),
   ])
 
-  const roleLabel: Record<string, string> = {
-    super_admin: 'Super Admin',
-    admin: 'Administrator',
-    user: 'Mieszkaniec',
-  }
-
-  const roleBadge: Record<string, string> = {
-    super_admin: 'bg-purple-100 text-purple-400',
-    admin: 'bg-blue-900/40 text-blue-400',
-    user: 'bg-gray-900 text-gray-400',
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -67,47 +55,7 @@ export default async function UsersPage() {
         adminCommunityId={profile.community_id}
       />
 
-      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-950 border-b border-gray-800">
-            <tr>
-              <th className="text-left px-4 py-3 font-medium text-gray-400">Imię i nazwisko</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-400">Rola</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-400">Wspólnota</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-400">Dołączył</th>
-              {isSuperAdmin && <th className="px-4 py-3"></th>}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-800">
-            {(activeUsers ?? []).map((u: any) => (
-              <tr key={u.id} className="hover:bg-gray-950 transition">
-                <td className="px-4 py-3 font-medium text-gray-100">
-                  {u.full_name ?? <span className="text-gray-400 italic">Brak nazwy</span>}
-                </td>
-                <td className="px-4 py-3">
-                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${roleBadge[u.role]}`}>
-                    {roleLabel[u.role]}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-gray-300">{u.community?.name ?? '—'}</td>
-                <td className="px-4 py-3 text-gray-400">
-                  {new Date(u.created_at).toLocaleDateString('pl-PL')}
-                </td>
-                {isSuperAdmin && (
-                  <td className="px-4 py-3 text-right">
-                    <Link href={`/admin/users/${u.id}`} className="text-sm text-blue-600 hover:underline">
-                      Edytuj
-                    </Link>
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {(!activeUsers || activeUsers.length === 0) && (
-          <p className="text-center text-sm text-gray-400 py-8">Brak aktywnych użytkowników.</p>
-        )}
-      </div>
+      <UsersClient users={activeUsers ?? []} isSuperAdmin={isSuperAdmin} />
     </div>
   )
 }

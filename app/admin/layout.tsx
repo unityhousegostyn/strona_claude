@@ -5,6 +5,7 @@ import { ToastProvider } from '@/components/ToastContext'
 import AutoRefresh from '@/components/AutoRefresh'
 import ChatWidget from '@/components/ChatWidget'
 import InactivityLogout from '@/components/InactivityLogout'
+import { I18nProvider } from '@/lib/i18n'
 
 export default async function AdminLayout({
   children,
@@ -85,6 +86,7 @@ export default async function AdminLayout({
   }
 
   return (
+    <I18nProvider>
     <ToastProvider>
       <div className="flex min-h-screen bg-gray-950">
         <SidebarNav
@@ -102,5 +104,6 @@ export default async function AdminLayout({
         {/* <ChatWidget /> */}{/* AI chatbot — aktywuj po dodaniu ANTHROPIC_API_KEY */}
       </div>
     </ToastProvider>
+    </I18nProvider>
   )
 }

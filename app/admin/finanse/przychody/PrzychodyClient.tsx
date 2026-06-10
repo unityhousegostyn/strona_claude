@@ -4,6 +4,7 @@ import { useState, useTransition, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { addIncome, updateIncome, deleteIncome } from './actions'
 import type { IncomeCategory } from './income-categories'
+import { exportToExcel } from '@/lib/exportExcel'
 
 interface IncomeEntry {
   id: string; community_id: string; category: string; description: string
@@ -107,6 +108,17 @@ export default function PrzychodyClient({ incomeEntries, settlementsMap, communi
   const catLabel = (cat: string) => categories.find(c => c.value === cat)?.label ?? cat
   const catColors: Record<string, string> = { odsetki:'bg-yellow-950/40 text-yellow-400', zwrot:'bg-green-950/40 text-green-400', dotacja:'bg-blue-950/40 text-blue-400', inne:'bg-gray-800 text-gray-400' }
 
+  const handleExportExcel = () => {
+    const rows = filtered.map(e => ({
+      'Data': e.income_date,
+      'Opis': e.description,
+      'Kategoria': catLabel(e.category),
+      'Kwota (zł)': e.amount,
+      ...(isSuperAdmin ? { 'Wspólnota': commMap[e.community_id] ?? '' } : {}),
+    }))
+    exportToExcel(rows, `przychody_${filterYear}`)
+  }
+
   const handleAdd = () => {
     if (!form.description.trim()) { setFormError('Opis jest wymagany'); return }
     const amt = parseFloat(form.amount.replace(',', '.'))
@@ -143,7 +155,10 @@ export default function PrzychodyClient({ incomeEntries, settlementsMap, communi
           <h2 className="text-2xl font-bold text-gray-100">💰 Przychody wspólnoty</h2>
           <p className="text-sm text-gray-500 mt-0.5">Odsetki od lokat, zwroty, dotacje i inne dochody</p>
         </div>
-        <button onClick={() => setShowForm(!showForm)} className="bg-green-700 hover:bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">+ Dodaj przychód</button>
+        <div className="flex gap-2">
+          <button onClick={handleExportExcel} disabled={filtered.length === 0} className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm font-semibold px-4 py-2 rounded-lg transition disabled:opacity-40" title="Eksportuj do Excela">📊 Eksport Excel</button>
+          <button onClick={() => setShowForm(!showForm)} className="bg-green-700 hover:bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">+ Dodaj przychód</button>
+        </div>
       </div>
 
       {showForm && (

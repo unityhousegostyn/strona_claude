@@ -43,7 +43,13 @@ function LoginForm() {
         return
       }
 
-      window.location.href = '/admin/dashboard'
+      // Sprawdź czy użytkownik ma 2FA aktywne
+      const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+      if (aalData?.nextLevel === 'aal2' && aalData?.currentLevel !== 'aal2') {
+        window.location.href = '/mfa-verify'
+      } else {
+        window.location.href = '/admin/dashboard'
+      }
     } catch {
       setError('Wystąpił błąd logowania.')
     } finally {

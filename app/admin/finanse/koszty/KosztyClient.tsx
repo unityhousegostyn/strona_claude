@@ -4,6 +4,7 @@ import { useState, useTransition, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { addExpense, updateExpense, deleteExpense, importExpensesCSV, bulkUpdateCategory } from './actions'
 import type { ExpenseCategory } from './categories'
+import { exportToExcel } from '@/lib/exportExcel'
 
 interface Expense {
   id: string; community_id: string; category: string; description: string
@@ -139,6 +140,18 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
     startTransition(async () => { await deleteExpense(id); router.refresh() })
   }
 
+  const handleExportExcel = () => {
+    const rows = filtered.map(e => ({
+      'Data': e.expense_date,
+      'Opis': e.description,
+      'Kategoria': catLabel(e.category),
+      'Kwota (zł)': e.amount,
+      'Nr faktury': e.invoice_number ?? '',
+      ...(isSuperAdmin ? { 'Wspólnota': commMap[e.community_id] ?? '' } : {}),
+    }))
+    exportToExcel(rows, `koszty_${filterYear}`)
+  }
+
   const catLabel = (cat: string) => categories.find(c => c.value === cat)?.label ?? cat
   const catColors: Record<string, string> = { zarząd:'bg-blue-950/40 text-blue-400', woda:'bg-cyan-950/40 text-cyan-400', śmieci:'bg-green-950/40 text-green-400', remonty:'bg-orange-950/40 text-orange-400', ubezpieczenie:'bg-purple-950/40 text-purple-400', energia:'bg-yellow-950/40 text-yellow-400', fundusz_remontowy:'bg-red-950/40 text-red-400', inne:'bg-gray-800 text-gray-400' }
   const maxBar = Math.max(...Object.values(monthlyExpenses), ...Object.values(monthlyIncome), 1)
@@ -150,7 +163,10 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
           <h2 className="text-2xl font-bold text-gray-100">💸 Koszty wspólnoty</h2>
           <p className="text-sm text-gray-500 mt-0.5">Faktury, remonty i inne wydatki</p>
         </div>
-        <button onClick={() => setShowForm(!showForm)} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">+ Dodaj koszt</button>
+        <div className="flex gap-2">
+          <button onClick={handleExportExcel} disabled={filtered.length === 0} className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm font-semibold px-4 py-2 rounded-lg transition disabled:opacity-40" title="Eksportuj do Excela">📊 Eksport Excel</button>
+          <button onClick={() => setShowForm(!showForm)} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">+ Dodaj koszt</button>
+        </div>
       </div>
 
       {showForm && (

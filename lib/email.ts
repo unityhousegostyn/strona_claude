@@ -77,6 +77,32 @@ export async function sendAccountApprovedEmail(params: {
   })
 }
 
+export async function sendPasswordResetEmail(params: {
+  to: string
+  resetUrl: string
+}) {
+  if (!process.env.RESEND_API_KEY) return
+
+  await resend.emails.send({
+    from: FROM,
+    to: params.to,
+    subject: 'Reset hasła — Panel Wspólnoty',
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #dc2626;">🔑 Reset hasła</h2>
+        <p style="color: #374151;">Administrator zainicjował reset Twojego hasła. Kliknij poniższy przycisk, aby ustawić nowe hasło.</p>
+        <a href="${params.resetUrl}"
+          style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin: 16px 0;">
+          Ustaw nowe hasło
+        </a>
+        <p style="color: #6b7280; font-size: 13px;">Link wygaśnie za 24 godziny. Jeśli nie prosiłeś o reset hasła, zignoruj tę wiadomość.</p>
+        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+        <p style="color: #9ca3af; font-size: 12px;">Panel Zarządzania Wspólnotą</p>
+      </div>
+    `,
+  })
+}
+
 export async function sendNewCommentEmail(params: {
   to: string
   ticketTitle: string

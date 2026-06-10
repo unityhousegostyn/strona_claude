@@ -1,0 +1,74 @@
+{
+  "nav": {
+    "home": "Home",
+    "announcements": "Announcements",
+    "tickets": "Tickets",
+    "board": "Board",
+    "documents": "Documents",
+    "contacts": "Contacts",
+    "votes": "Resolutions - voting",
+    "settlements": "Settlements",
+    "profile": "Profile",
+    "users": "Users",
+    "communities": "Communities",
+    "audit": "Audit Log",
+    "finanse": "Finance",
+    "koszty": "Expenses",
+    "przychody": "Income",
+    "raporty": "Reports"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "confirm": "Confirm",
+    "back": "Back",
+    "logout": "Logout",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "auth": {
+    "login": "Sign in",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "No account? Register",
+    "loginError": "Invalid email or password."
+  },
+  "profile": {
+    "title": "My Profile",
+    "fullName": "Full name",
+    "role": "Role",
+    "community": "Community",
+    "status": "Status",
+    "active": "Active",
+    "pending": "Pending",
+    "changePassword": "Change password",
+    "newPassword": "New password (min. 8 characters)",
+    "confirmPassword": "Repeat new password",
+    "language": "Interface language"
+  },
+  "tickets": {
+    "title": "Tickets",
+    "new": "New ticket",
+    "open": "Active",
+    "closed": "Archive",
+    "noOpen": "No active tickets.",
+    "noArchive": "No archived tickets.",
+    "status_open": "Open",
+    "status_closed": "Closed",
+    "close": "Close",
+    "reopen": "Reopen"
+  },
+  "announcements": {
+    "title": "Announcements",
+    "new": "New announcement",
+    "noItems": "No announcements."
+  }
+}
