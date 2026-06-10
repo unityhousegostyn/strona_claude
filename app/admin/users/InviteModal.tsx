@@ -34,6 +34,30 @@ function parseEmails(text: string): Contact[] {
   return contacts
 }
 
+// Właściwy parser RFC 4180 — obsługuje pola z przecinkami w cudzysłowach
+function parseCsvRow(line: string, sep: string): string[] {
+  const result: string[] = []
+  let inQuote = false
+  let field = ''
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i]
+    if (inQuote) {
+      if (ch === '"') {
+        if (i + 1 < line.length && line[i + 1] === '"') { field += '"'; i++ }
+        else inQuote = false
+      } else {
+        field += ch
+      }
+    } else {
+      if (ch === '"') { inQuote = true }
+      else if (ch === sep) { result.push(field); field = '' }
+      else { field += ch }
+    }
+  }
+  result.push(field)
+  return result
+}
+
 function parseCsv(text: string): Contact[] {
   const lines = text.split(/\r?\n/).filter(l => l.trim())
   if (lines.length < 2) return []
@@ -41,12 +65,12 @@ function parseCsv(text: string): Contact[] {
   // Wykryj separator (, lub ;)
   const sep = lines[0].includes(';') ? ';' : ','
 
-  // Parsuj nagłówek
-  const header = lines[0].split(sep).map(h => h.trim().replace(/^"|"$/g, '').toLowerCase())
+  // Parsuj nagłówek przez właściwy parser
+  const header = parseCsvRow(lines[0], sep).map(h => h.trim().toLowerCase())
 
   // Mapa kolumn — obsługuje Gmail, Outlook, Apple
-  const emailCols = ['email 1 - value','e-mail address','email','e-mail','mail']
-  const nameCols  = ['name','full name','first name','given name','imię i nazwisko','imie i nazwisko']
+  const emailCols = ['e-mail address','email 1 - value','email','e-mail','mail']
+  const nameCols  = ['name','full name','imię i nazwisko','imie i nazwisko']
   const firstCols = ['first name','given name','imię','imie','first']
   const lastCols  = ['last name','family name','surname','nazwisko','last']
 
@@ -61,8 +85,7 @@ function parseCsv(text: string): Contact[] {
   const seen = new Set<string>()
 
   for (let i = 1; i < lines.length; i++) {
-    // Prosta obsługa cudzysłowów w CSV
-    const cols = lines[i].match(/("(?:[^"]|"")*"|[^,;]*)/g)?.map(c => c.trim().replace(/^"|"$/g, '').replace(/""/g, '"')) ?? lines[i].split(sep)
+    const cols = parseCsvRow(lines[i], sep)
     const email = cols[emailIdx]?.trim().toLowerCase()
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) continue
     if (seen.has(email)) continue
