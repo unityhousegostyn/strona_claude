@@ -4,7 +4,9 @@ import { getAuthProfileAction } from '@/lib/getAuthProfile'
 import { revalidatePath } from 'next/cache'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import { logActivity } from '@/lib/audit'
-import { sendAccountApprovedEmail } from '@/lib/email'
+import { sendAccountApprovedEmail, sendInvitationEmail } from '@/lib/email'
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
 async function requireAdminOrSuperAdmin() {
   const auth = await getAuthProfileAction()
@@ -90,6 +92,70 @@ export async function addUser(data: {
     if (profileError) return { error: profileError.message }
 
     await logActivity({ userId: actor.id, action: 'create_user', targetType: 'user', targetId: created.user.id })
+    revalidatePath('/admin/users')
+    return {}
+  } catch (e: any) {
+    return { error: e.message ?? 'Nieznany błąd' }
+  }
+}
+
+export async function sendInvitation(data: {
+  email: string
+  full_name?: string
+  apartment_number?: string
+  community_id: string
+}): Promise<{ error?: string }> {
+  try {
+    const { user: actor, profile: actorProfile } = await requireAdminOrSuperAdmin()
+
+    if (actorProfile.role === 'admin') {
+      if (data.community_id !== actorProfile.community_id) return { error: 'Brak uprawnień do tej wspólnoty' }
+    }
+
+    const emailTrimmed = data.email.trim().toLowerCase()
+    if (!emailTrimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) {
+      return { error: 'Nieprawidłowy adres email' }
+    }
+
+    const admin = getSupabaseAdminClient()
+
+    // Sprawdź czy użytkownik już istnieje
+    const { data: existing } = await admin.from('profiles').select('id, status').eq('email', emailTrimmed).maybeSingle()
+    if (existing) return { error: 'Użytkownik z tym adresem email już istnieje w systemie' }
+
+    // Usuń stare, nieużyte zaproszenia na ten email w tej wspólnocie
+    await admin.from('invitations')
+      .delete()
+      .eq('email', emailTrimmed)
+      .eq('community_id', data.community_id)
+      .is('used_at', null)
+
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 dni
+
+    const { data: inv, error: invError } = await admin.from('invitations').insert({
+      email: emailTrimmed,
+      full_name: data.full_name?.trim() || null,
+      apartment_number: data.apartment_number?.trim() || null,
+      community_id: data.community_id,
+      invited_by: actor.id,
+      expires_at: expiresAt.toISOString(),
+    }).select('token').single()
+
+    if (invError || !inv) return { error: invError?.message ?? 'Błąd tworzenia zaproszenia' }
+
+    const { data: community } = await admin.from('communities').select('name').eq('id', data.community_id).single()
+
+    const inviteUrl = `${APP_URL}/register?token=${inv.token}`
+
+    await sendInvitationEmail({
+      to: emailTrimmed,
+      communityName: community?.name ?? 'Wspólnota',
+      inviteUrl,
+      fullName: data.full_name?.trim() || undefined,
+      expiresAt,
+    })
+
+    await logActivity({ userId: actor.id, action: 'send_invitation', targetType: 'user', meta: { email: emailTrimmed, community_id: data.community_id } })
     revalidatePath('/admin/users')
     return {}
   } catch (e: any) {

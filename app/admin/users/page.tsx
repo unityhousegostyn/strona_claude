@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import PendingUsers from './PendingUsers'
 import AddUserForm from './AddUserForm'
 import UsersClient from './UsersClient'
+import InviteModal from './InviteModal'
 
 export default async function UsersPage() {
   // Auth check — anon client (RLS)
@@ -48,13 +49,20 @@ export default async function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <h2 className="text-2xl font-bold text-[#f0ebe0]">Użytkownicy</h2>
-        <AddUserForm
-          communities={communities ?? []}
-          isSuperAdmin={isSuperAdmin}
-          adminCommunityId={profile.community_id}
-        />
+        <div className="flex items-center gap-2">
+          <InviteModal
+            communities={communities ?? []}
+            isSuperAdmin={isSuperAdmin}
+            adminCommunityId={profile.community_id}
+          />
+          <AddUserForm
+            communities={communities ?? []}
+            isSuperAdmin={isSuperAdmin}
+            adminCommunityId={profile.community_id}
+          />
+        </div>
       </div>
 
       <PendingUsers

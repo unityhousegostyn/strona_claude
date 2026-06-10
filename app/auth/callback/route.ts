@@ -32,39 +32,40 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/login?error=invalid-link', request.url))
   }
 
-  // Email zweryfikowany — szukamy profilu ze statusem unconfirmed
-  // i aktualizujemy go na pending
+  // Email zweryfikowany — szukamy profilu ze statusem unconfirmed lub invited
   const admin = getSupabaseAdminClient()
 
   const { data: profiles } = await admin
     .from('profiles')
-    .select('id, full_name, email')
-    .eq('status', 'unconfirmed')
+    .select('id, full_name, email, status')
+    .in('status', ['unconfirmed', 'invited'])
     .order('created_at', { ascending: false })
     .limit(5)
 
-  // Znajdź profil który właśnie potwierdził email (najnowszy unconfirmed)
-  // verifyOtp nie zwraca zawsze user — używamy listy unconfirmed jako fallback
   if (profiles && profiles.length > 0) {
     const profile = profiles[0]
+    const wasInvited = profile.status === 'invited'
 
-    await admin
-      .from('profiles')
-      .update({ status: 'pending' })
-      .eq('id', profile.id)
-      .eq('status', 'unconfirmed')
+    if (wasInvited) {
+      // Zaproszony — od razu aktywny, oznacz zaproszenie jako użyte
+      await admin.from('profiles').update({ status: 'active' }).eq('id', profile.id)
+      await admin.from('invitations')
+        .update({ used_at: new Date().toISOString() })
+        .eq('email', profile.email ?? '')
+        .is('used_at', null)
+    } else {
+      // Zwykła rejestracja — czeka na akceptację admina
+      await admin.from('profiles').update({ status: 'pending' }).eq('id', profile.id).eq('status', 'unconfirmed')
 
-    // SUPER_ADMIN_EMAIL jeśli ustawione, fallback na EMAIL_USER
-    const notifyEmail = process.env.SUPER_ADMIN_EMAIL ?? process.env.EMAIL_USER
-    if (notifyEmail) {
-      try {
-        await sendNewUserPendingEmail({
-          to: notifyEmail,
-          userName: profile.full_name ?? profile.email ?? 'Nieznany',
-          userEmail: profile.email ?? '',
-        })
-      } catch {
-        // nie blokujemy
+      const notifyEmail = process.env.SUPER_ADMIN_EMAIL ?? process.env.EMAIL_USER
+      if (notifyEmail) {
+        try {
+          await sendNewUserPendingEmail({
+            to: notifyEmail,
+            userName: profile.full_name ?? profile.email ?? 'Nieznany',
+            userEmail: profile.email ?? '',
+          })
+        } catch {}
       }
     }
   }

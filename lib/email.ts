@@ -332,3 +332,155 @@ export async function sendNewCommentEmail(params: {
     `),
   })
 }
+
+// ── ZAPROSZENIE DO WSPÓLNOTY ──────────────────────────────────────────────────
+
+export async function sendInvitationEmail(params: {
+  to: string
+  communityName: string
+  inviteUrl: string
+  fullName?: string
+  expiresAt: Date
+}) {
+  const greeting = params.fullName ? `Szanowny/a <strong>${params.fullName}</strong>,` : 'Szanowny/a Mieszkańcu,'
+  const expiryStr = params.expiresAt.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' })
+
+  await sendMail({
+    to: params.to,
+    subject: `Zaproszenie do panelu wspólnoty — ${params.communityName}`,
+    html: invitationLayout(params.communityName, `
+      <p style="font-size:15px;color:#c8b89a;line-height:1.8;margin:0 0 8px;">
+        ${greeting}
+      </p>
+      <p style="font-size:15px;color:#c8b89a;line-height:1.8;margin:0 0 28px;">
+        Zarząd Państwa wspólnoty zaprasza do korzystania z <strong style="color:#f0ebe0;">cyfrowego panelu mieszkańca</strong>.
+        W jednym miejscu znajdą Państwo rozliczenia, dokumenty i bieżące informacje ze wspólnoty.
+      </p>
+
+      <!-- Kafelki funkcji -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 32px;">
+        <tr>
+          <td width="50%" style="padding:0 8px 12px 0;vertical-align:top;">
+            ${featureTile('💰', 'Rozliczenia', 'Podgląd opłat, saldo lokalu i historia wpłat online')}
+          </td>
+          <td width="50%" style="padding:0 0 12px 8px;vertical-align:top;">
+            ${featureTile('📢', 'Ogłoszenia', 'Aktualności od zarządu bez czekania na tablicę')}
+          </td>
+        </tr>
+        <tr>
+          <td width="50%" style="padding:0 8px 0 0;vertical-align:top;">
+            ${featureTile('🎫', 'Zgłoszenia', 'Zgłoś usterkę lub wniosek — śledź jego status')}
+          </td>
+          <td width="50%" style="padding:0 0 0 8px;vertical-align:top;">
+            ${featureTile('🗳️', 'Głosowania', 'Uchwały wspólnoty — głosuj elektronicznie')}
+          </td>
+        </tr>
+      </table>
+
+      <!-- CTA -->
+      <div style="text-align:center;margin:0 0 28px;">
+        <a href="${params.inviteUrl}"
+          style="display:inline-block;background:linear-gradient(135deg,#d97706,#b45309);color:#ffffff;font-size:15px;font-weight:700;padding:16px 40px;border-radius:10px;text-decoration:none;letter-spacing:0.3px;box-shadow:0 4px 16px rgba(217,119,6,0.35);">
+          Dołącz do panelu wspólnoty →
+        </a>
+      </div>
+
+      <!-- Wygasanie -->
+      <div style="background:#2a2218;border:1px solid #3a2e1e;border-radius:8px;padding:14px 18px;text-align:center;margin:0 0 8px;">
+        <p style="margin:0;font-size:12px;color:#6a5a48;">
+          ⏳&nbsp; Link jest ważny do <strong style="color:#b8a898;">${expiryStr}</strong>.
+          Po tym terminie prosimy skontaktować się z zarządem.
+        </p>
+      </div>
+
+      <p style="font-size:12px;color:#4a3c28;text-align:center;margin:16px 0 0;">
+        Jeżeli nie spodziewali się Państwo tego zaproszenia, prosimy zignorować tę wiadomość.
+      </p>
+    `),
+  })
+}
+
+// ── Layout zaproszenia — ciemny, premium ──────────────────────────────────────
+
+function invitationLayout(communityName: string, content: string) {
+  const address = process.env.EMAIL_FOOTER_ADDRESS ?? ''
+  const phone   = process.env.EMAIL_FOOTER_PHONE ?? ''
+  const website = APP_URL
+
+  const footerLines = [
+    address && `<span>${address}</span>`,
+    phone   && `<span>Tel.: ${phone}</span>`,
+    `<span><a href="${website}" style="color:#4a3c28;text-decoration:none;">${website.replace(/^https?:\/\//, '')}</a></span>`,
+  ].filter(Boolean).join(' &nbsp;·&nbsp; ')
+
+  return `<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Zaproszenie — ${communityName}</title>
+</head>
+<body style="margin:0;padding:0;background:#0e0b07;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0e0b07;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="580" cellpadding="0" cellspacing="0" style="max-width:580px;width:100%;">
+
+        <!-- LOGO HEADER -->
+        <tr>
+          <td style="padding:0 0 24px;text-align:center;">
+            <table cellpadding="0" cellspacing="0" style="margin:0 auto;">
+              <tr>
+                <td style="background:#d97706;border-radius:10px;padding:10px 14px;line-height:1;">
+                  <span style="font-size:18px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">&#127968;</span>
+                </td>
+                <td style="padding-left:12px;">
+                  <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:#6a5a48;">Panel Zarządzania</p>
+                  <p style="margin:2px 0 0;font-size:16px;font-weight:700;color:#f0ebe0;">${communityName}</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- HERO BANNER -->
+        <tr>
+          <td style="background:linear-gradient(145deg,#1e1810,#2a2218);border-radius:16px 16px 0 0;border:1px solid #3a2e1e;border-bottom:none;padding:40px 40px 32px;text-align:center;">
+            <div style="display:inline-block;background:#d97706;border-radius:50%;width:56px;height:56px;line-height:56px;font-size:26px;margin:0 0 20px;">🏠</div>
+            <h1 style="margin:0 0 8px;font-size:28px;font-weight:800;color:#f0ebe0;letter-spacing:-0.5px;">Zaproszenie do wspólnoty</h1>
+            <p style="margin:0;font-size:15px;color:#7a6a58;">Otrzymali Państwo dostęp do cyfrowego panelu mieszkańca</p>
+          </td>
+        </tr>
+
+        <!-- TREŚĆ -->
+        <tr>
+          <td style="background:#18140e;border:1px solid #3a2e1e;border-top:none;border-bottom:none;padding:32px 40px;">
+            ${content}
+          </td>
+        </tr>
+
+        <!-- STOPKA -->
+        <tr>
+          <td style="background:#0e0b07;border:1px solid #3a2e1e;border-top:1px solid #2a2218;border-radius:0 0 16px 16px;padding:20px 40px;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#3a2e1e;line-height:1.8;">${footerLines}</p>
+            <p style="margin:10px 0 0;font-size:11px;color:#2a2218;">
+              Wiadomość wygenerowana automatycznie. Prosimy nie odpowiadać na ten email.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+}
+
+// ── Kafelek funkcji (używany w zaproszeniu) ───────────────────────────────────
+
+function featureTile(icon: string, title: string, desc: string) {
+  return `<div style="background:#1e1810;border:1px solid #3a2e1e;border-radius:10px;padding:16px;">
+    <p style="margin:0 0 6px;font-size:20px;line-height:1;">${icon}</p>
+    <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#f0ebe0;">${title}</p>
+    <p style="margin:0;font-size:12px;color:#6a5a48;line-height:1.5;">${desc}</p>
+  </div>`
+}
