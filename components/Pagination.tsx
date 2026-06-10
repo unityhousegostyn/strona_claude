@@ -25,21 +25,21 @@ export default function Pagination({ page, totalPages, onPageChange }: Props) {
       <button
         onClick={() => onPageChange(page - 1)}
         disabled={page === 1}
-        className="px-3 py-1.5 rounded-lg text-sm text-stone-500 hover:text-stone-900 hover:bg-stone-200 disabled:opacity-30 disabled:cursor-not-allowed transition"
+        className="px-3 py-1.5 rounded-lg text-sm text-[#7a6a58] hover:text-[#f0ebe0] hover:bg-[#2a2218] disabled:opacity-30 disabled:cursor-not-allowed transition"
       >
         ←
       </button>
       {pages.map((p, i) =>
         p === '...' ? (
-          <span key={`ellipsis-${i}`} className="px-2 text-stone-400 text-sm select-none">…</span>
+          <span key={`ellipsis-${i}`} className="px-2 text-[#6a5a48] text-sm select-none">…</span>
         ) : (
           <button
             key={p}
             onClick={() => onPageChange(p as number)}
             className={`min-w-[36px] px-3 py-1.5 rounded-lg text-sm font-medium transition ${
               p === page
-                ? 'bg-green-600 text-white'
-                : 'text-stone-500 hover:text-stone-900 hover:bg-stone-200'
+                ? 'bg-amber-600 text-white'
+                : 'text-[#7a6a58] hover:text-[#f0ebe0] hover:bg-[#2a2218]'
             }`}
           >
             {p}
@@ -49,7 +49,7 @@ export default function Pagination({ page, totalPages, onPageChange }: Props) {
       <button
         onClick={() => onPageChange(page + 1)}
         disabled={page === totalPages}
-        className="px-3 py-1.5 rounded-lg text-sm text-stone-500 hover:text-stone-900 hover:bg-stone-200 disabled:opacity-30 disabled:cursor-not-allowed transition"
+        className="px-3 py-1.5 rounded-lg text-sm text-[#7a6a58] hover:text-[#f0ebe0] hover:bg-[#2a2218] disabled:opacity-30 disabled:cursor-not-allowed transition"
       >
         →
       </button>

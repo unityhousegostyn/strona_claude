@@ -2,14 +2,20 @@
 
 @layer base {
   body {
-    background-color: #faf8f5;
-    color: #1c1a17;
+    background-color: #18140e;
+    color: #f0ebe0;
   }
 }
 
 @layer components {
   .input {
-    @apply w-full bg-white border border-stone-300 text-stone-900 placeholder-stone-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition;
+    @apply w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-transparent transition;
+    background-color: #241e14;
+    border: 1px solid #3a2e1e;
+    color: #f0ebe0;
+  }
+  .input::placeholder {
+    color: #6a5a48;
   }
 }
 

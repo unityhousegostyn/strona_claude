@@ -49,7 +49,7 @@ export default async function UsersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-stone-900">Użytkownicy</h2>
+        <h2 className="text-2xl font-bold text-[#f0ebe0]">Użytkownicy</h2>
         <AddUserForm
           communities={communities ?? []}
           isSuperAdmin={isSuperAdmin}

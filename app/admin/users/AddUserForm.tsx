@@ -43,27 +43,27 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
     <>
       <button
         onClick={() => setOpen(true)}
-        className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition flex items-center gap-2"
+        className="bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition flex items-center gap-2"
       >
         + Dodaj użytkownika
       </button>
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-stone-50 border border-stone-200 rounded-2xl w-full max-w-md shadow-2xl">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200">
-              <h3 className="text-base font-semibold text-stone-900">Dodaj użytkownika</h3>
-              <button onClick={() => setOpen(false)} className="text-stone-400 hover:text-stone-700 text-xl leading-none">×</button>
+          <div className="bg-[#18140e] border border-[#3a2e1e] rounded-2xl w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#3a2e1e]">
+              <h3 className="text-base font-semibold text-[#f0ebe0]">Dodaj użytkownika</h3>
+              <button onClick={() => setOpen(false)} className="text-[#6a5a48] hover:text-[#b8a898] text-xl leading-none">×</button>
             </div>
 
             {success ? (
               <div className="px-6 py-10 text-center">
-                <p className="text-green-400 text-lg font-semibold">✓ Użytkownik dodany</p>
+                <p className="text-amber-400 text-lg font-semibold">✓ Użytkownik dodany</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
                 <div>
-                  <label className="block text-xs text-stone-500 mb-1">Imię i nazwisko</label>
+                  <label className="block text-xs text-[#7a6a58] mb-1">Imię i nazwisko</label>
                   <input
                     type="text"
                     required
@@ -74,7 +74,7 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-stone-500 mb-1">Adres e-mail</label>
+                  <label className="block text-xs text-[#7a6a58] mb-1">Adres e-mail</label>
                   <input
                     type="email"
                     required
@@ -85,7 +85,7 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-stone-500 mb-1">Hasło tymczasowe</label>
+                  <label className="block text-xs text-[#7a6a58] mb-1">Hasło tymczasowe</label>
                   <input
                     type="password"
                     required
@@ -98,7 +98,7 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs text-stone-500 mb-1">Rola</label>
+                    <label className="block text-xs text-[#7a6a58] mb-1">Rola</label>
                     <select
                       className="input w-full"
                       value={form.role}
@@ -109,7 +109,7 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs text-stone-500 mb-1">Wspólnota</label>
+                    <label className="block text-xs text-[#7a6a58] mb-1">Wspólnota</label>
                     {isSuperAdmin ? (
                       <select
                         className="input w-full"
@@ -122,7 +122,7 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
                         ))}
                       </select>
                     ) : (
-                      <p className="input w-full text-stone-500 text-sm py-2">
+                      <p className="input w-full text-[#7a6a58] text-sm py-2">
                         {communities.find((c) => c.id === adminCommunityId)?.name ?? '—'}
                       </p>
                     )}
@@ -135,14 +135,14 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
                   <button
                     type="button"
                     onClick={() => setOpen(false)}
-                    className="text-sm text-stone-500 hover:text-stone-800 transition px-3 py-2"
+                    className="text-sm text-[#7a6a58] hover:text-[#ddd5c5] transition px-3 py-2"
                   >
                     Anuluj
                   </button>
                   <button
                     type="submit"
                     disabled={isPending}
-                    className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-5 py-2 rounded-lg transition disabled:opacity-50"
+                    className="bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-5 py-2 rounded-lg transition disabled:opacity-50"
                   >
                     {isPending ? 'Tworzenie...' : 'Utwórz konto'}
                   </button>

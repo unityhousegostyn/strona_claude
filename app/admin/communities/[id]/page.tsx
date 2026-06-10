@@ -63,7 +63,7 @@ export default function EditCommunityPage() {
 
   return (
     <div className="max-w-xl space-y-6">
-      <h2 className="text-2xl font-bold text-stone-900">Edytuj wspólnotę</h2>
+      <h2 className="text-2xl font-bold text-[#f0ebe0]">Edytuj wspólnotę</h2>
 
       {error && (
         <div className="bg-red-950/30 border border-red-900 text-red-400 text-sm rounded-lg px-4 py-3">
@@ -71,9 +71,9 @@ export default function EditCommunityPage() {
         </div>
       )}
 
-      <div className="bg-stone-100 border border-stone-200 rounded-xl p-6 space-y-4">
+      <div className="bg-[#241e14] border border-[#3a2e1e] rounded-xl p-6 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-stone-700 mb-1">Nazwa wspólnoty</label>
+          <label className="block text-sm font-medium text-[#b8a898] mb-1">Nazwa wspólnoty</label>
           <input
             className="input"
             value={name}
@@ -81,7 +81,7 @@ export default function EditCommunityPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-stone-700 mb-1">Adres</label>
+          <label className="block text-sm font-medium text-[#b8a898] mb-1">Adres</label>
           <input
             className="input"
             value={address}
@@ -95,13 +95,13 @@ export default function EditCommunityPage() {
           <button
             onClick={handleUpdate}
             disabled={loading}
-            className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
+            className="bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
           >
             {loading ? 'Zapisywanie...' : 'Zapisz zmiany'}
           </button>
           <button
             onClick={() => router.back()}
-            className="text-sm text-stone-500 hover:text-stone-900 px-5 py-2.5 rounded-lg border border-stone-200 hover:bg-stone-50 transition"
+            className="text-sm text-[#7a6a58] hover:text-[#f0ebe0] px-5 py-2.5 rounded-lg border border-[#3a2e1e] hover:bg-[#18140e] transition"
           >
             Anuluj
           </button>

@@ -11,18 +11,18 @@ export default function LandingPage() {
       <style>{`
         .lp *, .lp *::before, .lp *::after { box-sizing: border-box; margin: 0; padding: 0; }
         .lp {
-          --bg:      #faf8f5;
-          --bg2:     #f0ede6;
-          --card:    #ffffff;
-          --border:  #e5dfd7;
-          --border2: #d4c9b8;
-          --green:   #1a4731;
-          --green2:  #0f2d1e;
-          --gold:    #d4a017;
-          --gold2:   #b8880f;
-          --text:    #1c1a17;
-          --text2:   #6b6359;
-          --text3:   #9c9189;
+          --bg:      #18140e;
+          --bg2:     #1e1810;
+          --card:    #241e14;
+          --border:  #3a2e1e;
+          --border2: #4a3c28;
+          --green:   #0d0a06;
+          --green2:  #080604;
+          --gold:    #f59e0b;
+          --gold2:   #d97706;
+          --text:    #f0ebe0;
+          --text2:   #b0a090;
+          --text3:   #7a6a58;
           background: var(--bg);
           color: var(--text);
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
@@ -34,7 +34,7 @@ export default function LandingPage() {
         /* NAV */
         .lp-nav {
           position: sticky; top: 0; z-index: 100;
-          background: rgba(250,248,245,0.90); backdrop-filter: blur(12px);
+          background: rgba(14,10,6,0.93); backdrop-filter: blur(12px);
           border-bottom: 1px solid var(--border);
           padding: 0 24px;
         }
@@ -42,9 +42,9 @@ export default function LandingPage() {
           max-width: 1100px; margin: 0 auto; height: 64px;
           display: flex; align-items: center; justify-content: space-between;
         }
-        .lp-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; color: var(--green); }
+        .lp-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; color: var(--gold); }
         .lp-logo-icon {
-          width: 34px; height: 34px; background: var(--green); border-radius: 8px;
+          width: 34px; height: 34px; background: var(--gold2); border-radius: 8px;
           display: flex; align-items: center; justify-content: center; font-size: 18px;
         }
         .lp-nav-links { display: flex; align-items: center; gap: 8px; }
@@ -52,18 +52,18 @@ export default function LandingPage() {
           font-size: 14px; color: var(--text2); padding: 8px 14px;
           border-radius: 8px; transition: color .2s, background .2s;
         }
-        .lp-nav-links a:not(.lp-btn):hover { color: var(--text); background: rgba(26,71,49,.06); }
+        .lp-nav-links a:not(.lp-btn):hover { color: var(--text); background: rgba(217,119,6,.07); }
         .lp-btn {
           display: inline-flex; align-items: center; gap: 6px;
-          background: #2e7d52; color: #fff; font-size: 14px; font-weight: 600;
+          background: #d97706; color: #fff; font-size: 14px; font-weight: 600;
           padding: 9px 20px; border-radius: 9px; border: none; cursor: pointer;
           transition: background .2s, transform .15s; text-decoration: none;
         }
-        .lp-btn:hover { background: #256642; transform: translateY(-1px); color: #fff; }
+        .lp-btn:hover { background: #b45309; transform: translateY(-1px); color: #fff; }
         .lp-btn-outline {
           background: transparent; border: 1px solid var(--border2); color: var(--text2);
         }
-        .lp-btn-outline:hover { background: rgba(26,71,49,.05); color: var(--text); }
+        .lp-btn-outline:hover { background: rgba(217,119,6,.06); color: var(--text); }
         .lp-btn-lg { font-size: 16px; padding: 13px 28px; border-radius: 11px; }
 
         /* HERO */
@@ -74,7 +74,7 @@ export default function LandingPage() {
         .lp-hero::before {
           content: ''; position: absolute; top: -100px; left: 50%;
           transform: translateX(-50%); width: 800px; height: 500px;
-          background: radial-gradient(ellipse, rgba(26,71,49,.08) 0%, transparent 70%);
+          background: radial-gradient(ellipse, rgba(217,119,6,.06) 0%, transparent 70%);
           pointer-events: none;
         }
         .lp-badge {
@@ -100,7 +100,7 @@ export default function LandingPage() {
         .lp-mockup-wrap { max-width: 900px; margin: 64px auto 0; padding: 0 24px; }
         .lp-mockup {
           background: var(--card); border: 1px solid var(--border); border-radius: 16px;
-          overflow: hidden; box-shadow: 0 20px 60px rgba(26,71,49,.10), 0 0 0 1px var(--border);
+          overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.55), 0 0 0 1px var(--border);
         }
         .lp-mockup-bar {
           background: var(--bg2); border-bottom: 1px solid var(--border);
@@ -109,7 +109,7 @@ export default function LandingPage() {
         .lp-dot { width: 10px; height: 10px; border-radius: 50%; }
         .lp-dot-r { background: #ef4444; } .lp-dot-y { background: #f59e0b; } .lp-dot-g { background: #22c55e; }
         .lp-mockup-url {
-          flex: 1; background: rgba(26,71,49,.06); border-radius: 6px;
+          flex: 1; background: rgba(217,119,6,.07); border-radius: 6px;
           height: 24px; margin: 0 12px; display: flex; align-items: center; padding: 0 10px;
         }
         .lp-mockup-url span { font-size: 11px; color: var(--text3); }
@@ -134,7 +134,7 @@ export default function LandingPage() {
           background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px;
         }
         .lp-mock-card-label { font-size: 10px; color: var(--text3); margin-bottom: 4px; }
-        .lp-mock-card-val { font-size: 20px; font-weight: 700; color: var(--green); }
+        .lp-mock-card-val { font-size: 20px; font-weight: 700; color: var(--gold); }
         .lp-mock-card-icon { font-size: 16px; margin-bottom: 4px; }
         .lp-mock-rows { display: flex; flex-direction: column; gap: 8px; }
         .lp-mock-row {
@@ -143,7 +143,7 @@ export default function LandingPage() {
         }
         .lp-mock-row-text { font-size: 11px; color: var(--text2); }
         .lp-mock-badge { font-size: 10px; padding: 2px 7px; border-radius: 99px; background: rgba(212,160,23,.15); color: var(--gold2); }
-        .lp-mock-badge.green { background: rgba(26,71,49,.10); color: var(--green); }
+        .lp-mock-badge.green { background: rgba(217,119,6,.12); color: var(--gold); }
 
         /* SECTIONS */
         .lp-section { padding: 80px 24px; }
@@ -177,15 +177,15 @@ export default function LandingPage() {
           background: var(--card); border: 1px solid var(--border); border-radius: 16px;
           padding: 28px; transition: border-color .2s, box-shadow .2s, transform .2s;
         }
-        .lp-feat:hover { border-color: var(--border2); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(26,71,49,.08); }
+        .lp-feat:hover { border-color: var(--border2); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.35); }
         .lp-feat-icon {
           width: 48px; height: 48px; border-radius: 12px;
           display: flex; align-items: center; justify-content: center;
           font-size: 22px; margin-bottom: 18px;
         }
-        .fi-green   { background: rgba(26,71,49,.10); }
+        .fi-green   { background: rgba(217,119,6,.12); }
         .fi-gold    { background: rgba(212,160,23,.12); }
-        .fi-sage    { background: rgba(26,71,49,.07); }
+        .fi-sage    { background: rgba(217,119,6,.08); }
         .fi-amber   { background: rgba(212,160,23,.10); }
         .fi-stone   { background: rgba(120,100,80,.10); }
         .fi-warm    { background: rgba(180,60,40,.08); }
@@ -196,7 +196,7 @@ export default function LandingPage() {
         .lp-steps { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 24px; margin-top: 52px; }
         .lp-step { display: flex; flex-direction: column; align-items: flex-start; }
         .lp-step-num {
-          width: 40px; height: 40px; border-radius: 10px; background: var(--green); color: #fff;
+          width: 40px; height: 40px; border-radius: 10px; background: var(--gold2); color: #fff;
           font-size: 17px; font-weight: 800; display: flex; align-items: center;
           justify-content: center; margin-bottom: 18px; flex-shrink: 0;
         }
@@ -213,13 +213,13 @@ export default function LandingPage() {
           font-size: 12px; font-weight: 600; padding: 4px 12px;
           border-radius: 99px; margin-bottom: 16px;
         }
-        .rb-green  { background: rgba(26,71,49,.10);  color: var(--green);  border: 1px solid rgba(26,71,49,.20); }
+        .rb-green  { background: rgba(217,119,6,.12);  color: var(--gold2);  border: 1px solid rgba(217,119,6,.22); }
         .rb-gold   { background: rgba(212,160,23,.12); color: var(--gold2);  border: 1px solid rgba(212,160,23,.30); }
         .rb-stone  { background: rgba(120,100,80,.10); color: #7a6650;       border: 1px solid rgba(120,100,80,.25); }
         .lp-role h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; color: var(--text); }
         .lp-role-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
         .lp-role-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: var(--text2); }
-        .lp-role-list li::before { content: '✓'; color: var(--green); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+        .lp-role-list li::before { content: '✓'; color: var(--gold); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
 
         /* DIVIDER */
         .lp-divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); max-width: 1100px; margin: 0 auto; }
@@ -249,7 +249,7 @@ export default function LandingPage() {
           max-width: 1100px; margin: 0 auto;
           display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;
         }
-        .lp-footer-brand { font-size: 15px; font-weight: 700; color: var(--green); }
+        .lp-footer-brand { font-size: 15px; font-weight: 700; color: var(--gold); }
         .lp-footer-tagline { font-size: 13px; color: var(--text3); margin-top: 4px; }
         .lp-footer-links { display: flex; gap: 20px; }
         .lp-footer-links a { font-size: 13px; color: var(--text3); transition: color .2s; }

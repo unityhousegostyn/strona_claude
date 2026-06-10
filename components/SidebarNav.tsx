@@ -87,7 +87,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
           <button
             onClick={() => setFinanceOpen(o => !o)}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
-              anyActive ? 'text-green-400' : 'text-stone-500 hover:bg-stone-50 hover:text-stone-900'
+              anyActive ? 'text-amber-400' : 'text-[#7a6a58] hover:bg-[#18140e] hover:text-[#f0ebe0]'
             }`}
           >
             <span>{entry.icon}</span>
@@ -100,7 +100,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
             </svg>
           </button>
           {financeOpen && (
-            <div className="ml-4 mt-0.5 space-y-0.5 border-l border-stone-200 pl-3">
+            <div className="ml-4 mt-0.5 space-y-0.5 border-l border-[#3a2e1e] pl-3">
               {entry.subItems.map(sub => {
                 const active = pathname.startsWith(sub.href)
                 return (
@@ -109,7 +109,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
                     href={sub.href}
                     onClick={closeMobile}
                     className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
-                      active ? 'bg-green-950/40 text-green-400' : 'text-stone-500 hover:bg-stone-50 hover:text-stone-900'
+                      active ? 'bg-amber-950/40 text-amber-400' : 'text-[#7a6a58] hover:bg-[#18140e] hover:text-[#f0ebe0]'
                     }`}
                   >
                     <span className="text-base">{sub.icon}</span>
@@ -130,13 +130,13 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
         href={entry.href}
         onClick={closeMobile}
         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
-          active ? 'bg-green-950/40 text-green-400' : 'text-stone-500 hover:bg-stone-50 hover:text-stone-900'
+          active ? 'bg-amber-950/40 text-amber-400' : 'text-[#7a6a58] hover:bg-[#18140e] hover:text-[#f0ebe0]'
         }`}
       >
         <span>{entry.icon}</span>
         <span className="flex-1">{entry.label}</span>
         {entry.href === '/admin/announcements' && unreadAnnouncements > 0 && (
-          <span className="bg-green-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+          <span className="bg-amber-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
             {unreadAnnouncements > 99 ? '99+' : unreadAnnouncements}
           </span>
         )}
@@ -151,27 +151,27 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
 
   const NavContent = () => (
     <>
-      <div className="p-5 border-b border-stone-200">
-        <h1 className="text-lg font-bold text-stone-900">🏢 Wspólnoty</h1>
-        <p className="text-xs text-stone-500 mt-0.5">Panel zarządzania</p>
+      <div className="p-5 border-b border-[#3a2e1e]">
+        <h1 className="text-lg font-bold text-[#f0ebe0]">🏢 Wspólnoty</h1>
+        <p className="text-xs text-[#7a6a58] mt-0.5">Panel zarządzania</p>
       </div>
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {navItems.map(entry => renderEntry(entry, () => setMobileOpen(false)))}
       </nav>
 
-      <div className="p-4 border-t border-stone-200 space-y-1">
+      <div className="p-4 border-t border-[#3a2e1e] space-y-1">
         <Link
           href="/admin/profile"
           onClick={() => setMobileOpen(false)}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-stone-50 transition"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#18140e] transition"
         >
-          <div className="w-7 h-7 rounded-full bg-green-900/40 text-green-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
+          <div className="w-7 h-7 rounded-full bg-amber-900/40 text-amber-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
             {(profile.full_name ?? userEmail).charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-stone-900 truncate">{profile.full_name ?? userEmail}</p>
-            <p className="text-xs text-stone-500">{roleLabel[profile.role]}</p>
+            <p className="text-xs font-medium text-[#f0ebe0] truncate">{profile.full_name ?? userEmail}</p>
+            <p className="text-xs text-[#7a6a58]">{roleLabel[profile.role]}</p>
           </div>
         </Link>
         <button
@@ -187,11 +187,11 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
   return (
     <>
       {/* Mobile top bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-stone-100 border-b border-stone-200 flex items-center justify-between px-4 h-14">
-        <h1 className="text-base font-bold text-stone-900">🏢 Wspólnoty</h1>
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-[#241e14] border-b border-[#3a2e1e] flex items-center justify-between px-4 h-14">
+        <h1 className="text-base font-bold text-[#f0ebe0]">🏢 Wspólnoty</h1>
         <button
           onClick={() => setMobileOpen(true)}
-          className="p-2 rounded-lg text-stone-500 hover:bg-stone-100 transition"
+          className="p-2 rounded-lg text-[#7a6a58] hover:bg-[#241e14] transition"
           aria-label="Otwórz menu"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -207,12 +207,12 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
 
       {/* Mobile drawer */}
       <aside className={`
-        lg:hidden fixed top-0 left-0 z-50 h-full w-72 bg-stone-100 shadow-2xl shadow-black/60 flex flex-col transition-transform duration-300
+        lg:hidden fixed top-0 left-0 z-50 h-full w-72 bg-[#241e14] shadow-2xl shadow-black/60 flex flex-col transition-transform duration-300
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="flex items-center justify-between p-4 border-b border-stone-200">
-          <h1 className="text-lg font-bold text-stone-900">🏢 Wspólnoty</h1>
-          <button onClick={() => setMobileOpen(false)} className="p-1.5 rounded-lg text-stone-500 hover:bg-stone-100 transition">
+        <div className="flex items-center justify-between p-4 border-b border-[#3a2e1e]">
+          <h1 className="text-lg font-bold text-[#f0ebe0]">🏢 Wspólnoty</h1>
+          <button onClick={() => setMobileOpen(false)} className="p-1.5 rounded-lg text-[#7a6a58] hover:bg-[#241e14] transition">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -221,14 +221,14 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navItems.map(entry => renderEntry(entry, () => setMobileOpen(false)))}
         </nav>
-        <div className="p-4 border-t border-stone-200 space-y-1">
-          <Link href="/admin/profile" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-stone-50 transition">
-            <div className="w-7 h-7 rounded-full bg-green-900/40 text-green-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
+        <div className="p-4 border-t border-[#3a2e1e] space-y-1">
+          <Link href="/admin/profile" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#18140e] transition">
+            <div className="w-7 h-7 rounded-full bg-amber-900/40 text-amber-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
               {(profile.full_name ?? userEmail).charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-medium text-stone-900 truncate">{profile.full_name ?? userEmail}</p>
-              <p className="text-xs text-stone-500">{roleLabel[profile.role]}</p>
+              <p className="text-xs font-medium text-[#f0ebe0] truncate">{profile.full_name ?? userEmail}</p>
+              <p className="text-xs text-[#7a6a58]">{roleLabel[profile.role]}</p>
             </div>
           </Link>
           <button onClick={handleLogout} className="w-full text-left text-sm text-red-400 font-medium px-3 py-2 rounded-lg hover:bg-red-950/30 transition">
@@ -238,7 +238,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
       </aside>
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-64 bg-stone-100 border-r border-stone-200 flex-col shrink-0">
+      <aside className="hidden lg:flex w-64 bg-[#241e14] border-r border-[#3a2e1e] flex-col shrink-0">
         <NavContent />
       </aside>
     </>

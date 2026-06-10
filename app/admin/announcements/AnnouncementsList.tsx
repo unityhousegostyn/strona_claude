@@ -55,8 +55,8 @@ export default function AnnouncementsList({ announcements, communityMap, junctio
   }
 
   const targetLabel = (a: Announcement) => {
-    if (a.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-green-950/40 text-green-400' }
-    if (a.target === 'one') return { text: communityMap[a.community_id!] ?? '—', cls: 'bg-stone-100 text-stone-500' }
+    if (a.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-amber-950/40 text-amber-400' }
+    if (a.target === 'one') return { text: communityMap[a.community_id!] ?? '—', cls: 'bg-[#241e14] text-[#7a6a58]' }
     const names = (junctionMap[a.id] ?? []).map((cid) => communityMap[cid] ?? cid)
     return { text: names.join(', ') || '—', cls: 'bg-purple-950/30 text-purple-400' }
   }
@@ -67,22 +67,22 @@ export default function AnnouncementsList({ announcements, communityMap, junctio
   return (
     <div className="space-y-4">
       {/* Zakładki */}
-      <div className="flex gap-1 bg-stone-100 rounded-lg p-1 w-fit">
+      <div className="flex gap-1 bg-[#241e14] rounded-lg p-1 w-fit">
         <button
           onClick={() => handleTabChange('active')}
           className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${
-            tab === 'active' ? 'bg-stone-100 text-stone-900 shadow-lg shadow-black/30' : 'text-stone-400 hover:text-stone-700'
+            tab === 'active' ? 'bg-[#241e14] text-[#f0ebe0] shadow-lg shadow-black/30' : 'text-[#6a5a48] hover:text-[#b8a898]'
           }`}
         >
-          Aktywne <span className="ml-1 text-xs text-green-600 font-semibold">{activeCount}</span>
+          Aktywne <span className="ml-1 text-xs text-amber-500 font-semibold">{activeCount}</span>
         </button>
         <button
           onClick={() => handleTabChange('archive')}
           className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${
-            tab === 'archive' ? 'bg-stone-100 text-stone-900 shadow-lg shadow-black/30' : 'text-stone-400 hover:text-stone-700'
+            tab === 'archive' ? 'bg-[#241e14] text-[#f0ebe0] shadow-lg shadow-black/30' : 'text-[#6a5a48] hover:text-[#b8a898]'
           }`}
         >
-          Archiwum <span className="ml-1 text-xs text-stone-500 font-semibold">{archiveCount}</span>
+          Archiwum <span className="ml-1 text-xs text-[#7a6a58] font-semibold">{archiveCount}</span>
         </button>
       </div>
 
@@ -96,7 +96,7 @@ export default function AnnouncementsList({ announcements, communityMap, junctio
 
       {/* Lista */}
       {paged.length === 0 ? (
-        <p className="text-sm text-stone-500">
+        <p className="text-sm text-[#7a6a58]">
           {search ? 'Brak wyników dla podanej frazy.' : 'Brak ogłoszeń.'}
         </p>
       ) : (
@@ -104,26 +104,26 @@ export default function AnnouncementsList({ announcements, communityMap, junctio
           {paged.map((a) => {
             const { text, cls } = targetLabel(a)
             return (
-              <div key={a.id} className={`bg-stone-100 border rounded-xl p-4 ${tab === 'archive' ? 'opacity-70' : 'border-stone-200'}`}>
+              <div key={a.id} className={`bg-[#241e14] border rounded-xl p-4 ${tab === 'archive' ? 'opacity-70' : 'border-[#3a2e1e]'}`}>
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-stone-900">{a.title}</p>
-                    <p className="text-sm text-stone-400 mt-1 line-clamp-2">{a.content}</p>
+                    <p className="font-semibold text-[#f0ebe0]">{a.title}</p>
+                    <p className="text-sm text-[#6a5a48] mt-1 line-clamp-2">{a.content}</p>
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${cls}`}>{text}</span>
                       {tab === 'archive' && (
-                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-stone-100 text-stone-400">Archiwalne</span>
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[#241e14] text-[#6a5a48]">Archiwalne</span>
                       )}
-                      <span className="text-xs text-stone-500">{new Date(a.created_at).toLocaleDateString('pl-PL')}</span>
+                      <span className="text-xs text-[#7a6a58]">{new Date(a.created_at).toLocaleDateString('pl-PL')}</span>
                       {a.end_date && (
-                        <span className="text-xs text-stone-500">
+                        <span className="text-xs text-[#7a6a58]">
                           do {new Date(a.end_date).toLocaleDateString('pl-PL')}
                         </span>
                       )}
                     </div>
                   </div>
                   {canEdit && (
-                    <Link href={`/admin/announcements/${a.id}`} className="text-sm text-green-600 hover:underline whitespace-nowrap">
+                    <Link href={`/admin/announcements/${a.id}`} className="text-sm text-amber-500 hover:underline whitespace-nowrap">
                       Edytuj
                     </Link>
                   )}
@@ -140,17 +140,17 @@ export default function AnnouncementsList({ announcements, communityMap, junctio
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-3 py-1.5 text-sm border border-stone-200 rounded-lg hover:bg-stone-50 disabled:opacity-40 transition"
+            className="px-3 py-1.5 text-sm border border-[#3a2e1e] rounded-lg hover:bg-[#18140e] disabled:opacity-40 transition"
           >
             ← Poprzednia
           </button>
-          <span className="text-sm text-stone-400">
+          <span className="text-sm text-[#6a5a48]">
             {page} / {totalPages}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="px-3 py-1.5 text-sm border border-stone-200 rounded-lg hover:bg-stone-50 disabled:opacity-40 transition"
+            className="px-3 py-1.5 text-sm border border-[#3a2e1e] rounded-lg hover:bg-[#18140e] disabled:opacity-40 transition"
           >
             Następna →
           </button>

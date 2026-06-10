@@ -59,7 +59,7 @@ function layout(content: string) {
 
         <!-- NAGŁÓWEK -->
         <tr>
-          <td style="background:#1a4731;border-radius:12px 12px 0 0;padding:28px 40px;">
+          <td style="background:#d97706;border-radius:12px 12px 0 0;padding:28px 40px;">
             <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#d4a017;">PANEL ZARZĄDZANIA</p>
             <p style="margin:4px 0 0;font-size:20px;font-weight:700;color:#ffffff;">${communityName}</p>
           </td>
@@ -95,13 +95,13 @@ function layout(content: string) {
 // ── Komponent: przycisk ───────────────────────────────────────────────────────
 
 function btn(url: string, label: string) {
-  return `<a href="${url}" style="display:inline-block;background:#1a4731;color:#ffffff;font-size:14px;font-weight:600;padding:14px 32px;border-radius:8px;text-decoration:none;letter-spacing:0.3px;margin-top:8px;">${label}</a>`
+  return `<a href="${url}" style="display:inline-block;background:#d97706;color:#ffffff;font-size:14px;font-weight:600;padding:14px 32px;border-radius:8px;text-decoration:none;letter-spacing:0.3px;margin-top:8px;">${label}</a>`
 }
 
 // ── Komponent: cytat / wyróżniony blok ────────────────────────────────────────
 
 function quote(text: string) {
-  return `<div style="background:#f8fafc;border-left:4px solid #1a4731;border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;font-size:14px;color:#334155;line-height:1.7;">${text}</div>`
+  return `<div style="background:#f8fafc;border-left:4px solid #d97706;border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;font-size:14px;color:#334155;line-height:1.7;">${text}</div>`
 }
 
 // ── Komponent: info box ───────────────────────────────────────────────────────
@@ -124,7 +124,7 @@ export async function sendEmailVerification(params: {
     to: params.to,
     subject: 'Potwierdź adres e-mail — aktywacja konta',
     html: layout(`
-      <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#1a4731;">Witamy w systemie</h1>
+      <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#d97706;">Witamy w systemie</h1>
       <p style="margin:0 0 24px;font-size:14px;color:#64748b;">Rejestracja konta mieszkańca</p>
 
       <p style="font-size:15px;color:#334155;line-height:1.7;">
@@ -156,7 +156,7 @@ export async function sendAccountApprovedEmail(params: {
     to: params.to,
     subject: 'Konto aktywowane — możesz się zalogować',
     html: layout(`
-      <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#1a4731;">Konto zostało aktywowane</h1>
+      <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#d97706;">Konto zostało aktywowane</h1>
       <p style="margin:0 0 24px;font-size:14px;color:#64748b;">Dostęp do panelu mieszkańca</p>
 
       <p style="font-size:15px;color:#334155;line-height:1.7;">
@@ -190,7 +190,7 @@ export async function sendPasswordResetEmail(params: {
     to: params.to,
     subject: 'Resetowanie hasła — Panel Zarządzania Wspólnotą',
     html: layout(`
-      <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#1a4731;">Resetowanie hasła</h1>
+      <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#d97706;">Resetowanie hasła</h1>
       <p style="margin:0 0 24px;font-size:14px;color:#64748b;">Zmiana hasła do konta</p>
 
       <p style="font-size:15px;color:#334155;line-height:1.7;">
@@ -226,7 +226,7 @@ export async function sendAnnouncementEmail(params: {
     subject: `Ogłoszenie zarządu: ${params.title}`,
     html: layout(`
       <p style="margin:0 0 4px;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#64748b;">OGŁOSZENIE ZARZĄDU</p>
-      <h1 style="margin:0 0 32px;font-size:22px;font-weight:700;color:#1a4731;">${params.title}</h1>
+      <h1 style="margin:0 0 32px;font-size:22px;font-weight:700;color:#d97706;">${params.title}</h1>
 
       <div style="font-size:15px;color:#334155;line-height:1.8;">
         ${params.content.replace(/\n/g, '<br>')}
@@ -248,7 +248,7 @@ export async function sendNewUserPendingEmail(params: {
     to: params.to,
     subject: 'Nowy użytkownik oczekuje na akceptację',
     html: layout(`
-      <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#1a4731;">Nowe zgłoszenie rejestracji</h1>
+      <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#d97706;">Nowe zgłoszenie rejestracji</h1>
       <p style="margin:0 0 24px;font-size:14px;color:#64748b;">Użytkownik oczekuje na zatwierdzenie konta</p>
 
       <p style="font-size:15px;color:#334155;line-height:1.7;">
@@ -284,7 +284,7 @@ export async function sendNewTicketEmail(params: {
     to: params.to,
     subject: `Nowe zgłoszenie: ${params.ticketTitle}`,
     html: layout(`
-      <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#1a4731;">Nowe zgłoszenie</h1>
+      <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#d97706;">Nowe zgłoszenie</h1>
       <p style="margin:0 0 24px;font-size:14px;color:#64748b;">Mieszkaniec złożył nowe zgłoszenie</p>
 
       <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
@@ -315,7 +315,7 @@ export async function sendNewCommentEmail(params: {
     to: params.to,
     subject: `Nowa odpowiedź na zgłoszenie: ${params.ticketTitle}`,
     html: layout(`
-      <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#1a4731;">Nowa odpowiedź na zgłoszenie</h1>
+      <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#d97706;">Nowa odpowiedź na zgłoszenie</h1>
       <p style="margin:0 0 24px;font-size:14px;color:#64748b;">Ktoś skomentował Państwa zgłoszenie</p>
 
       <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">

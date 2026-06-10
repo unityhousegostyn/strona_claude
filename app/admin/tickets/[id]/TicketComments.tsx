@@ -57,14 +57,14 @@ export default function TicketComments({ ticketId, comments: initial, currentUse
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-base font-semibold text-stone-800">Komentarze ({comments.length})</h3>
+        <h3 className="text-base font-semibold text-[#ddd5c5]">Komentarze ({comments.length})</h3>
         {canChangeStatus && (
           <button
             onClick={handleToggleStatus}
             disabled={isPending}
             className={`text-sm font-medium px-3 py-1.5 rounded-lg border transition disabled:opacity-50 ${
               status === 'open'
-                ? 'border-green-900 text-green-400 hover:bg-green-950/30'
+                ? 'border-amber-800 text-amber-400 hover:bg-amber-950/30'
                 : 'border-yellow-900 text-yellow-400 hover:bg-yellow-950/30'
             }`}
           >
@@ -74,7 +74,7 @@ export default function TicketComments({ ticketId, comments: initial, currentUse
       </div>
 
       {comments.length === 0 && (
-        <p className="text-sm text-stone-500">Brak komentarzy. Dodaj pierwszy.</p>
+        <p className="text-sm text-[#7a6a58]">Brak komentarzy. Dodaj pierwszy.</p>
       )}
 
       <div className="space-y-3">
@@ -82,16 +82,16 @@ export default function TicketComments({ ticketId, comments: initial, currentUse
           const isOwn = c.author_id === currentUserId
           return (
             <div key={c.id} className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : ''}`}>
-              <div className="w-7 h-7 rounded-full bg-gray-200 text-stone-500 text-xs font-bold flex items-center justify-center flex-shrink-0">
+              <div className="w-7 h-7 rounded-full bg-[#2a2218] text-[#7a6a58] text-xs font-bold flex items-center justify-center flex-shrink-0">
                 {(c.author?.full_name ?? c.author?.email ?? '?').charAt(0).toUpperCase()}
               </div>
               <div className={`max-w-[75%] ${isOwn ? 'items-end' : 'items-start'} flex flex-col gap-0.5`}>
                 <div className={`rounded-xl px-4 py-2.5 text-sm ${
-                  isOwn ? 'bg-green-600 text-white' : 'bg-stone-100 border border-stone-200 text-stone-800'
+                  isOwn ? 'bg-amber-600 text-white' : 'bg-[#241e14] border border-[#3a2e1e] text-[#ddd5c5]'
                 }`}>
                   {c.content}
                 </div>
-                <p className="text-xs text-stone-500 px-1">
+                <p className="text-xs text-[#7a6a58] px-1">
                   {c.author?.full_name ?? c.author?.email ?? '—'} · {new Date(c.created_at).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })}
                 </p>
               </div>
@@ -111,7 +111,7 @@ export default function TicketComments({ ticketId, comments: initial, currentUse
         <button
           onClick={handleAdd}
           disabled={isPending || !content.trim()}
-          className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition disabled:opacity-50"
+          className="bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition disabled:opacity-50"
         >
           Wyślij
         </button>

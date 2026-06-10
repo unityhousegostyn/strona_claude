@@ -83,34 +83,34 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
   return (
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/admin/tickets" className="text-sm text-stone-500 hover:text-stone-700">← Zgłoszenia</Link>
+        <Link href="/admin/tickets" className="text-sm text-[#7a6a58] hover:text-[#b8a898]">← Zgłoszenia</Link>
       </div>
 
-      <div className="bg-stone-100 border border-stone-200 rounded-xl p-6 space-y-4">
+      <div className="bg-[#241e14] border border-[#3a2e1e] rounded-xl p-6 space-y-4">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h2 className="text-xl font-bold text-stone-900">{ticket.title}</h2>
-            <p className="text-sm text-stone-500 mt-1">
+            <h2 className="text-xl font-bold text-[#f0ebe0]">{ticket.title}</h2>
+            <p className="text-sm text-[#7a6a58] mt-1">
               {author?.full_name ?? author?.email ?? '—'} · {community?.name ?? '—'} · {new Date(ticket.created_at).toLocaleDateString('pl-PL')}
             </p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-              ticket.status === 'open' ? 'bg-yellow-900/40 text-yellow-400' : 'bg-green-900/40 text-green-400'
+              ticket.status === 'open' ? 'bg-yellow-900/40 text-yellow-400' : 'bg-amber-900/40 text-amber-400'
             }`}>
               {ticket.status === 'open' ? 'Otwarte' : 'Zamknięte'}
             </span>
           </div>
         </div>
 
-        <p className="text-sm text-stone-700 whitespace-pre-wrap">{ticket.description}</p>
+        <p className="text-sm text-[#b8a898] whitespace-pre-wrap">{ticket.description}</p>
 
         {attachmentUrl && (
           <a
             href={attachmentUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm text-green-400 hover:underline bg-green-950/40 px-3 py-1.5 rounded-lg"
+            className="inline-flex items-center gap-2 text-sm text-amber-400 hover:underline bg-amber-950/40 px-3 py-1.5 rounded-lg"
           >
             📎 {attachmentName}
           </a>
@@ -127,20 +127,20 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
 
       {/* Historia */}
       {history.length > 0 && (
-        <div className="bg-stone-100 border border-stone-200 rounded-xl p-5 space-y-3">
-          <h3 className="text-sm font-semibold text-stone-400 uppercase tracking-wide">Historia</h3>
+        <div className="bg-[#241e14] border border-[#3a2e1e] rounded-xl p-5 space-y-3">
+          <h3 className="text-sm font-semibold text-[#6a5a48] uppercase tracking-wide">Historia</h3>
           <div className="space-y-2">
             {history.map((h, i) => (
               <div key={i} className="flex items-start gap-3 text-sm">
-                <div className="w-1.5 h-1.5 rounded-full bg-stone-400 mt-2 flex-shrink-0" />
+                <div className="w-1.5 h-1.5 rounded-full bg-[#4a3c28] mt-2 flex-shrink-0" />
                 <div>
-                  <span className="text-stone-700">{actionLabel[h.action] ?? h.action}</span>
+                  <span className="text-[#b8a898]">{actionLabel[h.action] ?? h.action}</span>
                   {h.action === 'toggle_ticket_status' && h.meta?.to && (
-                    <span className="text-stone-400"> → <span className={h.meta.to === 'open' ? 'text-yellow-400' : 'text-green-400'}>
+                    <span className="text-[#6a5a48]"> → <span className={h.meta.to === 'open' ? 'text-yellow-400' : 'text-amber-400'}>
                       {h.meta.to === 'open' ? 'Otwarte' : 'Zamknięte'}
                     </span></span>
                   )}
-                  <p className="text-xs text-stone-400 mt-0.5">
+                  <p className="text-xs text-[#6a5a48] mt-0.5">
                     {h.user?.full_name ?? h.user?.email ?? '—'} · {new Date(h.created_at).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })}
                   </p>
                 </div>
