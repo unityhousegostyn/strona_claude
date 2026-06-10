@@ -353,3 +353,37 @@ export async function importEntriesCSV(
   revalidatePath('/admin/settlements')
   return { imported: rows.length, skipped, errors }
 }
+
+// ── SALDO OTWARCIA ──────────────────────────────────────────────────────────
+
+export async function upsertOpeningBalance(
+  apartmentId: string,
+  year: number,
+  balance: number
+): Promise<{ error?: string }> {
+  const auth = await requireAdminOrAbove()
+  if (auth.error !== null) return { error: auth.error }
+
+  const admin = getSupabaseAdminClient()
+
+  // Sprawdź, że admin ma dostęp do tego lokalu
+  const { data: apt } = await admin
+    .from('settlement_apartments')
+    .select('community_id')
+    .eq('id', apartmentId)
+    .single()
+  if (!apt) return { error: 'Nie znaleziono lokalu' }
+  const guardErr = guardCommunity(auth, apt.community_id)
+  if (guardErr) return { error: guardErr }
+
+  const { error } = await admin
+    .from('settlement_opening_balances')
+    .upsert(
+      { apartment_id: apartmentId, year, balance, updated_at: new Date().toISOString() },
+      { onConflict: 'apartment_id,year' }
+    )
+  if (error) return { error: error.message }
+
+  revalidatePath(`/admin/settlements/${apartmentId}`)
+  return {}
+}

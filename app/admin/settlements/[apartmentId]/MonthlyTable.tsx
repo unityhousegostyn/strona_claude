@@ -6,7 +6,7 @@ import {
   buildYearlyTable, pln, type SettlementApartment,
   type SettlementRate, type SettlementEntry, type MonthlyRow
 } from '@/lib/settlementCalc'
-import { upsertEntry, upsertWaterReconciliation } from '../actions'
+import { upsertEntry, upsertWaterReconciliation, upsertOpeningBalance } from '../actions'
 
 interface Reconciliation {
   id: string
@@ -29,9 +29,10 @@ interface Props {
   reconciliations: Reconciliation[]
   year: number
   readonly?: boolean
+  savedOpeningBalance?: number
 }
 
-export default function MonthlyTable({ apartment, rates, entries, reconciliations, year, readonly = false }: Props) {
+export default function MonthlyTable({ apartment, rates, entries, reconciliations, year, readonly = false, savedOpeningBalance = 0 }: Props) {
   const router = useRouter()
   const [editMonth, setEditMonth] = useState<number | null>(null)
   const [editPaid, setEditPaid] = useState('')
@@ -40,8 +41,9 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
   const [editNotes, setEditNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
-  const [initialBalance, setInitialBalance] = useState(0)
+  const [initialBalance, setInitialBalance] = useState(savedOpeningBalance)
   const [showBalanceInput, setShowBalanceInput] = useState(false)
+  const [balanceSaving, setBalanceSaving] = useState(false)
 
   // Rozliczenie kwartalne state
   const [editQuarter, setEditQuarter] = useState<number | null>(null)
@@ -162,9 +164,16 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
             />
             <span className="text-sm text-[#6a5a48]">zł</span>
             <button
-              onClick={() => setShowBalanceInput(false)}
-              className="text-xs text-amber-400 hover:text-amber-300"
-            >Zatwierdź</button>
+              onClick={async () => {
+                setBalanceSaving(true)
+                await upsertOpeningBalance(apartment.id, year, initialBalance)
+                setBalanceSaving(false)
+                setShowBalanceInput(false)
+                router.refresh()
+              }}
+              disabled={balanceSaving}
+              className="text-xs text-amber-400 hover:text-amber-300 disabled:opacity-50"
+            >{balanceSaving ? 'Zapisuję...' : 'Zatwierdź'}</button>
           </div>
         ) : (
           <button

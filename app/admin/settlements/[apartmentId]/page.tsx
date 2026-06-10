@@ -38,7 +38,7 @@ export default async function ApartmentSettlementPage({
 
   const readonly = profile.role === 'user'
 
-  const [ratesRes, entriesRes, reconcRes] = await Promise.all([
+  const [ratesRes, entriesRes, reconcRes, openingBalanceRes] = await Promise.all([
     admin.from('settlement_rates').select('*')
       .eq('community_id', apartment.community_id)
       .order('effective_from', { ascending: false }),
@@ -46,11 +46,14 @@ export default async function ApartmentSettlementPage({
       .eq('apartment_id', apartmentId).eq('year', year),
     admin.from('settlement_water_reconciliation').select('*')
       .eq('apartment_id', apartmentId).eq('year', year),
+    admin.from('settlement_opening_balances').select('balance')
+      .eq('apartment_id', apartmentId).eq('year', year).maybeSingle(),
   ])
 
   const rates = ratesRes.data ?? []
   const entries = entriesRes.data ?? []
   const reconciliations = reconcRes.data ?? []
+  const openingBalance = openingBalanceRes.data?.balance ?? 0
 
   return (
     <div className="space-y-6 max-w-6xl">
@@ -139,6 +142,7 @@ export default async function ApartmentSettlementPage({
         reconciliations={reconciliations}
         year={year}
         readonly={readonly}
+        savedOpeningBalance={openingBalance}
       />
     </div>
   )
