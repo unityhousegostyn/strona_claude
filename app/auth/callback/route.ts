@@ -26,58 +26,55 @@ export async function GET(request: NextRequest) {
     }
   )
 
-  // verifyOtp nie wymaga PKCE — działa bezpośrednio z tokenem z maila
-  const { error } = await supabase.auth.verifyOtp({ token_hash, type })
+  // verifyOtp zwraca user bezpośrednio — nie polegamy na sesji SSR
+  const { data: verifyData, error } = await supabase.auth.verifyOtp({ token_hash, type })
 
-  if (!error) {
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (user) {
-      const admin = getSupabaseAdminClient()
-
-      const { data: profile } = await admin
-        .from('profiles')
-        .select('full_name, email, status')
-        .eq('id', user.id)
-        .single()
-
-      console.log('[callback] profile:', profile?.status, profile?.email)
-
-      // Zmień status tylko jeśli jeszcze unconfirmed
-      if (profile?.status === 'unconfirmed') {
-        await admin
-          .from('profiles')
-          .update({ status: 'pending' })
-          .eq('id', user.id)
-
-        // Pobierz IDs super_adminów z profiles
-        const { data: superAdminProfiles } = await admin
-          .from('profiles')
-          .select('id')
-          .eq('role', 'super_admin')
-          .eq('status', 'active')
-
-        // Pobierz ich emaile z auth (profiles.email może być null jeśli konto zakładał admin)
-        const superAdminEmails: string[] = []
-        for (const sa of superAdminProfiles ?? []) {
-          const { data: authUser } = await admin.auth.admin.getUserById(sa.id)
-          if (authUser?.user?.email) superAdminEmails.push(authUser.user.email)
-        }
-
-        if (superAdminEmails.length > 0) {
-          await sendNewUserPendingEmail({
-            to: superAdminEmails,
-            userName: profile.full_name ?? user.email ?? 'Nieznany',
-            userEmail: profile.email ?? user.email ?? '',
-          }).catch(() => {})
-        }
-      }
-
-      await supabase.auth.signOut()
-    }
-
-    return NextResponse.redirect(new URL('/login?verified=true', request.url))
+  if (error || !verifyData?.user) {
+    return NextResponse.redirect(new URL('/login?error=invalid-link', request.url))
   }
 
-  return NextResponse.redirect(new URL('/login?error=invalid-link', request.url))
+  const verifiedUser = verifyData.user
+  const admin = getSupabaseAdminClient()
+
+  const { data: profile } = await admin
+    .from('profiles')
+    .select('full_name, email, status')
+    .eq('id', verifiedUser.id)
+    .single()
+
+  if (profile?.status === 'unconfirmed') {
+    await admin
+      .from('profiles')
+      .update({ status: 'pending' })
+      .eq('id', verifiedUser.id)
+
+    // Pobierz IDs super_adminów
+    const { data: superAdminProfiles } = await admin
+      .from('profiles')
+      .select('id')
+      .eq('role', 'super_admin')
+      .eq('status', 'active')
+
+    // Emaile z auth — profiles.email bywa null dla kont zakładanych przez admina
+    const superAdminEmails: string[] = []
+    for (const sa of superAdminProfiles ?? []) {
+      const { data: authUser } = await admin.auth.admin.getUserById(sa.id)
+      if (authUser?.user?.email) superAdminEmails.push(authUser.user.email)
+    }
+
+    if (superAdminEmails.length > 0) {
+      try {
+        await sendNewUserPendingEmail({
+          to: superAdminEmails,
+          userName: profile.full_name ?? verifiedUser.email ?? 'Nieznany',
+          userEmail: profile.email ?? verifiedUser.email ?? '',
+        })
+      } catch {
+        // nie blokujemy redirecta
+      }
+    }
+  }
+
+  await supabase.auth.signOut()
+  return NextResponse.redirect(new URL('/login?verified=true', request.url))
 }
