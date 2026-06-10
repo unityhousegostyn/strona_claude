@@ -45,10 +45,12 @@ export default async function AdminLayout({
   try {
     const now = new Date()
 
-    // Pobierz tylko aktywne ogłoszenia (nie archiwalne)
-    const { data: allAnns } = await admin
-      .from('announcements')
-      .select('id, start_date, end_date')
+    // Pobierz tylko aktywne ogłoszenia (nie archiwalne) — filtruj po wspólnocie
+    let annQuery = admin.from('announcements').select('id, start_date, end_date')
+    if (profile.role !== 'super_admin' && profile.community_id) {
+      annQuery = annQuery.or(`community_id.eq.${profile.community_id},target.eq.all`) as any
+    }
+    const { data: allAnns } = await annQuery
 
     const activeAnns = (allAnns ?? []).filter((a: any) => {
       if (a.end_date && new Date(a.end_date) < now) return false
