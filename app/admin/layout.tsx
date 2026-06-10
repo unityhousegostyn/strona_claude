@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
 import SidebarNav from '@/components/SidebarNav'
+import NotificationBell from '@/components/NotificationBell'
 import { ToastProvider } from '@/components/ToastContext'
 import AutoRefresh from '@/components/AutoRefresh'
 import ChatWidget from '@/components/ChatWidget'
@@ -85,6 +86,19 @@ export default async function AdminLayout({
     }
   }
 
+  // Nieprzeczytane powiadomienia
+  let unreadNotifications = 0
+  try {
+    const { count } = await admin
+      .from('notifications')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('read', false)
+    unreadNotifications = count ?? 0
+  } catch {
+    unreadNotifications = 0
+  }
+
   return (
     <I18nProvider>
     <ToastProvider>
@@ -98,9 +112,16 @@ export default async function AdminLayout({
         {(profile.role === 'super_admin' || profile.role === 'admin') && (
           <><AutoRefresh intervalMs={60000} /><InactivityLogout /></>
         )}
-        <main className="flex-1 p-4 lg:p-6 overflow-auto pt-[72px] lg:pt-6">
-          {children}
-        </main>
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Topbar z dzwonkiem */}
+          <div className="lg:hidden fixed top-0 left-0 right-0 z-20 pointer-events-none" />
+          <div className="hidden lg:flex items-center justify-end px-6 pt-4 pb-0">
+            <NotificationBell initialUnread={unreadNotifications} />
+          </div>
+          <main className="flex-1 p-4 lg:p-6 overflow-auto pt-[72px] lg:pt-3">
+            {children}
+          </main>
+        </div>
         {/* <ChatWidget /> */}{/* AI chatbot — aktywuj po dodaniu ANTHROPIC_API_KEY */}
       </div>
     </ToastProvider>

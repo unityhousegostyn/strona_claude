@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import { logActivity } from '@/lib/audit'
 import { sendAnnouncementEmail } from '@/lib/email'
+import { createNotificationForMany, getCommunityUserIds } from '@/lib/notifications'
 
 export async function createAnnouncement(formData: {
   title: string
@@ -84,6 +85,30 @@ export async function createAnnouncement(formData: {
         .eq('status', 'active')
       const emails = (recipients ?? []).map((r: any) => r.email).filter(Boolean)
       await sendAnnouncementEmail({ to: emails, title: formData.title, content: formData.content })
+    }
+  } catch {}
+
+  // In-app notifications o nowym ogłoszeniu
+  try {
+    let notifCommunityIds: string[] = []
+    if (formData.target === 'all') {
+      const { data: allC } = await admin.from('communities').select('id')
+      notifCommunityIds = (allC ?? []).map((c: any) => c.id)
+    } else if (formData.target === 'one' && formData.community_id) {
+      notifCommunityIds = [formData.community_id]
+    } else if (formData.target === 'selected') {
+      notifCommunityIds = formData.community_ids
+    }
+    if (notifCommunityIds.length > 0) {
+      const userIdArrays = await Promise.all(notifCommunityIds.map(getCommunityUserIds))
+      const allUserIds = [...new Set(userIdArrays.flat())]
+      if (allUserIds.length > 0) {
+        await createNotificationForMany(allUserIds, {
+          type: 'new_announcement',
+          title: `Nowe ogłoszenie: ${formData.title}`,
+          link: '/admin/announcements',
+        })
+      }
     }
   } catch {}
 

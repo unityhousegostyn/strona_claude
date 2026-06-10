@@ -3,6 +3,7 @@ import { getAuthProfileAction } from '@/lib/getAuthProfile'
 
 import { revalidatePath } from 'next/cache'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
+import { createNotificationForMany, getAdminUserIds } from '@/lib/notifications'
 import { logActivity } from '@/lib/audit'
 import { sendNewTicketEmail } from '@/lib/email'
 
@@ -26,9 +27,26 @@ export async function toggleTicketStatus(ticketId: string, currentStatus: string
   }
 
   const newStatus = currentStatus === 'open' ? 'closed' : 'open'
-  const { error } = await admin.from('tickets').update({ status: newStatus }).eq('id', ticketId)
+  const { data: ticketData, error } = await admin
+    .from('tickets')
+    .update({ status: newStatus })
+    .eq('id', ticketId)
+    .select('title, created_by, community_id')
+    .single()
   if (error) throw new Error('Błąd podczas zmiany statusu')
   await logActivity({ userId: user.id, action: 'toggle_ticket_status', targetType: 'ticket', targetId: ticketId, meta: { from: currentStatus, to: newStatus } })
+
+  // Powiadom autora zgłoszenia (jeśli to nie on zmienia status)
+  if (ticketData?.created_by && ticketData.created_by !== user.id) {
+    createNotificationForMany([ticketData.created_by], {
+      community_id: ticketData.community_id,
+      type: 'ticket_status',
+      title: `Zgłoszenie ${newStatus === 'closed' ? 'zamknięte' : 'ponownie otwarte'}`,
+      body: ticketData.title,
+      link: `/admin/tickets/${ticketId}`,
+    }).catch(() => {})
+  }
+
   revalidatePath('/admin/tickets')
   return newStatus
 }
@@ -114,6 +132,22 @@ export async function createTicket(formData: FormData): Promise<{ error?: string
           ticketId: inserted.id,
         }).catch(() => {})
       }
+    }
+
+    // In-app notification dla adminów o nowym zgłoszeniu
+    if (inserted?.id) {
+      getAdminUserIds(communityId).then(adminIds => {
+        const targets = adminIds.filter(id => id !== user.id)
+        if (targets.length > 0) {
+          createNotificationForMany(targets, {
+            community_id: communityId,
+            type: 'new_ticket',
+            title: `Nowe zgłoszenie: ${title}`,
+            body: profile.full_name ?? user.email ?? 'Mieszkaniec',
+            link: `/admin/tickets/${inserted.id}`,
+          }).catch(() => {})
+        }
+      }).catch(() => {})
     }
 
     revalidatePath('/admin/tickets')

@@ -3,6 +3,7 @@
 import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
 import { logActivity } from '@/lib/audit'
 import { sendNewCommentEmail } from '@/lib/email'
+import { createNotificationForMany } from '@/lib/notifications'
 
 export async function addComment(ticketId: string, content: string) {
   const supabase = await getSupabaseServerClient()
@@ -59,6 +60,17 @@ export async function addComment(ticketId: string, content: string) {
         ticketId,
       }).catch(() => {}) // nie blokuj odpowiedzi jeśli email się nie wyśle
     }
+  }
+
+  // In-app notification do autora zgłoszenia
+  if (ticket.created_by && ticket.created_by !== user.id) {
+    createNotificationForMany([ticket.created_by], {
+      community_id: ticket.community_id,
+      type: 'ticket_comment',
+      title: `Nowy komentarz do: ${ticket.title}`,
+      body: profile.full_name ?? 'Administrator',
+      link: `/admin/tickets/${ticketId}`,
+    }).catch(() => {})
   }
 
   return comment
