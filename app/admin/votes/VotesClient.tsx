@@ -46,7 +46,7 @@ export default function VotesClient({ votes, communities, userId, communityId, i
   const [form, setForm] = useState({
     title: '', description: '',
     voting_method: 'by_share' as 'by_share' | 'one_per_owner',
-    deadline: '', community_id: communityId ?? communities[0]?.id ?? '',
+    deadline: '', community_id: communityId ?? '',
   })
   const [formError, setFormError] = useState<string | null>(null)
 
@@ -61,7 +61,7 @@ export default function VotesClient({ votes, communities, userId, communityId, i
       const res = await createVote({ ...form, deadline: form.deadline || null })
       if (res.error) { setFormError(res.error); return }
       setShowForm(false)
-      setForm({ title: '', description: '', voting_method: 'by_share', deadline: '', community_id: communityId ?? communities[0]?.id ?? '' })
+      setForm({ title: '', description: '', voting_method: 'by_share', deadline: '', community_id: communityId ?? '' })
       router.refresh()
     })
   }
@@ -166,6 +166,7 @@ export default function VotesClient({ votes, communities, userId, communityId, i
                   <label className="text-xs text-gray-400 block mb-1">Wspólnota</label>
                   <select className="input w-full" value={form.community_id}
                     onChange={e => setForm(p => ({ ...p, community_id: e.target.value }))}>
+                    <option value="">— wybierz wspólnotę —</option>
                     {communities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>

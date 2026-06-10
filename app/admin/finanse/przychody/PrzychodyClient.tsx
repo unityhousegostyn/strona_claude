@@ -35,7 +35,7 @@ export default function PrzychodyClient({ incomeEntries, settlementsMap, communi
   const [tab, setTab] = useState<'list' | 'summary'>('list')
 
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ community_id: defaultCommunityId, category: 'inne' as IncomeCategory, description: '', amount: '', income_date: new Date().toISOString().slice(0,10) })
+  const [form, setForm] = useState({ community_id: isSuperAdmin ? '' : defaultCommunityId, category: 'inne' as IncomeCategory, description: '', amount: '', income_date: new Date().toISOString().slice(0,10) })
   const [formError, setFormError] = useState<string | null>(null)
 
   const [editId, setEditId] = useState<string | null>(null)
@@ -45,7 +45,7 @@ export default function PrzychodyClient({ incomeEntries, settlementsMap, communi
   const [csvDragOver, setCsvDragOver] = useState(false)
   const [csvFileName, setCsvFileName] = useState<string | null>(null)
   const [importResult, setImportResult] = useState<{ imported: number; errors: string[] } | null>(null)
-  const [importComm, setImportComm] = useState(defaultCommunityId)
+  const [importComm, setImportComm] = useState(isSuperAdmin ? '' : defaultCommunityId)
 
   const handleCsvFile = useCallback((file: File) => {
     setCsvFileName(file.name); setImportResult(null)
@@ -150,7 +150,7 @@ export default function PrzychodyClient({ incomeEntries, settlementsMap, communi
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
           <h3 className="font-semibold text-gray-200">Nowy przychód</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {isSuperAdmin && <div><label className="text-xs text-gray-400 block mb-1">Wspólnota *</label><select className="input w-full" value={form.community_id} onChange={e=>setForm(p=>({...p,community_id:e.target.value}))}>{communities.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></div>}
+            {isSuperAdmin && <div><label className="text-xs text-gray-400 block mb-1">Wspólnota *</label><select className="input w-full" value={form.community_id} onChange={e=>setForm(p=>({...p,community_id:e.target.value}))}><option value="">— wybierz wspólnotę —</option>{communities.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></div>}
             <div><label className="text-xs text-gray-400 block mb-1">Kategoria *</label><select className="input w-full" value={form.category} onChange={e=>setForm(p=>({...p,category:e.target.value as IncomeCategory}))}>{categories.map(c=><option key={c.value} value={c.value}>{c.label}</option>)}</select></div>
             <div className="sm:col-span-2"><label className="text-xs text-gray-400 block mb-1">Opis *</label><input className="input w-full" placeholder="np. Odsetki od lokaty bankowej" value={form.description} onChange={e=>setForm(p=>({...p,description:e.target.value}))} /></div>
             <div><label className="text-xs text-gray-400 block mb-1">Kwota (zł) *</label><input className="input w-full" type="number" step="0.01" min="0" value={form.amount} onChange={e=>setForm(p=>({...p,amount:e.target.value}))} /></div>
@@ -167,7 +167,7 @@ export default function PrzychodyClient({ incomeEntries, settlementsMap, communi
       {/* Import CSV */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3">
         <div><p className="text-sm font-semibold text-gray-300">📥 Import przychodów z CSV</p><p className="text-xs text-gray-500 mt-0.5">Format: <code className="text-gray-400">data;opis;kategoria;kwota</code> (kategorie: odsetki, zwrot, dotacja, inne)</p></div>
-        {isSuperAdmin && <select className="input text-sm w-full sm:w-auto" value={importComm} onChange={e=>setImportComm(e.target.value)}>{communities.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select>}
+        {isSuperAdmin && <select className="input text-sm w-full sm:w-auto" value={importComm} onChange={e=>setImportComm(e.target.value)}><option value="">— wybierz wspólnotę —</option>{communities.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select>}
         <div onDragOver={e=>{e.preventDefault();setCsvDragOver(true)}} onDragLeave={()=>setCsvDragOver(false)} onDrop={e=>{e.preventDefault();setCsvDragOver(false);const f=e.dataTransfer.files[0];if(f)handleCsvFile(f)}} onClick={()=>fileRef.current?.click()} className={`cursor-pointer rounded-xl border-2 border-dashed transition-all py-8 px-4 text-center select-none ${csvDragOver?'border-green-500 bg-green-950/20':csvFileName?'border-green-700 bg-green-950/20':'border-gray-700 bg-gray-800/30 hover:border-gray-500'}`}>
           <input ref={fileRef} type="file" accept=".csv,.txt" className="hidden" onChange={e=>{const f=e.target.files?.[0];if(f)handleCsvFile(f);if(fileRef.current)fileRef.current.value=''}} />
           <div className="text-3xl mb-2">{isPending?'⏳':csvFileName?'✅':'📂'}</div>
