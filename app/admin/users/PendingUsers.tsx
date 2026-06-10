@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { approveUser, rejectUser } from './actions'
+import { approveUser, rejectUser, activateInvitedUser } from './actions'
 import { Community } from '@/types'
 import { useToast } from '@/components/ToastContext'
 
@@ -20,19 +20,20 @@ interface Apartment {
 
 interface Props {
   users: PendingUser[]
+  invitedUsers: (PendingUser & { community?: { name: string } | null; community_id?: string | null })[]
   communities: Community[]
   apartments: Apartment[]
   isSuperAdmin: boolean
   adminCommunityId: string | null
 }
 
-export default function PendingUsers({ users, communities, apartments, isSuperAdmin, adminCommunityId }: Props) {
+export default function PendingUsers({ users, invitedUsers, communities, apartments, isSuperAdmin, adminCommunityId }: Props) {
   const [selectedCommunity, setSelectedCommunity] = useState<Record<string, string>>({})
   const [selectedApartment, setSelectedApartment] = useState<Record<string, string>>({})
   const [isPending, startTransition] = useTransition()
   const { showToast } = useToast()
 
-  if (users.length === 0) return null
+  if (users.length === 0 && invitedUsers.length === 0) return null
 
   const handleApprove = (userId: string) => {
     const communityId = isSuperAdmin ? selectedCommunity[userId] : (adminCommunityId ?? '')
@@ -125,6 +126,72 @@ export default function PendingUsers({ users, communities, apartments, isSuperAd
           )
         })}
       </div>
+
+      {invitedUsers.length > 0 && (
+        <div className="space-y-3 mt-4">
+          <h3 className="text-base font-semibold text-amber-400 flex items-center gap-2">
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-900/40 text-amber-400 text-xs font-bold">
+              {invitedUsers.length}
+            </span>
+            Zaproszeni — oczekują na aktywację
+          </h3>
+          <div className="space-y-2">
+            {invitedUsers.map((u) => {
+              const communityId = u.community_id ?? (isSuperAdmin ? selectedCommunity[u.id] : (adminCommunityId ?? ''))
+              const availableApts = apartments.filter(a => a.community_id === communityId)
+              return (
+                <div key={u.id} className="bg-amber-950/10 border border-amber-800/40 rounded-xl px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
+                  <div>
+                    <p className="font-medium text-[#ddd5c5] text-sm">{u.full_name ?? <span className="italic text-[#7a6a58]">Brak nazwy</span>}</p>
+                    <p className="text-xs text-[#6a5a48] mt-0.5">
+                      {u.community?.name ?? '—'} · Zarejestrowany {new Date(u.created_at).toLocaleDateString('pl-PL')}
+                    </p>
+                    <p className="text-xs text-amber-700 mt-0.5">Email zweryfikowany — wymaga ręcznej aktywacji</p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {communityId && (
+                      <select
+                        value={selectedApartment[u.id] ?? ''}
+                        onChange={(e) => setSelectedApartment(prev => ({ ...prev, [u.id]: e.target.value }))}
+                        className="text-sm bg-[#241e14] text-[#ddd5c5] border border-[#3a2e1e] rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                      >
+                        <option value="">Lokal (opcjonalnie)…</option>
+                        {availableApts.map((a) => (
+                          <option key={a.id} value={a.id}>Lokal {a.number}</option>
+                        ))}
+                      </select>
+                    )}
+                    <button
+                      onClick={() => {
+                        const aptId = selectedApartment[u.id] || null
+                        startTransition(async () => {
+                          if (aptId && communityId) {
+                            await approveUser(u.id, communityId, aptId)
+                          } else {
+                            const res = await activateInvitedUser(u.id)
+                            if (res?.error) showToast(res.error, 'error')
+                          }
+                        })
+                      }}
+                      disabled={isPending}
+                      className="text-sm bg-amber-600 hover:bg-amber-700 text-white font-semibold px-3 py-1.5 rounded-lg transition disabled:opacity-50"
+                    >
+                      Aktywuj
+                    </button>
+                    <button
+                      onClick={() => handleReject(u.id)}
+                      disabled={isPending}
+                      className="text-sm bg-red-950/30 hover:bg-red-950/50 text-red-400 font-semibold px-3 py-1.5 rounded-lg border border-red-900 transition disabled:opacity-50"
+                    >
+                      Usuń
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -259,3 +259,25 @@ export async function rejectUser(userId: string) {
   await admin.auth.admin.deleteUser(userId)
   revalidatePath('/admin/users')
 }
+
+export async function activateInvitedUser(userId: string): Promise<{ error?: string }> {
+  try {
+    const { user: actor, profile: actorProfile } = await requireAdminOrSuperAdmin()
+    const admin = getSupabaseAdminClient()
+
+    const { data: target } = await admin.from('profiles').select('community_id, status').eq('id', userId).single()
+    if (!target) return { error: 'Użytkownik nie istnieje' }
+    if (target.status !== 'invited') return { error: 'Użytkownik nie ma statusu invited' }
+
+    if (actorProfile.role === 'admin' && target.community_id !== actorProfile.community_id) {
+      return { error: 'Brak uprawnień do tej wspólnoty' }
+    }
+
+    await admin.from('profiles').update({ status: 'active' }).eq('id', userId)
+    await logActivity({ userId: actor.id, action: 'activate_invited_user', targetType: 'user', targetId: userId })
+    revalidatePath('/admin/users')
+    return {}
+  } catch (e: any) {
+    return { error: e.message ?? 'Nieznany błąd' }
+  }
+}

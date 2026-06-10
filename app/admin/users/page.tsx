@@ -30,6 +30,13 @@ export default async function UsersPage() {
     .order('created_at', { ascending: false })
   if (!isSuperAdmin) activeQuery.eq('community_id', profile.community_id)
 
+  const invitedQuery = admin
+    .from('profiles')
+    .select('*, community:communities(name)')
+    .in('status', ['invited'])
+    .order('created_at', { ascending: false })
+  if (!isSuperAdmin) invitedQuery.eq('community_id', profile.community_id)
+
   // Lokale do przypisania przy zatwierdzaniu
   const apartmentsQuery = admin
     .from('settlement_apartments')
@@ -38,9 +45,10 @@ export default async function UsersPage() {
     .order('number')
   if (!isSuperAdmin && profile.community_id) apartmentsQuery.eq('community_id', profile.community_id)
 
-  const [{ data: pendingUsers }, { data: activeUsers }, { data: communities }, { data: apartments }] = await Promise.all([
+  const [{ data: pendingUsers }, { data: activeUsers }, { data: invitedUsers }, { data: communities }, { data: apartments }] = await Promise.all([
     pendingQuery,
     activeQuery,
+    invitedQuery,
     isSuperAdmin
       ? admin.from('communities').select('*').order('name')
       : admin.from('communities').select('id, name').eq('id', profile.community_id ?? ''),
@@ -67,6 +75,7 @@ export default async function UsersPage() {
 
       <PendingUsers
         users={pendingUsers ?? []}
+        invitedUsers={invitedUsers ?? []}
         communities={communities ?? []}
         apartments={apartments ?? []}
         isSuperAdmin={isSuperAdmin}
