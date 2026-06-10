@@ -47,12 +47,8 @@ export async function GET(request: NextRequest) {
     const wasInvited = profile.status === 'invited'
 
     if (wasInvited) {
-      // Zaproszony — od razu aktywny, oznacz zaproszenie jako użyte
+      // Zaproszony — od razu aktywny (used_at już ustawione przy rejestracji)
       await admin.from('profiles').update({ status: 'active' }).eq('id', profile.id)
-      await admin.from('invitations')
-        .update({ used_at: new Date().toISOString() })
-        .eq('email', profile.email ?? '')
-        .is('used_at', null)
     } else {
       // Zwykła rejestracja — czeka na akceptację admina
       await admin.from('profiles').update({ status: 'pending' }).eq('id', profile.id).eq('status', 'unconfirmed')

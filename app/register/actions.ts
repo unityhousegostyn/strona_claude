@@ -55,9 +55,6 @@ export async function registerUser(formData: FormData) {
     if (!inv || inv.used_at || new Date(inv.expires_at) < new Date()) {
       return { success: false, message: 'Link zaproszenia wygasł lub jest nieprawidłowy.' }
     }
-    if (inv.email.toLowerCase() !== email.toLowerCase()) {
-      return { success: false, message: 'Email musi być taki sam jak w zaproszeniu.' }
-    }
     invitation = { community_id: inv.community_id, token: inv.token }
   }
 
@@ -98,6 +95,14 @@ export async function registerUser(formData: FormData) {
   if (insertError) {
     await admin.auth.admin.deleteUser(userId).catch(() => {})
     return { success: false, message: 'Błąd zapisu profilu: ' + insertError.message }
+  }
+
+  // Oznacz zaproszenie jako użyte — token już skonsumowany, niezależnie od emaila
+  if (invitation) {
+    await admin.from('invitations')
+      .update({ used_at: new Date().toISOString() })
+      .eq('token', invitation.token)
+      .catch(() => {})
   }
 
   const tokenHash = linkData.properties.hashed_token

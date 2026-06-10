@@ -160,11 +160,13 @@ function RegisterForm() {
                 name="email"
                 type="email"
                 defaultValue={invite?.email ?? ''}
-                readOnly={!!invite}
                 placeholder="jan@wspolnota.pl"
-                className={`input w-full ${invite ? 'opacity-60 cursor-not-allowed' : ''}`}
+                className="input w-full"
                 required
               />
+              {invite?.email && (
+                <p className="text-xs text-[#4a3c28] mt-1">Zaproszenie zostało wysłane na <span className="text-[#7a6a58]">{invite.email}</span> — możesz wpisać inny adres.</p>
+              )}
             </div>
 
             <div>
