@@ -18,6 +18,7 @@ function LoginForm() {
     const reset = searchParams.get('reset')
     const status = searchParams.get('status')
     const verified = searchParams.get('verified')
+    const errorParam = searchParams.get('error')
     if (reset === 'success') {
       setSuccess('Hasło zostało zmienione. Możesz się teraz zalogować.')
     } else if (verified === 'true') {
@@ -26,6 +27,8 @@ function LoginForm() {
       setSuccess('Potwierdź adres email klikając link w wiadomości którą wysłaliśmy.')
     } else if (status === 'pending') {
       setSuccess('Konto oczekuje na akceptację administratora.')
+    } else if (errorParam === 'invalid-link') {
+      setError('Link weryfikacyjny jest nieprawidłowy lub wygasł. Zarejestruj się ponownie.')
     }
   }, [searchParams])
 

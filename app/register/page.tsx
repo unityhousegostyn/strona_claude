@@ -24,14 +24,17 @@ export default function RegisterPage() {
     return (
       <main className="min-h-screen flex items-center justify-center bg-gray-950">
         <div className="bg-gray-900 shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm space-y-5 text-center">
-          <div className="text-5xl">✅</div>
-          <h1 className="text-xl font-bold text-gray-200">Rejestracja zakończona!</h1>
+          <div className="text-5xl">📧</div>
+          <h1 className="text-xl font-bold text-gray-200">Sprawdź skrzynkę!</h1>
           <p className="text-sm text-gray-400 leading-relaxed">
-            Twoje konto zostało utworzone i oczekuje na akceptację administratora wspólnoty.
+            Wysłaliśmy link aktywacyjny na Twój adres email. Kliknij go, aby potwierdzić rejestrację.
           </p>
-          <p className="text-xs text-gray-400">
-            Otrzymasz dostęp po ręcznym zatwierdzeniu przez administratora.
-          </p>
+          <div className="bg-gray-800 rounded-lg px-4 py-3 text-xs text-gray-400 text-left space-y-1.5">
+            <p className="font-medium text-gray-300 mb-1">Co dalej?</p>
+            <p>1. Kliknij link w emailu (ważny 24h)</p>
+            <p>2. Poczekaj na akceptację administratora</p>
+            <p>3. Zaloguj się i korzystaj z panelu</p>
+          </div>
           <Link
             href="/login"
             className="inline-block mt-2 text-sm text-blue-600 hover:underline"

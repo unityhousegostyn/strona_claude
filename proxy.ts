@@ -105,9 +105,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Konto oczekujące
-  if (isAdminRoute && profile?.status === 'pending') {
-    return NextResponse.redirect(new URL('/login?status=pending', request.url))
+  // Konto nieaktywne (unconfirmed = czeka na potwierdzenie maila, pending = czeka na admina)
+  if (isAdminRoute && (profile?.status === 'pending' || profile?.status === 'unconfirmed')) {
+    const reason = profile.status === 'unconfirmed' ? 'unconfirmed' : 'pending'
+    return NextResponse.redirect(new URL(`/login?status=${reason}`, request.url))
   }
 
   // Trasy tylko dla admin/super_admin
@@ -115,8 +116,8 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/admin/dashboard', request.url))
   }
 
-  // Zalogowany nie wraca na /login
-  if (isLoginPage && user && profile && profile.status !== 'pending') {
+  // Zalogowany nie wraca na /login (chyba że konto jest w trakcie weryfikacji)
+  if (isLoginPage && user && profile && profile.status === 'active') {
     return NextResponse.redirect(new URL('/admin/dashboard', request.url))
   }
 
