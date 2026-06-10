@@ -61,9 +61,9 @@ function LoginForm() {
   }
 
   return (
-    <div className="bg-gray-900 shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm space-y-5">
-      <h1 className="text-2xl font-bold text-gray-200">Logowanie</h1>
-      <p className="text-sm text-gray-500">Panel zarządzania wspólnotą</p>
+    <div className="bg-stone-100 shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm space-y-5">
+      <h1 className="text-2xl font-bold text-stone-800">Logowanie</h1>
+      <p className="text-sm text-stone-400">Panel zarządzania wspólnotą</p>
 
       {success && (
         <div className="bg-green-950/30 border border-green-900 text-green-400 text-sm rounded-lg px-4 py-3">
@@ -78,7 +78,7 @@ function LoginForm() {
 
       <div className="space-y-3">
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
+          <label className="block text-sm font-medium text-stone-700 mb-1">Email</label>
           <input
             type="email"
             value={email}
@@ -89,7 +89,7 @@ function LoginForm() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Hasło</label>
+          <label className="block text-sm font-medium text-stone-700 mb-1">Hasło</label>
           <input
             type="password"
             value={password}
@@ -110,7 +110,7 @@ function LoginForm() {
       </button>
 
       <div className="flex flex-col items-center gap-2 pt-2">
-        <Link href="/reset-password" className="text-sm text-gray-500 hover:text-gray-300 hover:underline">
+        <Link href="/reset-password" className="text-sm text-stone-400 hover:text-stone-700 hover:underline">
           Zapomniałeś hasła?
         </Link>
         <Link href="/register" className="text-sm text-green-600 hover:underline">
@@ -118,13 +118,13 @@ function LoginForm() {
         </Link>
       </div>
 
-      <div className="border-t border-gray-800 pt-4">
-        <p className="text-xs text-gray-400 text-center leading-relaxed">
+      <div className="border-t border-stone-200 pt-4">
+        <p className="text-xs text-stone-500 text-center leading-relaxed">
           Administratorem danych osobowych jest zarządca wspólnoty mieszkaniowej.
           Dane przetwarzane są w celu obsługi panelu mieszkańca na podstawie art. 6 ust. 1 lit. b RODO.
           Przysługuje Ci prawo dostępu, sprostowania, usunięcia danych oraz wniesienia skargi do UODO.
           Szczegóły w{' '}
-          <Link href="/privacy" className="underline hover:text-gray-400">
+          <Link href="/privacy" className="underline hover:text-stone-500">
             Polityce Prywatności
           </Link>
           .
@@ -136,8 +136,8 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-950">
-      <Suspense fallback={<div className="bg-gray-900 shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm" />}>
+    <main className="min-h-screen flex items-center justify-center bg-stone-50">
+      <Suspense fallback={<div className="bg-stone-100 shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm" />}>
         <LoginForm />
       </Suspense>
     </main>

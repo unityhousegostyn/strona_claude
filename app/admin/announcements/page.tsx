@@ -54,7 +54,7 @@ export default async function AnnouncementsPage() {
 
   const targetLabel = (a: any) => {
     if (a.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-green-950/40 text-green-400' }
-    if (a.target === 'one') return { text: communityMap[a.community_id] ?? '—', cls: 'bg-gray-900 text-gray-400' }
+    if (a.target === 'one') return { text: communityMap[a.community_id] ?? '—', cls: 'bg-stone-100 text-stone-500' }
     const names = (junctionMap[a.id] ?? []).map((cid) => communityMap[cid] ?? cid)
     return { text: names.join(', ') || '—', cls: 'bg-purple-950/30 text-purple-400' }
   }
@@ -62,7 +62,7 @@ export default async function AnnouncementsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-100">Ogłoszenia</h2>
+        <h2 className="text-2xl font-bold text-stone-900">Ogłoszenia</h2>
         {canEdit && (
           <Link
             href="/admin/announcements/add"

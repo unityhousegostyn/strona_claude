@@ -78,18 +78,18 @@ export default function MFAVerifyPage() {
 
   if (!ready) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-gray-950">
-        <div className="text-gray-500 text-sm">Ładowanie...</div>
+      <main className="min-h-screen flex items-center justify-center bg-stone-50">
+        <div className="text-stone-400 text-sm">Ładowanie...</div>
       </main>
     )
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-950">
-      <div className="bg-gray-900 shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm space-y-5">
+    <main className="min-h-screen flex items-center justify-center bg-stone-50">
+      <div className="bg-stone-100 shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm space-y-5">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-gray-200">Weryfikacja 2FA</h1>
-          <p className="text-sm text-gray-500">Wpisz 6-cyfrowy kod z aplikacji authenticator</p>
+          <h1 className="text-2xl font-bold text-stone-800">Weryfikacja 2FA</h1>
+          <p className="text-sm text-stone-400">Wpisz 6-cyfrowy kod z aplikacji authenticator</p>
         </div>
 
         {error && (
@@ -99,7 +99,7 @@ export default function MFAVerifyPage() {
         )}
 
         <div className="space-y-3">
-          <label className="block text-sm font-medium text-gray-300">Kod weryfikacyjny</label>
+          <label className="block text-sm font-medium text-stone-700">Kod weryfikacyjny</label>
           <input
             type="text"
             inputMode="numeric"
@@ -124,13 +124,13 @@ export default function MFAVerifyPage() {
         <div className="text-center">
           <button
             onClick={handleLogout}
-            className="text-sm text-gray-500 hover:text-gray-300"
+            className="text-sm text-stone-400 hover:text-stone-700"
           >
             Wróć do logowania
           </button>
         </div>
 
-        <p className="text-xs text-gray-600 text-center">
+        <p className="text-xs text-stone-400 text-center">
           Otwórz Google Authenticator, Authy lub inną aplikację TOTP i wpisz wyświetlony kod.
         </p>
       </div>

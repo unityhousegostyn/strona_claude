@@ -32,20 +32,20 @@ export default async function AnnouncementDetailPage({ params }: { params: Promi
   return (
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/admin/announcements" className="text-sm text-gray-400 hover:text-gray-400">← Ogłoszenia</Link>
+        <Link href="/admin/announcements" className="text-sm text-stone-500 hover:text-stone-500">← Ogłoszenia</Link>
       </div>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+      <div className="bg-stone-100 border border-stone-200 rounded-xl p-6 space-y-4">
         <div className="flex items-start justify-between gap-4">
-          <h2 className="text-xl font-bold text-gray-100">{announcement.title}</h2>
+          <h2 className="text-xl font-bold text-stone-900">{announcement.title}</h2>
           {canEdit && (
             <Link href={`/admin/announcements/edit/${id}`} className="text-sm text-green-600 hover:underline flex-shrink-0">
               Edytuj
             </Link>
           )}
         </div>
-        <p className="text-sm text-gray-500">{new Date(announcement.created_at).toLocaleDateString('pl-PL')}</p>
-        <div className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
+        <p className="text-sm text-stone-400">{new Date(announcement.created_at).toLocaleDateString('pl-PL')}</p>
+        <div className="text-sm text-stone-700 whitespace-pre-wrap leading-relaxed">
           {announcement.content}
         </div>
       </div>

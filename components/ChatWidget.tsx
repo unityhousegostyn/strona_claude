@@ -49,21 +49,21 @@ export default function ChatWidget() {
     <>
       {/* Panel */}
       {open && (
-        <div className="fixed bottom-20 right-4 z-50 w-[340px] sm:w-[380px] bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl shadow-black/60 flex flex-col overflow-hidden"
+        <div className="fixed bottom-20 right-4 z-50 w-[340px] sm:w-[380px] bg-stone-100 border border-stone-200 rounded-2xl shadow-2xl shadow-black/60 flex flex-col overflow-hidden"
           style={{ height: '480px' }}>
 
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800 bg-gray-900">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-stone-200 bg-stone-100">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-sm">🤖</div>
               <div>
-                <p className="text-sm font-semibold text-gray-100">Asystent wspólnoty</p>
+                <p className="text-sm font-semibold text-stone-900">Asystent wspólnoty</p>
                 <p className="text-xs text-green-400">● Online</p>
               </div>
             </div>
             <button
               onClick={() => setOpen(false)}
-              className="text-gray-500 hover:text-gray-300 transition text-lg leading-none"
+              className="text-stone-400 hover:text-stone-700 transition text-lg leading-none"
             >✕</button>
           </div>
 
@@ -74,7 +74,7 @@ export default function ChatWidget() {
                 <div className={`max-w-[85%] px-3 py-2 rounded-xl text-sm leading-relaxed ${
                   m.role === 'user'
                     ? 'bg-green-600 text-white rounded-br-sm'
-                    : 'bg-gray-800 text-gray-200 rounded-bl-sm'
+                    : 'bg-stone-200 text-stone-800 rounded-bl-sm'
                 }`}>
                   {m.text}
                 </div>
@@ -82,7 +82,7 @@ export default function ChatWidget() {
             ))}
             {loading && (
               <div className="flex justify-start">
-                <div className="bg-gray-800 text-gray-400 px-3 py-2 rounded-xl rounded-bl-sm text-sm">
+                <div className="bg-stone-200 text-stone-500 px-3 py-2 rounded-xl rounded-bl-sm text-sm">
                   <span className="animate-pulse">Szukam w dokumentach...</span>
                 </div>
               </div>
@@ -91,9 +91,9 @@ export default function ChatWidget() {
           </div>
 
           {/* Input */}
-          <div className="border-t border-gray-800 p-3 flex gap-2">
+          <div className="border-t border-stone-200 p-3 flex gap-2">
             <input
-              className="flex-1 bg-gray-800 border border-gray-700 text-gray-100 placeholder-gray-500 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="flex-1 bg-stone-200 border border-stone-200 text-stone-900 placeholder-stone-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
               placeholder="Zadaj pytanie..."
               value={input}
               onChange={e => setInput(e.target.value)}

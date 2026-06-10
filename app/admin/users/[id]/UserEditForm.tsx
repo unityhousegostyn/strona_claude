@@ -92,11 +92,11 @@ export default function UserEditForm({
 
   return (
     <div className="space-y-4">
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
-        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Edytuj dane</h3>
+      <div className="bg-stone-100 border border-stone-200 rounded-xl p-5 space-y-4">
+        <h3 className="text-xs font-semibold text-stone-500 uppercase tracking-wide">Edytuj dane</h3>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Imię i nazwisko</label>
+          <label className="block text-sm font-medium text-stone-700 mb-1">Imię i nazwisko</label>
           <input
             className="input"
             value={fullName}
@@ -106,7 +106,7 @@ export default function UserEditForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Rola</label>
+          <label className="block text-sm font-medium text-stone-700 mb-1">Rola</label>
           <select
             className="input"
             value={role}
@@ -117,12 +117,12 @@ export default function UserEditForm({
             <option value="admin">Administrator</option>
             <option value="super_admin">Super Admin</option>
           </select>
-          {isSelf && <p className="text-xs text-gray-400 mt-1">Nie możesz zmienić własnej roli.</p>}
+          {isSelf && <p className="text-xs text-stone-500 mt-1">Nie możesz zmienić własnej roli.</p>}
         </div>
 
         {role !== 'super_admin' && (
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Wspólnota</label>
+            <label className="block text-sm font-medium text-stone-700 mb-1">Wspólnota</label>
             <select
               className="input"
               value={communityId}
@@ -138,10 +138,10 @@ export default function UserEditForm({
       </div>
 
       {/* Przypisanie mieszkania */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
-        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Przypisane mieszkanie</h3>
+      <div className="bg-stone-100 border border-stone-200 rounded-xl p-5 space-y-4">
+        <h3 className="text-xs font-semibold text-stone-500 uppercase tracking-wide">Przypisane mieszkanie</h3>
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Lokal</label>
+          <label className="block text-sm font-medium text-stone-700 mb-1">Lokal</label>
           <select className="input w-full" value={apartmentId} onChange={e => setApartmentId(e.target.value)}>
             <option value="">— brak —</option>
             {communities.map(comm => {
@@ -159,7 +159,7 @@ export default function UserEditForm({
             })}
           </select>
         </div>
-        <p className="text-xs text-gray-500">Jeden użytkownik = jedno mieszkanie. Mieszkanie zapisuje się razem z resztą danych przyciskiem poniżej.</p>
+        <p className="text-xs text-stone-400">Jeden użytkownik = jedno mieszkanie. Mieszkanie zapisuje się razem z resztą danych przyciskiem poniżej.</p>
       </div>
 
       <div className="flex items-center justify-between">
@@ -173,7 +173,7 @@ export default function UserEditForm({
           </button>
           <button
             onClick={() => router.back()}
-            className="text-sm text-gray-400 hover:text-gray-100 px-5 py-2.5 rounded-lg border border-gray-800 hover:bg-gray-950 transition"
+            className="text-sm text-stone-500 hover:text-stone-900 px-5 py-2.5 rounded-lg border border-stone-200 hover:bg-stone-50 transition"
           >
             Anuluj
           </button>

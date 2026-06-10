@@ -78,11 +78,11 @@ export default function InactivityLogout() {
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center space-y-5">
+      <div className="bg-stone-100 border border-stone-200 rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center space-y-5">
         <div className="text-5xl">⏱️</div>
         <div>
-          <h2 className="text-lg font-bold text-gray-100">Brak aktywności</h2>
-          <p className="text-sm text-gray-400 mt-1">Zostaniesz automatycznie wylogowany za</p>
+          <h2 className="text-lg font-bold text-stone-900">Brak aktywności</h2>
+          <p className="text-sm text-stone-500 mt-1">Zostaniesz automatycznie wylogowany za</p>
         </div>
         <div className="text-6xl font-mono font-bold text-red-400">
           {countdown}s

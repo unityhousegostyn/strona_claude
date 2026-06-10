@@ -29,11 +29,11 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-950">
-      <div className="bg-gray-900 shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm space-y-5">
+    <main className="min-h-screen flex items-center justify-center bg-stone-50">
+      <div className="bg-stone-100 shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm space-y-5">
         <div>
-          <h1 className="text-2xl font-bold text-gray-200">Reset hasła</h1>
-          <p className="text-sm text-gray-500 mt-1">Wyślemy Ci link do ustawienia nowego hasła.</p>
+          <h1 className="text-2xl font-bold text-stone-800">Reset hasła</h1>
+          <p className="text-sm text-stone-400 mt-1">Wyślemy Ci link do ustawienia nowego hasła.</p>
         </div>
 
         {sent ? (
@@ -53,7 +53,7 @@ export default function ResetPasswordPage() {
               </div>
             )}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
+              <label className="block text-sm font-medium text-stone-700 mb-1">Email</label>
               <input
                 type="email"
                 value={email}
@@ -71,7 +71,7 @@ export default function ResetPasswordPage() {
               {loading ? 'Wysyłanie...' : 'Wyślij link resetujący'}
             </button>
             <div className="text-center">
-              <Link href="/login" className="text-sm text-gray-500 hover:underline">
+              <Link href="/login" className="text-sm text-stone-400 hover:underline">
                 Wróć do logowania
               </Link>
             </div>

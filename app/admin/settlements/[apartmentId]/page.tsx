@@ -55,43 +55,43 @@ export default async function ApartmentSettlementPage({
   return (
     <div className="space-y-6 max-w-6xl">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-gray-500">
+      <div className="flex items-center gap-2 text-sm text-stone-400">
         {profile.role !== 'user' && (
           <>
-            <Link href="/admin/settlements" className="hover:text-gray-300 transition">Rozliczenia</Link>
+            <Link href="/admin/settlements" className="hover:text-stone-700 transition">Rozliczenia</Link>
             <span>›</span>
           </>
         )}
-        <span className="text-gray-300">Lokal {apartment.number}</span>
+        <span className="text-stone-700">Lokal {apartment.number}</span>
       </div>
 
       {/* Header lokalu */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+      <div className="bg-stone-100 border border-stone-200 rounded-xl p-5">
         <div className="flex items-start justify-between flex-wrap gap-4">
           <div>
-            <h2 className="text-xl font-bold text-gray-100">Lokal nr {apartment.number}</h2>
-            <p className="text-sm text-gray-400 mt-1">{apartment.owner_name}</p>
+            <h2 className="text-xl font-bold text-stone-900">Lokal nr {apartment.number}</h2>
+            <p className="text-sm text-stone-500 mt-1">{apartment.owner_name}</p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
             <div>
-              <p className="text-xs text-gray-500">Powierzchnia</p>
-              <p className="font-semibold text-gray-200 mt-0.5">{Number(apartment.area_m2).toFixed(4)} m²</p>
+              <p className="text-xs text-stone-400">Powierzchnia</p>
+              <p className="font-semibold text-stone-800 mt-0.5">{Number(apartment.area_m2).toFixed(4)} m²</p>
             </div>
             <div>
-              <p className="text-xs text-gray-500">Udział KW</p>
-              <p className="font-semibold text-gray-200 mt-0.5">
+              <p className="text-xs text-stone-400">Udział KW</p>
+              <p className="font-semibold text-stone-800 mt-0.5">
                 {apartment.share_numerator && apartment.share_denominator
                   ? `${apartment.share_numerator}/${apartment.share_denominator}`
                   : '—'}
               </p>
             </div>
             <div>
-              <p className="text-xs text-gray-500">Osoby</p>
-              <p className="font-semibold text-gray-200 mt-0.5">{apartment.persons_count}</p>
+              <p className="text-xs text-stone-400">Osoby</p>
+              <p className="font-semibold text-stone-800 mt-0.5">{apartment.persons_count}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-500">Wodomierz</p>
-              <p className="font-semibold text-gray-200 mt-0.5">{apartment.has_meter ? '✓ Tak' : '✗ Nie'}</p>
+              <p className="text-xs text-stone-400">Wodomierz</p>
+              <p className="font-semibold text-stone-800 mt-0.5">{apartment.has_meter ? '✓ Tak' : '✗ Nie'}</p>
             </div>
           </div>
         </div>
@@ -102,7 +102,7 @@ export default async function ApartmentSettlementPage({
         <Link
           href={`/admin/settlements/${apartmentId}/print?year=${year}`}
           target="_blank"
-          className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700 px-3 py-1.5 rounded-lg transition font-medium"
+          className="text-xs bg-stone-200 hover:bg-stone-300 text-stone-700 hover:text-white border border-stone-200 px-3 py-1.5 rounded-lg transition font-medium"
         >
           🖨️ Pobierz PDF
         </Link>
@@ -110,14 +110,14 @@ export default async function ApartmentSettlementPage({
 
       {/* Rok */}
       <div className="flex items-center gap-3">
-        <label className="text-sm text-gray-400">Rok obrachunkowy:</label>
+        <label className="text-sm text-stone-500">Rok obrachunkowy:</label>
         <div className="flex gap-1">
           {[year - 1, year, year + 1].map(y => (
             <Link key={y} href={`/admin/settlements/${apartmentId}?year=${y}`}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
                 y === year
                   ? 'bg-green-600 text-white'
-                  : 'bg-gray-900 text-gray-400 hover:text-gray-200 border border-gray-800'
+                  : 'bg-stone-100 text-stone-500 hover:text-stone-800 border border-stone-200'
               }`}>
               {y}
             </Link>

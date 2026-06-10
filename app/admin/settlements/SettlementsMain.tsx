@@ -205,8 +205,8 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-gray-100">Rozliczenia</h2>
-          <p className="text-sm text-gray-500 mt-0.5">Moduł rozliczeń wspólnoty — tylko super admin</p>
+          <h2 className="text-2xl font-bold text-stone-900">Rozliczenia</h2>
+          <p className="text-sm text-stone-400 mt-0.5">Moduł rozliczeń wspólnoty — tylko super admin</p>
         </div>
         {communities.length > 0 && !isAdmin && (
           <select
@@ -222,19 +222,19 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
       </div>
 
       {!selectedCommunityId && (
-        <p className="text-sm text-gray-500">Brak wspólnot. Dodaj najpierw wspólnotę.</p>
+        <p className="text-sm text-stone-400">Brak wspólnot. Dodaj najpierw wspólnotę.</p>
       )}
 
       {selectedCommunityId && (
         <>
           {/* Zakładki */}
-          <div className="flex gap-1 bg-gray-900 rounded-xl p-1 w-fit border border-gray-800">
+          <div className="flex gap-1 bg-stone-100 rounded-xl p-1 w-fit border border-stone-200">
             {(['apartments', 'rates', 'report', 'import'] as const).map(t => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                  tab === t ? 'bg-gray-800 text-gray-100' : 'text-gray-500 hover:text-gray-300'
+                  tab === t ? 'bg-stone-200 text-stone-900' : 'text-stone-400 hover:text-stone-700'
                 }`}
               >
                 {t === 'apartments' ? `🏠 Lokale (${apartments.length})`
@@ -257,17 +257,17 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
             <div className="space-y-4">
               {/* Stats */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-                  <p className="text-xs text-gray-500">Lokale</p>
-                  <p className="text-2xl font-bold text-gray-100 mt-1">{apartments.length}</p>
+                <div className="bg-stone-100 border border-stone-200 rounded-xl p-4">
+                  <p className="text-xs text-stone-400">Lokale</p>
+                  <p className="text-2xl font-bold text-stone-900 mt-1">{apartments.length}</p>
                 </div>
-                <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-                  <p className="text-xs text-gray-500">Łączna powierzchnia</p>
-                  <p className="text-2xl font-bold text-gray-100 mt-1">{totalArea.toFixed(2)} m²</p>
+                <div className="bg-stone-100 border border-stone-200 rounded-xl p-4">
+                  <p className="text-xs text-stone-400">Łączna powierzchnia</p>
+                  <p className="text-2xl font-bold text-stone-900 mt-1">{totalArea.toFixed(2)} m²</p>
                 </div>
-                <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-                  <p className="text-xs text-gray-500">Stawki od</p>
-                  <p className="text-2xl font-bold text-gray-100 mt-1">
+                <div className="bg-stone-100 border border-stone-200 rounded-xl p-4">
+                  <p className="text-xs text-stone-400">Stawki od</p>
+                  <p className="text-2xl font-bold text-stone-900 mt-1">
                     {currentRates ? new Date(currentRates.effective_from).toLocaleDateString('pl-PL') : '—'}
                   </p>
                 </div>
@@ -285,41 +285,41 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
 
               {/* Formularz dodania lokalu */}
               {showAptForm && (
-                <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
-                  <h3 className="font-semibold text-gray-200">Nowy lokal</h3>
+                <div className="bg-stone-100 border border-stone-200 rounded-xl p-5 space-y-4">
+                  <h3 className="font-semibold text-stone-800">Nowy lokal</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs text-gray-400 mb-1">Nr lokalu *</label>
+                      <label className="block text-xs text-stone-500 mb-1">Nr lokalu *</label>
                       <input className="input w-full" placeholder="np. 14" value={aptForm.number}
                         onChange={e => setAptForm(p => ({ ...p, number: e.target.value }))} />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-400 mb-1">Właściciel *</label>
+                      <label className="block text-xs text-stone-500 mb-1">Właściciel *</label>
                       <input className="input w-full" placeholder="Jan Kowalski" value={aptForm.owner_name}
                         onChange={e => setAptForm(p => ({ ...p, owner_name: e.target.value }))} />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-400 mb-1">Powierzchnia m² (z KW) *</label>
+                      <label className="block text-xs text-stone-500 mb-1">Powierzchnia m² (z KW) *</label>
                       <input className="input w-full" type="number" step="0.0001" placeholder="47.12" value={aptForm.area_m2}
                         onChange={e => setAptForm(p => ({ ...p, area_m2: e.target.value }))} />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-400 mb-1">Liczba osób *</label>
+                      <label className="block text-xs text-stone-500 mb-1">Liczba osób *</label>
                       <input className="input w-full" type="number" min="1" value={aptForm.persons_count}
                         onChange={e => setAptForm(p => ({ ...p, persons_count: e.target.value }))} />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-400 mb-1">Udział z KW (licznik)</label>
+                      <label className="block text-xs text-stone-500 mb-1">Udział z KW (licznik)</label>
                       <input className="input w-full" type="number" placeholder="4712" value={aptForm.share_numerator}
                         onChange={e => setAptForm(p => ({ ...p, share_numerator: e.target.value }))} />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-400 mb-1">Udział z KW (mianownik)</label>
+                      <label className="block text-xs text-stone-500 mb-1">Udział z KW (mianownik)</label>
                       <input className="input w-full" type="number" placeholder="100000" value={aptForm.share_denominator}
                         onChange={e => setAptForm(p => ({ ...p, share_denominator: e.target.value }))} />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-400 mb-1">Piętro</label>
+                      <label className="block text-xs text-stone-500 mb-1">Piętro</label>
                       <input className="input w-full" type="number" placeholder="2" value={aptForm.floor}
                         onChange={e => setAptForm(p => ({ ...p, floor: e.target.value }))} />
                     </div>
@@ -327,10 +327,10 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                       <input type="checkbox" id="has_meter" checked={aptForm.has_meter}
                         onChange={e => setAptForm(p => ({ ...p, has_meter: e.target.checked }))}
                         className="w-4 h-4 accent-green-600" />
-                      <label htmlFor="has_meter" className="text-sm text-gray-300">Ma wodomierz</label>
+                      <label htmlFor="has_meter" className="text-sm text-stone-700">Ma wodomierz</label>
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="block text-xs text-gray-400 mb-1">Uwagi</label>
+                      <label className="block text-xs text-stone-500 mb-1">Uwagi</label>
                       <input className="input w-full" placeholder="Opcjonalnie" value={aptForm.notes}
                         onChange={e => setAptForm(p => ({ ...p, notes: e.target.value }))} />
                     </div>
@@ -340,34 +340,34 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                       className="bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">
                       {isPending ? 'Zapisywanie...' : 'Zapisz lokal'}
                     </button>
-                    <button onClick={() => setShowAptForm(false)} className="text-sm text-gray-500 hover:text-gray-300">Anuluj</button>
+                    <button onClick={() => setShowAptForm(false)} className="text-sm text-stone-400 hover:text-stone-700">Anuluj</button>
                   </div>
                 </div>
               )}
 
               {/* Lista lokali */}
               {apartments.length === 0 ? (
-                <p className="text-sm text-gray-500">Brak lokali. Dodaj pierwszy lokal.</p>
+                <p className="text-sm text-stone-400">Brak lokali. Dodaj pierwszy lokal.</p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-gray-800">
+                      <tr className="border-b border-stone-200">
                         {['Nr', 'Właściciel', 'Pow. m²', 'Udział KW', 'Osoby', 'Wodomierz', `Saldo ${new Date().getFullYear()}`, ''].map(h => (
-                          <th key={h} className="text-left text-xs text-gray-500 font-medium pb-2 pr-4">{h}</th>
+                          <th key={h} className="text-left text-xs text-stone-400 font-medium pb-2 pr-4">{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {apartments.map(apt => (
-                        <tr key={apt.id} className="border-b border-gray-800/50 hover:bg-gray-900/50 transition">
-                          <td className="py-3 pr-4 font-semibold text-gray-100">{apt.number}</td>
-                          <td className="py-3 pr-4 text-gray-300">{apt.owner_name}</td>
-                          <td className="py-3 pr-4 text-gray-300">{Number(apt.area_m2).toFixed(4)}</td>
-                          <td className="py-3 pr-4 text-gray-400 text-xs">{shareStr(apt)}</td>
-                          <td className="py-3 pr-4 text-gray-400">{apt.persons_count}</td>
+                        <tr key={apt.id} className="border-b border-stone-200/50 hover:bg-stone-100/50 transition">
+                          <td className="py-3 pr-4 font-semibold text-stone-900">{apt.number}</td>
+                          <td className="py-3 pr-4 text-stone-700">{apt.owner_name}</td>
+                          <td className="py-3 pr-4 text-stone-700">{Number(apt.area_m2).toFixed(4)}</td>
+                          <td className="py-3 pr-4 text-stone-500 text-xs">{shareStr(apt)}</td>
+                          <td className="py-3 pr-4 text-stone-500">{apt.persons_count}</td>
                           <td className="py-3 pr-4">
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${apt.has_meter ? 'bg-green-900/30 text-green-400' : 'bg-gray-800 text-gray-500'}`}>
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${apt.has_meter ? 'bg-green-900/30 text-green-400' : 'bg-stone-200 text-stone-400'}`}>
                               {apt.has_meter ? 'Tak' : 'Nie'}
                             </span>
                           </td>
@@ -376,7 +376,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                               const aptEntries = entries.filter(e => e.apartment_id === apt.id)
                               const rows = buildYearlyTable(apt, rates, aptEntries, new Date().getFullYear())
                               const balance = rows[rows.length - 1]?.balance_end ?? 0
-                              if (balance === 0) return <span className="text-xs text-gray-500">—</span>
+                              if (balance === 0) return <span className="text-xs text-stone-400">—</span>
                               return (
                                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${balance > 0 ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}>
                                   {balance > 0 ? '+' : ''}{pln(balance)}
@@ -390,7 +390,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                               Rozliczenie →
                             </Link>
                             <button onClick={() => handleDeleteApt(apt.id)} disabled={isPending}
-                              className="text-xs text-gray-600 hover:text-red-400 transition">✕</button>
+                              className="text-xs text-stone-400 hover:text-red-400 transition">✕</button>
                           </td>
                         </tr>
                       ))}
@@ -412,17 +412,17 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
               </div>
 
               {showRatesForm && (
-                <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
-                  <h3 className="font-semibold text-gray-200">Nowe stawki</h3>
-                  <p className="text-xs text-gray-500">Stawki obowiązują od podanej daty do momentu wprowadzenia następnych.</p>
+                <div className="bg-stone-100 border border-stone-200 rounded-xl p-5 space-y-4">
+                  <h3 className="font-semibold text-stone-800">Nowe stawki</h3>
+                  <p className="text-xs text-stone-400">Stawki obowiązują od podanej daty do momentu wprowadzenia następnych.</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     <div className="sm:col-span-2 lg:col-span-3">
-                      <label className="block text-xs text-gray-400 mb-1">Obowiązuje od *</label>
+                      <label className="block text-xs text-stone-500 mb-1">Obowiązuje od *</label>
                       <input className="input w-48" type="date" value={ratesForm.effective_from}
                         onChange={e => setRatesForm(p => ({ ...p, effective_from: e.target.value }))} />
                     </div>
                     <div className="sm:col-span-2 lg:col-span-3">
-                      <label className="block text-xs text-gray-400 mb-1">Model rozliczania wody</label>
+                      <label className="block text-xs text-stone-500 mb-1">Model rozliczania wody</label>
                       <select className="input w-full max-w-xs" value={ratesForm.water_billing_type}
                         onChange={e => setRatesForm(p => ({ ...p, water_billing_type: e.target.value as 'ryczalt' | 'meter' }))}>
                         <option value="ryczalt">Ryczałt (stała m³/miesiąc)</option>
@@ -437,14 +437,14 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                       { key: 'operating_rate_m2', label: 'Fundusz eksploatacyjny (zł/m²)' },
                     ].map(f => (
                       <div key={f.key}>
-                        <label className="block text-xs text-gray-400 mb-1">{f.label}</label>
+                        <label className="block text-xs text-stone-500 mb-1">{f.label}</label>
                         <input className="input w-full" type="number" step="0.0001" placeholder="0.00"
                           value={(ratesForm as any)[f.key]}
                           onChange={e => setRatesForm(p => ({ ...p, [f.key]: e.target.value }))} />
                       </div>
                     ))}
                     <div>
-                      <label className="block text-xs text-gray-400 mb-1">Zarządca — typ</label>
+                      <label className="block text-xs text-stone-500 mb-1">Zarządca — typ</label>
                       <select className="input w-full" value={ratesForm.manager_fee_type}
                         onChange={e => setRatesForm(p => ({ ...p, manager_fee_type: e.target.value as 'per_m2' | 'fixed' }))}>
                         <option value="per_m2">Wg m² (zł/m²)</option>
@@ -452,7 +452,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-400 mb-1">
+                      <label className="block text-xs text-stone-500 mb-1">
                         Zarządca — {ratesForm.manager_fee_type === 'per_m2' ? 'stawka zł/m²' : 'kwota stała zł/lokal'}
                       </label>
                       <input className="input w-full" type="number" step="0.01" placeholder="0.00"
@@ -465,20 +465,20 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                       className="bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">
                       {isPending ? 'Zapisywanie...' : 'Zapisz stawki'}
                     </button>
-                    <button onClick={() => setShowRatesForm(false)} className="text-sm text-gray-500 hover:text-gray-300">Anuluj</button>
+                    <button onClick={() => setShowRatesForm(false)} className="text-sm text-stone-400 hover:text-stone-700">Anuluj</button>
                   </div>
                 </div>
               )}
 
               {rates.length === 0 ? (
-                <p className="text-sm text-gray-500">Brak stawek. Dodaj pierwsze stawki.</p>
+                <p className="text-sm text-stone-400">Brak stawek. Dodaj pierwsze stawki.</p>
               ) : (
                 <div className="space-y-3">
                   {rates.map((r, i) => (
-                    <div key={r.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                    <div key={r.id} className="bg-stone-100 border border-stone-200 rounded-xl p-4">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <span className="font-semibold text-gray-100">
+                          <span className="font-semibold text-stone-900">
                             Od: {r.effective_from.split('-').slice(0,2).reverse().join('.')+'.'+r.effective_from.split('-')[0]}
                           </span>
                           {i === 0 && (
@@ -492,21 +492,21 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                             {editRateId === r.id ? 'Zwiń' : '✏ Edytuj'}
                           </button>
                           <button onClick={() => handleDeleteRates(r.id)} disabled={isPending}
-                            className="text-xs text-gray-600 hover:text-red-400 transition">✕ Usuń</button>
+                            className="text-xs text-stone-400 hover:text-red-400 transition">✕ Usuń</button>
                         </div>
                       </div>
 
                       {/* Inline edit form */}
                       {editRateId === r.id ? (
-                        <div className="space-y-4 pt-2 border-t border-gray-800">
+                        <div className="space-y-4 pt-2 border-t border-stone-200">
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                             <div className="sm:col-span-2 lg:col-span-3">
-                              <label className="block text-xs text-gray-400 mb-1">Obowiązuje od *</label>
+                              <label className="block text-xs text-stone-500 mb-1">Obowiązuje od *</label>
                               <input className="input w-48" type="date" value={editRateForm.effective_from}
                                 onChange={e => setEditRateForm(p => ({ ...p, effective_from: e.target.value }))} />
                             </div>
                             <div className="sm:col-span-2 lg:col-span-3">
-                              <label className="block text-xs text-gray-400 mb-1">Model rozliczania wody</label>
+                              <label className="block text-xs text-stone-500 mb-1">Model rozliczania wody</label>
                               <select className="input w-full max-w-xs" value={editRateForm.water_billing_type}
                                 onChange={e => setEditRateForm(p => ({ ...p, water_billing_type: e.target.value as 'ryczalt' | 'meter' }))}>
                                 <option value="ryczalt">Ryczałt (stała m³/miesiąc)</option>
@@ -521,14 +521,14 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                               { key: 'operating_rate_m2', label: 'Fundusz eksploatacyjny (zł/m²)' },
                             ].map(f => (
                               <div key={f.key}>
-                                <label className="block text-xs text-gray-400 mb-1">{f.label}</label>
+                                <label className="block text-xs text-stone-500 mb-1">{f.label}</label>
                                 <input className="input w-full" type="number" step="0.0001" placeholder="0.00"
                                   value={(editRateForm as any)[f.key]}
                                   onChange={e => setEditRateForm(p => ({ ...p, [f.key]: e.target.value }))} />
                               </div>
                             ))}
                             <div>
-                              <label className="block text-xs text-gray-400 mb-1">Zarządca — typ</label>
+                              <label className="block text-xs text-stone-500 mb-1">Zarządca — typ</label>
                               <select className="input w-full" value={editRateForm.manager_fee_type}
                                 onChange={e => setEditRateForm(p => ({ ...p, manager_fee_type: e.target.value as 'per_m2' | 'fixed' }))}>
                                 <option value="per_m2">Wg m² (zł/m²)</option>
@@ -536,7 +536,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                               </select>
                             </div>
                             <div>
-                              <label className="block text-xs text-gray-400 mb-1">
+                              <label className="block text-xs text-stone-500 mb-1">
                                 Zarządca — {editRateForm.manager_fee_type === 'per_m2' ? 'stawka zł/m²' : 'kwota stała zł/lokal'}
                               </label>
                               <input className="input w-full" type="number" step="0.01" placeholder="0.00"
@@ -549,7 +549,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                               className="bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">
                               {isPending ? 'Zapisywanie...' : 'Zapisz zmiany'}
                             </button>
-                            <button onClick={() => setEditRateId(null)} className="text-sm text-gray-500 hover:text-gray-300">Anuluj</button>
+                            <button onClick={() => setEditRateId(null)} className="text-sm text-stone-400 hover:text-stone-700">Anuluj</button>
                           </div>
                         </div>
                       ) : (
@@ -563,8 +563,8 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                             { label: 'Zarządca', value: r.manager_fee_type === 'per_m2' ? `${r.manager_fee_value} zł/m²` : `${r.manager_fee_value} zł/lokal (stała)` },
                           ].map(item => (
                             <div key={item.label}>
-                              <p className="text-gray-500">{item.label}</p>
-                              <p className="text-gray-200 font-medium mt-0.5">{item.value}</p>
+                              <p className="text-stone-400">{item.label}</p>
+                              <p className="text-stone-800 font-medium mt-0.5">{item.value}</p>
                             </div>
                           ))}
                         </div>
@@ -605,23 +605,23 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
               <div className="space-y-4">
                 {/* Karty podsumowania */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-                    <p className="text-xs text-gray-500">Łącznie naliczono</p>
-                    <p className="text-xl font-bold text-gray-100 mt-1">{pln(sumDue)}</p>
+                  <div className="bg-stone-100 border border-stone-200 rounded-xl p-4">
+                    <p className="text-xs text-stone-400">Łącznie naliczono</p>
+                    <p className="text-xl font-bold text-stone-900 mt-1">{pln(sumDue)}</p>
                   </div>
-                  <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-                    <p className="text-xs text-gray-500">Łącznie wpłacono</p>
+                  <div className="bg-stone-100 border border-stone-200 rounded-xl p-4">
+                    <p className="text-xs text-stone-400">Łącznie wpłacono</p>
                     <p className="text-xl font-bold text-green-400 mt-1">{pln(sumPaid)}</p>
                   </div>
-                  <div className={`bg-gray-900 border rounded-xl p-4 ${sumBalance >= 0 ? 'border-green-900' : 'border-red-900'}`}>
-                    <p className="text-xs text-gray-500">Saldo wspólnoty</p>
+                  <div className={`bg-stone-100 border rounded-xl p-4 ${sumBalance >= 0 ? 'border-green-900' : 'border-red-900'}`}>
+                    <p className="text-xs text-stone-400">Saldo wspólnoty</p>
                     <p className={`text-xl font-bold mt-1 ${sumBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>{pln(sumBalance)}</p>
                   </div>
-                  <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-                    <p className="text-xs text-gray-500">Zalegający / nadpłacający</p>
+                  <div className="bg-stone-100 border border-stone-200 rounded-xl p-4">
+                    <p className="text-xs text-stone-400">Zalegający / nadpłacający</p>
                     <p className="text-xl font-bold mt-1">
                       <span className="text-red-400">{debtCount}</span>
-                      <span className="text-gray-600 mx-1">/</span>
+                      <span className="text-stone-400 mx-1">/</span>
                       <span className="text-green-400">{overpayCount}</span>
                     </p>
                   </div>
@@ -635,8 +635,8 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                         reportFilter === f
                           ? f === 'debt' ? 'bg-red-900/30 border-red-800 text-red-400'
                             : f === 'overpay' ? 'bg-green-900/30 border-green-800 text-green-400'
-                            : 'bg-gray-800 border-gray-700 text-gray-100'
-                          : 'border-gray-800 text-gray-500 hover:text-gray-300'
+                            : 'bg-stone-200 border-stone-200 text-stone-900'
+                          : 'border-stone-200 text-stone-400 hover:text-stone-700'
                       }`}>
                       {f === 'all' ? `Wszystkie (${reportRows.length})` : f === 'debt' ? `⚠ Zaległości (${debtCount})` : `✓ Nadpłaty (${overpayCount})`}
                     </button>
@@ -644,28 +644,28 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                 </div>
 
                 {/* Tabela */}
-                <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+                <div className="bg-stone-100 border border-stone-200 rounded-xl overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm min-w-[700px]">
                       <thead>
-                        <tr className="border-b border-gray-800 bg-gray-950">
+                        <tr className="border-b border-stone-200 bg-stone-50">
                           {['Nr', 'Właściciel', 'Pow. m²', 'Osoby', 'Naliczono', 'Wpłacono', 'Saldo', ''].map(h => (
-                            <th key={h} className="px-3 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">{h}</th>
+                            <th key={h} className="px-3 py-2 text-left text-xs font-medium text-stone-500 uppercase tracking-wide">{h}</th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
                         {filtered.map(({ apt, totalPaid, totalDue, balance }) => (
-                          <tr key={apt.id} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition">
-                            <td className="px-3 py-2.5 font-semibold text-gray-100">{apt.number}</td>
-                            <td className="px-3 py-2.5 text-gray-300">{apt.owner_name}</td>
-                            <td className="px-3 py-2.5 text-gray-400 text-xs">{Number(apt.area_m2).toFixed(2)}</td>
-                            <td className="px-3 py-2.5 text-gray-400">{apt.persons_count}</td>
-                            <td className="px-3 py-2.5 text-gray-200">{pln(totalDue)}</td>
+                          <tr key={apt.id} className="border-b border-stone-200/50 hover:bg-stone-200/30 transition">
+                            <td className="px-3 py-2.5 font-semibold text-stone-900">{apt.number}</td>
+                            <td className="px-3 py-2.5 text-stone-700">{apt.owner_name}</td>
+                            <td className="px-3 py-2.5 text-stone-500 text-xs">{Number(apt.area_m2).toFixed(2)}</td>
+                            <td className="px-3 py-2.5 text-stone-500">{apt.persons_count}</td>
+                            <td className="px-3 py-2.5 text-stone-800">{pln(totalDue)}</td>
                             <td className="px-3 py-2.5 text-green-300 font-medium">{pln(totalPaid)}</td>
                             <td className="px-3 py-2.5">
                               {balance === 0
-                                ? <span className="text-gray-500 text-xs">—</span>
+                                ? <span className="text-stone-400 text-xs">—</span>
                                 : <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${balance > 0 ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}>
                                     {balance > 0 ? '+' : ''}{pln(balance)}
                                   </span>
@@ -681,9 +681,9 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                         ))}
                       </tbody>
                       <tfoot>
-                        <tr className="bg-gray-800/60 border-t-2 border-gray-700 font-semibold">
-                          <td colSpan={4} className="px-3 py-2.5 text-sm text-gray-400">RAZEM {year}</td>
-                          <td className="px-3 py-2.5 text-sm text-gray-200">{pln(sumDue)}</td>
+                        <tr className="bg-stone-200/60 border-t-2 border-stone-200 font-semibold">
+                          <td colSpan={4} className="px-3 py-2.5 text-sm text-stone-500">RAZEM {year}</td>
+                          <td className="px-3 py-2.5 text-sm text-stone-800">{pln(sumDue)}</td>
                           <td className="px-3 py-2.5 text-sm text-green-300">{pln(sumPaid)}</td>
                           <td className="px-3 py-2.5">
                             <span className={`text-sm font-bold ${sumBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
@@ -703,21 +703,21 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
           {tab === 'import' && (
             <div className="space-y-5 max-w-2xl">
               <div>
-                <h3 className="text-lg font-semibold text-gray-100">Import wpłat z CSV</h3>
-                <p className="text-sm text-gray-500 mt-1">
+                <h3 className="text-lg font-semibold text-stone-900">Import wpłat z CSV</h3>
+                <p className="text-sm text-stone-400 mt-1">
                   Zaimportuj wpłaty mieszkańców hurtowo. Istniejące wpisy (lokal + rok + miesiąc) zostaną nadpisane.
                 </p>
               </div>
 
               {/* Format */}
-              <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-2">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Format CSV</p>
-                <code className="block text-xs text-green-400 bg-gray-950 rounded p-3 font-mono">
+              <div className="bg-stone-100 border border-stone-200 rounded-xl p-4 space-y-2">
+                <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide">Format CSV</p>
+                <code className="block text-xs text-green-400 bg-stone-50 rounded p-3 font-mono">
                   lokal;rok;miesiac;wplata;woda_m3;korekta_wody;uwagi<br />
                   14;2026;1;350.00;3.5;0;<br />
                   7;2026;1;280.00;0;0;
                 </code>
-                <p className="text-xs text-gray-500">Kolumny <span className="text-gray-300">woda_m3, korekta_wody, uwagi</span> są opcjonalne (domyślnie 0).</p>
+                <p className="text-xs text-stone-400">Kolumny <span className="text-stone-700">woda_m3, korekta_wody, uwagi</span> są opcjonalne (domyślnie 0).</p>
                 <button onClick={downloadTemplate}
                   className="text-xs text-green-400 hover:text-green-300 underline underline-offset-2 transition">
                   Pobierz szablon CSV
@@ -735,7 +735,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                     ? 'border-green-500 bg-green-950/20 scale-[1.01]'
                     : csvFileName
                     ? 'border-green-700 bg-green-950/20'
-                    : 'border-gray-700 bg-gray-900/50 hover:border-gray-500 hover:bg-gray-900'
+                    : 'border-stone-200 bg-stone-100/50 hover:border-stone-300 hover:bg-stone-100'
                 }`}
               >
                 <input
@@ -749,29 +749,29 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                 {csvFileName ? (
                   <>
                     <p className="text-sm font-semibold text-green-400">{csvFileName}</p>
-                    <p className="text-xs text-gray-500 mt-1">Kliknij żeby wybrać inny plik</p>
+                    <p className="text-xs text-stone-400 mt-1">Kliknij żeby wybrać inny plik</p>
                   </>
                 ) : (
                   <>
-                    <p className="text-sm font-semibold text-gray-300">Przeciągnij plik CSV tutaj</p>
-                    <p className="text-xs text-gray-500 mt-1">lub kliknij żeby wybrać z dysku</p>
+                    <p className="text-sm font-semibold text-stone-700">Przeciągnij plik CSV tutaj</p>
+                    <p className="text-xs text-stone-400 mt-1">lub kliknij żeby wybrać z dysku</p>
                   </>
                 )}
               </div>
 
               {/* Podgląd */}
               {csvPreview.length > 0 && (
-                <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-                  <p className="text-xs text-gray-400 px-4 py-2 border-b border-gray-800">
+                <div className="bg-stone-100 border border-stone-200 rounded-xl overflow-hidden">
+                  <p className="text-xs text-stone-500 px-4 py-2 border-b border-stone-200">
                     Podgląd (pierwsze {csvPreview.length} wierszy)
                   </p>
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs font-mono">
                       <tbody>
                         {csvPreview.map((row, i) => (
-                          <tr key={i} className={`border-b border-gray-800/50 ${i === 0 ? 'bg-gray-800/40 text-gray-400' : 'text-gray-300'}`}>
+                          <tr key={i} className={`border-b border-stone-200/50 ${i === 0 ? 'bg-stone-200/40 text-stone-500' : 'text-stone-700'}`}>
                             {row.map((cell, j) => (
-                              <td key={j} className="px-3 py-1.5 whitespace-nowrap">{cell || <span className="text-gray-700">—</span>}</td>
+                              <td key={j} className="px-3 py-1.5 whitespace-nowrap">{cell || <span className="text-stone-300">—</span>}</td>
                             ))}
                           </tr>
                         ))}
@@ -790,7 +790,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                 }`}>
                   <p className="font-semibold">
                     ✓ Zaimportowano {importResult.imported} wpis{importResult.imported === 1 ? '' : importResult.imported < 5 ? 'y' : 'ów'}
-                    {importResult.skipped > 0 && <span className="text-gray-400 font-normal"> · pominięto {importResult.skipped}</span>}
+                    {importResult.skipped > 0 && <span className="text-stone-500 font-normal"> · pominięto {importResult.skipped}</span>}
                   </p>
                   {importResult.errors.map((e, i) => (
                     <p key={i} className="text-xs text-red-400">⚠ {e}</p>

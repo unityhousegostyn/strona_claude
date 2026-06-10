@@ -34,12 +34,12 @@ export default function DocPreviewButton({ url, name }: Props) {
           onClick={() => setOpen(false)}
         >
           <div
-            className="bg-gray-900 border border-gray-700 rounded-2xl overflow-hidden flex flex-col max-w-4xl w-full max-h-[90vh] shadow-2xl"
+            className="bg-stone-100 border border-stone-200 rounded-2xl overflow-hidden flex flex-col max-w-4xl w-full max-h-[90vh] shadow-2xl"
             onClick={e => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800 flex-shrink-0">
-              <p className="text-sm font-medium text-gray-100 truncate max-w-xs">{name}</p>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-stone-200 flex-shrink-0">
+              <p className="text-sm font-medium text-stone-900 truncate max-w-xs">{name}</p>
               <div className="flex items-center gap-3">
                 <a
                   href={url}
@@ -52,7 +52,7 @@ export default function DocPreviewButton({ url, name }: Props) {
                 </a>
                 <button
                   onClick={() => setOpen(false)}
-                  className="text-gray-400 hover:text-gray-100 text-xl leading-none px-1"
+                  className="text-stone-500 hover:text-stone-900 text-xl leading-none px-1"
                 >
                   ✕
                 </button>
@@ -60,7 +60,7 @@ export default function DocPreviewButton({ url, name }: Props) {
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-auto bg-gray-950">
+            <div className="flex-1 overflow-auto bg-stone-50">
               {isImage(name) ? (
                 <img
                   src={url}

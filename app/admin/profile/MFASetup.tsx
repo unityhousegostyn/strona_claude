@@ -98,11 +98,11 @@ export default function MFASetup() {
   if (status === 'loading') return null
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+    <div className="bg-stone-100 border border-stone-200 rounded-xl p-6 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Weryfikacja dwuetapowa (2FA)</h3>
-          <p className="text-xs text-gray-600 mt-1">Aplikacja Google Authenticator, Authy lub podobna</p>
+          <h3 className="text-sm font-semibold text-stone-400 uppercase tracking-wide">Weryfikacja dwuetapowa (2FA)</h3>
+          <p className="text-xs text-stone-400 mt-1">Aplikacja Google Authenticator, Authy lub podobna</p>
         </div>
         {status === 'enrolled'
           ? <span className="text-xs bg-green-900/30 text-green-400 border border-green-800 px-2 py-0.5 rounded-full">✓ Włączone</span>
@@ -115,7 +115,7 @@ export default function MFASetup() {
 
       {status === 'not_enrolled' && !qrCode && (
         <div className="space-y-3">
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-stone-500">
             Włącz 2FA, aby wymagać kodu z aplikacji mobilnej przy każdym logowaniu. Zalecane dla kont administratorów.
           </p>
           <button
@@ -130,20 +130,20 @@ export default function MFASetup() {
 
       {qrCode && (
         <div className="space-y-4">
-          <p className="text-sm text-gray-400">
-            Zeskanuj poniższy kod QR w aplikacji <strong className="text-gray-200">Google Authenticator</strong>, <strong className="text-gray-200">Authy</strong> lub innej aplikacji TOTP.
+          <p className="text-sm text-stone-500">
+            Zeskanuj poniższy kod QR w aplikacji <strong className="text-stone-800">Google Authenticator</strong>, <strong className="text-stone-800">Authy</strong> lub innej aplikacji TOTP.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 items-start">
             <div className="bg-white p-3 rounded-xl">
               <img src={qrCode} alt="QR kod 2FA" width={160} height={160} />
             </div>
             <div className="space-y-2">
-              <p className="text-xs text-gray-500">Nie możesz zeskanować? Wpisz ręcznie ten kod:</p>
-              <code className="block text-xs bg-gray-800 text-green-400 px-3 py-2 rounded-lg font-mono break-all">{secret}</code>
+              <p className="text-xs text-stone-400">Nie możesz zeskanować? Wpisz ręcznie ten kod:</p>
+              <code className="block text-xs bg-stone-200 text-green-400 px-3 py-2 rounded-lg font-mono break-all">{secret}</code>
             </div>
           </div>
           <div className="space-y-2">
-            <p className="text-sm text-gray-300">Po dodaniu konta w aplikacji wpisz 6-cyfrowy kod:</p>
+            <p className="text-sm text-stone-700">Po dodaniu konta w aplikacji wpisz 6-cyfrowy kod:</p>
             <div className="flex gap-3 items-center">
               <input
                 type="text"
@@ -162,7 +162,7 @@ export default function MFASetup() {
               >
                 Potwierdź
               </button>
-              <button onClick={() => { setQrCode(null); setSecret(null); setCode('') }} className="text-sm text-gray-500 hover:text-gray-300">
+              <button onClick={() => { setQrCode(null); setSecret(null); setCode('') }} className="text-sm text-stone-400 hover:text-stone-700">
                 Anuluj
               </button>
             </div>
@@ -172,7 +172,7 @@ export default function MFASetup() {
 
       {status === 'enrolled' && (
         <div className="space-y-3">
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-stone-500">
             Przy każdym logowaniu będziesz musiał podać 6-cyfrowy kod z aplikacji authenticator.
           </p>
           <button

@@ -22,15 +22,15 @@ export default function RegisterPage() {
 
   if (result?.success) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-gray-950">
-        <div className="bg-gray-900 shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm space-y-5 text-center">
+      <main className="min-h-screen flex items-center justify-center bg-stone-50">
+        <div className="bg-stone-100 shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm space-y-5 text-center">
           <div className="text-5xl">📧</div>
-          <h1 className="text-xl font-bold text-gray-200">Sprawdź skrzynkę!</h1>
-          <p className="text-sm text-gray-400 leading-relaxed">
+          <h1 className="text-xl font-bold text-stone-800">Sprawdź skrzynkę!</h1>
+          <p className="text-sm text-stone-500 leading-relaxed">
             Wysłaliśmy link aktywacyjny na Twój adres email. Kliknij go, aby potwierdzić rejestrację.
           </p>
-          <div className="bg-gray-800 rounded-lg px-4 py-3 text-xs text-gray-400 text-left space-y-1.5">
-            <p className="font-medium text-gray-300 mb-1">Co dalej?</p>
+          <div className="bg-stone-200 rounded-lg px-4 py-3 text-xs text-stone-500 text-left space-y-1.5">
+            <p className="font-medium text-stone-700 mb-1">Co dalej?</p>
             <p>1. Kliknij link w emailu (ważny 24h)</p>
             <p>2. Poczekaj na akceptację administratora</p>
             <p>3. Zaloguj się i korzystaj z panelu</p>
@@ -47,14 +47,14 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-950">
-      <div className="bg-gray-900 shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm space-y-5">
-        <h1 className="text-2xl font-bold text-gray-200">Rejestracja</h1>
-        <p className="text-sm text-gray-500">Utwórz konto w panelu wspólnoty</p>
+    <main className="min-h-screen flex items-center justify-center bg-stone-50">
+      <div className="bg-stone-100 shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm space-y-5">
+        <h1 className="text-2xl font-bold text-stone-800">Rejestracja</h1>
+        <p className="text-sm text-stone-400">Utwórz konto w panelu wspólnoty</p>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
+            <label className="block text-sm font-medium text-stone-700 mb-1">Email</label>
             <input
               name="email"
               type="email"
@@ -65,7 +65,7 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Hasło</label>
+            <label className="block text-sm font-medium text-stone-700 mb-1">Hasło</label>
             <input
               name="password"
               type="password"
@@ -76,7 +76,7 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Imię i nazwisko</label>
+            <label className="block text-sm font-medium text-stone-700 mb-1">Imię i nazwisko</label>
             <input
               name="full_name"
               type="text"

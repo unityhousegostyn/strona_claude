@@ -68,10 +68,10 @@ export default function PendingUsers({ users, communities, apartments, isSuperAd
               className="bg-orange-950/20 border border-orange-800 rounded-xl px-4 py-3 flex items-center justify-between gap-4 flex-wrap"
             >
               <div>
-                <p className="font-medium text-gray-200 text-sm">
-                  {u.full_name ?? <span className="italic text-gray-400">Brak nazwy</span>}
+                <p className="font-medium text-stone-800 text-sm">
+                  {u.full_name ?? <span className="italic text-stone-500">Brak nazwy</span>}
                 </p>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs text-stone-400 mt-0.5">
                   Zarejestrowany {new Date(u.created_at).toLocaleDateString('pl-PL')}
                 </p>
               </div>
@@ -83,7 +83,7 @@ export default function PendingUsers({ users, communities, apartments, isSuperAd
                       setSelectedCommunity(prev => ({ ...prev, [u.id]: e.target.value }))
                       setSelectedApartment(prev => ({ ...prev, [u.id]: '' }))
                     }}
-                    className="text-sm bg-gray-900 text-gray-200 border border-gray-700 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-green-400"
+                    className="text-sm bg-stone-100 text-stone-800 border border-stone-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-green-400"
                   >
                     <option value="">Wybierz wspólnotę…</option>
                     {communities.map((c) => (
@@ -97,7 +97,7 @@ export default function PendingUsers({ users, communities, apartments, isSuperAd
                   <select
                     value={selectedApartment[u.id] ?? ''}
                     onChange={(e) => setSelectedApartment(prev => ({ ...prev, [u.id]: e.target.value }))}
-                    className="text-sm bg-gray-900 text-gray-200 border border-gray-700 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-green-400"
+                    className="text-sm bg-stone-100 text-stone-800 border border-stone-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-green-400"
                   >
                     <option value="">Lokal (opcjonalnie)…</option>
                     {availableApts.map((a) => (

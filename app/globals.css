@@ -2,14 +2,14 @@
 
 @layer base {
   body {
-    background-color: #030712; /* gray-950 */
-    color: #f3f4f6; /* gray-100 */
+    background-color: #faf8f5;
+    color: #1c1a17;
   }
 }
 
 @layer components {
   .input {
-    @apply w-full bg-gray-800 border border-gray-700 text-gray-100 placeholder-gray-500 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition;
+    @apply w-full bg-white border border-stone-300 text-stone-900 placeholder-stone-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition;
   }
 }
 

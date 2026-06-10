@@ -55,27 +55,27 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-100">Audit Log</h2>
-        <span className="text-sm text-gray-500">{count ?? 0} wpisów</span>
+        <h2 className="text-2xl font-bold text-stone-900">Audit Log</h2>
+        <span className="text-sm text-stone-400">{count ?? 0} wpisów</span>
       </div>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+      <div className="bg-stone-100 border border-stone-200 rounded-xl overflow-hidden">
         {!logs || logs.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-8">Brak wpisów.</p>
+          <p className="text-sm text-stone-500 text-center py-8">Brak wpisów.</p>
         ) : (
           <ul className="divide-y divide-gray-800">
             {logs.map((log: any) => (
-              <li key={log.id} className="flex items-center gap-4 px-4 py-3 hover:bg-gray-950 transition">
+              <li key={log.id} className="flex items-center gap-4 px-4 py-3 hover:bg-stone-50 transition">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-100">{ACTION_LABELS[log.action] ?? log.action}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-sm text-stone-900">{ACTION_LABELS[log.action] ?? log.action}</p>
+                  <p className="text-xs text-stone-500 mt-0.5">
                     {log.actor?.full_name ?? log.actor?.email ?? 'system'}
                     {log.meta?.title ? ` — "${log.meta.title}"` : ''}
                     {log.meta?.name ? ` — "${log.meta.name}"` : ''}
                     {log.meta?.to ? ` → ${log.meta.to === 'open' ? 'Otwarte' : 'Zamknięte'}` : ''}
                   </p>
                 </div>
-                <span className="text-xs text-gray-500 flex-shrink-0">
+                <span className="text-xs text-stone-400 flex-shrink-0">
                   {new Date(log.created_at).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })}
                 </span>
               </li>
@@ -87,7 +87,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-1">
           {page > 1 && (
-            <Link href={`/admin/audit?page=${page - 1}`} className="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-gray-100 hover:bg-gray-800 transition">←</Link>
+            <Link href={`/admin/audit?page=${page - 1}`} className="px-3 py-1.5 rounded-lg text-sm text-stone-500 hover:text-stone-900 hover:bg-stone-200 transition">←</Link>
           )}
           {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
             const p = totalPages <= 7 ? i + 1 : page <= 4 ? i + 1 : page >= totalPages - 3 ? totalPages - 6 + i : page - 3 + i
@@ -96,7 +96,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
                 key={p}
                 href={`/admin/audit?page=${p}`}
                 className={`min-w-[36px] px-3 py-1.5 rounded-lg text-sm font-medium transition text-center ${
-                  p === page ? 'bg-green-600 text-white' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800'
+                  p === page ? 'bg-green-600 text-white' : 'text-stone-500 hover:text-stone-900 hover:bg-stone-200'
                 }`}
               >
                 {p}
@@ -104,7 +104,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
             )
           })}
           {page < totalPages && (
-            <Link href={`/admin/audit?page=${page + 1}`} className="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-gray-100 hover:bg-gray-800 transition">→</Link>
+            <Link href={`/admin/audit?page=${page + 1}`} className="px-3 py-1.5 rounded-lg text-sm text-stone-500 hover:text-stone-900 hover:bg-stone-200 transition">→</Link>
           )}
         </div>
       )}

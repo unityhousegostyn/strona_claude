@@ -139,15 +139,15 @@ export default function VotesClient({ votes, communities, userId, communityId, i
   }
 
   const choiceLabel = { yes: 'ZA', no: 'PRZECIW', abstain: 'WSTRZYMUJĘ SIĘ' }
-  const choiceColor = { yes: 'bg-green-600 hover:bg-green-500', no: 'bg-red-600 hover:bg-red-500', abstain: 'bg-gray-600 hover:bg-gray-500' }
+  const choiceColor = { yes: 'bg-green-600 hover:bg-green-500', no: 'bg-red-600 hover:bg-red-500', abstain: 'bg-stone-400 hover:bg-gray-500' }
 
   return (
     <div className="space-y-6 max-w-4xl">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-gray-100">🗳️ Głosowania</h2>
-          <p className="text-sm text-gray-500 mt-0.5">Uchwały wspólnoty mieszkaniowej</p>
+          <h2 className="text-2xl font-bold text-stone-900">🗳️ Głosowania</h2>
+          <p className="text-sm text-stone-400 mt-0.5">Uchwały wspólnoty mieszkaniowej</p>
         </div>
         <div className="flex items-center gap-3">
           {!hasPin && (
@@ -166,22 +166,22 @@ export default function VotesClient({ votes, communities, userId, communityId, i
 
       {/* Formularz nowej uchwały */}
       {showForm && isAdmin && (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
-          <h3 className="font-semibold text-gray-200">Nowa uchwała</h3>
+        <div className="bg-stone-100 border border-stone-200 rounded-xl p-5 space-y-4">
+          <h3 className="font-semibold text-stone-800">Nowa uchwała</h3>
           <div className="space-y-3">
             <div>
-              <label className="text-xs text-gray-400 block mb-1">Tytuł uchwały *</label>
+              <label className="text-xs text-stone-500 block mb-1">Tytuł uchwały *</label>
               <input className="input w-full" placeholder="np. Uchwała nr 1/2026 w sprawie..."
                 value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} />
             </div>
             <div>
-              <label className="text-xs text-gray-400 block mb-1">Opis / treść uchwały</label>
+              <label className="text-xs text-stone-500 block mb-1">Opis / treść uchwały</label>
               <textarea className="input w-full min-h-24 resize-y" placeholder="Treść uchwały..."
                 value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="text-xs text-gray-400 block mb-1">Metoda głosowania</label>
+                <label className="text-xs text-stone-500 block mb-1">Metoda głosowania</label>
                 <select className="input w-full" value={form.voting_method}
                   onChange={e => setForm(p => ({ ...p, voting_method: e.target.value as 'by_share' | 'one_per_owner' }))}>
                   <option value="by_share">Wg udziałów (art. 23 UWL)</option>
@@ -189,13 +189,13 @@ export default function VotesClient({ votes, communities, userId, communityId, i
                 </select>
               </div>
               <div>
-                <label className="text-xs text-gray-400 block mb-1">Termin głosowania</label>
+                <label className="text-xs text-stone-500 block mb-1">Termin głosowania</label>
                 <input className="input w-full" type="datetime-local" value={form.deadline}
                   onChange={e => setForm(p => ({ ...p, deadline: e.target.value }))} />
               </div>
               {isSuperAdmin && (
                 <div>
-                  <label className="text-xs text-gray-400 block mb-1">Wspólnota</label>
+                  <label className="text-xs text-stone-500 block mb-1">Wspólnota</label>
                   <select className="input w-full" value={form.community_id}
                     onChange={e => setForm(p => ({ ...p, community_id: e.target.value }))}>
                     <option value="">— wybierz wspólnotę —</option>
@@ -206,10 +206,10 @@ export default function VotesClient({ votes, communities, userId, communityId, i
             </div>
 
             {/* Dokumentacja */}
-            <div className="border-t border-gray-800 pt-3 space-y-3">
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Dokumentacja (opcjonalnie)</p>
+            <div className="border-t border-stone-200 pt-3 space-y-3">
+              <p className="text-xs font-medium text-stone-400 uppercase tracking-wider">Dokumentacja (opcjonalnie)</p>
               <div>
-                <label className="text-xs text-gray-400 block mb-1">🔗 Link do dokumentu zewnętrznego</label>
+                <label className="text-xs text-stone-500 block mb-1">🔗 Link do dokumentu zewnętrznego</label>
                 <input
                   className="input w-full"
                   type="url"
@@ -219,7 +219,7 @@ export default function VotesClient({ votes, communities, userId, communityId, i
                 />
               </div>
               <div>
-                <label className="text-xs text-gray-400 block mb-1">📎 Załącznik</label>
+                <label className="text-xs text-stone-500 block mb-1">📎 Załącznik</label>
                 <div className="flex items-center gap-3">
                   <input
                     ref={fileInputRef}
@@ -230,18 +230,18 @@ export default function VotesClient({ votes, communities, userId, communityId, i
                     id="vote-attachment"
                   />
                   <label htmlFor="vote-attachment"
-                    className="cursor-pointer text-sm bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 px-3 py-2 rounded-lg transition">
+                    className="cursor-pointer text-sm bg-stone-200 hover:bg-stone-300 border border-stone-200 text-stone-700 px-3 py-2 rounded-lg transition">
                     Wybierz plik
                   </label>
                   {attachmentFile ? (
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-sm text-gray-300 truncate max-w-48">{attachmentFile.name}</span>
+                      <span className="text-sm text-stone-700 truncate max-w-48">{attachmentFile.name}</span>
                       <button type="button"
                         onClick={() => { setAttachmentFile(null); if (fileInputRef.current) fileInputRef.current.value = '' }}
-                        className="text-xs text-gray-500 hover:text-red-400 flex-shrink-0 transition">✕</button>
+                        className="text-xs text-stone-400 hover:text-red-400 flex-shrink-0 transition">✕</button>
                     </div>
                   ) : (
-                    <span className="text-xs text-gray-600">PDF, DOC, XLS, obraz</span>
+                    <span className="text-xs text-stone-400">PDF, DOC, XLS, obraz</span>
                   )}
                 </div>
               </div>
@@ -255,14 +255,14 @@ export default function VotesClient({ votes, communities, userId, communityId, i
               {uploading ? 'Przesyłanie pliku...' : isPending ? 'Tworzenie...' : 'Utwórz głosowanie'}
             </button>
             <button onClick={() => { setShowForm(false); setAttachmentFile(null) }}
-              className="text-sm text-gray-500 hover:text-gray-300">Anuluj</button>
+              className="text-sm text-stone-400 hover:text-stone-700">Anuluj</button>
           </div>
         </div>
       )}
 
       {/* Lista głosowań */}
       {votes.length === 0 ? (
-        <div className="text-center py-16 text-gray-500">
+        <div className="text-center py-16 text-stone-400">
           <p className="text-4xl mb-3">🗳️</p>
           <p>{isAdmin ? 'Utwórz pierwszą uchwałę.' : 'Administrator jeszcze nie dodał żadnych uchwał.'}</p>
         </div>
@@ -275,26 +275,26 @@ export default function VotesClient({ votes, communities, userId, communityId, i
             const totalVoters = vote.choices.length
 
             return (
-              <div key={vote.id} className={`bg-gray-900 border rounded-xl p-5 space-y-4 ${vote.status === 'open' ? 'border-gray-800' : 'border-gray-800/50 opacity-80'}`}>
+              <div key={vote.id} className={`bg-stone-100 border rounded-xl p-5 space-y-4 ${vote.status === 'open' ? 'border-stone-200' : 'border-stone-200/50 opacity-80'}`}>
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${vote.status === 'open' ? 'bg-green-900/30 text-green-400' : 'bg-gray-800 text-gray-500'}`}>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${vote.status === 'open' ? 'bg-green-900/30 text-green-400' : 'bg-stone-200 text-stone-400'}`}>
                         {vote.status === 'open' ? '● Otwarte' : '✓ Zamknięte'}
                       </span>
                       {isSuperAdmin && vote.community && (
-                        <span className="text-xs text-gray-500">{vote.community.name}</span>
+                        <span className="text-xs text-stone-400">{vote.community.name}</span>
                       )}
-                      <span className="text-xs text-gray-600">
+                      <span className="text-xs text-stone-400">
                         {vote.voting_method === 'by_share' ? 'wg udziałów' : '1 lokal = 1 głos'}
                       </span>
                     </div>
-                    <h3 className="text-base font-semibold text-gray-100">{vote.title}</h3>
+                    <h3 className="text-base font-semibold text-stone-900">{vote.title}</h3>
                     {vote.description && (
-                      <p className="text-sm text-gray-400 mt-1 whitespace-pre-wrap">{vote.description}</p>
+                      <p className="text-sm text-stone-500 mt-1 whitespace-pre-wrap">{vote.description}</p>
                     )}
                     {vote.deadline && (
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-stone-400 mt-1">
                         Termin: {new Date(vote.deadline).toLocaleString('pl-PL')}
                       </p>
                     )}
@@ -310,7 +310,7 @@ export default function VotesClient({ votes, communities, userId, communityId, i
                         )}
                         {vote.attachment_path && (
                           <a href={getAttachmentUrl(vote.attachment_path)} target="_blank" rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-xs text-gray-300 hover:text-gray-100 bg-gray-800 border border-gray-700 px-2.5 py-1 rounded-lg transition">
+                            className="inline-flex items-center gap-1.5 text-xs text-stone-700 hover:text-stone-900 bg-stone-200 border border-stone-200 px-2.5 py-1 rounded-lg transition">
                             📎 {vote.attachment_path.split('/').pop()?.replace(/^\d+_/, '') ?? 'Załącznik'}
                           </a>
                         )}
@@ -326,14 +326,14 @@ export default function VotesClient({ votes, communities, userId, communityId, i
                         </button>
                       )}
                       <button onClick={() => handleDelete(vote.id)} disabled={isPending}
-                        className="text-xs text-gray-600 hover:text-red-400 transition">✕</button>
+                        className="text-xs text-stone-400 hover:text-red-400 transition">✕</button>
                     </div>
                   )}
                 </div>
 
                 {/* Wyniki */}
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                  <div className="flex items-center justify-between text-xs text-stone-400 mb-1">
                     <span>Wyniki ({totalVoters} głosów)</span>
                     {vote.voting_method === 'by_share' && res.total > 0 && (
                       <span>Łączny udział: {(res.total * 100).toFixed(2)}%</span>
@@ -345,19 +345,19 @@ export default function VotesClient({ votes, communities, userId, communityId, i
                     { label: 'Wstrzymało się', value: res.ab, pct: res.pct(res.ab), color: 'bg-gray-500' },
                   ].map(r => (
                     <div key={r.label} className="flex items-center gap-3">
-                      <span className="text-xs text-gray-400 w-24">{r.label}</span>
-                      <div className="flex-1 bg-gray-800 rounded-full h-2">
+                      <span className="text-xs text-stone-500 w-24">{r.label}</span>
+                      <div className="flex-1 bg-stone-200 rounded-full h-2">
                         <div className={`${r.color} h-2 rounded-full transition-all`} style={{ width: `${r.pct}%` }} />
                       </div>
-                      <span className="text-xs text-gray-300 w-12 text-right">{r.pct}%</span>
+                      <span className="text-xs text-stone-700 w-12 text-right">{r.pct}%</span>
                     </div>
                   ))}
                 </div>
 
                 {/* Głosowanie */}
                 {isOpen && !myChoice && !isSuperAdmin && (
-                  <div className="flex flex-wrap gap-2 pt-1 border-t border-gray-800">
-                    <p className="w-full text-xs text-gray-500 mb-1">Twój głos:</p>
+                  <div className="flex flex-wrap gap-2 pt-1 border-t border-stone-200">
+                    <p className="w-full text-xs text-stone-400 mb-1">Twój głos:</p>
                     {(['yes', 'no', 'abstain'] as const).map(c => (
                       <button key={c} onClick={() => handleVote(vote.id, c)} disabled={isPending}
                         className={`${choiceColor[c]} text-white text-xs font-bold px-4 py-1.5 rounded-lg transition disabled:opacity-50`}>
@@ -367,14 +367,14 @@ export default function VotesClient({ votes, communities, userId, communityId, i
                   </div>
                 )}
                 {isOpen && !myChoice && isSuperAdmin && (
-                  <div className="pt-1 border-t border-gray-800">
-                    <p className="text-xs text-gray-600 italic">Administrator nie głosuje w uchwałach.</p>
+                  <div className="pt-1 border-t border-stone-200">
+                    <p className="text-xs text-stone-400 italic">Administrator nie głosuje w uchwałach.</p>
                   </div>
                 )}
                 {myChoice && (
-                  <div className="pt-1 border-t border-gray-800">
-                    <p className="text-xs text-gray-500">
-                      Twój głos: <span className={`font-semibold ${myChoice.choice === 'yes' ? 'text-green-400' : myChoice.choice === 'no' ? 'text-red-400' : 'text-gray-400'}`}>
+                  <div className="pt-1 border-t border-stone-200">
+                    <p className="text-xs text-stone-400">
+                      Twój głos: <span className={`font-semibold ${myChoice.choice === 'yes' ? 'text-green-400' : myChoice.choice === 'no' ? 'text-red-400' : 'text-stone-500'}`}>
                         {choiceLabel[myChoice.choice as keyof typeof choiceLabel]}
                       </span>
                     </p>
@@ -389,12 +389,12 @@ export default function VotesClient({ votes, communities, userId, communityId, i
       {/* Modal PIN */}
       {pinModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-gray-950 border border-gray-800 rounded-2xl w-full max-w-sm shadow-2xl p-6 space-y-5">
+          <div className="bg-stone-50 border border-stone-200 rounded-2xl w-full max-w-sm shadow-2xl p-6 space-y-5">
             <div className="text-center">
               <p className="text-3xl mb-2">🔐</p>
-              <h3 className="text-base font-semibold text-gray-100">Potwierdź głos PINem</h3>
-              <p className="text-sm text-gray-400 mt-1">
-                Głosujesz: <span className={`font-bold ${pinModal.choice === 'yes' ? 'text-green-400' : pinModal.choice === 'no' ? 'text-red-400' : 'text-gray-400'}`}>
+              <h3 className="text-base font-semibold text-stone-900">Potwierdź głos PINem</h3>
+              <p className="text-sm text-stone-500 mt-1">
+                Głosujesz: <span className={`font-bold ${pinModal.choice === 'yes' ? 'text-green-400' : pinModal.choice === 'no' ? 'text-red-400' : 'text-stone-500'}`}>
                   {choiceLabel[pinModal.choice]}
                 </span>
               </p>
@@ -411,7 +411,7 @@ export default function VotesClient({ votes, communities, userId, communityId, i
             {pinError && <p className="text-sm text-red-400 text-center">{pinError}</p>}
             <div className="flex gap-3 justify-center">
               <button onClick={() => { setPinModal(null); setPin('') }}
-                className="text-sm text-gray-500 hover:text-gray-300 px-4 py-2">Anuluj</button>
+                className="text-sm text-stone-400 hover:text-stone-700 px-4 py-2">Anuluj</button>
               <button onClick={handleConfirmVote} disabled={isPending || pin.length !== 4}
                 className="bg-green-600 hover:bg-green-500 text-white text-sm font-semibold px-6 py-2 rounded-lg transition disabled:opacity-50">
                 {isPending ? 'Wysyłanie...' : 'Potwierdź'}

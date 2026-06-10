@@ -15,7 +15,7 @@ export default function LanguageSwitcher() {
           className={`text-xs px-3 py-1.5 rounded-lg transition ${
             locale === l
               ? 'bg-green-600 text-white font-semibold'
-              : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+              : 'bg-stone-200 text-stone-500 hover:bg-stone-300 hover:text-stone-800'
           }`}
         >
           {LOCALE_LABELS[l]}

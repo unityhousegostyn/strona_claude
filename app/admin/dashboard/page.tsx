@@ -89,10 +89,10 @@ export default async function DashboardPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-100">
+          <h2 className="text-2xl font-bold text-stone-900">
             Witaj, {profile.full_name?.split(' ')[0] ?? 'Super Admin'} 👋
           </h2>
-          <p className="text-sm text-gray-500 mt-1">Widok globalny — wszystkie wspólnoty</p>
+          <p className="text-sm text-stone-400 mt-1">Widok globalny — wszystkie wspólnoty</p>
         </div>
 
         {/* Stat cards */}
@@ -107,34 +107,34 @@ export default async function DashboardPage() {
 
         {/* Per-community overview */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Przegląd wspólnot</h3>
+          <h3 className="text-sm font-semibold text-stone-400 uppercase tracking-wide mb-3">Przegląd wspólnot</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {(communities.data ?? []).map((c) => {
               const s = commStats[c.id] ?? { apartments: 0, users: 0, openTickets: 0, openVotes: 0, totalPaid: 0 }
               return (
-                <div key={c.id} className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
+                <div key={c.id} className="bg-stone-100 border border-stone-200 rounded-xl p-5 space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="font-semibold text-gray-100">{c.name}</h4>
-                    <Link href="/admin/communities" className="text-xs text-gray-600 hover:text-green-400 transition">Edytuj →</Link>
+                    <h4 className="font-semibold text-stone-900">{c.name}</h4>
+                    <Link href="/admin/communities" className="text-xs text-stone-400 hover:text-green-400 transition">Edytuj →</Link>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div className="bg-gray-950 rounded-lg p-3 text-center">
-                      <p className="text-lg font-bold text-gray-100">{s.apartments}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">Mieszkań</p>
+                    <div className="bg-stone-50 rounded-lg p-3 text-center">
+                      <p className="text-lg font-bold text-stone-900">{s.apartments}</p>
+                      <p className="text-xs text-stone-400 mt-0.5">Mieszkań</p>
                     </div>
-                    <div className="bg-gray-950 rounded-lg p-3 text-center">
-                      <p className="text-lg font-bold text-gray-100">{s.users}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">Mieszkańców</p>
+                    <div className="bg-stone-50 rounded-lg p-3 text-center">
+                      <p className="text-lg font-bold text-stone-900">{s.users}</p>
+                      <p className="text-xs text-stone-400 mt-0.5">Mieszkańców</p>
                     </div>
-                    <div className={`rounded-lg p-3 text-center ${s.openTickets > 0 ? 'bg-yellow-950/30' : 'bg-gray-950'}`}>
-                      <p className={`text-lg font-bold ${s.openTickets > 0 ? 'text-yellow-400' : 'text-gray-100'}`}>{s.openTickets}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">Zgłoszenia</p>
+                    <div className={`rounded-lg p-3 text-center ${s.openTickets > 0 ? 'bg-yellow-950/30' : 'bg-stone-50'}`}>
+                      <p className={`text-lg font-bold ${s.openTickets > 0 ? 'text-yellow-400' : 'text-stone-900'}`}>{s.openTickets}</p>
+                      <p className="text-xs text-stone-400 mt-0.5">Zgłoszenia</p>
                     </div>
                     <div className={`rounded-lg p-3 text-center ${s.totalPaid - s.totalExpenses >= 0 ? 'bg-green-950/20' : 'bg-red-950/20'}`}>
                       <p className={`text-lg font-bold ${s.totalPaid - s.totalExpenses >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                         {pln(s.totalPaid - s.totalExpenses)}
                       </p>
-                      <p className="text-xs text-gray-500 mt-0.5">Saldo {currentYear}</p>
+                      <p className="text-xs text-stone-400 mt-0.5">Saldo {currentYear}</p>
                     </div>
                   </div>
                   {s.openVotes > 0 && (
@@ -154,16 +154,16 @@ export default async function DashboardPage() {
         {activeVotesList.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-semibold text-gray-200">Aktywne głosowania</h3>
+              <h3 className="text-base font-semibold text-stone-800">Aktywne głosowania</h3>
               <Link href="/admin/votes" className="text-sm text-green-600 hover:underline">Wszystkie</Link>
             </div>
             <div className="space-y-2">
               {activeVotesList.map((v: any) => (
                 <Link key={v.id} href="/admin/votes"
-                  className="flex items-center justify-between bg-gray-900 border border-green-900/40 rounded-xl px-4 py-3 hover:border-green-700 transition">
+                  className="flex items-center justify-between bg-stone-100 border border-green-900/40 rounded-xl px-4 py-3 hover:border-green-700 transition">
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-200 truncate">{v.title}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{commMap[v.community_id] ?? '—'}{v.deadline ? ` · do ${new Date(v.deadline).toLocaleDateString('pl-PL')}` : ''}</p>
+                    <p className="text-sm font-medium text-stone-800 truncate">{v.title}</p>
+                    <p className="text-xs text-stone-500 mt-0.5">{commMap[v.community_id] ?? '—'}{v.deadline ? ` · do ${new Date(v.deadline).toLocaleDateString('pl-PL')}` : ''}</p>
                   </div>
                   <span className="text-xs font-medium px-2 py-0.5 rounded-full ml-2 flex-shrink-0 bg-green-900/30 text-green-400">● Otwarte</span>
                 </Link>
@@ -176,18 +176,18 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-semibold text-gray-200">Ostatnie zgłoszenia</h3>
+              <h3 className="text-base font-semibold text-stone-800">Ostatnie zgłoszenia</h3>
               <Link href="/admin/tickets" className="text-sm text-green-600 hover:underline">Zobacz wszystkie</Link>
             </div>
             <div className="space-y-2">
               {(recentTickets.data ?? []).length === 0
-                ? <p className="text-sm text-gray-400">Brak zgłoszeń.</p>
+                ? <p className="text-sm text-stone-500">Brak zgłoszeń.</p>
                 : (recentTickets.data ?? []).map((t: any) => (
                   <Link key={t.id} href={`/admin/tickets/${t.id}`}
-                    className="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-green-700 transition">
+                    className="flex items-center justify-between bg-stone-100 border border-stone-200 rounded-xl px-4 py-3 hover:border-green-700 transition">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-200 truncate">{t.title}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{commMap[t.community_id] ?? '—'}</p>
+                      <p className="text-sm font-medium text-stone-800 truncate">{t.title}</p>
+                      <p className="text-xs text-stone-500 mt-0.5">{commMap[t.community_id] ?? '—'}</p>
                     </div>
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ml-2 flex-shrink-0 ${
                       t.status === 'open' ? 'bg-yellow-900/40 text-yellow-400' : 'bg-green-100 text-green-400'
@@ -200,17 +200,17 @@ export default async function DashboardPage() {
 
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-semibold text-gray-200">Ostatnie posty na tablicy</h3>
+              <h3 className="text-base font-semibold text-stone-800">Ostatnie posty na tablicy</h3>
               <Link href="/admin/board" className="text-sm text-green-600 hover:underline">Tablica</Link>
             </div>
             <div className="space-y-2">
               {(recentPosts.data ?? []).length === 0
-                ? <p className="text-sm text-gray-400">Brak postów.</p>
+                ? <p className="text-sm text-stone-500">Brak postów.</p>
                 : (recentPosts.data ?? []).map((p: any) => (
                   <Link key={p.id} href="/admin/board"
-                    className="block bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-green-700 transition">
-                    <p className="text-sm text-gray-200 line-clamp-1">{p.content}</p>
-                    <p className="text-xs text-gray-400 mt-1">
+                    className="block bg-stone-100 border border-stone-200 rounded-xl px-4 py-3 hover:border-green-700 transition">
+                    <p className="text-sm text-stone-800 line-clamp-1">{p.content}</p>
+                    <p className="text-xs text-stone-500 mt-1">
                       {authorMap[p.author_id] ?? '—'} · {commMap[p.community_id] ?? '—'} · {new Date(p.created_at).toLocaleDateString('pl-PL')}
                     </p>
                   </Link>
@@ -222,7 +222,7 @@ export default async function DashboardPage() {
 
         {/* Szybkie akcje */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Szybkie akcje</h3>
+          <h3 className="text-sm font-semibold text-stone-400 uppercase tracking-wide mb-3">Szybkie akcje</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <QuickAction href="/admin/users" icon="👥" label="Użytkownicy" badge={pendingCount.count ? `${pendingCount.count} czeka` : undefined} badgeColor="red" />
             <QuickAction href="/admin/communities" icon="🏢" label="Wspólnoty" />
@@ -272,10 +272,10 @@ export default async function DashboardPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-100">
+          <h2 className="text-2xl font-bold text-stone-900">
             Witaj, {profile.full_name?.split(' ')[0] ?? 'Administratorze'} 👋
           </h2>
-          <p className="text-sm text-gray-500 mt-1">{community?.name ?? '—'}</p>
+          <p className="text-sm text-stone-400 mt-1">{community?.name ?? '—'}</p>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -290,16 +290,16 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-semibold text-gray-200">Otwarte zgłoszenia</h3>
+              <h3 className="text-base font-semibold text-stone-800">Otwarte zgłoszenia</h3>
               <Link href="/admin/tickets" className="text-sm text-green-600 hover:underline">Zobacz wszystkie</Link>
             </div>
             {(openTickets.data ?? []).length === 0
-              ? <p className="text-sm text-gray-400">Brak otwartych zgłoszeń.</p>
+              ? <p className="text-sm text-stone-500">Brak otwartych zgłoszeń.</p>
               : <div className="space-y-2">
                   {(openTickets.data ?? []).map((t: any) => (
                     <Link key={t.id} href={`/admin/tickets/${t.id}`}
-                      className="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-green-700 transition">
-                      <p className="text-sm font-medium text-gray-200 truncate">{t.title}</p>
+                      className="flex items-center justify-between bg-stone-100 border border-stone-200 rounded-xl px-4 py-3 hover:border-green-700 transition">
+                      <p className="text-sm font-medium text-stone-800 truncate">{t.title}</p>
                       <span className="text-xs text-yellow-400 bg-yellow-950/30 px-2 py-0.5 rounded-full ml-2 flex-shrink-0">Otwarte</span>
                     </Link>
                   ))}
@@ -309,17 +309,17 @@ export default async function DashboardPage() {
 
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-semibold text-gray-200">Ostatnie posty na tablicy</h3>
+              <h3 className="text-base font-semibold text-stone-800">Ostatnie posty na tablicy</h3>
               <Link href="/admin/board" className="text-sm text-green-600 hover:underline">Tablica</Link>
             </div>
             {(recentBoardPosts.data ?? []).length === 0
-              ? <p className="text-sm text-gray-400">Brak postów na tablicy.</p>
+              ? <p className="text-sm text-stone-500">Brak postów na tablicy.</p>
               : <div className="space-y-2">
                   {(recentBoardPosts.data ?? []).map((p: any) => (
                     <Link key={p.id} href="/admin/board"
-                      className="block bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-green-700 transition">
-                      <p className="text-sm text-gray-200 line-clamp-1">{p.content}</p>
-                      <p className="text-xs text-gray-400 mt-1">
+                      className="block bg-stone-100 border border-stone-200 rounded-xl px-4 py-3 hover:border-green-700 transition">
+                      <p className="text-sm text-stone-800 line-clamp-1">{p.content}</p>
+                      <p className="text-xs text-stone-500 mt-1">
                         {authorMap[p.author_id] ?? '—'} · {new Date(p.created_at).toLocaleDateString('pl-PL')}
                       </p>
                     </Link>
@@ -331,7 +331,7 @@ export default async function DashboardPage() {
 
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-gray-200">Ostatnie ogłoszenia</h3>
+            <h3 className="text-base font-semibold text-stone-800">Ostatnie ogłoszenia</h3>
             <Link href="/admin/announcements/add" className="text-sm text-green-600 hover:underline">+ Dodaj</Link>
           </div>
           <AnnouncementList announcements={recentAnnouncements.data ?? []} />
@@ -405,15 +405,15 @@ export default async function DashboardPage() {
         </h2>
         <p className="text-green-100 mt-1 text-sm">{community?.name ?? '—'} · {community?.address ?? ''}</p>
         <div className="flex gap-3 mt-4 flex-wrap">
-          <div className="bg-gray-900/20 rounded-xl px-4 py-2 text-center">
+          <div className="bg-stone-100/20 rounded-xl px-4 py-2 text-center">
             <p className="text-xl font-bold">{unreadCount}</p>
             <p className="text-xs text-green-100">Nowe ogłoszenia</p>
           </div>
-          <div className="bg-gray-900/20 rounded-xl px-4 py-2 text-center">
+          <div className="bg-stone-100/20 rounded-xl px-4 py-2 text-center">
             <p className="text-xl font-bold">{openCount}</p>
             <p className="text-xs text-green-100">Otwarte zgłoszenia</p>
           </div>
-          <div className="bg-gray-900/20 rounded-xl px-4 py-2 text-center">
+          <div className="bg-stone-100/20 rounded-xl px-4 py-2 text-center">
             <p className="text-xl font-bold">{(boardPosts.data ?? []).length}</p>
             <p className="text-xs text-green-100">Nowe posty</p>
           </div>
@@ -439,11 +439,11 @@ export default async function DashboardPage() {
         const totalDue = settlementRows.reduce((s, r) => s + r.total_due, 0)
 
         return (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+          <div className="bg-stone-100 border border-stone-200 rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-base font-semibold text-gray-100">Rozliczenie {currentYear}</h3>
-                <p className="text-xs text-gray-500 mt-0.5">Lokal {myApartment.number} · {myApartment.owner_name}</p>
+                <h3 className="text-base font-semibold text-stone-900">Rozliczenie {currentYear}</h3>
+                <p className="text-xs text-stone-400 mt-0.5">Lokal {myApartment.number} · {myApartment.owner_name}</p>
               </div>
               <Link
                 href={`/admin/settlements/${myApartment.id}`}
@@ -456,7 +456,7 @@ export default async function DashboardPage() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {/* Saldo końcowe */}
               <div className={`rounded-xl p-3 ${finalBalance >= 0 ? 'bg-green-950/30 border border-green-900' : 'bg-red-950/30 border border-red-900'}`}>
-                <p className="text-xs text-gray-500 mb-1">Saldo {currentYear}</p>
+                <p className="text-xs text-stone-400 mb-1">Saldo {currentYear}</p>
                 <p className={`text-lg font-bold ${finalBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                   {pln(finalBalance)}
                 </p>
@@ -466,28 +466,28 @@ export default async function DashboardPage() {
               </div>
 
               {/* Bieżący miesiąc */}
-              <div className="bg-gray-950 border border-gray-800 rounded-xl p-3">
-                <p className="text-xs text-gray-500 mb-1">Naliczono ten mies.</p>
-                <p className="text-lg font-bold text-gray-100">
+              <div className="bg-stone-50 border border-stone-200 rounded-xl p-3">
+                <p className="text-xs text-stone-400 mb-1">Naliczono ten mies.</p>
+                <p className="text-lg font-bold text-stone-900">
                   {currentRow?.hasRates ? pln(currentRow.total_due) : '—'}
                 </p>
-                <p className="text-xs text-gray-600 mt-0.5">
+                <p className="text-xs text-stone-400 mt-0.5">
                   {currentRow?.hasRates ? 'do zapłaty' : 'brak stawek'}
                 </p>
               </div>
 
               {/* Wpłacono w roku */}
-              <div className="bg-gray-950 border border-gray-800 rounded-xl p-3">
-                <p className="text-xs text-gray-500 mb-1">Wpłacono {currentYear}</p>
+              <div className="bg-stone-50 border border-stone-200 rounded-xl p-3">
+                <p className="text-xs text-stone-400 mb-1">Wpłacono {currentYear}</p>
                 <p className="text-lg font-bold text-green-400">{pln(totalPaid)}</p>
-                <p className="text-xs text-gray-600 mt-0.5">łącznie</p>
+                <p className="text-xs text-stone-400 mt-0.5">łącznie</p>
               </div>
 
               {/* Naliczono w roku */}
-              <div className="bg-gray-950 border border-gray-800 rounded-xl p-3">
-                <p className="text-xs text-gray-500 mb-1">Naliczono {currentYear}</p>
-                <p className="text-lg font-bold text-gray-300">{pln(totalDue)}</p>
-                <p className="text-xs text-gray-600 mt-0.5">łącznie</p>
+              <div className="bg-stone-50 border border-stone-200 rounded-xl p-3">
+                <p className="text-xs text-stone-400 mb-1">Naliczono {currentYear}</p>
+                <p className="text-lg font-bold text-stone-700">{pln(totalDue)}</p>
+                <p className="text-xs text-stone-400 mt-0.5">łącznie</p>
               </div>
             </div>
 
@@ -511,13 +511,13 @@ export default async function DashboardPage() {
                           ? 'bg-green-700/60'
                           : isPast
                           ? 'bg-red-800/60'
-                          : 'bg-gray-800'
+                          : 'bg-stone-200'
                       }`}
                     />
                   )
                 })}
               </div>
-              <div className="flex justify-between text-xs text-gray-700 mt-1">
+              <div className="flex justify-between text-xs text-stone-300 mt-1">
                 <span>Sty</span><span>Cze</span><span>Gru</span>
               </div>
             </div>
@@ -529,17 +529,17 @@ export default async function DashboardPage() {
         {/* Ostatnie ogłoszenia */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-gray-200">Ostatnie ogłoszenia</h3>
+            <h3 className="text-base font-semibold text-stone-800">Ostatnie ogłoszenia</h3>
             <Link href="/admin/announcements" className="text-sm text-green-600 hover:underline">Zobacz wszystkie</Link>
           </div>
           {(announcements.data ?? []).length === 0
-            ? <p className="text-sm text-gray-400">Brak ogłoszeń.</p>
+            ? <p className="text-sm text-stone-500">Brak ogłoszeń.</p>
             : <div className="space-y-2">
                 {(announcements.data ?? []).map((a: any) => (
                   <Link key={a.id} href={`/admin/announcements/${a.id}`}
-                    className="block bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-green-700 transition">
-                    <p className="text-sm font-medium text-gray-200 truncate">{a.title}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{new Date(a.created_at).toLocaleDateString('pl-PL')}</p>
+                    className="block bg-stone-100 border border-stone-200 rounded-xl px-4 py-3 hover:border-green-700 transition">
+                    <p className="text-sm font-medium text-stone-800 truncate">{a.title}</p>
+                    <p className="text-xs text-stone-500 mt-0.5">{new Date(a.created_at).toLocaleDateString('pl-PL')}</p>
                   </Link>
                 ))}
               </div>
@@ -549,20 +549,20 @@ export default async function DashboardPage() {
         {/* Tablica — ostatnie posty */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-gray-200">Tablica sąsiedzka</h3>
+            <h3 className="text-base font-semibold text-stone-800">Tablica sąsiedzka</h3>
             <Link href="/admin/board" className="text-sm text-green-600 hover:underline">Przejdź</Link>
           </div>
           {(boardPosts.data ?? []).length === 0
-            ? <div className="bg-gray-900 border border-dashed border-gray-800 rounded-xl p-5 text-center">
-                <p className="text-sm text-gray-400 mb-2">Tablica jest pusta.</p>
+            ? <div className="bg-stone-100 border border-dashed border-stone-200 rounded-xl p-5 text-center">
+                <p className="text-sm text-stone-500 mb-2">Tablica jest pusta.</p>
                 <Link href="/admin/board" className="text-sm text-green-600 hover:underline">Napisz pierwszą wiadomość →</Link>
               </div>
             : <div className="space-y-2">
                 {(boardPosts.data ?? []).map((p: any) => (
                   <Link key={p.id} href="/admin/board"
-                    className="block bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-green-700 transition">
-                    <p className="text-sm text-gray-200 line-clamp-1">{p.content}</p>
-                    <p className="text-xs text-gray-400 mt-1">
+                    className="block bg-stone-100 border border-stone-200 rounded-xl px-4 py-3 hover:border-green-700 transition">
+                    <p className="text-sm text-stone-800 line-clamp-1">{p.content}</p>
+                    <p className="text-xs text-stone-500 mt-1">
                       {authorMap[p.author_id] ?? '—'} · {new Date(p.created_at).toLocaleDateString('pl-PL')}
                     </p>
                   </Link>
@@ -575,19 +575,19 @@ export default async function DashboardPage() {
       {/* Moje zgłoszenia */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-base font-semibold text-gray-200">Moje zgłoszenia</h3>
+          <h3 className="text-base font-semibold text-stone-800">Moje zgłoszenia</h3>
           <Link href="/admin/tickets" className="text-sm text-green-600 hover:underline">Nowe zgłoszenie</Link>
         </div>
         {(myTickets.data ?? []).length === 0
-          ? <div className="bg-gray-900 border border-dashed border-gray-800 rounded-xl p-6 text-center">
-              <p className="text-sm text-gray-400 mb-3">Nie masz jeszcze żadnych zgłoszeń.</p>
+          ? <div className="bg-stone-100 border border-dashed border-stone-200 rounded-xl p-6 text-center">
+              <p className="text-sm text-stone-500 mb-3">Nie masz jeszcze żadnych zgłoszeń.</p>
               <Link href="/admin/tickets" className="text-sm text-green-600 font-medium hover:underline">Zgłoś problem →</Link>
             </div>
           : <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {(myTickets.data ?? []).map((t: any) => (
                 <Link key={t.id} href={`/admin/tickets/${t.id}`}
-                  className="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-green-700 transition">
-                  <p className="text-sm font-medium text-gray-200 truncate">{t.title}</p>
+                  className="flex items-center justify-between bg-stone-100 border border-stone-200 rounded-xl px-4 py-3 hover:border-green-700 transition">
+                  <p className="text-sm font-medium text-stone-800 truncate">{t.title}</p>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ml-2 flex-shrink-0 ${
                     t.status === 'open' ? 'bg-yellow-900/40 text-yellow-400' : 'bg-green-100 text-green-400'
                   }`}>{t.status === 'open' ? 'Otwarte' : 'Zamknięte'}</span>
@@ -601,7 +601,7 @@ export default async function DashboardPage() {
       {(docs.data ?? []).length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-gray-200">Ostatnie dokumenty</h3>
+            <h3 className="text-base font-semibold text-stone-800">Ostatnie dokumenty</h3>
             <Link href="/admin/documents" className="text-sm text-green-600 hover:underline">Zobacz wszystkie</Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -609,10 +609,10 @@ export default async function DashboardPage() {
               const ext = d.name.split('.').pop()?.toLowerCase()
               const icon = ext === 'pdf' ? '📄' : ['doc','docx'].includes(ext) ? '📝' : ['xls','xlsx'].includes(ext) ? '📊' : '📁'
               return (
-                <div key={d.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center hover:border-green-700 transition">
+                <div key={d.id} className="bg-stone-100 border border-stone-200 rounded-xl p-4 text-center hover:border-green-700 transition">
                   <p className="text-3xl mb-2">{icon}</p>
-                  <p className="text-xs font-medium text-gray-300 truncate">{d.name}</p>
-                  <p className="text-xs text-gray-400 mt-1">{new Date(d.created_at).toLocaleDateString('pl-PL')}</p>
+                  <p className="text-xs font-medium text-stone-700 truncate">{d.name}</p>
+                  <p className="text-xs text-stone-500 mt-1">{new Date(d.created_at).toLocaleDateString('pl-PL')}</p>
                 </div>
               )
             })}
@@ -630,11 +630,11 @@ function StatCard({ label, value, icon, href, color }: {
 }) {
   const colorMap: Record<string, string> = { yellow: 'text-yellow-400', red: 'text-red-400', blue: 'text-green-400' }
   return (
-    <Link href={href} className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-3 hover:border-green-700 transition">
+    <Link href={href} className="bg-stone-100 border border-stone-200 rounded-xl p-4 flex items-center gap-3 hover:border-green-700 transition">
       <span className="text-2xl">{icon}</span>
       <div>
-        <p className={`text-xl font-bold ${colorMap[color ?? ''] ?? 'text-gray-100'}`}>{value}</p>
-        <p className="text-xs text-gray-500">{label}</p>
+        <p className={`text-xl font-bold ${colorMap[color ?? ''] ?? 'text-stone-900'}`}>{value}</p>
+        <p className="text-xs text-stone-400">{label}</p>
       </div>
     </Link>
   )
@@ -649,11 +649,11 @@ function QuickAction({ href, icon, label, badge, badgeColor }: {
   }
   return (
     <Link href={href}
-      className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col items-center gap-2 hover:border-green-600 hover:bg-green-950/40 transition text-center">
+      className="bg-stone-100 border border-stone-200 rounded-xl p-4 flex flex-col items-center gap-2 hover:border-green-600 hover:bg-green-950/40 transition text-center">
       <span className="text-2xl">{icon}</span>
-      <span className="text-xs font-semibold text-gray-300">{label}</span>
+      <span className="text-xs font-semibold text-stone-700">{label}</span>
       {badge && (
-        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badgeColors[badgeColor ?? ''] ?? 'bg-gray-900 text-gray-400'}`}>
+        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badgeColors[badgeColor ?? ''] ?? 'bg-stone-100 text-stone-500'}`}>
           {badge}
         </span>
       )}
@@ -662,14 +662,14 @@ function QuickAction({ href, icon, label, badge, badgeColor }: {
 }
 
 function AnnouncementList({ announcements }: { announcements: any[] }) {
-  if (announcements.length === 0) return <p className="text-sm text-gray-400">Brak ogłoszeń.</p>
+  if (announcements.length === 0) return <p className="text-sm text-stone-500">Brak ogłoszeń.</p>
   return (
     <div className="space-y-2">
       {announcements.map((a: any) => (
         <Link key={a.id} href={`/admin/announcements/${a.id}`}
-          className="block bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-green-700 transition">
-          <p className="text-sm font-medium text-gray-200 truncate">{a.title}</p>
-          <p className="text-xs text-gray-400 mt-0.5">{new Date(a.created_at).toLocaleDateString('pl-PL')}</p>
+          className="block bg-stone-100 border border-stone-200 rounded-xl px-4 py-3 hover:border-green-700 transition">
+          <p className="text-sm font-medium text-stone-800 truncate">{a.title}</p>
+          <p className="text-xs text-stone-500 mt-0.5">{new Date(a.created_at).toLocaleDateString('pl-PL')}</p>
         </Link>
       ))}
     </div>

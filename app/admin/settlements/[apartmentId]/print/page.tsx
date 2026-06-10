@@ -79,37 +79,37 @@ export default async function PrintPage({
         <PrintClient />
 
         {/* Nagłówek dokumentu */}
-        <div className="mb-6 border-b-2 border-gray-800 print:border-gray-300 pb-4">
+        <div className="mb-6 border-b-2 border-stone-200 print:border-stone-300 pb-4">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-100 print:text-black">
+              <h1 className="text-2xl font-bold text-stone-900 print:text-black">
                 Rozliczenie lokalu — {year}
               </h1>
-              <p className="text-gray-400 print:text-gray-600 mt-1">{communityName}</p>
+              <p className="text-stone-500 print:text-stone-400 mt-1">{communityName}</p>
             </div>
-            <div className="text-right text-xs text-gray-500 print:text-gray-500">
+            <div className="text-right text-xs text-stone-400 print:text-stone-400">
               <p>Wygenerowano: {generatedAt}</p>
             </div>
           </div>
         </div>
 
         {/* Dane lokalu */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 p-4 bg-gray-900 print:bg-gray-50 rounded-xl border border-gray-800 print:border-gray-200">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 p-4 bg-stone-100 print:bg-gray-50 rounded-xl border border-stone-200 print:border-gray-200">
           <div>
-            <p className="text-xs text-gray-500 print:text-gray-500 uppercase tracking-wide">Lokal</p>
-            <p className="font-bold text-gray-100 print:text-black text-lg mt-0.5">{apartment.number}</p>
+            <p className="text-xs text-stone-400 print:text-stone-400 uppercase tracking-wide">Lokal</p>
+            <p className="font-bold text-stone-900 print:text-black text-lg mt-0.5">{apartment.number}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 print:text-gray-500 uppercase tracking-wide">Właściciel</p>
-            <p className="font-semibold text-gray-200 print:text-black mt-0.5">{apartment.owner_name}</p>
+            <p className="text-xs text-stone-400 print:text-stone-400 uppercase tracking-wide">Właściciel</p>
+            <p className="font-semibold text-stone-800 print:text-black mt-0.5">{apartment.owner_name}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 print:text-gray-500 uppercase tracking-wide">Powierzchnia</p>
-            <p className="font-semibold text-gray-200 print:text-black mt-0.5">{Number(apartment.area_m2).toFixed(4)} m²</p>
+            <p className="text-xs text-stone-400 print:text-stone-400 uppercase tracking-wide">Powierzchnia</p>
+            <p className="font-semibold text-stone-800 print:text-black mt-0.5">{Number(apartment.area_m2).toFixed(4)} m²</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 print:text-gray-500 uppercase tracking-wide">Udział / Osoby</p>
-            <p className="font-semibold text-gray-200 print:text-black mt-0.5">
+            <p className="text-xs text-stone-400 print:text-stone-400 uppercase tracking-wide">Udział / Osoby</p>
+            <p className="font-semibold text-stone-800 print:text-black mt-0.5">
               {shareStr(apartment as SettlementApartment)} / {apartment.persons_count} os.
             </p>
           </div>
@@ -119,9 +119,9 @@ export default async function PrintPage({
         <div className="overflow-x-auto mb-6">
           <table className="w-full text-xs border-collapse">
             <thead>
-              <tr className="bg-gray-800 print:bg-gray-100">
+              <tr className="bg-stone-200 print:bg-gray-100">
                 {['Miesiąc','Saldo pocz.','Wpłacono','Fund. rem.','Fund. ekspl.','Zarządca','Ryczałt wody','Śmieci','Korekta','Razem','Saldo końc.'].map(h => (
-                  <th key={h} className="px-2 py-2 text-right first:text-left text-gray-300 print:text-gray-700 font-semibold border border-gray-700 print:border-gray-300 whitespace-nowrap">
+                  <th key={h} className="px-2 py-2 text-right first:text-left text-stone-700 print:text-stone-300 font-semibold border border-stone-200 print:border-stone-300 whitespace-nowrap">
                     {h}
                   </th>
                 ))}
@@ -129,58 +129,58 @@ export default async function PrintPage({
             </thead>
             <tbody>
               {rows.map((row, i) => (
-                <tr key={row.month} className={i % 2 === 0 ? 'bg-gray-900 print:bg-white' : 'bg-gray-900/50 print:bg-gray-50'}>
-                  <td className="px-2 py-1.5 font-medium text-gray-200 print:text-black border border-gray-800 print:border-gray-200">{row.monthName}</td>
-                  <td className={`px-2 py-1.5 text-right border border-gray-800 print:border-gray-200 ${row.balance_start >= 0 ? 'text-green-400 print:text-green-700' : 'text-red-400 print:text-red-600'}`}>{pln(row.balance_start)}</td>
-                  <td className="px-2 py-1.5 text-right text-green-300 print:text-green-700 border border-gray-800 print:border-gray-200 font-medium">{pln(row.paid)}</td>
-                  <td className="px-2 py-1.5 text-right text-gray-300 print:text-gray-700 border border-gray-800 print:border-gray-200">{row.hasRates ? pln(row.renovation) : '—'}</td>
-                  <td className="px-2 py-1.5 text-right text-gray-300 print:text-gray-700 border border-gray-800 print:border-gray-200">{row.hasRates ? pln(row.operating) : '—'}</td>
-                  <td className="px-2 py-1.5 text-right text-gray-300 print:text-gray-700 border border-gray-800 print:border-gray-200">{row.hasRates ? pln(row.manager) : '—'}</td>
-                  <td className="px-2 py-1.5 text-right text-gray-300 print:text-gray-700 border border-gray-800 print:border-gray-200">{row.hasRates ? pln(row.water) : '—'}</td>
-                  <td className="px-2 py-1.5 text-right text-gray-300 print:text-gray-700 border border-gray-800 print:border-gray-200">{row.hasRates ? pln(row.garbage) : '—'}</td>
-                  <td className={`px-2 py-1.5 text-right border border-gray-800 print:border-gray-200 ${row.correction !== 0 ? 'text-yellow-400 print:text-yellow-700' : 'text-gray-600'}`}>{row.correction !== 0 ? pln(row.correction) : '—'}</td>
-                  <td className="px-2 py-1.5 text-right font-semibold text-gray-100 print:text-black border border-gray-800 print:border-gray-200">{row.hasRates ? pln(row.total_due) : '—'}</td>
-                  <td className={`px-2 py-1.5 text-right font-bold border border-gray-800 print:border-gray-200 ${row.balance_end >= 0 ? 'text-green-400 print:text-green-700' : 'text-red-400 print:text-red-600'}`}>{pln(row.balance_end)}</td>
+                <tr key={row.month} className={i % 2 === 0 ? 'bg-stone-100 print:bg-white' : 'bg-stone-100/50 print:bg-gray-50'}>
+                  <td className="px-2 py-1.5 font-medium text-stone-800 print:text-black border border-stone-200 print:border-gray-200">{row.monthName}</td>
+                  <td className={`px-2 py-1.5 text-right border border-stone-200 print:border-gray-200 ${row.balance_start >= 0 ? 'text-green-400 print:text-green-700' : 'text-red-400 print:text-red-600'}`}>{pln(row.balance_start)}</td>
+                  <td className="px-2 py-1.5 text-right text-green-300 print:text-green-700 border border-stone-200 print:border-gray-200 font-medium">{pln(row.paid)}</td>
+                  <td className="px-2 py-1.5 text-right text-stone-700 print:text-stone-300 border border-stone-200 print:border-gray-200">{row.hasRates ? pln(row.renovation) : '—'}</td>
+                  <td className="px-2 py-1.5 text-right text-stone-700 print:text-stone-300 border border-stone-200 print:border-gray-200">{row.hasRates ? pln(row.operating) : '—'}</td>
+                  <td className="px-2 py-1.5 text-right text-stone-700 print:text-stone-300 border border-stone-200 print:border-gray-200">{row.hasRates ? pln(row.manager) : '—'}</td>
+                  <td className="px-2 py-1.5 text-right text-stone-700 print:text-stone-300 border border-stone-200 print:border-gray-200">{row.hasRates ? pln(row.water) : '—'}</td>
+                  <td className="px-2 py-1.5 text-right text-stone-700 print:text-stone-300 border border-stone-200 print:border-gray-200">{row.hasRates ? pln(row.garbage) : '—'}</td>
+                  <td className={`px-2 py-1.5 text-right border border-stone-200 print:border-gray-200 ${row.correction !== 0 ? 'text-yellow-400 print:text-yellow-700' : 'text-stone-400'}`}>{row.correction !== 0 ? pln(row.correction) : '—'}</td>
+                  <td className="px-2 py-1.5 text-right font-semibold text-stone-900 print:text-black border border-stone-200 print:border-gray-200">{row.hasRates ? pln(row.total_due) : '—'}</td>
+                  <td className={`px-2 py-1.5 text-right font-bold border border-stone-200 print:border-gray-200 ${row.balance_end >= 0 ? 'text-green-400 print:text-green-700' : 'text-red-400 print:text-red-600'}`}>{pln(row.balance_end)}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
-              <tr className="bg-gray-800 print:bg-gray-200 font-bold">
-                <td className="px-2 py-2 text-gray-200 print:text-black border border-gray-700 print:border-gray-400">RAZEM {year}</td>
-                <td className="px-2 py-2 text-right text-gray-500 border border-gray-700 print:border-gray-400">—</td>
-                <td className="px-2 py-2 text-right text-green-300 print:text-green-700 border border-gray-700 print:border-gray-400">{pln(totalPaid)}</td>
-                <td className="px-2 py-2 text-right text-gray-200 print:text-black border border-gray-700 print:border-gray-400">{pln(totalRenovation)}</td>
-                <td className="px-2 py-2 text-right text-gray-200 print:text-black border border-gray-700 print:border-gray-400">{pln(totalOperating)}</td>
-                <td className="px-2 py-2 text-right text-gray-200 print:text-black border border-gray-700 print:border-gray-400">{pln(totalManager)}</td>
-                <td className="px-2 py-2 text-right text-gray-200 print:text-black border border-gray-700 print:border-gray-400">{pln(totalWater)}</td>
-                <td className="px-2 py-2 text-right text-gray-200 print:text-black border border-gray-700 print:border-gray-400">{pln(totalGarbage)}</td>
-                <td className="px-2 py-2 text-right text-yellow-400 print:text-yellow-700 border border-gray-700 print:border-gray-400">{totalCorrection !== 0 ? pln(totalCorrection) : '—'}</td>
-                <td className="px-2 py-2 text-right text-gray-100 print:text-black border border-gray-700 print:border-gray-400">{pln(totalDue)}</td>
-                <td className={`px-2 py-2 text-right border border-gray-700 print:border-gray-400 ${finalBalance >= 0 ? 'text-green-400 print:text-green-700' : 'text-red-400 print:text-red-600'}`}>{pln(finalBalance)}</td>
+              <tr className="bg-stone-200 print:bg-gray-200 font-bold">
+                <td className="px-2 py-2 text-stone-800 print:text-black border border-stone-200 print:border-stone-400">RAZEM {year}</td>
+                <td className="px-2 py-2 text-right text-stone-400 border border-stone-200 print:border-stone-400">—</td>
+                <td className="px-2 py-2 text-right text-green-300 print:text-green-700 border border-stone-200 print:border-stone-400">{pln(totalPaid)}</td>
+                <td className="px-2 py-2 text-right text-stone-800 print:text-black border border-stone-200 print:border-stone-400">{pln(totalRenovation)}</td>
+                <td className="px-2 py-2 text-right text-stone-800 print:text-black border border-stone-200 print:border-stone-400">{pln(totalOperating)}</td>
+                <td className="px-2 py-2 text-right text-stone-800 print:text-black border border-stone-200 print:border-stone-400">{pln(totalManager)}</td>
+                <td className="px-2 py-2 text-right text-stone-800 print:text-black border border-stone-200 print:border-stone-400">{pln(totalWater)}</td>
+                <td className="px-2 py-2 text-right text-stone-800 print:text-black border border-stone-200 print:border-stone-400">{pln(totalGarbage)}</td>
+                <td className="px-2 py-2 text-right text-yellow-400 print:text-yellow-700 border border-stone-200 print:border-stone-400">{totalCorrection !== 0 ? pln(totalCorrection) : '—'}</td>
+                <td className="px-2 py-2 text-right text-stone-900 print:text-black border border-stone-200 print:border-stone-400">{pln(totalDue)}</td>
+                <td className={`px-2 py-2 text-right border border-stone-200 print:border-stone-400 ${finalBalance >= 0 ? 'text-green-400 print:text-green-700' : 'text-red-400 print:text-red-600'}`}>{pln(finalBalance)}</td>
               </tr>
             </tfoot>
           </table>
         </div>
 
         {/* Podsumowanie końcowe */}
-        <div className="grid grid-cols-3 gap-4 p-4 bg-gray-900 print:bg-gray-50 rounded-xl border border-gray-800 print:border-gray-200">
+        <div className="grid grid-cols-3 gap-4 p-4 bg-stone-100 print:bg-gray-50 rounded-xl border border-stone-200 print:border-gray-200">
           <div>
-            <p className="text-xs text-gray-500 print:text-gray-500">Łącznie naliczono</p>
-            <p className="text-lg font-bold text-gray-100 print:text-black mt-0.5">{pln(totalDue)}</p>
+            <p className="text-xs text-stone-400 print:text-stone-400">Łącznie naliczono</p>
+            <p className="text-lg font-bold text-stone-900 print:text-black mt-0.5">{pln(totalDue)}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 print:text-gray-500">Łącznie wpłacono</p>
+            <p className="text-xs text-stone-400 print:text-stone-400">Łącznie wpłacono</p>
             <p className="text-lg font-bold text-green-400 print:text-green-700 mt-0.5">{pln(totalPaid)}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 print:text-gray-500">{finalBalance >= 0 ? 'Nadpłata' : 'Niedopłata'}</p>
+            <p className="text-xs text-stone-400 print:text-stone-400">{finalBalance >= 0 ? 'Nadpłata' : 'Niedopłata'}</p>
             <p className={`text-lg font-bold mt-0.5 ${finalBalance >= 0 ? 'text-green-400 print:text-green-700' : 'text-red-400 print:text-red-600'}`}>
               {pln(Math.abs(finalBalance))}
             </p>
           </div>
         </div>
 
-        <p className="text-xs text-gray-600 print:text-gray-400 mt-6 text-center print:text-center">
+        <p className="text-xs text-stone-400 print:text-stone-500 mt-6 text-center print:text-center">
           Dokument wygenerowany automatycznie przez system Panel Wspólnoty · {generatedAt}
         </p>
       </div>

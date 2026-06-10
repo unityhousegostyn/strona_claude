@@ -35,7 +35,7 @@ export default function TicketEditForm({ ticketId, initialTitle, initialDescript
     return (
       <button
         onClick={() => setOpen(true)}
-        className="text-xs text-gray-500 hover:text-gray-300 border border-gray-700 px-3 py-1.5 rounded-lg transition"
+        className="text-xs text-stone-400 hover:text-stone-700 border border-stone-200 px-3 py-1.5 rounded-lg transition"
       >
         ✏️ Edytuj zgłoszenie
       </button>
@@ -43,8 +43,8 @@ export default function TicketEditForm({ ticketId, initialTitle, initialDescript
   }
 
   return (
-    <div className="space-y-3 pt-2 border-t border-gray-800">
-      <h4 className="text-sm font-medium text-gray-300">Edytuj zgłoszenie</h4>
+    <div className="space-y-3 pt-2 border-t border-stone-200">
+      <h4 className="text-sm font-medium text-stone-700">Edytuj zgłoszenie</h4>
       {error && <p className="text-sm text-red-400 bg-red-950/30 border border-red-900 rounded-lg px-3 py-2">{error}</p>}
       <input
         className="input w-full"
@@ -66,7 +66,7 @@ export default function TicketEditForm({ ticketId, initialTitle, initialDescript
         >
           {isPending ? 'Zapisywanie...' : 'Zapisz'}
         </button>
-        <button onClick={() => { setOpen(false); setTitle(initialTitle); setDescription(initialDescription) }} className="text-sm text-gray-500 hover:text-gray-300">
+        <button onClick={() => { setOpen(false); setTitle(initialTitle); setDescription(initialDescription) }} className="text-sm text-stone-400 hover:text-stone-700">
           Anuluj
         </button>
       </div>

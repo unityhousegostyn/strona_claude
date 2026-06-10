@@ -56,8 +56,8 @@ export default function ProfileForm({ fullName, hasPin }: { fullName: string; ha
   return (
     <>
       {/* Zmiana imienia */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
-        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Imię i nazwisko</h3>
+      <div className="bg-stone-100 border border-stone-200 rounded-xl p-6 space-y-4">
+        <h3 className="text-sm font-semibold text-stone-400 uppercase tracking-wide">Imię i nazwisko</h3>
         <input
           className="input"
           value={name}
@@ -74,15 +74,15 @@ export default function ProfileForm({ fullName, hasPin }: { fullName: string; ha
       </div>
 
       {/* PIN do głosowania */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+      <div className="bg-stone-100 border border-stone-200 rounded-xl p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">PIN do głosowania</h3>
+          <h3 className="text-sm font-semibold text-stone-400 uppercase tracking-wide">PIN do głosowania</h3>
           {hasPin
             ? <span className="text-xs bg-green-900/30 text-green-400 border border-green-800 px-2 py-0.5 rounded-full">✓ Ustawiony</span>
             : <span className="text-xs bg-orange-900/30 text-orange-400 border border-orange-800 px-2 py-0.5 rounded-full">Nie ustawiony</span>
           }
         </div>
-        <p className="text-xs text-gray-500">4-cyfrowy PIN używany do potwierdzenia głosu w uchwałach wspólnoty.</p>
+        <p className="text-xs text-stone-400">4-cyfrowy PIN używany do potwierdzenia głosu w uchwałach wspólnoty.</p>
         <div className="space-y-3">
           <input
             type="password"
@@ -114,8 +114,8 @@ export default function ProfileForm({ fullName, hasPin }: { fullName: string; ha
       </div>
 
       {/* Zmiana hasła */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
-        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Zmień hasło</h3>
+      <div className="bg-stone-100 border border-stone-200 rounded-xl p-6 space-y-4">
+        <h3 className="text-sm font-semibold text-stone-400 uppercase tracking-wide">Zmień hasło</h3>
         <div className="space-y-3">
           <input
             type="password"
@@ -136,18 +136,18 @@ export default function ProfileForm({ fullName, hasPin }: { fullName: string; ha
         <button
           onClick={handleChangePassword}
           disabled={isPending || !password}
-          className="bg-gray-800 hover:bg-gray-900 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
+          className="bg-stone-200 hover:bg-stone-100 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
         >
           {isPending ? 'Zmienianie...' : 'Zmień hasło'}
         </button>
       </div>
 
       {/* RODO: usunięcie konta */}
-      <div className="bg-gray-900 border border-red-900/40 rounded-xl p-6 space-y-4">
+      <div className="bg-stone-100 border border-red-900/40 rounded-xl p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-sm font-semibold text-red-400 uppercase tracking-wide">Strefa niebezpieczna</h3>
-            <p className="text-xs text-gray-500 mt-1">Trwałe usunięcie konta zgodnie z art. 17 RODO (prawo do bycia zapomnianym)</p>
+            <p className="text-xs text-stone-400 mt-1">Trwałe usunięcie konta zgodnie z art. 17 RODO (prawo do bycia zapomnianym)</p>
           </div>
           {!showDeleteSection && (
             <button onClick={() => setShowDeleteSection(true)} className="text-xs text-red-400 hover:text-red-300 border border-red-900/50 px-3 py-1.5 rounded-lg transition">
@@ -157,8 +157,8 @@ export default function ProfileForm({ fullName, hasPin }: { fullName: string; ha
         </div>
         {showDeleteSection && (
           <div className="space-y-3 pt-2 border-t border-red-900/30">
-            <p className="text-sm text-gray-400">
-              Usunięcie konta jest <strong className="text-red-400">nieodwracalne</strong>. Utracisz dostęp do panelu. Aby potwierdzić, wpisz <strong className="text-gray-200">USUŃ KONTO</strong>:
+            <p className="text-sm text-stone-500">
+              Usunięcie konta jest <strong className="text-red-400">nieodwracalne</strong>. Utracisz dostęp do panelu. Aby potwierdzić, wpisz <strong className="text-stone-800">USUŃ KONTO</strong>:
             </p>
             <input
               className="input border-red-900/50 focus:border-red-600"
@@ -181,7 +181,7 @@ export default function ProfileForm({ fullName, hasPin }: { fullName: string; ha
               >
                 {isPending ? 'Usuwanie...' : 'Usuń konto na zawsze'}
               </button>
-              <button onClick={() => { setShowDeleteSection(false); setDeleteConfirm('') }} className="text-sm text-gray-500 hover:text-gray-300">
+              <button onClick={() => { setShowDeleteSection(false); setDeleteConfirm('') }} className="text-sm text-stone-400 hover:text-stone-700">
                 Anuluj
               </button>
             </div>

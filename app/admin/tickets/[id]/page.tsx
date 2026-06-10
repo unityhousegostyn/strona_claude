@@ -83,14 +83,14 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
   return (
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/admin/tickets" className="text-sm text-gray-400 hover:text-gray-300">← Zgłoszenia</Link>
+        <Link href="/admin/tickets" className="text-sm text-stone-500 hover:text-stone-700">← Zgłoszenia</Link>
       </div>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+      <div className="bg-stone-100 border border-stone-200 rounded-xl p-6 space-y-4">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h2 className="text-xl font-bold text-gray-100">{ticket.title}</h2>
-            <p className="text-sm text-gray-400 mt-1">
+            <h2 className="text-xl font-bold text-stone-900">{ticket.title}</h2>
+            <p className="text-sm text-stone-500 mt-1">
               {author?.full_name ?? author?.email ?? '—'} · {community?.name ?? '—'} · {new Date(ticket.created_at).toLocaleDateString('pl-PL')}
             </p>
           </div>
@@ -103,7 +103,7 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
           </div>
         </div>
 
-        <p className="text-sm text-gray-300 whitespace-pre-wrap">{ticket.description}</p>
+        <p className="text-sm text-stone-700 whitespace-pre-wrap">{ticket.description}</p>
 
         {attachmentUrl && (
           <a
@@ -127,20 +127,20 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
 
       {/* Historia */}
       {history.length > 0 && (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-3">
-          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Historia</h3>
+        <div className="bg-stone-100 border border-stone-200 rounded-xl p-5 space-y-3">
+          <h3 className="text-sm font-semibold text-stone-400 uppercase tracking-wide">Historia</h3>
           <div className="space-y-2">
             {history.map((h, i) => (
               <div key={i} className="flex items-start gap-3 text-sm">
-                <div className="w-1.5 h-1.5 rounded-full bg-gray-600 mt-2 flex-shrink-0" />
+                <div className="w-1.5 h-1.5 rounded-full bg-stone-400 mt-2 flex-shrink-0" />
                 <div>
-                  <span className="text-gray-300">{actionLabel[h.action] ?? h.action}</span>
+                  <span className="text-stone-700">{actionLabel[h.action] ?? h.action}</span>
                   {h.action === 'toggle_ticket_status' && h.meta?.to && (
-                    <span className="text-gray-500"> → <span className={h.meta.to === 'open' ? 'text-yellow-400' : 'text-green-400'}>
+                    <span className="text-stone-400"> → <span className={h.meta.to === 'open' ? 'text-yellow-400' : 'text-green-400'}>
                       {h.meta.to === 'open' ? 'Otwarte' : 'Zamknięte'}
                     </span></span>
                   )}
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-xs text-stone-400 mt-0.5">
                     {h.user?.full_name ?? h.user?.email ?? '—'} · {new Date(h.created_at).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })}
                   </p>
                 </div>

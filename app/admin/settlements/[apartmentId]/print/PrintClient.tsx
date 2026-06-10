@@ -11,7 +11,7 @@ export default function PrintClient() {
       </button>
       <button
         onClick={() => window.history.back()}
-        className="text-sm text-gray-400 hover:text-gray-200 transition"
+        className="text-sm text-stone-500 hover:text-stone-800 transition"
       >
         ← Wróć
       </button>
