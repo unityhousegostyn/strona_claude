@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { getAuthProfile } from '@/lib/getAuthProfile'
 import Link from 'next/link'
 
-const PAGE_SIZE = 50
+const PAGE_SIZE = 20
 
 const ACTION_LABELS: Record<string, string> = {
   approve_user: '✅ Zaakceptowano użytkownika',
