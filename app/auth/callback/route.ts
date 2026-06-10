@@ -54,8 +54,8 @@ export async function GET(request: NextRequest) {
       .eq('id', profile.id)
       .eq('status', 'unconfirmed')
 
-    // EMAIL_USER to konto wysyłające = super_admin — zawsze dostępne
-    const notifyEmail = process.env.EMAIL_USER
+    // SUPER_ADMIN_EMAIL jeśli ustawione, fallback na EMAIL_USER
+    const notifyEmail = process.env.SUPER_ADMIN_EMAIL ?? process.env.EMAIL_USER
     if (notifyEmail) {
       try {
         await sendNewUserPendingEmail({
