@@ -55,11 +55,11 @@ export default function LandingPage() {
         .lp-nav-links a:not(.lp-btn):hover { color: var(--text); background: rgba(26,71,49,.06); }
         .lp-btn {
           display: inline-flex; align-items: center; gap: 6px;
-          background: var(--green); color: #fff; font-size: 14px; font-weight: 600;
+          background: #2e7d52; color: #fff; font-size: 14px; font-weight: 600;
           padding: 9px 20px; border-radius: 9px; border: none; cursor: pointer;
           transition: background .2s, transform .15s; text-decoration: none;
         }
-        .lp-btn:hover { background: var(--green2); transform: translateY(-1px); color: #fff; }
+        .lp-btn:hover { background: #256642; transform: translateY(-1px); color: #fff; }
         .lp-btn-outline {
           background: transparent; border: 1px solid var(--border2); color: var(--text2);
         }
