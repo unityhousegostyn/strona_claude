@@ -21,6 +21,8 @@ export default function TicketsPage() {
   const [description, setDescription] = useState('')
   const [attachment, setAttachment] = useState<File | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
+  const [communities, setCommunities] = useState<{ id: string; name: string }[]>([])
+  const [selectedComm, setSelectedComm] = useState('')
 
   const fetchTickets = async (p: any) => {
     const query = supabase
@@ -43,6 +45,10 @@ export default function TicketsPage() {
       const { data: p } = await supabase.from('profiles').select('*').eq('id', user.id).single()
       setProfile(p)
       await fetchTickets(p)
+      if (p?.role === 'super_admin') {
+        const { data: comms } = await supabase.from('communities').select('id, name').order('name')
+        setCommunities(comms ?? [])
+      }
       setLoading(false)
     }
     load()
@@ -64,7 +70,9 @@ export default function TicketsPage() {
     const formData = new FormData()
     formData.append('title', title)
     formData.append('description', description)
-    formData.append('communityId', profile.community_id)
+    const commId = profile.role === 'super_admin' ? selectedComm : profile.community_id
+    if (!commId) { setFormError('Wybierz wspólnotę'); return }
+    formData.append('communityId', commId)
     if (attachment) formData.append('attachment', attachment)
 
     startTransition(async () => {
@@ -91,14 +99,12 @@ export default function TicketsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-100">Zgłoszenia</h2>
-        {profile?.role === 'user' && (
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
-          >
-            + Nowe zgłoszenie
-          </button>
-        )}
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
+        >
+          + Nowe zgłoszenie
+        </button>
       </div>
 
       {/* Zakładki */}
@@ -143,6 +149,12 @@ export default function TicketsPage() {
             <div className="bg-red-950/30 border border-red-900 text-red-400 text-sm rounded-lg px-3 py-2">
               {formError}
             </div>
+          )}
+          {profile?.role === 'super_admin' && (
+            <select className="input w-full" value={selectedComm} onChange={e => setSelectedComm(e.target.value)}>
+              <option value="">— wybierz wspólnotę —</option>
+              {communities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
           )}
           <input
             className="input w-full"

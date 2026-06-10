@@ -45,7 +45,11 @@ export async function createTicket(formData: FormData): Promise<{ error?: string
     const communityId = formData.get('communityId') as string
     const file = formData.get('attachment') as File | null
 
-    if (profile.community_id !== communityId) return { error: 'Brak uprawnień' }
+    if (profile.role === 'super_admin') {
+      if (!communityId) return { error: 'Wybierz wspólnotę' }
+    } else {
+      if (profile.community_id !== communityId) return { error: 'Brak uprawnień' }
+    }
     if (!title || title.length < 3 || title.length > 150) return { error: 'Tytuł musi mieć 3–150 znaków' }
     if (!description || description.length < 10 || description.length > 2000) return { error: 'Opis musi mieć 10–2000 znaków' }
 
