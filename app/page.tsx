@@ -11,28 +11,40 @@ export default function LandingPage() {
       <style>{`
         .lp *, .lp *::before, .lp *::after { box-sizing: border-box; margin: 0; padding: 0; }
         .lp {
-          --bg: #030712; --bg2: #0f172a; --card: #111827; --border: #1f2937; --border2: #374151;
-          --blue: #2563eb; --green-light: #3b82f6; --green-dark: #1d4ed8;
-          --text: #f1f5f9; --text2: #94a3b8; --text3: #64748b;
-          background: var(--bg); color: var(--text);
+          --bg:      #faf8f5;
+          --bg2:     #f0ede6;
+          --card:    #ffffff;
+          --border:  #e5dfd7;
+          --border2: #d4c9b8;
+          --green:   #1a4731;
+          --green2:  #0f2d1e;
+          --gold:    #d4a017;
+          --gold2:   #b8880f;
+          --text:    #1c1a17;
+          --text2:   #6b6359;
+          --text3:   #9c9189;
+          background: var(--bg);
+          color: var(--text);
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-          line-height: 1.6; scroll-behavior: smooth;
+          line-height: 1.6;
+          scroll-behavior: smooth;
         }
         .lp a { text-decoration: none; color: inherit; }
 
         /* NAV */
         .lp-nav {
           position: sticky; top: 0; z-index: 100;
-          background: rgba(3,7,18,0.85); backdrop-filter: blur(12px);
-          border-bottom: 1px solid var(--border); padding: 0 24px;
+          background: rgba(250,248,245,0.90); backdrop-filter: blur(12px);
+          border-bottom: 1px solid var(--border);
+          padding: 0 24px;
         }
         .lp-nav-inner {
           max-width: 1100px; margin: 0 auto; height: 64px;
           display: flex; align-items: center; justify-content: space-between;
         }
-        .lp-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; }
+        .lp-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; color: var(--green); }
         .lp-logo-icon {
-          width: 34px; height: 34px; background: var(--blue); border-radius: 8px;
+          width: 34px; height: 34px; background: var(--green); border-radius: 8px;
           display: flex; align-items: center; justify-content: center; font-size: 18px;
         }
         .lp-nav-links { display: flex; align-items: center; gap: 8px; }
@@ -40,18 +52,18 @@ export default function LandingPage() {
           font-size: 14px; color: var(--text2); padding: 8px 14px;
           border-radius: 8px; transition: color .2s, background .2s;
         }
-        .lp-nav-links a:hover { color: var(--text); background: rgba(255,255,255,.05); }
+        .lp-nav-links a:hover { color: var(--text); background: rgba(26,71,49,.06); }
         .lp-btn {
           display: inline-flex; align-items: center; gap: 6px;
-          background: var(--blue); color: #fff; font-size: 14px; font-weight: 600;
+          background: var(--green); color: #fff; font-size: 14px; font-weight: 600;
           padding: 9px 20px; border-radius: 9px; border: none; cursor: pointer;
           transition: background .2s, transform .15s; text-decoration: none;
         }
-        .lp-btn:hover { background: var(--green-dark); transform: translateY(-1px); color: #fff; }
+        .lp-btn:hover { background: var(--green2); transform: translateY(-1px); color: #fff; }
         .lp-btn-outline {
           background: transparent; border: 1px solid var(--border2); color: var(--text2);
         }
-        .lp-btn-outline:hover { background: rgba(255,255,255,.05); color: var(--text); }
+        .lp-btn-outline:hover { background: rgba(26,71,49,.05); color: var(--text); }
         .lp-btn-lg { font-size: 16px; padding: 13px 28px; border-radius: 11px; }
 
         /* HERO */
@@ -60,23 +72,24 @@ export default function LandingPage() {
           padding: 100px 24px 80px; text-align: center;
         }
         .lp-hero::before {
-          content: ''; position: absolute; top: -200px; left: 50%;
-          transform: translateX(-50%); width: 800px; height: 600px;
-          background: radial-gradient(ellipse, rgba(37,99,235,.18) 0%, transparent 70%);
+          content: ''; position: absolute; top: -100px; left: 50%;
+          transform: translateX(-50%); width: 800px; height: 500px;
+          background: radial-gradient(ellipse, rgba(26,71,49,.08) 0%, transparent 70%);
           pointer-events: none;
         }
         .lp-badge {
           display: inline-flex; align-items: center; gap: 6px;
-          background: rgba(37,99,235,.12); border: 1px solid rgba(37,99,235,.3);
-          color: #60a5fa; font-size: 13px; font-weight: 500;
+          background: rgba(212,160,23,.12); border: 1px solid rgba(212,160,23,.35);
+          color: var(--gold2); font-size: 13px; font-weight: 500;
           padding: 5px 14px; border-radius: 99px; margin-bottom: 28px;
         }
         .lp-hero h1 {
           font-size: clamp(36px, 6vw, 64px); font-weight: 800;
           line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 22px;
           max-width: 800px; margin-left: auto; margin-right: auto;
+          color: var(--text);
         }
-        .lp-hero h1 span { color: var(--green-light); }
+        .lp-hero h1 span { color: var(--green); }
         .lp-hero p {
           font-size: clamp(16px, 2.5vw, 20px); color: var(--text2);
           max-width: 560px; margin: 0 auto 40px;
@@ -87,73 +100,73 @@ export default function LandingPage() {
         .lp-mockup-wrap { max-width: 900px; margin: 64px auto 0; padding: 0 24px; }
         .lp-mockup {
           background: var(--card); border: 1px solid var(--border); border-radius: 16px;
-          overflow: hidden; box-shadow: 0 40px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.03);
+          overflow: hidden; box-shadow: 0 20px 60px rgba(26,71,49,.10), 0 0 0 1px var(--border);
         }
         .lp-mockup-bar {
-          background: #0f172a; border-bottom: 1px solid var(--border);
+          background: var(--bg2); border-bottom: 1px solid var(--border);
           padding: 12px 16px; display: flex; align-items: center; gap: 8px;
         }
         .lp-dot { width: 10px; height: 10px; border-radius: 50%; }
         .lp-dot-r { background: #ef4444; } .lp-dot-y { background: #f59e0b; } .lp-dot-g { background: #22c55e; }
         .lp-mockup-url {
-          flex: 1; background: rgba(255,255,255,.05); border-radius: 6px;
+          flex: 1; background: rgba(26,71,49,.06); border-radius: 6px;
           height: 24px; margin: 0 12px; display: flex; align-items: center; padding: 0 10px;
         }
         .lp-mockup-url span { font-size: 11px; color: var(--text3); }
         .lp-mockup-body { display: flex; height: 360px; }
         .lp-mock-sidebar {
-          width: 180px; background: #0f172a; border-right: 1px solid var(--border);
+          width: 180px; background: var(--green); border-right: none;
           padding: 16px 12px; flex-shrink: 0;
         }
         .lp-mock-logo {
-          font-size: 13px; font-weight: 700; color: var(--text);
-          padding: 4px 8px 14px; border-bottom: 1px solid var(--border); margin-bottom: 10px;
+          font-size: 13px; font-weight: 700; color: rgba(255,255,255,.9);
+          padding: 4px 8px 14px; border-bottom: 1px solid rgba(255,255,255,.15); margin-bottom: 10px;
         }
         .lp-mock-item {
           display: flex; align-items: center; gap: 8px; padding: 7px 8px;
-          border-radius: 7px; font-size: 12px; color: var(--text3); margin-bottom: 2px;
+          border-radius: 7px; font-size: 12px; color: rgba(255,255,255,.55); margin-bottom: 2px;
         }
-        .lp-mock-item.active { background: rgba(37,99,235,.15); color: #60a5fa; }
-        .lp-mock-content { flex: 1; padding: 20px; overflow: hidden; }
+        .lp-mock-item.active { background: rgba(255,255,255,.15); color: #ffffff; }
+        .lp-mock-content { flex: 1; padding: 20px; overflow: hidden; background: var(--bg); }
         .lp-mock-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 16px; }
         .lp-mock-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
         .lp-mock-card {
-          background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 12px;
+          background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px;
         }
         .lp-mock-card-label { font-size: 10px; color: var(--text3); margin-bottom: 4px; }
-        .lp-mock-card-val { font-size: 20px; font-weight: 700; color: var(--text); }
+        .lp-mock-card-val { font-size: 20px; font-weight: 700; color: var(--green); }
         .lp-mock-card-icon { font-size: 16px; margin-bottom: 4px; }
         .lp-mock-rows { display: flex; flex-direction: column; gap: 8px; }
         .lp-mock-row {
-          background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+          background: var(--card); border: 1px solid var(--border); border-radius: 8px;
           padding: 9px 12px; display: flex; justify-content: space-between; align-items: center;
         }
         .lp-mock-row-text { font-size: 11px; color: var(--text2); }
-        .lp-mock-badge { font-size: 10px; padding: 2px 7px; border-radius: 99px; background: rgba(234,179,8,.15); color: #fbbf24; }
-        .lp-mock-badge.green { background: rgba(34,197,94,.1); color: #4ade80; }
+        .lp-mock-badge { font-size: 10px; padding: 2px 7px; border-radius: 99px; background: rgba(212,160,23,.15); color: var(--gold2); }
+        .lp-mock-badge.green { background: rgba(26,71,49,.10); color: var(--green); }
 
         /* SECTIONS */
         .lp-section { padding: 80px 24px; }
         .lp-container { max-width: 1100px; margin: 0 auto; }
         .lp-section-label {
           display: inline-block; font-size: 12px; font-weight: 600;
-          letter-spacing: .08em; text-transform: uppercase; color: var(--green-light); margin-bottom: 12px;
+          letter-spacing: .08em; text-transform: uppercase; color: var(--gold2); margin-bottom: 12px;
         }
         .lp-section-title {
           font-size: clamp(26px, 4vw, 40px); font-weight: 800;
-          letter-spacing: -.02em; line-height: 1.15; margin-bottom: 16px;
+          letter-spacing: -.02em; line-height: 1.15; margin-bottom: 16px; color: var(--text);
         }
         .lp-section-sub { font-size: 17px; color: var(--text2); max-width: 520px; }
         .lp-center { text-align: center; }
         .lp-center .lp-section-sub { margin: 0 auto; }
 
         /* STATS */
-        .lp-stats { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .lp-stats { background: var(--green); border-top: none; border-bottom: none; }
         .lp-stats-grid { display: grid; grid-template-columns: repeat(4,1fr); }
-        .lp-stat { padding: 40px 32px; border-right: 1px solid var(--border); text-align: center; }
+        .lp-stat { padding: 40px 32px; border-right: 1px solid rgba(255,255,255,.15); text-align: center; }
         .lp-stat:last-child { border-right: none; }
-        .lp-stat-val { font-size: 40px; font-weight: 800; color: var(--green-light); line-height: 1; margin-bottom: 8px; }
-        .lp-stat-label { font-size: 14px; color: var(--text2); }
+        .lp-stat-val { font-size: 40px; font-weight: 800; color: var(--gold); line-height: 1; margin-bottom: 8px; }
+        .lp-stat-label { font-size: 14px; color: rgba(255,255,255,.7); }
 
         /* FEATURES */
         .lp-features-grid {
@@ -162,33 +175,33 @@ export default function LandingPage() {
         }
         .lp-feat {
           background: var(--card); border: 1px solid var(--border); border-radius: 16px;
-          padding: 28px; transition: border-color .2s, transform .2s;
+          padding: 28px; transition: border-color .2s, box-shadow .2s, transform .2s;
         }
-        .lp-feat:hover { border-color: var(--border2); transform: translateY(-2px); }
+        .lp-feat:hover { border-color: var(--border2); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(26,71,49,.08); }
         .lp-feat-icon {
           width: 48px; height: 48px; border-radius: 12px;
           display: flex; align-items: center; justify-content: center;
           font-size: 22px; margin-bottom: 18px;
         }
-        .fi-blue { background: rgba(37,99,235,.15); }
-        .fi-yellow { background: rgba(234,179,8,.12); }
-        .fi-green { background: rgba(34,197,94,.1); }
-        .fi-purple { background: rgba(139,92,246,.12); }
-        .fi-red { background: rgba(239,68,68,.1); }
-        .fi-teal { background: rgba(20,184,166,.1); }
-        .lp-feat h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
-        .lp-feat p { font-size: 14px; color: var(--text2); line-height: 1.6; }
+        .fi-green   { background: rgba(26,71,49,.10); }
+        .fi-gold    { background: rgba(212,160,23,.12); }
+        .fi-sage    { background: rgba(26,71,49,.07); }
+        .fi-amber   { background: rgba(212,160,23,.10); }
+        .fi-stone   { background: rgba(120,100,80,.10); }
+        .fi-warm    { background: rgba(180,60,40,.08); }
+        .lp-feat h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+        .lp-feat p  { font-size: 14px; color: var(--text2); line-height: 1.6; }
 
         /* STEPS */
         .lp-steps { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 24px; margin-top: 52px; }
         .lp-step { display: flex; flex-direction: column; align-items: flex-start; }
         .lp-step-num {
-          width: 40px; height: 40px; border-radius: 10px; background: var(--blue); color: #fff;
+          width: 40px; height: 40px; border-radius: 10px; background: var(--green); color: #fff;
           font-size: 17px; font-weight: 800; display: flex; align-items: center;
           justify-content: center; margin-bottom: 18px; flex-shrink: 0;
         }
-        .lp-step h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
-        .lp-step p { font-size: 14px; color: var(--text2); }
+        .lp-step h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+        .lp-step p  { font-size: 14px; color: var(--text2); }
 
         /* ROLES */
         .lp-roles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap: 20px; margin-top: 52px; }
@@ -200,38 +213,43 @@ export default function LandingPage() {
           font-size: 12px; font-weight: 600; padding: 4px 12px;
           border-radius: 99px; margin-bottom: 16px;
         }
-        .rb-blue { background: rgba(37,99,235,.15); color: #60a5fa; border: 1px solid rgba(37,99,235,.3); }
-        .rb-green { background: rgba(34,197,94,.1); color: #4ade80; border: 1px solid rgba(34,197,94,.2); }
-        .rb-purple { background: rgba(139,92,246,.12); color: #a78bfa; border: 1px solid rgba(139,92,246,.25); }
-        .lp-role h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+        .rb-green  { background: rgba(26,71,49,.10);  color: var(--green);  border: 1px solid rgba(26,71,49,.20); }
+        .rb-gold   { background: rgba(212,160,23,.12); color: var(--gold2);  border: 1px solid rgba(212,160,23,.30); }
+        .rb-stone  { background: rgba(120,100,80,.10); color: #7a6650;       border: 1px solid rgba(120,100,80,.25); }
+        .lp-role h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; color: var(--text); }
         .lp-role-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
         .lp-role-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: var(--text2); }
-        .lp-role-list li::before { content: '✓'; color: #4ade80; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+        .lp-role-list li::before { content: '✓'; color: var(--green); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
 
         /* DIVIDER */
         .lp-divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); max-width: 1100px; margin: 0 auto; }
 
         /* CTA */
-        .lp-cta { text-align: center; padding: 100px 24px; position: relative; overflow: hidden; }
-        .lp-cta::before {
-          content: ''; position: absolute; bottom: -100px; left: 50%;
-          transform: translateX(-50%); width: 600px; height: 400px;
-          background: radial-gradient(ellipse, rgba(37,99,235,.15) 0%, transparent 70%);
-          pointer-events: none;
+        .lp-cta {
+          text-align: center; padding: 100px 24px; position: relative; overflow: hidden;
+          background: var(--green);
         }
-        .lp-cta h2 { font-size: clamp(28px,5vw,48px); font-weight: 800; margin-bottom: 16px; }
-        .lp-cta p { font-size: 18px; color: var(--text2); margin-bottom: 36px; }
+        .lp-cta h2 { font-size: clamp(28px,5vw,48px); font-weight: 800; margin-bottom: 16px; color: #fff; }
+        .lp-cta p { font-size: 18px; color: rgba(255,255,255,.75); margin-bottom: 36px; }
         .lp-cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-        .lp-cta-sub { margin-top: 32px; font-size: 14px; color: var(--text3); }
-        .lp-cta-sub a { color: var(--green-light); }
+        .lp-btn-gold {
+          background: var(--gold); color: #fff; border: none;
+        }
+        .lp-btn-gold:hover { background: var(--gold2); color: #fff; }
+        .lp-btn-white {
+          background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.3); color: #fff;
+        }
+        .lp-btn-white:hover { background: rgba(255,255,255,.20); color: #fff; }
+        .lp-cta-sub { margin-top: 32px; font-size: 14px; color: rgba(255,255,255,.55); }
+        .lp-cta-sub a { color: var(--gold); }
 
         /* FOOTER */
-        .lp-footer { border-top: 1px solid var(--border); padding: 40px 24px; }
+        .lp-footer { border-top: 1px solid var(--border); padding: 40px 24px; background: var(--bg2); }
         .lp-footer-inner {
           max-width: 1100px; margin: 0 auto;
           display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;
         }
-        .lp-footer-brand { font-size: 15px; font-weight: 700; }
+        .lp-footer-brand { font-size: 15px; font-weight: 700; color: var(--green); }
         .lp-footer-tagline { font-size: 13px; color: var(--text3); margin-top: 4px; }
         .lp-footer-links { display: flex; gap: 20px; }
         .lp-footer-links a { font-size: 13px; color: var(--text3); transition: color .2s; }
@@ -247,7 +265,7 @@ export default function LandingPage() {
           .lp-mock-item.active { display: flex; }
           .lp-mock-grid { grid-template-columns: repeat(2,1fr); }
           .lp-stats-grid { grid-template-columns: repeat(2,1fr); }
-          .lp-stat { border-right: none; border-bottom: 1px solid var(--border); }
+          .lp-stat { border-right: none; border-bottom: 1px solid rgba(255,255,255,.15); }
           .lp-stat:last-child { border-bottom: none; }
           .lp-footer-inner { flex-direction: column; align-items: flex-start; }
         }
@@ -355,12 +373,12 @@ export default function LandingPage() {
             </div>
             <div className="lp-features-grid">
               {[
-                { icon: '📢', cls: 'fi-blue', title: 'Ogłoszenia', desc: 'Publikuj ogłoszenia dla wybranych wspólnot lub wszystkich mieszkańców. Terminy, archiwum, oznaczanie przeczytanych.' },
-                { icon: '🎫', cls: 'fi-yellow', title: 'Zgłoszenia usterek', desc: 'Mieszkańcy zgłaszają usterki online z opisem i zdjęciem. Zarząd zarządza statusem — aktywne i archiwum w osobnych zakładkach.' },
-                { icon: '💬', cls: 'fi-green', title: 'Tablica sąsiedzka', desc: 'Miejsce na ogłoszenia mieszkańców, pytania i dyskusje. Przypinanie ważnych postów, odpowiedzi w wątkach.' },
-                { icon: '📞', cls: 'fi-teal', title: 'Kontakty', desc: 'Baza kontaktów serwisowych, awaryjnych i zarządcy. Kategorie, numery telefonów i emaile zawsze pod ręką.' },
-                { icon: '📁', cls: 'fi-purple', title: 'Dokumenty', desc: 'Regulaminy, uchwały, sprawozdania — wszystkie dokumenty wspólnoty w jednym miejscu, dostępne dla uprawnionych.' },
-                { icon: '🔒', cls: 'fi-red', title: 'Bezpieczeństwo i RODO', desc: 'Szyfrowane połączenie, polityka prywatności, zgodność z RODO. Dane każdej wspólnoty są odseparowane.' },
+                { icon: '📢', cls: 'fi-green',  title: 'Ogłoszenia',          desc: 'Publikuj ogłoszenia dla wybranych wspólnot lub wszystkich mieszkańców. Terminy, archiwum, oznaczanie przeczytanych.' },
+                { icon: '🎫', cls: 'fi-gold',   title: 'Zgłoszenia usterek',  desc: 'Mieszkańcy zgłaszają usterki online z opisem i zdjęciem. Zarząd zarządza statusem — aktywne i archiwum w osobnych zakładkach.' },
+                { icon: '💬', cls: 'fi-sage',   title: 'Tablica sąsiedzka',   desc: 'Miejsce na ogłoszenia mieszkańców, pytania i dyskusje. Przypinanie ważnych postów, odpowiedzi w wątkach.' },
+                { icon: '📞', cls: 'fi-amber',  title: 'Kontakty',            desc: 'Baza kontaktów serwisowych, awaryjnych i zarządcy. Kategorie, numery telefonów i emaile zawsze pod ręką.' },
+                { icon: '📁', cls: 'fi-stone',  title: 'Dokumenty',           desc: 'Regulaminy, uchwały, sprawozdania — wszystkie dokumenty wspólnoty w jednym miejscu, dostępne dla uprawnionych.' },
+                { icon: '🔒', cls: 'fi-warm',   title: 'Bezpieczeństwo i RODO', desc: 'Szyfrowane połączenie, polityka prywatności, zgodność z RODO. Dane każdej wspólnoty są odseparowane.' },
               ].map(f => (
                 <div key={f.title} className="lp-feat">
                   <div className={`lp-feat-icon ${f.cls}`}>{f.icon}</div>
@@ -384,7 +402,7 @@ export default function LandingPage() {
             </div>
             <div className="lp-steps">
               {[
-                { n: '1', title: 'Zakładamy wspólnotę', desc: 'Podajesz nazwę wspólnoty, dane zarządu i zapraszasz pierwszych mieszkańców. Zajmuje to dosłownie 5 minut.' },
+                { n: '1', title: 'Zakładamy wspólnotę',       desc: 'Podajesz nazwę wspólnoty, dane zarządu i zapraszasz pierwszych mieszkańców. Zajmuje to dosłownie 5 minut.' },
                 { n: '2', title: 'Mieszkańcy się rejestrują', desc: 'Każdy mieszkaniec rejestruje się samodzielnie. Zarząd akceptuje konta jednym kliknięciem — pełna kontrola nad dostępem.' },
                 { n: '3', title: 'Zarządzasz z jednego miejsca', desc: 'Ogłoszenia, zgłoszenia, dokumenty i kontakty — dostępne z komputera i telefonu, bez instalowania aplikacji.' },
               ].map(s => (
@@ -410,21 +428,21 @@ export default function LandingPage() {
             </div>
             <div className="lp-roles-grid">
               <div className="lp-role">
-                <span className="lp-role-badge rb-blue">🏢 Zarząd / Administrator</span>
+                <span className="lp-role-badge rb-green">🏢 Zarząd / Administrator</span>
                 <h3>Pełna kontrola</h3>
                 <ul className="lp-role-list">
                   {['Publikowanie ogłoszeń i dokumentów','Zarządzanie zgłoszeniami usterek','Akceptowanie kont mieszkańców','Dodawanie kontaktów serwisowych','Wgląd w statystyki wspólnoty'].map(i => <li key={i}>{i}</li>)}
                 </ul>
               </div>
               <div className="lp-role">
-                <span className="lp-role-badge rb-green">🏠 Mieszkaniec</span>
+                <span className="lp-role-badge rb-gold">🏠 Mieszkaniec</span>
                 <h3>Wszystko pod ręką</h3>
                 <ul className="lp-role-list">
                   {['Przeglądanie ogłoszeń zarządu','Zgłaszanie usterek ze zdjęciem','Śledzenie statusu swoich zgłoszeń','Udział w tablicy sąsiedzkiej','Dostęp do dokumentów i kontaktów'].map(i => <li key={i}>{i}</li>)}
                 </ul>
               </div>
               <div className="lp-role">
-                <span className="lp-role-badge rb-purple">⚡ Super Admin</span>
+                <span className="lp-role-badge rb-stone">⚡ Super Admin</span>
                 <h3>Widok globalny</h3>
                 <ul className="lp-role-list">
                   {['Zarządzanie wieloma wspólnotami','Podgląd wszystkich zgłoszeń i postów','Filtrowanie danych per wspólnota','Audit log — pełna historia działań','Zarządzanie kontami administratorów'].map(i => <li key={i}>{i}</li>)}
@@ -440,8 +458,8 @@ export default function LandingPage() {
             <h2>Gotowy na nowoczesną<br />wspólnotę?</h2>
             <p>Skontaktuj się z nami — wdrożymy panel dla Twojej wspólnoty i przeprowadzimy przez każdy krok.</p>
             <div className="lp-cta-btns">
-              <a href="mailto:unity.housegostyn@gmail.com" className="lp-btn lp-btn-lg">✉️ Napisz do nas</a>
-              <a href="tel:536153571" className="lp-btn lp-btn-lg lp-btn-outline">📞 536 153 571</a>
+              <a href="mailto:unity.housegostyn@gmail.com" className="lp-btn lp-btn-lg lp-btn-gold">✉️ Napisz do nas</a>
+              <a href="tel:536153571" className="lp-btn lp-btn-lg lp-btn-white">📞 536 153 571</a>
             </div>
             <p className="lp-cta-sub">
               Masz pytania? Napisz na <a href="mailto:unity.housegostyn@gmail.com">unity.housegostyn@gmail.com</a>
