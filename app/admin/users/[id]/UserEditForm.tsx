@@ -2,10 +2,11 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { updateUser, deactivateUser, deleteUserPermanently } from './actions'
+import { updateUser, deactivateUser, deleteUserPermanently, assignApartment } from './actions'
 import { useToast } from '@/components/ToastContext'
 
 interface Community { id: string; name: string }
+interface Apartment { id: string; number: string; community_id: string; owner_id: string | null }
 
 interface Props {
   userId: string
@@ -14,11 +15,13 @@ interface Props {
   initialRole: string
   initialCommunityId: string | null
   communities: Community[]
+  apartments: Apartment[]
+  currentApartmentId: string | null
   isSelf: boolean
 }
 
 export default function UserEditForm({
-  userId, currentUserId, initialFullName, initialRole, initialCommunityId, communities, isSelf
+  userId, currentUserId, initialFullName, initialRole, initialCommunityId, communities, apartments, currentApartmentId, isSelf
 }: Props) {
   const router = useRouter()
   const { showToast } = useToast()
@@ -27,6 +30,8 @@ export default function UserEditForm({
   const [fullName, setFullName] = useState(initialFullName)
   const [role, setRole] = useState(initialRole)
   const [communityId, setCommunityId] = useState(initialCommunityId ?? '')
+  const [apartmentId, setApartmentId] = useState(currentApartmentId ?? '')
+  const [aptSaving, setAptSaving] = useState(false)
 
   const handleSave = () => {
     startTransition(async () => {
@@ -53,6 +58,20 @@ export default function UserEditForm({
         router.push('/admin/users')
       } catch (e: any) {
         showToast(e.message ?? 'Błąd', 'error')
+      }
+    })
+  }
+
+  const handleAssignApartment = () => {
+    setAptSaving(true)
+    startTransition(async () => {
+      try {
+        await assignApartment(userId, apartmentId || null)
+        showToast('Mieszkanie przypisane')
+      } catch (e: any) {
+        showToast(e.message ?? 'Błąd', 'error')
+      } finally {
+        setAptSaving(false)
       }
     })
   }
@@ -115,6 +134,40 @@ export default function UserEditForm({
             </select>
           </div>
         )}
+      </div>
+
+      {/* Przypisanie mieszkania */}
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
+        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Przypisane mieszkanie</h3>
+        <div className="flex gap-3 items-end flex-wrap">
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-sm font-medium text-gray-300 mb-1">Lokal</label>
+            <select className="input w-full" value={apartmentId} onChange={e => setApartmentId(e.target.value)}>
+              <option value="">— brak —</option>
+              {communities.map(comm => {
+                const commApts = apartments.filter(a => a.community_id === comm.id)
+                if (!commApts.length) return null
+                return (
+                  <optgroup key={comm.id} label={comm.name}>
+                    {commApts.map(a => (
+                      <option key={a.id} value={a.id} disabled={!!a.owner_id && a.owner_id !== userId}>
+                        {a.number}{a.owner_id && a.owner_id !== userId ? ' (zajęte)' : ''}
+                      </option>
+                    ))}
+                  </optgroup>
+                )
+              })}
+            </select>
+          </div>
+          <button
+            onClick={handleAssignApartment}
+            disabled={isPending || aptSaving}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition disabled:opacity-50"
+          >
+            {aptSaving ? 'Zapisuję...' : 'Zapisz'}
+          </button>
+        </div>
+        <p className="text-xs text-gray-600">Jeden użytkownik = jedno mieszkanie. Zajęte lokale są oznaczone.</p>
       </div>
 
       <div className="flex items-center justify-between">

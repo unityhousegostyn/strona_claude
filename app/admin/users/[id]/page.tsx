@@ -28,6 +28,15 @@ export default async function UserEditPage({ params }: { params: Promise<{ id: s
     .select('id, name')
     .order('name')
 
+  // Pobierz mieszkania (wszystkie aktywne) + aktualnie przypisane do tego użytkownika
+  const { data: apartments } = await admin
+    .from('settlement_apartments')
+    .select('id, number, community_id, owner_id')
+    .eq('active', true)
+    .order('number')
+
+  const currentApartment = (apartments ?? []).find(a => a.owner_id === id) ?? null
+
   return (
     <div className="max-w-xl space-y-6">
       <div className="flex items-center gap-3">
@@ -57,6 +66,8 @@ export default async function UserEditPage({ params }: { params: Promise<{ id: s
         initialRole={profile.role}
         initialCommunityId={profile.community_id ?? null}
         communities={communities ?? []}
+        apartments={apartments ?? []}
+        currentApartmentId={currentApartment?.id ?? null}
         isSelf={id === currentUser.id}
       />
     </div>
