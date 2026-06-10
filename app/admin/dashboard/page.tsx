@@ -150,7 +150,7 @@ export default async function DashboardPage() {
           <div className="bg-[#241e14] border border-[#3a2e1e] rounded-xl p-5 flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-[#b8a898] uppercase tracking-wide">Finanse {currentYear}</h3>
-              <Link href="/admin/finanse/reports" className="text-xs text-amber-500 hover:underline">Raporty →</Link>
+              <Link href="/admin/finanse/raporty" className="text-xs text-amber-500 hover:underline">Raporty →</Link>
             </div>
             <div className={`rounded-xl p-4 ${totalBalance >= 0 ? 'bg-amber-950/30 border border-amber-800/40' : 'bg-red-950/30 border border-red-900/40'}`}>
               <p className="text-xs text-[#6a5a48] mb-1">Łączne saldo</p>
