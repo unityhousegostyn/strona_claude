@@ -16,7 +16,7 @@ function isGroup(entry: NavEntry): entry is NavGroup {
 
 const navEntries = (role: string): NavEntry[] => {
   const entries: NavEntry[] = [
-    { href: '/admin/dashboard', label: 'Dashboard', icon: '🏠' },
+    { href: '/admin/dashboard', label: 'Strona główna', icon: '🏠' },
     { href: '/admin/announcements', label: 'Ogłoszenia', icon: '📢' },
     { href: '/admin/tickets', label: 'Zgłoszenia', icon: '🎫' },
     { href: '/admin/board', label: 'Tablica', icon: '💬' },
