@@ -1,21 +1,31 @@
 import { NextResponse } from 'next/server'
-import { Resend } from 'resend'
+import nodemailer from 'nodemailer'
 
 export async function GET() {
-  const key = process.env.RESEND_API_KEY
-  if (!key) return NextResponse.json({ error: 'Brak RESEND_API_KEY' }, { status: 500 })
+  const user = process.env.EMAIL_USER
+  const pass = process.env.EMAIL_PASS
 
-  const resend = new Resend(key)
+  if (!user || !pass) {
+    return NextResponse.json({ error: 'Brak EMAIL_USER lub EMAIL_PASS w zmiennych środowiskowych' }, { status: 500 })
+  }
 
   try {
-    const result = await resend.emails.send({
-      from: process.env.EMAIL_FROM ?? 'onboarding@resend.dev',
-      to: 'unity.housegostyn@gmail.com',
-      subject: 'Test Resend — Panel Wspólnoty',
-      html: '<p>Jeśli to widzisz, Resend działa poprawnie.</p>',
+    const transport = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST ?? 'smtp.gmail.com',
+      port: parseInt(process.env.EMAIL_PORT ?? '587'),
+      secure: false,
+      auth: { user, pass },
     })
-    return NextResponse.json({ ok: true, result })
-  } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e.message, details: e }, { status: 500 })
+
+    await transport.sendMail({
+      from: process.env.EMAIL_FROM ?? `Panel Wspólnoty <${user}>`,
+      to: user,
+      subject: 'Test e-mail — Panel Wspólnoty',
+      html: '<p>Jeśli to widzisz, Gmail SMTP działa poprawnie. ✅</p>',
+    })
+
+    return NextResponse.json({ ok: true, sentTo: user })
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }
