@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 
-const IDLE_MS = 60_000        // 1 minuta
-const WARN_MS = 15_000        // ostrzeżenie 15s przed końcem
+const IDLE_MS = 5 * 60_000        // 5 minut
+const WARN_MS = 30_000        // ostrzeżenie 30s przed końcem
 
 const EVENTS = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'focus', 'click'] as const
 
