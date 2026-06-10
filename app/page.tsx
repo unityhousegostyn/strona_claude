@@ -89,7 +89,7 @@ export default function LandingPage() {
           max-width: 800px; margin-left: auto; margin-right: auto;
           color: var(--text);
         }
-        .lp-hero h1 span { color: var(--green); }
+        .lp-hero h1 span { color: var(--gold); }
         .lp-hero p {
           font-size: clamp(16px, 2.5vw, 20px); color: var(--text2);
           max-width: 560px; margin: 0 auto 40px;
@@ -166,7 +166,7 @@ export default function LandingPage() {
         .lp-stat { padding: 40px 32px; border-right: 1px solid rgba(255,255,255,.15); text-align: center; }
         .lp-stat:last-child { border-right: none; }
         .lp-stat-val { font-size: 40px; font-weight: 800; color: var(--gold); line-height: 1; margin-bottom: 8px; }
-        .lp-stat-label { font-size: 14px; color: rgba(255,255,255,.7); }
+        .lp-stat-label { font-size: 14px; color: rgba(255,255,255,.88); }
 
         /* FEATURES */
         .lp-features-grid {
@@ -230,7 +230,7 @@ export default function LandingPage() {
           background: var(--green);
         }
         .lp-cta h2 { font-size: clamp(28px,5vw,48px); font-weight: 800; margin-bottom: 16px; color: #fff; }
-        .lp-cta p { font-size: 18px; color: rgba(255,255,255,.75); margin-bottom: 36px; }
+        .lp-cta p { font-size: 18px; color: rgba(255,255,255,.90); margin-bottom: 36px; }
         .lp-cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
         .lp-btn-gold {
           background: var(--gold); color: #fff; border: none;
