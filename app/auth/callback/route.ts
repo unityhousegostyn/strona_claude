@@ -41,29 +41,38 @@ export async function GET(request: NextRequest) {
         .eq('id', user.id)
         .single()
 
-      const { data: updated } = await admin
-        .from('profiles')
-        .update({ status: 'pending' })
-        .eq('id', user.id)
-        .eq('status', 'unconfirmed')
-        .select('id')
-        .single()
+      console.log('[callback] profile:', profile?.status, profile?.email)
 
-      // Powiadom super_adminów o nowym użytkowniku oczekującym na akceptację
-      if (updated && profile) {
+      // Zmień status tylko jeśli jeszcze unconfirmed
+      if (profile?.status === 'unconfirmed') {
+        await admin
+          .from('profiles')
+          .update({ status: 'pending' })
+          .eq('id', user.id)
+
+        // Powiadom super_adminów
         const { data: superAdmins } = await admin
           .from('profiles')
           .select('email')
           .eq('role', 'super_admin')
           .eq('status', 'active')
 
+        console.log('[callback] super_admins:', superAdmins)
+
         const emails = (superAdmins ?? []).map(a => a.email).filter(Boolean) as string[]
+        console.log('[callback] sending to:', emails)
+
         if (emails.length > 0) {
-          await sendNewUserPendingEmail({
-            to: emails,
-            userName: profile.full_name ?? profile.email ?? 'Nieznany',
-            userEmail: profile.email ?? '',
-          }).catch(() => {})
+          try {
+            await sendNewUserPendingEmail({
+              to: emails,
+              userName: profile.full_name ?? user.email ?? 'Nieznany',
+              userEmail: profile.email ?? user.email ?? '',
+            })
+            console.log('[callback] email sent OK')
+          } catch (err) {
+            console.error('[callback] email error:', err)
+          }
         }
       }
 
