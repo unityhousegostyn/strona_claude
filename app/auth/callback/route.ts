@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
 
         const emails = (superAdmins ?? []).map(a => a.email).filter(Boolean) as string[]
         if (emails.length > 0) {
-          sendNewUserPendingEmail({
+          await sendNewUserPendingEmail({
             to: emails,
             userName: profile.full_name ?? profile.email ?? 'Nieznany',
             userEmail: profile.email ?? '',
