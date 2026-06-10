@@ -15,6 +15,7 @@ export async function createAnnouncement(formData: {
   target: 'all' | 'one' | 'selected'
   community_id: string | null
   community_ids: string[]
+  pinned?: boolean
 }): Promise<{ error?: string }> {
   try {
   const auth = await getAuthProfileAction()
@@ -48,6 +49,7 @@ export async function createAnnouncement(formData: {
       target: formData.target,
       community_id: formData.target === 'one' ? formData.community_id : null,
       created_by: user.id,
+      pinned: formData.pinned ?? false,
     })
     .select('id')
     .single()
@@ -114,6 +116,26 @@ export async function createAnnouncement(formData: {
 
   revalidatePath('/admin/announcements')
   return {}
+  } catch (e: any) {
+    return { error: e.message ?? 'Nieznany błąd' }
+  }
+}
+
+export async function togglePin(announcementId: string, pinned: boolean): Promise<{ error?: string }> {
+  try {
+    const auth = await getAuthProfileAction()
+    if (auth.error !== null) return { error: auth.error }
+    if (auth.profile.role === 'user') return { error: 'Brak uprawnień' }
+
+    const admin = getSupabaseAdminClient()
+    const { error } = await admin
+      .from('announcements')
+      .update({ pinned })
+      .eq('id', announcementId)
+
+    if (error) return { error: error.message }
+    revalidatePath('/admin/announcements')
+    return {}
   } catch (e: any) {
     return { error: e.message ?? 'Nieznany błąd' }
   }

@@ -23,6 +23,7 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
   const [content, setContent] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [pinned, setPinned] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -44,6 +45,7 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
         target,
         community_id: target === 'one' ? communityId : null,
         community_ids: target === 'selected' ? selectedIds : [],
+        pinned,
       })
       if (result?.error) {
         setError(result.error)
@@ -151,6 +153,28 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
           </Field>
         </div>
       </div>
+
+
+        <Field label="">
+          <label className="flex items-center gap-2.5 cursor-pointer select-none">
+            <div
+              onClick={() => setPinned(v => !v)}
+              className={`w-5 h-5 rounded border-2 flex items-center justify-center transition ${
+                pinned ? 'bg-amber-600 border-amber-600' : 'border-[#3a2e1e] hover:border-amber-700'
+              }`}
+            >
+              {pinned && (
+                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/>
+                </svg>
+              )}
+            </div>
+            <div>
+              <span className="text-sm font-medium text-[#b8a898]">Przypnij ogłoszenie na górze</span>
+              <p className="text-xs text-[#4a3c28]">Przypięte ogłoszenia wyświetlają się zawsze jako pierwsze</p>
+            </div>
+          </label>
+        </Field>
 
       <div className="flex gap-3">
         <button
