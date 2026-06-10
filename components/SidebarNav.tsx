@@ -22,7 +22,7 @@ const navEntries = (role: string): NavEntry[] => {
     { href: '/admin/board', label: 'Tablica', icon: '💬' },
     { href: '/admin/contacts', label: 'Kontakty', icon: '📞' },
     { href: '/admin/documents', label: 'Dokumenty', icon: '📁' },
-    { href: '/admin/votes', label: 'Głosowania', icon: '🗳️' },
+    { href: '/admin/votes', label: 'Uchwały - głosowanie', icon: '🗳️' },
     { href: '/admin/settlements', label: 'Rozliczenia', icon: '🧾' },
   ]
 
