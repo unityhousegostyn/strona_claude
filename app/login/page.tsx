@@ -43,8 +43,7 @@ function LoginForm() {
         return
       }
 
-      await supabase.auth.getSession()
-      router.push('/admin/dashboard')
+      window.location.href = '/admin/dashboard'
     } catch {
       setError('Wystąpił błąd logowania.')
     } finally {
