@@ -99,10 +99,11 @@ export async function registerUser(formData: FormData) {
 
   // Oznacz zaproszenie jako użyte — token już skonsumowany, niezależnie od emaila
   if (invitation) {
-    await admin.from('invitations')
-      .update({ used_at: new Date().toISOString() })
-      .eq('token', invitation.token)
-      .catch(() => {})
+    try {
+      await admin.from('invitations')
+        .update({ used_at: new Date().toISOString() })
+        .eq('token', invitation.token)
+    } catch {}
   }
 
   const tokenHash = linkData.properties.hashed_token
