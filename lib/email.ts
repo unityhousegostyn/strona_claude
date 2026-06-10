@@ -6,7 +6,7 @@ function createTransport() {
   return nodemailer.createTransport({
     host: process.env.EMAIL_HOST ?? 'smtp.gmail.com',
     port: parseInt(process.env.EMAIL_PORT ?? '587'),
-    secure: false, // STARTTLS
+    secure: false,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
@@ -18,7 +18,7 @@ function isConfigured() {
   return !!(process.env.EMAIL_USER && process.env.EMAIL_PASS)
 }
 
-const FROM = () => process.env.EMAIL_FROM ?? `Panel Wspólnoty <${process.env.EMAIL_USER}>`
+const FROM = () => process.env.EMAIL_FROM ?? `Zarząd Wspólnoty <${process.env.EMAIL_USER}>`
 
 async function sendMail(options: { to: string | string[]; subject: string; html: string }) {
   if (!isConfigured()) return
@@ -31,6 +31,90 @@ async function sendMail(options: { to: string | string[]; subject: string; html:
   })
 }
 
+// ── Wspólny layout ────────────────────────────────────────────────────────────
+
+function layout(content: string) {
+  const communityName = process.env.EMAIL_COMMUNITY_NAME ?? 'Zarząd Wspólnoty'
+  const address      = process.env.EMAIL_FOOTER_ADDRESS ?? ''
+  const phone        = process.env.EMAIL_FOOTER_PHONE ?? ''
+  const website      = APP_URL
+
+  const footerLines = [
+    address && `<span>${address}</span>`,
+    phone   && `<span>Tel.: ${phone}</span>`,
+    `<span><a href="${website}" style="color:#94a3b8;text-decoration:none;">${website.replace(/^https?:\/\//, '')}</a></span>`,
+  ].filter(Boolean).join('<br>')
+
+  return `<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>${communityName}</title>
+</head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+
+        <!-- NAGŁÓWEK -->
+        <tr>
+          <td style="background:#1e3a5f;border-radius:12px 12px 0 0;padding:28px 40px;">
+            <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#93c5fd;">PANEL ZARZĄDZANIA</p>
+            <p style="margin:4px 0 0;font-size:20px;font-weight:700;color:#ffffff;">${communityName}</p>
+          </td>
+        </tr>
+
+        <!-- TREŚĆ -->
+        <tr>
+          <td style="background:#ffffff;padding:40px;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">
+            ${content}
+          </td>
+        </tr>
+
+        <!-- STOPKA -->
+        <tr>
+          <td style="background:#f8fafc;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;padding:24px 40px;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#64748b;line-height:1.8;">
+              ${footerLines}
+            </p>
+            <p style="margin:12px 0 0;font-size:11px;color:#94a3b8;">
+              Wiadomość wygenerowana automatycznie przez system zarządzania wspólnotą.<br>
+              Prosimy nie odpowiadać na tę wiadomość.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+}
+
+// ── Komponent: przycisk ───────────────────────────────────────────────────────
+
+function btn(url: string, label: string) {
+  return `<a href="${url}" style="display:inline-block;background:#1e3a5f;color:#ffffff;font-size:14px;font-weight:600;padding:14px 32px;border-radius:8px;text-decoration:none;letter-spacing:0.3px;margin-top:8px;">${label}</a>`
+}
+
+// ── Komponent: cytat / wyróżniony blok ────────────────────────────────────────
+
+function quote(text: string) {
+  return `<div style="background:#f8fafc;border-left:4px solid #1e3a5f;border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;font-size:14px;color:#334155;line-height:1.7;">${text}</div>`
+}
+
+// ── Komponent: info box ───────────────────────────────────────────────────────
+
+function infoBox(label: string, value: string) {
+  return `<tr>
+    <td style="padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:13px;color:#64748b;width:40%;">${label}</td>
+    <td style="padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:13px;color:#1e293b;font-weight:500;">${value}</td>
+  </tr>`
+}
+
+// ── SZABLONY ──────────────────────────────────────────────────────────────────
+
 export async function sendEmailVerification(params: {
   to: string
   confirmUrl: string
@@ -38,18 +122,96 @@ export async function sendEmailVerification(params: {
 }) {
   await sendMail({
     to: params.to,
-    subject: 'Potwierdź adres email — Panel Wspólnoty',
-    html: `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #1d4ed8;">Witaj, ${params.fullName}!</h2>
-        <p style="color: #374151;">Aby aktywować konto, potwierdź swój adres email klikając poniższy przycisk.</p>
-        <a href="${params.confirmUrl}" style="display:inline-block;background:#2563eb;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;margin:16px 0;">
-          Potwierdź email
-        </a>
-        <p style="color:#6b7280;font-size:13px;">Link wygaśnie za 24 godziny.</p>
-        <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
-        <p style="color:#9ca3af;font-size:12px;">Panel Zarządzania Wspólnotą</p>
-      </div>`,
+    subject: 'Potwierdź adres e-mail — aktywacja konta',
+    html: layout(`
+      <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#1e3a5f;">Witamy w systemie</h1>
+      <p style="margin:0 0 24px;font-size:14px;color:#64748b;">Rejestracja konta mieszkańca</p>
+
+      <p style="font-size:15px;color:#334155;line-height:1.7;">
+        Szanowny/a <strong>${params.fullName}</strong>,
+      </p>
+      <p style="font-size:15px;color:#334155;line-height:1.7;margin-top:0;">
+        Dziękujemy za rejestrację w Panelu Zarządzania Wspólnotą. W celu potwierdzenia adresu e-mail
+        i przejścia do kolejnego etapu aktywacji konta, prosimy o kliknięcie poniższego przycisku.
+      </p>
+
+      ${quote('Link aktywacyjny jest ważny przez <strong>24 godziny</strong>. Po jego wygaśnięciu konieczna będzie ponowna rejestracja.')}
+
+      <div style="text-align:center;margin:32px 0;">
+        ${btn(params.confirmUrl, 'Potwierdź adres e-mail')}
+      </div>
+
+      <p style="font-size:13px;color:#94a3b8;margin-top:32px;border-top:1px solid #f1f5f9;padding-top:16px;">
+        Jeżeli nie zakładali Państwo konta w naszym systemie, prosimy zignorować tę wiadomość.
+      </p>
+    `),
+  })
+}
+
+export async function sendAccountApprovedEmail(params: {
+  to: string
+  communityName: string
+}) {
+  await sendMail({
+    to: params.to,
+    subject: 'Konto aktywowane — możesz się zalogować',
+    html: layout(`
+      <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#1e3a5f;">Konto zostało aktywowane</h1>
+      <p style="margin:0 0 24px;font-size:14px;color:#64748b;">Dostęp do panelu mieszkańca</p>
+
+      <p style="font-size:15px;color:#334155;line-height:1.7;">
+        Zarząd Wspólnoty zatwierdził Państwa konto w systemie zarządzania.
+        Mogą Państwo teraz zalogować się i korzystać z wszystkich funkcji panelu mieszkańca.
+      </p>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+        ${infoBox('Wspólnota', params.communityName)}
+        ${infoBox('Status konta', 'Aktywne')}
+        ${infoBox('Dostęp', 'Panel mieszkańca')}
+      </table>
+
+      <div style="text-align:center;margin:32px 0;">
+        ${btn(`${APP_URL}/login`, 'Zaloguj się do panelu')}
+      </div>
+
+      <p style="font-size:13px;color:#64748b;line-height:1.6;margin-top:24px;">
+        W panelu znajdą Państwo m.in. rozliczenia lokalu, ogłoszenia zarządu,
+        tablicę sąsiedzką, dokumenty wspólnoty oraz możliwość składania zgłoszeń i udziału w głosowaniach.
+      </p>
+    `),
+  })
+}
+
+export async function sendPasswordResetEmail(params: {
+  to: string
+  resetUrl: string
+}) {
+  await sendMail({
+    to: params.to,
+    subject: 'Resetowanie hasła — Panel Zarządzania Wspólnotą',
+    html: layout(`
+      <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#1e3a5f;">Resetowanie hasła</h1>
+      <p style="margin:0 0 24px;font-size:14px;color:#64748b;">Zmiana hasła do konta</p>
+
+      <p style="font-size:15px;color:#334155;line-height:1.7;">
+        Otrzymujemy tę wiadomość, ponieważ administrator systemu zainicjował procedurę
+        resetowania hasła do Państwa konta.
+      </p>
+
+      <p style="font-size:15px;color:#334155;line-height:1.7;margin-top:0;">
+        Aby ustawić nowe hasło, prosimy kliknąć poniższy przycisk.
+      </p>
+
+      ${quote('Link do resetowania hasła jest ważny przez <strong>24 godziny</strong>. Po jego wygaśnięciu konieczne będzie wygenerowanie nowego linku przez administratora.')}
+
+      <div style="text-align:center;margin:32px 0;">
+        ${btn(params.resetUrl, 'Ustaw nowe hasło')}
+      </div>
+
+      <p style="font-size:13px;color:#94a3b8;margin-top:32px;border-top:1px solid #f1f5f9;padding-top:16px;">
+        Jeżeli nie wnioskowali Państwo o reset hasła, prosimy o kontakt z zarządem wspólnoty.
+      </p>
+    `),
   })
 }
 
@@ -61,49 +223,19 @@ export async function sendAnnouncementEmail(params: {
   if (params.to.length === 0) return
   await sendMail({
     to: params.to,
-    subject: `📢 Nowe ogłoszenie: ${params.title}`,
-    html: `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color:#1d4ed8;">📢 ${params.title}</h2>
-        <p style="color:#374151;line-height:1.6;">${params.content.replace(/\n/g, '<br>')}</p>
-        <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
-        <p style="color:#9ca3af;font-size:12px;">Panel Zarządzania Wspólnotą · <a href="${APP_URL}/admin/announcements">Zobacz ogłoszenia</a></p>
-      </div>`,
-  })
-}
+    subject: `Ogłoszenie zarządu: ${params.title}`,
+    html: layout(`
+      <p style="margin:0 0 4px;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#64748b;">OGŁOSZENIE ZARZĄDU</p>
+      <h1 style="margin:0 0 32px;font-size:22px;font-weight:700;color:#1e3a5f;">${params.title}</h1>
 
-export async function sendAccountApprovedEmail(params: {
-  to: string
-  communityName: string
-}) {
-  await sendMail({
-    to: params.to,
-    subject: 'Twoje konto zostało zaakceptowane',
-    html: `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color:#059669;">✅ Konto aktywowane</h2>
-        <p style="color:#374151;">Twoje konto w panelu wspólnoty <strong>${params.communityName}</strong> zostało zaakceptowane.</p>
-        <a href="${APP_URL}/login" style="display:inline-block;background:#2563eb;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;margin-top:16px;">Zaloguj się</a>
-      </div>`,
-  })
-}
+      <div style="font-size:15px;color:#334155;line-height:1.8;">
+        ${params.content.replace(/\n/g, '<br>')}
+      </div>
 
-export async function sendPasswordResetEmail(params: {
-  to: string
-  resetUrl: string
-}) {
-  await sendMail({
-    to: params.to,
-    subject: 'Reset hasła — Panel Wspólnoty',
-    html: `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color:#dc2626;">🔑 Reset hasła</h2>
-        <p style="color:#374151;">Administrator zainicjował reset Twojego hasła.</p>
-        <a href="${params.resetUrl}" style="display:inline-block;background:#2563eb;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;margin:16px 0;">Ustaw nowe hasło</a>
-        <p style="color:#6b7280;font-size:13px;">Link wygaśnie za 24 godziny.</p>
-        <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
-        <p style="color:#9ca3af;font-size:12px;">Panel Zarządzania Wspólnotą</p>
-      </div>`,
+      <div style="text-align:center;margin:40px 0 16px;">
+        ${btn(`${APP_URL}/admin/announcements`, 'Przejdź do ogłoszeń')}
+      </div>
+    `),
   })
 }
 
@@ -116,13 +248,22 @@ export async function sendNewCommentEmail(params: {
 }) {
   await sendMail({
     to: params.to,
-    subject: `Nowy komentarz w zgłoszeniu: ${params.ticketTitle}`,
-    html: `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color:#374151;">💬 Nowy komentarz</h2>
-        <p style="color:#374151;"><strong>${params.authorName}</strong> skomentował zgłoszenie <em>${params.ticketTitle}</em>:</p>
-        <blockquote style="border-left:3px solid #d1d5db;margin:16px 0;padding:12px 16px;color:#6b7280;">${params.comment}</blockquote>
-        <a href="${APP_URL}/admin/tickets/${params.ticketId}" style="display:inline-block;background:#2563eb;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;">Zobacz zgłoszenie</a>
-      </div>`,
+    subject: `Nowa odpowiedź na zgłoszenie: ${params.ticketTitle}`,
+    html: layout(`
+      <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#1e3a5f;">Nowa odpowiedź na zgłoszenie</h1>
+      <p style="margin:0 0 24px;font-size:14px;color:#64748b;">Ktoś skomentował Państwa zgłoszenie</p>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+        ${infoBox('Zgłoszenie', params.ticketTitle)}
+        ${infoBox('Odpowiedział/a', params.authorName)}
+      </table>
+
+      <p style="font-size:13px;font-weight:600;color:#64748b;margin:0 0 4px;">Treść odpowiedzi:</p>
+      ${quote(params.comment.replace(/\n/g, '<br>'))}
+
+      <div style="text-align:center;margin:32px 0;">
+        ${btn(`${APP_URL}/admin/tickets/${params.ticketId}`, 'Zobacz zgłoszenie')}
+      </div>
+    `),
   })
 }
