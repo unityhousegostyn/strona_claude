@@ -25,13 +25,13 @@ export default function TicketsPage() {
   const [selectedComm, setSelectedComm] = useState('')
 
   const fetchTickets = async (p: any) => {
-    const query = supabase
+    let query = supabase
       .from('tickets')
       .select('*, community:communities(name)')
       .order('created_at', { ascending: false })
 
     if (p.role === 'user' || p.role === 'admin') {
-      query.eq('community_id', p.community_id)
+      query = query.eq('community_id', p.community_id)
     }
 
     const { data } = await query
