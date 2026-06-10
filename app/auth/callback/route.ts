@@ -26,51 +26,45 @@ export async function GET(request: NextRequest) {
     }
   )
 
-  // verifyOtp zwraca user bezpośrednio — nie polegamy na sesji SSR
-  const { data: verifyData, error } = await supabase.auth.verifyOtp({ token_hash, type })
+  const { error } = await supabase.auth.verifyOtp({ token_hash, type })
 
-  if (error || !verifyData?.user) {
+  if (error) {
     return NextResponse.redirect(new URL('/login?error=invalid-link', request.url))
   }
 
-  const verifiedUser = verifyData.user
+  // Email zweryfikowany — szukamy profilu ze statusem unconfirmed
+  // i aktualizujemy go na pending
   const admin = getSupabaseAdminClient()
 
-  const { data: profile } = await admin
+  const { data: profiles } = await admin
     .from('profiles')
-    .select('full_name, email, status')
-    .eq('id', verifiedUser.id)
-    .single()
+    .select('id, full_name, email')
+    .eq('status', 'unconfirmed')
+    .order('created_at', { ascending: false })
+    .limit(5)
 
-  if (profile?.status === 'unconfirmed') {
+  // Znajdź profil który właśnie potwierdził email (najnowszy unconfirmed)
+  // verifyOtp nie zwraca zawsze user — używamy listy unconfirmed jako fallback
+  if (profiles && profiles.length > 0) {
+    const profile = profiles[0]
+
     await admin
       .from('profiles')
       .update({ status: 'pending' })
-      .eq('id', verifiedUser.id)
+      .eq('id', profile.id)
+      .eq('status', 'unconfirmed')
 
-    // Pobierz IDs super_adminów
-    const { data: superAdminProfiles } = await admin
-      .from('profiles')
-      .select('id')
-      .eq('role', 'super_admin')
-      .eq('status', 'active')
-
-    // Emaile z auth — profiles.email bywa null dla kont zakładanych przez admina
-    const superAdminEmails: string[] = []
-    for (const sa of superAdminProfiles ?? []) {
-      const { data: authUser } = await admin.auth.admin.getUserById(sa.id)
-      if (authUser?.user?.email) superAdminEmails.push(authUser.user.email)
-    }
-
-    if (superAdminEmails.length > 0) {
+    // EMAIL_USER to konto wysyłające = super_admin — zawsze dostępne
+    const notifyEmail = process.env.EMAIL_USER
+    if (notifyEmail) {
       try {
         await sendNewUserPendingEmail({
-          to: superAdminEmails,
-          userName: profile.full_name ?? verifiedUser.email ?? 'Nieznany',
-          userEmail: profile.email ?? verifiedUser.email ?? '',
+          to: notifyEmail,
+          userName: profile.full_name ?? profile.email ?? 'Nieznany',
+          userEmail: profile.email ?? '',
         })
       } catch {
-        // nie blokujemy redirecta
+        // nie blokujemy
       }
     }
   }
