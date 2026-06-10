@@ -50,29 +50,26 @@ export async function GET(request: NextRequest) {
           .update({ status: 'pending' })
           .eq('id', user.id)
 
-        // Powiadom super_adminów
-        const { data: superAdmins } = await admin
+        // Pobierz IDs super_adminów z profiles
+        const { data: superAdminProfiles } = await admin
           .from('profiles')
-          .select('email')
+          .select('id')
           .eq('role', 'super_admin')
           .eq('status', 'active')
 
-        console.log('[callback] super_admins:', superAdmins)
+        // Pobierz ich emaile z auth (profiles.email może być null jeśli konto zakładał admin)
+        const superAdminEmails: string[] = []
+        for (const sa of superAdminProfiles ?? []) {
+          const { data: authUser } = await admin.auth.admin.getUserById(sa.id)
+          if (authUser?.user?.email) superAdminEmails.push(authUser.user.email)
+        }
 
-        const emails = (superAdmins ?? []).map(a => a.email).filter(Boolean) as string[]
-        console.log('[callback] sending to:', emails)
-
-        if (emails.length > 0) {
-          try {
-            await sendNewUserPendingEmail({
-              to: emails,
-              userName: profile.full_name ?? user.email ?? 'Nieznany',
-              userEmail: profile.email ?? user.email ?? '',
-            })
-            console.log('[callback] email sent OK')
-          } catch (err) {
-            console.error('[callback] email error:', err)
-          }
+        if (superAdminEmails.length > 0) {
+          await sendNewUserPendingEmail({
+            to: superAdminEmails,
+            userName: profile.full_name ?? user.email ?? 'Nieznany',
+            userEmail: profile.email ?? user.email ?? '',
+          }).catch(() => {})
         }
       }
 

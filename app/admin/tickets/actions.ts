@@ -84,21 +84,29 @@ export async function createTicket(formData: FormData): Promise<{ error?: string
 
     // Powiadom super_adminów i admina wspólnoty o nowym zgłoszeniu
     if (inserted?.id) {
-      const [{ data: superAdmins }, { data: communityAdmins }, { data: community }] = await Promise.all([
-        admin.from('profiles').select('email').eq('role', 'super_admin').eq('status', 'active'),
-        admin.from('profiles').select('email').eq('role', 'admin').eq('community_id', communityId).eq('status', 'active'),
+      const [{ data: superAdminProfiles }, { data: communityAdminProfiles }, { data: community }] = await Promise.all([
+        admin.from('profiles').select('id').eq('role', 'super_admin').eq('status', 'active'),
+        admin.from('profiles').select('id').eq('role', 'admin').eq('community_id', communityId).eq('status', 'active'),
         admin.from('communities').select('name').eq('id', communityId).single(),
       ])
 
-      const recipients = [
-        ...(superAdmins ?? []).map(a => a.email),
-        ...(communityAdmins ?? []).map(a => a.email),
-      ].filter((e): e is string => !!e && e !== user.email)
-      const uniqueRecipients = [...new Set(recipients)]
+      // Pobierz emaile z auth — profiles.email może być null dla kont zakładanych przez admina
+      const allProfileIds = [
+        ...(superAdminProfiles ?? []).map(p => p.id),
+        ...(communityAdminProfiles ?? []).map(p => p.id),
+      ].filter(id => id !== user.id)
+      const uniqueIds = [...new Set(allProfileIds)]
 
-      if (uniqueRecipients.length > 0) {
-        sendNewTicketEmail({
-          to: uniqueRecipients,
+      const emailResults = await Promise.all(
+        uniqueIds.map(id => admin.auth.admin.getUserById(id))
+      )
+      const recipients = emailResults
+        .map(r => r.data?.user?.email)
+        .filter((e): e is string => !!e)
+
+      if (recipients.length > 0) {
+        await sendNewTicketEmail({
+          to: recipients,
           ticketTitle: title,
           ticketDescription: description,
           authorName: profile.full_name ?? user.email ?? 'Mieszkaniec',
