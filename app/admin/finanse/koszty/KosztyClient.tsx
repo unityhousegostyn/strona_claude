@@ -159,7 +159,7 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
   }
 
   const catLabel = (cat: string) => categories.find(c => c.value === cat)?.label ?? cat
-  const catColors: Record<string, string> = { zarząd:'bg-blue-950/40 text-blue-400', woda:'bg-cyan-950/40 text-cyan-400', śmieci:'bg-green-950/40 text-green-400', remonty:'bg-orange-950/40 text-orange-400', ubezpieczenie:'bg-purple-950/40 text-purple-400', energia:'bg-yellow-950/40 text-yellow-400', fundusz_remontowy:'bg-red-950/40 text-red-400', inne:'bg-gray-800 text-gray-400' }
+  const catColors: Record<string, string> = { zarząd:'bg-green-950/40 text-green-400', woda:'bg-cyan-950/40 text-cyan-400', śmieci:'bg-green-950/40 text-green-400', remonty:'bg-orange-950/40 text-orange-400', ubezpieczenie:'bg-purple-950/40 text-purple-400', energia:'bg-yellow-950/40 text-yellow-400', fundusz_remontowy:'bg-red-950/40 text-red-400', inne:'bg-gray-800 text-gray-400' }
   const maxBar = Math.max(...Object.values(monthlyExpenses), ...Object.values(monthlyIncome), 1)
 
   return (
@@ -171,7 +171,7 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
         </div>
         <div className="flex gap-2">
           <button onClick={handleExportExcel} disabled={filtered.length === 0} className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm font-semibold px-4 py-2 rounded-lg transition disabled:opacity-40" title="Eksportuj do Excela">📊 Eksport Excel</button>
-          <button onClick={() => setShowForm(!showForm)} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">+ Dodaj koszt</button>
+          <button onClick={() => setShowForm(!showForm)} className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">+ Dodaj koszt</button>
         </div>
       </div>
 
@@ -188,7 +188,7 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
           </div>
           {formError && <p className="text-sm text-red-400">{formError}</p>}
           <div className="flex gap-3">
-            <button onClick={handleAdd} disabled={isPending} className="bg-blue-600 text-white text-sm font-semibold px-5 py-2 rounded-lg disabled:opacity-50">{isPending ? 'Zapisuję...' : 'Dodaj koszt'}</button>
+            <button onClick={handleAdd} disabled={isPending} className="bg-green-600 text-white text-sm font-semibold px-5 py-2 rounded-lg disabled:opacity-50">{isPending ? 'Zapisuję...' : 'Dodaj koszt'}</button>
             <button onClick={() => setShowForm(false)} className="text-sm text-gray-500 hover:text-gray-300">Anuluj</button>
           </div>
         </div>
@@ -198,12 +198,12 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3">
         <div><p className="text-sm font-semibold text-gray-300">📥 Import z pliku CSV</p><p className="text-xs text-gray-500 mt-0.5">Format: <code className="text-gray-400">data;opis;kategoria;kwota;nr_faktury</code></p></div>
         {isSuperAdmin && <select className="input text-sm w-full sm:w-auto" value={importComm} onChange={e => setImportComm(e.target.value)}><option value="">— wybierz wspólnotę —</option>{communities.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select>}
-        <div onDragOver={e=>{e.preventDefault();setCsvDragOver(true)}} onDragLeave={()=>setCsvDragOver(false)} onDrop={e=>{e.preventDefault();setCsvDragOver(false);const f=e.dataTransfer.files[0];if(f)handleFile(f)}} onClick={()=>fileRef.current?.click()} className={`cursor-pointer rounded-xl border-2 border-dashed transition-all py-8 px-4 text-center select-none ${csvDragOver?'border-blue-500 bg-blue-950/20':csvFileName?'border-green-700 bg-green-950/20':'border-gray-700 bg-gray-800/30 hover:border-gray-500'}`}>
+        <div onDragOver={e=>{e.preventDefault();setCsvDragOver(true)}} onDragLeave={()=>setCsvDragOver(false)} onDrop={e=>{e.preventDefault();setCsvDragOver(false);const f=e.dataTransfer.files[0];if(f)handleFile(f)}} onClick={()=>fileRef.current?.click()} className={`cursor-pointer rounded-xl border-2 border-dashed transition-all py-8 px-4 text-center select-none ${csvDragOver?'border-green-500 bg-green-950/20':csvFileName?'border-green-700 bg-green-950/20':'border-gray-700 bg-gray-800/30 hover:border-gray-500'}`}>
           <input ref={fileRef} type="file" accept=".csv,.txt" className="hidden" onChange={e=>{const f=e.target.files?.[0];if(f)handleFile(f);if(fileRef.current)fileRef.current.value=''}} />
           <div className="text-3xl mb-2">{isPending?'⏳':csvFileName?'✅':'📂'}</div>
           {isPending?<p className="text-sm text-gray-400">Importowanie...</p>:csvFileName?<p className="text-sm font-medium text-green-400">{csvFileName}</p>:<><p className="text-sm font-medium text-gray-300">Przeciągnij plik CSV tutaj</p><p className="text-xs text-gray-500 mt-1">lub kliknij żeby wybrać z dysku</p></>}
         </div>
-        <a href={`data:text/plain;charset=utf-8,${encodeURIComponent('data;opis;kategoria;kwota;nr_faktury\n2026-06-01;Faktura ZGKIM za wodę;woda;1250.00;FV/100/2026')}`} download="szablon_kosztow.csv" className="text-xs text-blue-400 hover:text-blue-300 underline">Pobierz szablon</a>
+        <a href={`data:text/plain;charset=utf-8,${encodeURIComponent('data;opis;kategoria;kwota;nr_faktury\n2026-06-01;Faktura ZGKIM za wodę;woda;1250.00;FV/100/2026')}`} download="szablon_kosztow.csv" className="text-xs text-green-400 hover:text-green-300 underline">Pobierz szablon</a>
         {importResult && <div className={`text-sm rounded-lg p-3 ${importResult.imported>0?'bg-green-950/30 border border-green-800 text-green-400':'bg-red-950/30 border border-red-800 text-red-400'}`}>{importResult.imported>0&&<p className="font-semibold">✓ Zaimportowano {importResult.imported} wpisów.</p>}{importResult.errors.map((err,i)=><p key={i} className="text-xs mt-1">⚠ {err}</p>)}</div>}
       </div>
 
@@ -237,19 +237,19 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
       {tab==='summary'?(
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center"><p className="text-xs text-gray-500 mb-1">Wpłaty mieszkańców</p><p className="text-2xl font-bold text-blue-400">{pln(totalIncome)}</p></div>
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center"><p className="text-xs text-gray-500 mb-1">Wpłaty mieszkańców</p><p className="text-2xl font-bold text-green-400">{pln(totalIncome)}</p></div>
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center"><p className="text-xs text-gray-500 mb-1">Koszty wspólnoty</p><p className="text-2xl font-bold text-red-400">{pln(totalExpenses)}</p></div>
             <div className={`rounded-xl p-4 text-center border ${totalIncome-totalExpenses>=0?'bg-green-950/20 border-green-900':'bg-red-950/20 border-red-900'}`}><p className="text-xs text-gray-500 mb-1">Saldo</p><p className={`text-2xl font-bold ${totalIncome-totalExpenses>=0?'text-green-400':'text-red-400'}`}>{pln(totalIncome-totalExpenses)}</p></div>
           </div>
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
             <h3 className="text-sm font-semibold text-gray-400 mb-4">Wpłaty vs Koszty — miesiącami</h3>
             <div className="flex items-end gap-1 h-32">
-              {MONTHS.map((name,idx)=>{const m=idx+1;const inc=monthlyIncome[m]??0;const exp=monthlyExpenses[m]??0;const hI=Math.max(2,Math.round((inc/maxBar)*120));const hE=Math.max(2,Math.round((exp/maxBar)*120));return(<div key={m} className="flex-1 flex flex-col items-center gap-0.5"><div className="flex items-end gap-0.5 w-full justify-center" style={{height:120}}><div title={`Wpłaty: ${pln(inc)}`} style={{height:hI}} className="flex-1 bg-blue-600/60 rounded-t-sm"/><div title={`Koszty: ${pln(exp)}`} style={{height:hE}} className="flex-1 bg-red-500/60 rounded-t-sm"/></div><span className="text-xs text-gray-600">{name}</span></div>)})}
+              {MONTHS.map((name,idx)=>{const m=idx+1;const inc=monthlyIncome[m]??0;const exp=monthlyExpenses[m]??0;const hI=Math.max(2,Math.round((inc/maxBar)*120));const hE=Math.max(2,Math.round((exp/maxBar)*120));return(<div key={m} className="flex-1 flex flex-col items-center gap-0.5"><div className="flex items-end gap-0.5 w-full justify-center" style={{height:120}}><div title={`Wpłaty: ${pln(inc)}`} style={{height:hI}} className="flex-1 bg-green-600/60 rounded-t-sm"/><div title={`Koszty: ${pln(exp)}`} style={{height:hE}} className="flex-1 bg-red-500/60 rounded-t-sm"/></div><span className="text-xs text-gray-600">{name}</span></div>)})}
             </div>
           </div>
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
             <h3 className="text-sm font-semibold text-gray-400 mb-4">Koszty według kategorii</h3>
-            {Object.keys(byCat).length===0?<p className="text-sm text-gray-400">Brak kosztów.</p>:<div className="space-y-3">{Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([cat,amt])=>{const pct=totalExpenses>0?Math.round(amt/totalExpenses*100):0;return(<div key={cat} className="flex items-center gap-3"><span className={`text-xs px-2 py-0.5 rounded-full w-32 text-center flex-shrink-0 ${catColors[cat]??catColors.inne}`}>{catLabel(cat)}</span><div className="flex-1 bg-gray-800 rounded-full h-2"><div className="bg-blue-500 h-2 rounded-full" style={{width:`${pct}%`}}/></div><span className="text-sm font-semibold text-gray-200 w-28 text-right">{pln(amt)}</span><span className="text-xs text-gray-500 w-10 text-right">{pct}%</span></div>)})}</div>}
+            {Object.keys(byCat).length===0?<p className="text-sm text-gray-400">Brak kosztów.</p>:<div className="space-y-3">{Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([cat,amt])=>{const pct=totalExpenses>0?Math.round(amt/totalExpenses*100):0;return(<div key={cat} className="flex items-center gap-3"><span className={`text-xs px-2 py-0.5 rounded-full w-32 text-center flex-shrink-0 ${catColors[cat]??catColors.inne}`}>{catLabel(cat)}</span><div className="flex-1 bg-gray-800 rounded-full h-2"><div className="bg-green-500 h-2 rounded-full" style={{width:`${pct}%`}}/></div><span className="text-sm font-semibold text-gray-200 w-28 text-right">{pln(amt)}</span><span className="text-xs text-gray-500 w-10 text-right">{pct}%</span></div>)})}</div>}
           </div>
         </div>
       ):(
@@ -258,7 +258,7 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
           {filtered.length > 0 && (
             <div className="flex items-center gap-3 mb-3 flex-wrap">
               <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer select-none">
-                <input type="checkbox" className="w-3.5 h-3.5 accent-blue-500" checked={selectedIds.size === filtered.length && filtered.length > 0} onChange={toggleAll} />
+                <input type="checkbox" className="w-3.5 h-3.5 accent-green-500" checked={selectedIds.size === filtered.length && filtered.length > 0} onChange={toggleAll} />
                 {selectedIds.size > 0 ? `Zaznaczono ${selectedIds.size} z ${filtered.length}` : `Zaznacz wszystkie (${filtered.length})`}
               </label>
               {selectedIds.size > 0 && (
@@ -267,7 +267,7 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
                   <select className="input text-xs py-1" value={bulkCat} onChange={e => setBulkCat(e.target.value as ExpenseCategory)}>
                     {categories.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                   </select>
-                  <button onClick={handleBulkCategory} disabled={isPending} className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-50 transition">
+                  <button onClick={handleBulkCategory} disabled={isPending} className="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-50 transition">
                     {isPending ? '...' : `Zastosuj (${selectedIds.size})`}
                   </button>
                   <button onClick={() => setSelectedIds(new Set())} className="text-xs text-gray-500 hover:text-gray-300">Odznacz</button>
@@ -298,7 +298,7 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
                     </div>
                     <div className="space-y-2">
                       {commFiltered.map(e => editId===e.id?(
-                        <div key={e.id} className="bg-gray-900 border border-blue-800 rounded-xl p-4 space-y-3">
+                        <div key={e.id} className="bg-gray-900 border border-green-800 rounded-xl p-4 space-y-3">
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             <select className="input text-sm" value={editForm.category} onChange={x=>setEditForm(p=>({...p,category:x.target.value as ExpenseCategory}))}>{categories.map(c=><option key={c.value} value={c.value}>{c.label}</option>)}</select>
                             <input className="input text-sm sm:col-span-2" value={editForm.description} onChange={x=>setEditForm(p=>({...p,description:x.target.value}))}/>
@@ -307,16 +307,16 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
                             <input className="input text-sm" placeholder="Nr faktury" value={editForm.invoice_number??''} onChange={x=>setEditForm(p=>({...p,invoice_number:x.target.value}))}/>
                           </div>
                           {editError&&<p className="text-xs text-red-400">{editError}</p>}
-                          <div className="flex gap-2"><button onClick={handleUpdate} disabled={isPending} className="bg-blue-600 text-white text-xs font-semibold px-4 py-1.5 rounded-lg disabled:opacity-50">{isPending?'Zapisuję...':'Zapisz'}</button><button onClick={()=>setEditId(null)} className="text-xs text-gray-500 hover:text-gray-300">Anuluj</button></div>
+                          <div className="flex gap-2"><button onClick={handleUpdate} disabled={isPending} className="bg-green-600 text-white text-xs font-semibold px-4 py-1.5 rounded-lg disabled:opacity-50">{isPending?'Zapisuję...':'Zapisz'}</button><button onClick={()=>setEditId(null)} className="text-xs text-gray-500 hover:text-gray-300">Anuluj</button></div>
                         </div>
                       ):(
-                        <div key={e.id} onClick={() => toggleSelect(e.id)} className={`bg-gray-900 border rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap cursor-pointer transition ${selectedIds.has(e.id) ? 'border-blue-600 bg-blue-950/10' : 'border-gray-800 hover:border-gray-700'}`}>
-                          <input type="checkbox" className="w-4 h-4 accent-blue-500 flex-shrink-0" checked={selectedIds.has(e.id)} onChange={() => toggleSelect(e.id)} onClick={ev => ev.stopPropagation()} />
+                        <div key={e.id} onClick={() => toggleSelect(e.id)} className={`bg-gray-900 border rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap cursor-pointer transition ${selectedIds.has(e.id) ? 'border-green-600 bg-green-950/10' : 'border-gray-800 hover:border-gray-700'}`}>
+                          <input type="checkbox" className="w-4 h-4 accent-green-500 flex-shrink-0" checked={selectedIds.has(e.id)} onChange={() => toggleSelect(e.id)} onClick={ev => ev.stopPropagation()} />
                           <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${catColors[e.category]??catColors.inne}`}>{catLabel(e.category)}</span>
                           <div className="flex-1 min-w-0"><p className="text-sm font-medium text-gray-200 truncate">{e.description}</p><p className="text-xs text-gray-500 mt-0.5">{new Date(e.expense_date).toLocaleDateString('pl-PL')}{e.invoice_number&&` · ${e.invoice_number}`}</p></div>
                           <p className="text-sm font-bold text-red-400 flex-shrink-0">{pln(e.amount)}</p>
                           <div className="flex items-center gap-2 flex-shrink-0" onClick={ev => ev.stopPropagation()}>
-                            <button onClick={()=>{setEditId(e.id);setEditForm({category:e.category as ExpenseCategory,description:e.description,amount:String(e.amount),expense_date:e.expense_date,invoice_number:e.invoice_number??''});setEditError(null)}} className="text-xs text-blue-600 hover:underline">Edytuj</button>
+                            <button onClick={()=>{setEditId(e.id);setEditForm({category:e.category as ExpenseCategory,description:e.description,amount:String(e.amount),expense_date:e.expense_date,invoice_number:e.invoice_number??''});setEditError(null)}} className="text-xs text-green-600 hover:underline">Edytuj</button>
                             <button onClick={()=>handleDelete(e.id)} className="text-gray-600 hover:text-red-400 transition text-sm">✕</button>
                           </div>
                         </div>
@@ -329,7 +329,7 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
           ) : (
           <div className="space-y-2">
             {paginatedList.map(e=>editId===e.id?(
-              <div key={e.id} className="bg-gray-900 border border-blue-800 rounded-xl p-4 space-y-3">
+              <div key={e.id} className="bg-gray-900 border border-green-800 rounded-xl p-4 space-y-3">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <select className="input text-sm" value={editForm.category} onChange={x=>setEditForm(p=>({...p,category:x.target.value as ExpenseCategory}))}>{categories.map(c=><option key={c.value} value={c.value}>{c.label}</option>)}</select>
                   <input className="input text-sm sm:col-span-2" value={editForm.description} onChange={x=>setEditForm(p=>({...p,description:x.target.value}))}/>
@@ -338,16 +338,16 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
                   <input className="input text-sm" placeholder="Nr faktury" value={editForm.invoice_number??''} onChange={x=>setEditForm(p=>({...p,invoice_number:x.target.value}))}/>
                 </div>
                 {editError&&<p className="text-xs text-red-400">{editError}</p>}
-                <div className="flex gap-2"><button onClick={handleUpdate} disabled={isPending} className="bg-blue-600 text-white text-xs font-semibold px-4 py-1.5 rounded-lg disabled:opacity-50">{isPending?'Zapisuję...':'Zapisz'}</button><button onClick={()=>setEditId(null)} className="text-xs text-gray-500 hover:text-gray-300">Anuluj</button></div>
+                <div className="flex gap-2"><button onClick={handleUpdate} disabled={isPending} className="bg-green-600 text-white text-xs font-semibold px-4 py-1.5 rounded-lg disabled:opacity-50">{isPending?'Zapisuję...':'Zapisz'}</button><button onClick={()=>setEditId(null)} className="text-xs text-gray-500 hover:text-gray-300">Anuluj</button></div>
               </div>
             ):(
-              <div key={e.id} onClick={() => toggleSelect(e.id)} className={`bg-gray-900 border rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap cursor-pointer transition ${selectedIds.has(e.id) ? 'border-blue-600 bg-blue-950/10' : 'border-gray-800 hover:border-gray-700'}`}>
-                <input type="checkbox" className="w-4 h-4 accent-blue-500 flex-shrink-0" checked={selectedIds.has(e.id)} onChange={() => toggleSelect(e.id)} onClick={ev => ev.stopPropagation()} />
+              <div key={e.id} onClick={() => toggleSelect(e.id)} className={`bg-gray-900 border rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap cursor-pointer transition ${selectedIds.has(e.id) ? 'border-green-600 bg-green-950/10' : 'border-gray-800 hover:border-gray-700'}`}>
+                <input type="checkbox" className="w-4 h-4 accent-green-500 flex-shrink-0" checked={selectedIds.has(e.id)} onChange={() => toggleSelect(e.id)} onClick={ev => ev.stopPropagation()} />
                 <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${catColors[e.category]??catColors.inne}`}>{catLabel(e.category)}</span>
                 <div className="flex-1 min-w-0"><p className="text-sm font-medium text-gray-200 truncate">{e.description}</p><p className="text-xs text-gray-500 mt-0.5">{new Date(e.expense_date).toLocaleDateString('pl-PL')}{isSuperAdmin&&` · ${commMap[e.community_id]??'—'}`}{e.invoice_number&&` · ${e.invoice_number}`}</p></div>
                 <p className="text-sm font-bold text-red-400 flex-shrink-0">{pln(e.amount)}</p>
                 <div className="flex items-center gap-2 flex-shrink-0" onClick={ev => ev.stopPropagation()}>
-                  <button onClick={()=>{setEditId(e.id);setEditForm({category:e.category as ExpenseCategory,description:e.description,amount:String(e.amount),expense_date:e.expense_date,invoice_number:e.invoice_number??''});setEditError(null)}} className="text-xs text-blue-600 hover:underline">Edytuj</button>
+                  <button onClick={()=>{setEditId(e.id);setEditForm({category:e.category as ExpenseCategory,description:e.description,amount:String(e.amount),expense_date:e.expense_date,invoice_number:e.invoice_number??''});setEditError(null)}} className="text-xs text-green-600 hover:underline">Edytuj</button>
                   <button onClick={()=>handleDelete(e.id)} disabled={isPending} className="text-xs text-gray-600 hover:text-red-400 transition">✕</button>
                 </div>
               </div>

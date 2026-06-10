@@ -104,7 +104,7 @@ function LoginForm() {
       <button
         onClick={handleLogin}
         disabled={loading}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg py-2.5 text-sm transition disabled:opacity-50"
+        className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg py-2.5 text-sm transition disabled:opacity-50"
       >
         {loading ? 'Logowanie...' : 'Zaloguj się'}
       </button>
@@ -113,7 +113,7 @@ function LoginForm() {
         <Link href="/reset-password" className="text-sm text-gray-500 hover:text-gray-300 hover:underline">
           Zapomniałeś hasła?
         </Link>
-        <Link href="/register" className="text-sm text-blue-600 hover:underline">
+        <Link href="/register" className="text-sm text-green-600 hover:underline">
           Nie masz konta? Zarejestruj się
         </Link>
       </div>

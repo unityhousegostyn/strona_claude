@@ -158,12 +158,12 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
               step="0.01"
               value={initialBalance}
               onChange={e => setInitialBalance(parseFloat(e.target.value) || 0)}
-              className="w-28 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-blue-500"
+              className="w-28 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-green-500"
             />
             <span className="text-sm text-gray-500">zł</span>
             <button
               onClick={() => setShowBalanceInput(false)}
-              className="text-xs text-blue-400 hover:text-blue-300"
+              className="text-xs text-green-400 hover:text-green-300"
             >Zatwierdź</button>
           </div>
         ) : (
@@ -208,14 +208,14 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                     <tr
                       key={row.month}
                       className={`border-b border-gray-800/50 transition ${
-                        isEditing ? 'bg-blue-950/30' : 'hover:bg-gray-800/30'
+                        isEditing ? 'bg-green-950/30' : 'hover:bg-gray-800/30'
                       }`}
                     >
                       <td className="px-3 py-2 text-sm text-gray-300 font-medium">{row.monthName}</td>
                       <td className={colClass + ' ' + (row.balance_start >= 0 ? 'text-green-400' : 'text-red-400')}>
                         {pln(row.balance_start)}
                       </td>
-                      <td className={colClass + ' text-blue-300 font-medium'}>{pln(row.paid)}</td>
+                      <td className={colClass + ' text-green-300 font-medium'}>{pln(row.paid)}</td>
                       <td className={colClass + ' text-gray-300'}>{row.hasRates ? pln(row.renovation) : '—'}</td>
                       <td className={colClass + ' text-gray-300'}>{row.hasRates ? pln(row.operating) : '—'}</td>
                       <td className={colClass + ' text-gray-300'}>{row.hasRates ? pln(row.manager) : '—'}</td>
@@ -232,7 +232,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                         <td className="px-2 py-2">
                           <button
                             onClick={() => isEditing ? closeEdit() : openEdit(row)}
-                            className="text-xs text-blue-400 hover:text-blue-300 transition"
+                            className="text-xs text-green-400 hover:text-green-300 transition"
                           >
                             {isEditing ? 'Anuluj' : '✏️'}
                           </button>
@@ -243,7 +243,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
 
                     {/* Formularz edycji */}
                     {isEditing && !readonly && (
-                      <tr key={`edit-${row.month}`} className="bg-blue-950/20 border-b border-blue-900/30">
+                      <tr key={`edit-${row.month}`} className="bg-green-950/20 border-b border-green-900/30">
                         <td colSpan={12} className="px-4 py-3">
                           <div className="flex flex-wrap items-end gap-3">
                             <div>
@@ -255,7 +255,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                                 value={editPaid}
                                 onChange={e => setEditPaid(e.target.value)}
                                 placeholder="0.00"
-                                className="w-28 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-blue-500"
+                                className="w-28 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-green-500"
                               />
                             </div>
                             {isMeterBilling ? (
@@ -268,7 +268,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                                   value={editWaterM3}
                                   onChange={e => setEditWaterM3(e.target.value)}
                                   placeholder="0.000"
-                                  className="w-28 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-blue-500"
+                                  className="w-28 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-green-500"
                                 />
                                 {editWaterM3 && latestRates && (
                                   <p className="text-xs text-gray-500 mt-1">
@@ -285,7 +285,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                                   value={editCorrection}
                                   onChange={e => setEditCorrection(e.target.value)}
                                   placeholder="0.00"
-                                  className="w-28 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-blue-500"
+                                  className="w-28 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-green-500"
                                 />
                               </div>
                             )}
@@ -296,13 +296,13 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                                 value={editNotes}
                                 onChange={e => setEditNotes(e.target.value)}
                                 placeholder="opcjonalnie..."
-                                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-blue-500"
+                                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-green-500"
                               />
                             </div>
                             <button
                               onClick={saveEntry}
                               disabled={saving}
-                              className="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition"
+                              className="px-4 py-1.5 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition"
                             >
                               {saving ? 'Zapisuję...' : 'Zapisz'}
                             </button>
@@ -323,7 +323,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
               <tr className="bg-gray-800/60 border-t-2 border-gray-700 font-semibold">
                 <td className="px-3 py-2.5 text-sm text-gray-200">RAZEM {year}</td>
                 <td className="px-2 py-2.5 text-right text-xs text-gray-500">—</td>
-                <td className={colClass + ' text-blue-300 font-bold'}>{pln(totalPaid)}</td>
+                <td className={colClass + ' text-green-300 font-bold'}>{pln(totalPaid)}</td>
                 <td className={colClass + ' text-gray-200'}>{pln(totalRenovation)}</td>
                 <td className={colClass + ' text-gray-200'}>{pln(totalOperating)}</td>
                 <td className={colClass + ' text-gray-200'}>{pln(totalManager)}</td>
@@ -348,7 +348,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-500">Łącznie wpłacono:</span>
-            <span className="text-sm font-semibold text-blue-400">{pln(totalPaid)}</span>
+            <span className="text-sm font-semibold text-green-400">{pln(totalPaid)}</span>
           </div>
           <div className={`flex items-center gap-2 px-3 py-1 rounded-lg ${
             finalBalance >= 0 ? 'bg-green-900/30 border border-green-800' : 'bg-red-900/30 border border-red-800'
@@ -377,7 +377,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
               const isEditingQ = editQuarter === q
 
               return (
-                <div key={q} className={`px-4 py-3 ${isEditingQ ? 'bg-blue-950/20' : ''}`}>
+                <div key={q} className={`px-4 py-3 ${isEditingQ ? 'bg-green-950/20' : ''}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <span className="text-sm text-gray-300 font-medium w-36">Kwartał {qLabel}</span>
@@ -399,7 +399,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                     {!readonly && (
                       <button
                         onClick={() => isEditingQ ? setEditQuarter(null) : openQuarter(q)}
-                        className="text-xs text-blue-400 hover:text-blue-300 transition ml-4"
+                        className="text-xs text-green-400 hover:text-green-300 transition ml-4"
                       >
                         {isEditingQ ? 'Anuluj' : (rec ? '✏️ Edytuj' : '+ Dodaj odczyt')}
                       </button>
@@ -416,7 +416,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                           value={qStart}
                           onChange={e => setQStart(e.target.value)}
                           placeholder="0.000"
-                          className="w-28 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-blue-500"
+                          className="w-28 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-green-500"
                         />
                       </div>
                       <div>
@@ -427,7 +427,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                           value={qEnd}
                           onChange={e => setQEnd(e.target.value)}
                           placeholder="0.000"
-                          className="w-28 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-blue-500"
+                          className="w-28 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-green-500"
                         />
                       </div>
                       <div className="flex-1 min-w-40">
@@ -437,13 +437,13 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                           value={qNotes}
                           onChange={e => setQNotes(e.target.value)}
                           placeholder="opcjonalnie..."
-                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-blue-500"
+                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-green-500"
                         />
                       </div>
                       <button
                         onClick={saveReconciliation}
                         disabled={qSaving}
-                        className="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition"
+                        className="px-4 py-1.5 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition"
                       >
                         {qSaving ? 'Zapisuję...' : 'Zapisz'}
                       </button>

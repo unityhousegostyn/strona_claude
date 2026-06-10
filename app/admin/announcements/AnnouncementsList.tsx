@@ -55,7 +55,7 @@ export default function AnnouncementsList({ announcements, communityMap, junctio
   }
 
   const targetLabel = (a: Announcement) => {
-    if (a.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-blue-950/40 text-blue-400' }
+    if (a.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-green-950/40 text-green-400' }
     if (a.target === 'one') return { text: communityMap[a.community_id!] ?? '—', cls: 'bg-gray-900 text-gray-400' }
     const names = (junctionMap[a.id] ?? []).map((cid) => communityMap[cid] ?? cid)
     return { text: names.join(', ') || '—', cls: 'bg-purple-950/30 text-purple-400' }
@@ -74,7 +74,7 @@ export default function AnnouncementsList({ announcements, communityMap, junctio
             tab === 'active' ? 'bg-gray-900 text-gray-100 shadow-lg shadow-black/30' : 'text-gray-500 hover:text-gray-300'
           }`}
         >
-          Aktywne <span className="ml-1 text-xs text-blue-600 font-semibold">{activeCount}</span>
+          Aktywne <span className="ml-1 text-xs text-green-600 font-semibold">{activeCount}</span>
         </button>
         <button
           onClick={() => handleTabChange('archive')}
@@ -123,7 +123,7 @@ export default function AnnouncementsList({ announcements, communityMap, junctio
                     </div>
                   </div>
                   {canEdit && (
-                    <Link href={`/admin/announcements/${a.id}`} className="text-sm text-blue-600 hover:underline whitespace-nowrap">
+                    <Link href={`/admin/announcements/${a.id}`} className="text-sm text-green-600 hover:underline whitespace-nowrap">
                       Edytuj
                     </Link>
                   )}

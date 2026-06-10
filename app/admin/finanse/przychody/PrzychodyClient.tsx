@@ -112,7 +112,7 @@ export default function PrzychodyClient({ incomeEntries, settlementsMap, communi
   const paginatedList = filtered.slice((listPage - 1) * LIST_PAGE_SIZE, listPage * LIST_PAGE_SIZE)
 
   const catLabel = (cat: string) => categories.find(c => c.value === cat)?.label ?? cat
-  const catColors: Record<string, string> = { odsetki:'bg-yellow-950/40 text-yellow-400', zwrot:'bg-green-950/40 text-green-400', dotacja:'bg-blue-950/40 text-blue-400', inne:'bg-gray-800 text-gray-400' }
+  const catColors: Record<string, string> = { odsetki:'bg-yellow-950/40 text-yellow-400', zwrot:'bg-green-950/40 text-green-400', dotacja:'bg-green-950/40 text-green-400', inne:'bg-gray-800 text-gray-400' }
 
   const handleExportExcel = () => {
     const rows = filtered.map(e => ({
@@ -224,7 +224,7 @@ export default function PrzychodyClient({ incomeEntries, settlementsMap, communi
       {tab==='summary'?(
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center"><p className="text-xs text-gray-500 mb-1">Wpłaty mieszkańców</p><p className="text-2xl font-bold text-blue-400">{pln(totalSettlements)}</p></div>
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center"><p className="text-xs text-gray-500 mb-1">Wpłaty mieszkańców</p><p className="text-2xl font-bold text-green-400">{pln(totalSettlements)}</p></div>
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center"><p className="text-xs text-gray-500 mb-1">Inne przychody</p><p className="text-2xl font-bold text-yellow-400">{pln(totalOther)}</p></div>
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center"><p className="text-xs text-gray-500 mb-1">Razem przychody</p><p className="text-2xl font-bold text-green-400">{pln(totalAll)}</p></div>
           </div>
@@ -232,11 +232,11 @@ export default function PrzychodyClient({ incomeEntries, settlementsMap, communi
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
             <h3 className="text-sm font-semibold text-gray-400 mb-1">Przychody miesięcznie — {filterYear}</h3>
             <div className="flex gap-4 text-xs text-gray-500 mb-4">
-              <span><span className="inline-block w-3 h-3 rounded-sm bg-blue-600/60 mr-1"/>Wpłaty mieszkańców</span>
+              <span><span className="inline-block w-3 h-3 rounded-sm bg-green-600/60 mr-1"/>Wpłaty mieszkańców</span>
               <span><span className="inline-block w-3 h-3 rounded-sm bg-yellow-500/60 mr-1"/>Inne przychody</span>
             </div>
             <div className="flex items-end gap-1 h-32">
-              {MONTHS.map((name,idx)=>{const m=idx+1;const sett=monthlySettlements[m]??0;const oth=monthlyOther[m]??0;const tot=sett+oth;const hS=Math.max(oth>0?2:0,Math.round((sett/maxBar)*120));const hO=Math.max(oth>0?2:0,Math.round((oth/maxBar)*120));return(<div key={m} className="flex-1 flex flex-col items-center gap-0.5"><div className="flex flex-col justify-end w-full" style={{height:120}}><div title={`Inne: ${pln(oth)}`} style={{height:hO}} className="bg-yellow-500/60 rounded-t-sm"/><div title={`Wpłaty: ${pln(sett)}`} style={{height:hS}} className="bg-blue-600/60"/></div><span className="text-xs text-gray-600">{name}</span></div>)})}
+              {MONTHS.map((name,idx)=>{const m=idx+1;const sett=monthlySettlements[m]??0;const oth=monthlyOther[m]??0;const tot=sett+oth;const hS=Math.max(oth>0?2:0,Math.round((sett/maxBar)*120));const hO=Math.max(oth>0?2:0,Math.round((oth/maxBar)*120));return(<div key={m} className="flex-1 flex flex-col items-center gap-0.5"><div className="flex flex-col justify-end w-full" style={{height:120}}><div title={`Inne: ${pln(oth)}`} style={{height:hO}} className="bg-yellow-500/60 rounded-t-sm"/><div title={`Wpłaty: ${pln(sett)}`} style={{height:hS}} className="bg-green-600/60"/></div><span className="text-xs text-gray-600">{name}</span></div>)})}
             </div>
           </div>
 
@@ -282,7 +282,7 @@ export default function PrzychodyClient({ incomeEntries, settlementsMap, communi
                   <div className="flex-1 min-w-0"><p className="text-sm font-medium text-gray-200 truncate">{e.description}</p><p className="text-xs text-gray-500 mt-0.5">{new Date(e.income_date).toLocaleDateString('pl-PL')}{isSuperAdmin && ` · ${commMap[e.community_id] ?? '—'}`}</p></div>
                   <p className="text-sm font-bold text-green-400 flex-shrink-0">{pln(e.amount)}</p>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <button onClick={() => { setEditId(e.id); setEditForm({ category: e.category as IncomeCategory, description: e.description, amount: String(e.amount), income_date: e.income_date }); setEditError(null) }} className="text-xs text-blue-600 hover:underline">Edytuj</button>
+                    <button onClick={() => { setEditId(e.id); setEditForm({ category: e.category as IncomeCategory, description: e.description, amount: String(e.amount), income_date: e.income_date }); setEditError(null) }} className="text-xs text-green-600 hover:underline">Edytuj</button>
                     <button onClick={() => handleDelete(e.id)} disabled={isPending} className="text-xs text-gray-600 hover:text-red-400 transition">✕</button>
                   </div>
                 </div>

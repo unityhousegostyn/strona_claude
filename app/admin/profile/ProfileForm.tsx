@@ -67,7 +67,7 @@ export default function ProfileForm({ fullName, hasPin }: { fullName: string; ha
         <button
           onClick={handleSaveName}
           disabled={isPending}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
+          className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
         >
           {isPending ? 'Zapisywanie...' : 'Zapisz'}
         </button>
@@ -107,7 +107,7 @@ export default function ProfileForm({ fullName, hasPin }: { fullName: string; ha
         <button
           onClick={handleSetPin}
           disabled={isPending || pin.length !== 4 || pinConfirm.length !== 4}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
+          className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
         >
           {isPending ? 'Zapisywanie...' : hasPin ? 'Zmień PIN' : 'Ustaw PIN'}
         </button>

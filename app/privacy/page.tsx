@@ -73,7 +73,7 @@ export default function PrivacyPage() {
         </section>
 
         <div className="pt-2 border-t border-gray-800">
-          <Link href="/login" className="text-sm text-blue-600 hover:underline">
+          <Link href="/login" className="text-sm text-green-600 hover:underline">
             ← Wróć do logowania
           </Link>
         </div>

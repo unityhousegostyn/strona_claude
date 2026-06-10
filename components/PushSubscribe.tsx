@@ -104,7 +104,7 @@ export default function PushSubscribe() {
           <button
             onClick={handleSubscribe}
             disabled={working}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
+            className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
           >
             {working ? 'Włączanie...' : '🔔 Włącz powiadomienia'}
           </button>

@@ -16,7 +16,7 @@ export default function DocPreviewButton({ url, name }: Props) {
 
   if (!canPreview) {
     return (
-      <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:underline">
+      <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm text-green-400 hover:underline">
         Pobierz
       </a>
     )
@@ -24,7 +24,7 @@ export default function DocPreviewButton({ url, name }: Props) {
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className="text-sm text-blue-400 hover:underline">
+      <button onClick={() => setOpen(true)} className="text-sm text-green-400 hover:underline">
         Podgląd
       </button>
 
@@ -45,7 +45,7 @@ export default function DocPreviewButton({ url, name }: Props) {
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-blue-400 hover:underline"
+                  className="text-xs text-green-400 hover:underline"
                   download
                 >
                   ⬇ Pobierz

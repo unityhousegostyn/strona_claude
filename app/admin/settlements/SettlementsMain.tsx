@@ -277,7 +277,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
               <div className="flex justify-end">
                 <button
                   onClick={() => setShowAptForm(!showAptForm)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
+                  className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
                 >
                   + Dodaj lokal
                 </button>
@@ -326,7 +326,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                     <div className="flex items-center gap-3 pt-5">
                       <input type="checkbox" id="has_meter" checked={aptForm.has_meter}
                         onChange={e => setAptForm(p => ({ ...p, has_meter: e.target.checked }))}
-                        className="w-4 h-4 accent-blue-600" />
+                        className="w-4 h-4 accent-green-600" />
                       <label htmlFor="has_meter" className="text-sm text-gray-300">Ma wodomierz</label>
                     </div>
                     <div className="sm:col-span-2">
@@ -337,7 +337,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                   </div>
                   <div className="flex gap-3">
                     <button onClick={handleAddApt} disabled={isPending}
-                      className="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">
+                      className="bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">
                       {isPending ? 'Zapisywanie...' : 'Zapisz lokal'}
                     </button>
                     <button onClick={() => setShowAptForm(false)} className="text-sm text-gray-500 hover:text-gray-300">Anuluj</button>
@@ -386,7 +386,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                           </td>
                           <td className="py-3 flex items-center gap-3">
                             <Link href={`/admin/settlements/${apt.id}`}
-                              className="text-xs text-blue-400 hover:text-blue-300 transition font-medium">
+                              className="text-xs text-green-400 hover:text-green-300 transition font-medium">
                               Rozliczenie →
                             </Link>
                             <button onClick={() => handleDeleteApt(apt.id)} disabled={isPending}
@@ -406,7 +406,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
             <div className="space-y-4">
               <div className="flex justify-end">
                 <button onClick={() => setShowRatesForm(!showRatesForm)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+                  className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
                   + Nowe stawki
                 </button>
               </div>
@@ -462,7 +462,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                   </div>
                   <div className="flex gap-3">
                     <button onClick={handleAddRates} disabled={isPending}
-                      className="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">
+                      className="bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">
                       {isPending ? 'Zapisywanie...' : 'Zapisz stawki'}
                     </button>
                     <button onClick={() => setShowRatesForm(false)} className="text-sm text-gray-500 hover:text-gray-300">Anuluj</button>
@@ -488,7 +488,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                         <div className="flex items-center gap-3">
                           <button onClick={() => editRateId === r.id ? setEditRateId(null) : handleEditRateOpen(r)}
                             disabled={isPending}
-                            className="text-xs text-blue-400 hover:text-blue-300 transition">
+                            className="text-xs text-green-400 hover:text-green-300 transition">
                             {editRateId === r.id ? 'Zwiń' : '✏ Edytuj'}
                           </button>
                           <button onClick={() => handleDeleteRates(r.id)} disabled={isPending}
@@ -546,7 +546,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                           </div>
                           <div className="flex gap-3">
                             <button onClick={handleUpdateRates} disabled={isPending}
-                              className="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">
+                              className="bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">
                               {isPending ? 'Zapisywanie...' : 'Zapisz zmiany'}
                             </button>
                             <button onClick={() => setEditRateId(null)} className="text-sm text-gray-500 hover:text-gray-300">Anuluj</button>
@@ -611,7 +611,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                   </div>
                   <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
                     <p className="text-xs text-gray-500">Łącznie wpłacono</p>
-                    <p className="text-xl font-bold text-blue-400 mt-1">{pln(sumPaid)}</p>
+                    <p className="text-xl font-bold text-green-400 mt-1">{pln(sumPaid)}</p>
                   </div>
                   <div className={`bg-gray-900 border rounded-xl p-4 ${sumBalance >= 0 ? 'border-green-900' : 'border-red-900'}`}>
                     <p className="text-xs text-gray-500">Saldo wspólnoty</p>
@@ -662,7 +662,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                             <td className="px-3 py-2.5 text-gray-400 text-xs">{Number(apt.area_m2).toFixed(2)}</td>
                             <td className="px-3 py-2.5 text-gray-400">{apt.persons_count}</td>
                             <td className="px-3 py-2.5 text-gray-200">{pln(totalDue)}</td>
-                            <td className="px-3 py-2.5 text-blue-300 font-medium">{pln(totalPaid)}</td>
+                            <td className="px-3 py-2.5 text-green-300 font-medium">{pln(totalPaid)}</td>
                             <td className="px-3 py-2.5">
                               {balance === 0
                                 ? <span className="text-gray-500 text-xs">—</span>
@@ -673,7 +673,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                             </td>
                             <td className="px-3 py-2.5">
                               <Link href={`/admin/settlements/${apt.id}`}
-                                className="text-xs text-blue-400 hover:text-blue-300 transition font-medium">
+                                className="text-xs text-green-400 hover:text-green-300 transition font-medium">
                                 Szczegóły →
                               </Link>
                             </td>
@@ -684,7 +684,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                         <tr className="bg-gray-800/60 border-t-2 border-gray-700 font-semibold">
                           <td colSpan={4} className="px-3 py-2.5 text-sm text-gray-400">RAZEM {year}</td>
                           <td className="px-3 py-2.5 text-sm text-gray-200">{pln(sumDue)}</td>
-                          <td className="px-3 py-2.5 text-sm text-blue-300">{pln(sumPaid)}</td>
+                          <td className="px-3 py-2.5 text-sm text-green-300">{pln(sumPaid)}</td>
                           <td className="px-3 py-2.5">
                             <span className={`text-sm font-bold ${sumBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                               {sumBalance > 0 ? '+' : ''}{pln(sumBalance)}
@@ -719,7 +719,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                 </code>
                 <p className="text-xs text-gray-500">Kolumny <span className="text-gray-300">woda_m3, korekta_wody, uwagi</span> są opcjonalne (domyślnie 0).</p>
                 <button onClick={downloadTemplate}
-                  className="text-xs text-blue-400 hover:text-blue-300 underline underline-offset-2 transition">
+                  className="text-xs text-green-400 hover:text-green-300 underline underline-offset-2 transition">
                   Pobierz szablon CSV
                 </button>
               </div>
@@ -732,7 +732,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                 onClick={() => fileInputRef.current?.click()}
                 className={`relative cursor-pointer rounded-2xl border-2 border-dashed transition-all p-10 text-center select-none ${
                   csvDragOver
-                    ? 'border-blue-500 bg-blue-950/20 scale-[1.01]'
+                    ? 'border-green-500 bg-green-950/20 scale-[1.01]'
                     : csvFileName
                     ? 'border-green-700 bg-green-950/20'
                     : 'border-gray-700 bg-gray-900/50 hover:border-gray-500 hover:bg-gray-900'
@@ -803,7 +803,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                 <button
                   onClick={handleImport}
                   disabled={importing || isPending}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition"
+                  className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition"
                 >
                   {importing || isPending ? 'Importowanie...' : '📥 Importuj wpłaty'}
                 </button>

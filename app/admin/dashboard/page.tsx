@@ -115,7 +115,7 @@ export default async function DashboardPage() {
                 <div key={c.id} className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
                   <div className="flex items-center justify-between">
                     <h4 className="font-semibold text-gray-100">{c.name}</h4>
-                    <Link href="/admin/communities" className="text-xs text-gray-600 hover:text-blue-400 transition">Edytuj →</Link>
+                    <Link href="/admin/communities" className="text-xs text-gray-600 hover:text-green-400 transition">Edytuj →</Link>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div className="bg-gray-950 rounded-lg p-3 text-center">
@@ -155,7 +155,7 @@ export default async function DashboardPage() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-base font-semibold text-gray-200">Aktywne głosowania</h3>
-              <Link href="/admin/votes" className="text-sm text-blue-600 hover:underline">Wszystkie</Link>
+              <Link href="/admin/votes" className="text-sm text-green-600 hover:underline">Wszystkie</Link>
             </div>
             <div className="space-y-2">
               {activeVotesList.map((v: any) => (
@@ -177,14 +177,14 @@ export default async function DashboardPage() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-base font-semibold text-gray-200">Ostatnie zgłoszenia</h3>
-              <Link href="/admin/tickets" className="text-sm text-blue-600 hover:underline">Zobacz wszystkie</Link>
+              <Link href="/admin/tickets" className="text-sm text-green-600 hover:underline">Zobacz wszystkie</Link>
             </div>
             <div className="space-y-2">
               {(recentTickets.data ?? []).length === 0
                 ? <p className="text-sm text-gray-400">Brak zgłoszeń.</p>
                 : (recentTickets.data ?? []).map((t: any) => (
                   <Link key={t.id} href={`/admin/tickets/${t.id}`}
-                    className="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-blue-700 transition">
+                    className="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-green-700 transition">
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-gray-200 truncate">{t.title}</p>
                       <p className="text-xs text-gray-400 mt-0.5">{commMap[t.community_id] ?? '—'}</p>
@@ -201,14 +201,14 @@ export default async function DashboardPage() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-base font-semibold text-gray-200">Ostatnie posty na tablicy</h3>
-              <Link href="/admin/board" className="text-sm text-blue-600 hover:underline">Tablica</Link>
+              <Link href="/admin/board" className="text-sm text-green-600 hover:underline">Tablica</Link>
             </div>
             <div className="space-y-2">
               {(recentPosts.data ?? []).length === 0
                 ? <p className="text-sm text-gray-400">Brak postów.</p>
                 : (recentPosts.data ?? []).map((p: any) => (
                   <Link key={p.id} href="/admin/board"
-                    className="block bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-blue-700 transition">
+                    className="block bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-green-700 transition">
                     <p className="text-sm text-gray-200 line-clamp-1">{p.content}</p>
                     <p className="text-xs text-gray-400 mt-1">
                       {authorMap[p.author_id] ?? '—'} · {commMap[p.community_id] ?? '—'} · {new Date(p.created_at).toLocaleDateString('pl-PL')}
@@ -291,14 +291,14 @@ export default async function DashboardPage() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-base font-semibold text-gray-200">Otwarte zgłoszenia</h3>
-              <Link href="/admin/tickets" className="text-sm text-blue-600 hover:underline">Zobacz wszystkie</Link>
+              <Link href="/admin/tickets" className="text-sm text-green-600 hover:underline">Zobacz wszystkie</Link>
             </div>
             {(openTickets.data ?? []).length === 0
               ? <p className="text-sm text-gray-400">Brak otwartych zgłoszeń.</p>
               : <div className="space-y-2">
                   {(openTickets.data ?? []).map((t: any) => (
                     <Link key={t.id} href={`/admin/tickets/${t.id}`}
-                      className="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-blue-700 transition">
+                      className="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-green-700 transition">
                       <p className="text-sm font-medium text-gray-200 truncate">{t.title}</p>
                       <span className="text-xs text-yellow-400 bg-yellow-950/30 px-2 py-0.5 rounded-full ml-2 flex-shrink-0">Otwarte</span>
                     </Link>
@@ -310,14 +310,14 @@ export default async function DashboardPage() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-base font-semibold text-gray-200">Ostatnie posty na tablicy</h3>
-              <Link href="/admin/board" className="text-sm text-blue-600 hover:underline">Tablica</Link>
+              <Link href="/admin/board" className="text-sm text-green-600 hover:underline">Tablica</Link>
             </div>
             {(recentBoardPosts.data ?? []).length === 0
               ? <p className="text-sm text-gray-400">Brak postów na tablicy.</p>
               : <div className="space-y-2">
                   {(recentBoardPosts.data ?? []).map((p: any) => (
                     <Link key={p.id} href="/admin/board"
-                      className="block bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-blue-700 transition">
+                      className="block bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-green-700 transition">
                       <p className="text-sm text-gray-200 line-clamp-1">{p.content}</p>
                       <p className="text-xs text-gray-400 mt-1">
                         {authorMap[p.author_id] ?? '—'} · {new Date(p.created_at).toLocaleDateString('pl-PL')}
@@ -332,7 +332,7 @@ export default async function DashboardPage() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-base font-semibold text-gray-200">Ostatnie ogłoszenia</h3>
-            <Link href="/admin/announcements/add" className="text-sm text-blue-600 hover:underline">+ Dodaj</Link>
+            <Link href="/admin/announcements/add" className="text-sm text-green-600 hover:underline">+ Dodaj</Link>
           </div>
           <AnnouncementList announcements={recentAnnouncements.data ?? []} />
         </div>
@@ -399,23 +399,23 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Powitanie */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 text-white">
+      <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-2xl p-6 text-white">
         <h2 className="text-2xl font-bold">
           Witaj, {profile.full_name?.split(' ')[0] ?? 'mieszkańcu'} 👋
         </h2>
-        <p className="text-blue-100 mt-1 text-sm">{community?.name ?? '—'} · {community?.address ?? ''}</p>
+        <p className="text-green-100 mt-1 text-sm">{community?.name ?? '—'} · {community?.address ?? ''}</p>
         <div className="flex gap-3 mt-4 flex-wrap">
           <div className="bg-gray-900/20 rounded-xl px-4 py-2 text-center">
             <p className="text-xl font-bold">{unreadCount}</p>
-            <p className="text-xs text-blue-100">Nowe ogłoszenia</p>
+            <p className="text-xs text-green-100">Nowe ogłoszenia</p>
           </div>
           <div className="bg-gray-900/20 rounded-xl px-4 py-2 text-center">
             <p className="text-xl font-bold">{openCount}</p>
-            <p className="text-xs text-blue-100">Otwarte zgłoszenia</p>
+            <p className="text-xs text-green-100">Otwarte zgłoszenia</p>
           </div>
           <div className="bg-gray-900/20 rounded-xl px-4 py-2 text-center">
             <p className="text-xl font-bold">{(boardPosts.data ?? []).length}</p>
-            <p className="text-xs text-blue-100">Nowe posty</p>
+            <p className="text-xs text-green-100">Nowe posty</p>
           </div>
         </div>
       </div>
@@ -447,7 +447,7 @@ export default async function DashboardPage() {
               </div>
               <Link
                 href={`/admin/settlements/${myApartment.id}`}
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-green-600 hover:underline"
               >
                 Pełny widok →
               </Link>
@@ -479,7 +479,7 @@ export default async function DashboardPage() {
               {/* Wpłacono w roku */}
               <div className="bg-gray-950 border border-gray-800 rounded-xl p-3">
                 <p className="text-xs text-gray-500 mb-1">Wpłacono {currentYear}</p>
-                <p className="text-lg font-bold text-blue-400">{pln(totalPaid)}</p>
+                <p className="text-lg font-bold text-green-400">{pln(totalPaid)}</p>
                 <p className="text-xs text-gray-600 mt-0.5">łącznie</p>
               </div>
 
@@ -506,7 +506,7 @@ export default async function DashboardPage() {
                       style={{ height: `${height}px` }}
                       className={`flex-1 rounded-sm transition ${
                         isCurrentMonth
-                          ? 'bg-blue-500'
+                          ? 'bg-green-500'
                           : isPast && row.paid > 0
                           ? 'bg-green-700/60'
                           : isPast
@@ -530,14 +530,14 @@ export default async function DashboardPage() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-base font-semibold text-gray-200">Ostatnie ogłoszenia</h3>
-            <Link href="/admin/announcements" className="text-sm text-blue-600 hover:underline">Zobacz wszystkie</Link>
+            <Link href="/admin/announcements" className="text-sm text-green-600 hover:underline">Zobacz wszystkie</Link>
           </div>
           {(announcements.data ?? []).length === 0
             ? <p className="text-sm text-gray-400">Brak ogłoszeń.</p>
             : <div className="space-y-2">
                 {(announcements.data ?? []).map((a: any) => (
                   <Link key={a.id} href={`/admin/announcements/${a.id}`}
-                    className="block bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-blue-700 transition">
+                    className="block bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-green-700 transition">
                     <p className="text-sm font-medium text-gray-200 truncate">{a.title}</p>
                     <p className="text-xs text-gray-400 mt-0.5">{new Date(a.created_at).toLocaleDateString('pl-PL')}</p>
                   </Link>
@@ -550,17 +550,17 @@ export default async function DashboardPage() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-base font-semibold text-gray-200">Tablica sąsiedzka</h3>
-            <Link href="/admin/board" className="text-sm text-blue-600 hover:underline">Przejdź</Link>
+            <Link href="/admin/board" className="text-sm text-green-600 hover:underline">Przejdź</Link>
           </div>
           {(boardPosts.data ?? []).length === 0
             ? <div className="bg-gray-900 border border-dashed border-gray-800 rounded-xl p-5 text-center">
                 <p className="text-sm text-gray-400 mb-2">Tablica jest pusta.</p>
-                <Link href="/admin/board" className="text-sm text-blue-600 hover:underline">Napisz pierwszą wiadomość →</Link>
+                <Link href="/admin/board" className="text-sm text-green-600 hover:underline">Napisz pierwszą wiadomość →</Link>
               </div>
             : <div className="space-y-2">
                 {(boardPosts.data ?? []).map((p: any) => (
                   <Link key={p.id} href="/admin/board"
-                    className="block bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-blue-700 transition">
+                    className="block bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-green-700 transition">
                     <p className="text-sm text-gray-200 line-clamp-1">{p.content}</p>
                     <p className="text-xs text-gray-400 mt-1">
                       {authorMap[p.author_id] ?? '—'} · {new Date(p.created_at).toLocaleDateString('pl-PL')}
@@ -576,17 +576,17 @@ export default async function DashboardPage() {
       <div>
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-base font-semibold text-gray-200">Moje zgłoszenia</h3>
-          <Link href="/admin/tickets" className="text-sm text-blue-600 hover:underline">Nowe zgłoszenie</Link>
+          <Link href="/admin/tickets" className="text-sm text-green-600 hover:underline">Nowe zgłoszenie</Link>
         </div>
         {(myTickets.data ?? []).length === 0
           ? <div className="bg-gray-900 border border-dashed border-gray-800 rounded-xl p-6 text-center">
               <p className="text-sm text-gray-400 mb-3">Nie masz jeszcze żadnych zgłoszeń.</p>
-              <Link href="/admin/tickets" className="text-sm text-blue-600 font-medium hover:underline">Zgłoś problem →</Link>
+              <Link href="/admin/tickets" className="text-sm text-green-600 font-medium hover:underline">Zgłoś problem →</Link>
             </div>
           : <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {(myTickets.data ?? []).map((t: any) => (
                 <Link key={t.id} href={`/admin/tickets/${t.id}`}
-                  className="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-blue-700 transition">
+                  className="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-green-700 transition">
                   <p className="text-sm font-medium text-gray-200 truncate">{t.title}</p>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ml-2 flex-shrink-0 ${
                     t.status === 'open' ? 'bg-yellow-900/40 text-yellow-400' : 'bg-green-100 text-green-400'
@@ -602,14 +602,14 @@ export default async function DashboardPage() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-base font-semibold text-gray-200">Ostatnie dokumenty</h3>
-            <Link href="/admin/documents" className="text-sm text-blue-600 hover:underline">Zobacz wszystkie</Link>
+            <Link href="/admin/documents" className="text-sm text-green-600 hover:underline">Zobacz wszystkie</Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {(docs.data ?? []).map((d: any) => {
               const ext = d.name.split('.').pop()?.toLowerCase()
               const icon = ext === 'pdf' ? '📄' : ['doc','docx'].includes(ext) ? '📝' : ['xls','xlsx'].includes(ext) ? '📊' : '📁'
               return (
-                <div key={d.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center hover:border-blue-700 transition">
+                <div key={d.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center hover:border-green-700 transition">
                   <p className="text-3xl mb-2">{icon}</p>
                   <p className="text-xs font-medium text-gray-300 truncate">{d.name}</p>
                   <p className="text-xs text-gray-400 mt-1">{new Date(d.created_at).toLocaleDateString('pl-PL')}</p>
@@ -628,9 +628,9 @@ export default async function DashboardPage() {
 function StatCard({ label, value, icon, href, color }: {
   label: string; value: number; icon: string; href: string; color?: string
 }) {
-  const colorMap: Record<string, string> = { yellow: 'text-yellow-400', red: 'text-red-400', blue: 'text-blue-400' }
+  const colorMap: Record<string, string> = { yellow: 'text-yellow-400', red: 'text-red-400', blue: 'text-green-400' }
   return (
-    <Link href={href} className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-3 hover:border-blue-700 transition">
+    <Link href={href} className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-3 hover:border-green-700 transition">
       <span className="text-2xl">{icon}</span>
       <div>
         <p className={`text-xl font-bold ${colorMap[color ?? ''] ?? 'text-gray-100'}`}>{value}</p>
@@ -644,12 +644,12 @@ function QuickAction({ href, icon, label, badge, badgeColor }: {
   href: string; icon: string; label: string; badge?: string; badgeColor?: string
 }) {
   const badgeColors: Record<string, string> = {
-    blue: 'bg-blue-900/40 text-blue-400',
+    blue: 'bg-green-900/40 text-green-400',
     yellow: 'bg-yellow-900/40 text-yellow-400',
   }
   return (
     <Link href={href}
-      className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col items-center gap-2 hover:border-blue-600 hover:bg-blue-950/40 transition text-center">
+      className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col items-center gap-2 hover:border-green-600 hover:bg-green-950/40 transition text-center">
       <span className="text-2xl">{icon}</span>
       <span className="text-xs font-semibold text-gray-300">{label}</span>
       {badge && (
@@ -667,7 +667,7 @@ function AnnouncementList({ announcements }: { announcements: any[] }) {
     <div className="space-y-2">
       {announcements.map((a: any) => (
         <Link key={a.id} href={`/admin/announcements/${a.id}`}
-          className="block bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-blue-700 transition">
+          className="block bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-green-700 transition">
           <p className="text-sm font-medium text-gray-200 truncate">{a.title}</p>
           <p className="text-xs text-gray-400 mt-0.5">{new Date(a.created_at).toLocaleDateString('pl-PL')}</p>
         </Link>

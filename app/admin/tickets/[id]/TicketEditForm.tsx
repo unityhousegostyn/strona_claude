@@ -62,7 +62,7 @@ export default function TicketEditForm({ ticketId, initialTitle, initialDescript
         <button
           onClick={handleSave}
           disabled={isPending}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50 transition"
+          className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50 transition"
         >
           {isPending ? 'Zapisywanie...' : 'Zapisz'}
         </button>

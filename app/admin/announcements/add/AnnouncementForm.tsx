@@ -78,7 +78,7 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
                   onClick={() => setTarget(opt.value)}
                   className={`text-sm px-3 py-1.5 rounded-lg border font-medium transition ${
                     target === opt.value
-                      ? 'bg-blue-600 border-blue-600 text-white'
+                      ? 'bg-green-600 border-green-600 text-white'
                       : 'border-gray-800 text-gray-400 hover:bg-gray-950'
                   }`}
                 >
@@ -95,7 +95,7 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
             <select
               value={communityId}
               onChange={(e) => setCommunityId(e.target.value)}
-              className="w-full border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
             >
               <option value="">Wybierz wspólnotę…</option>
               {communities.map((c) => (
@@ -115,7 +115,7 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
                     type="checkbox"
                     checked={selectedIds.includes(c.id)}
                     onChange={() => toggleCommunity(c.id)}
-                    className="rounded border-gray-700 text-blue-600"
+                    className="rounded border-gray-700 text-green-600"
                   />
                   {c.name}
                 </label>
@@ -126,7 +126,7 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
 
         <Field label="Tytuł">
           <input
-            className="w-full border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Tytuł ogłoszenia"
@@ -135,7 +135,7 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
 
         <Field label="Treść">
           <textarea
-            className="w-full border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 min-h-[100px]"
+            className="w-full border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 min-h-[100px]"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Treść ogłoszenia…"
@@ -144,10 +144,10 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
 
         <div className="grid grid-cols-2 gap-4">
           <Field label="Data rozpoczęcia">
-            <input type="date" className="w-full border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            <input type="date" className="w-full border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
           </Field>
           <Field label="Data zakończenia">
-            <input type="date" className="w-full border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            <input type="date" className="w-full border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
           </Field>
         </div>
       </div>
@@ -156,7 +156,7 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
         <button
           onClick={handleSubmit}
           disabled={isPending}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
+          className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
         >
           {isPending ? 'Zapisywanie…' : 'Zapisz ogłoszenie'}
         </button>

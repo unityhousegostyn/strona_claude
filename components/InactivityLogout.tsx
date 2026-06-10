@@ -89,7 +89,7 @@ export default function InactivityLogout() {
         </div>
         <button
           onClick={stayActive}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition text-sm"
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition text-sm"
         >
           Zostań zalogowany
         </button>

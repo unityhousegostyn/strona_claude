@@ -55,7 +55,7 @@ export default function DocumentUpload({ isSuperAdmin, adminCommunityId, communi
       {!showPanel ? (
         <button
           onClick={() => setShowPanel(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
+          className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
         >
           + Dodaj dokument
         </button>
@@ -82,7 +82,7 @@ export default function DocumentUpload({ isSuperAdmin, adminCommunityId, communi
                     onClick={() => setTarget(opt.value)}
                     className={`text-sm px-3 py-1.5 rounded-lg border font-medium transition ${
                       target === opt.value
-                        ? 'bg-blue-600 border-blue-600 text-white'
+                        ? 'bg-green-600 border-green-600 text-white'
                         : 'border-gray-800 text-gray-400 hover:bg-gray-950'
                     }`}
                   >
@@ -99,7 +99,7 @@ export default function DocumentUpload({ isSuperAdmin, adminCommunityId, communi
               <select
                 value={communityId}
                 onChange={(e) => setCommunityId(e.target.value)}
-                className="w-full border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
               >
                 <option value="">Wybierz wspólnotę…</option>
                 {communities.map((c) => (
@@ -119,7 +119,7 @@ export default function DocumentUpload({ isSuperAdmin, adminCommunityId, communi
                       type="checkbox"
                       checked={selectedIds.includes(c.id)}
                       onChange={() => toggleCommunity(c.id)}
-                      className="rounded border-gray-700 text-blue-600 focus:ring-blue-400"
+                      className="rounded border-gray-700 text-green-600 focus:ring-green-400"
                     />
                     {c.name}
                   </label>
@@ -132,7 +132,7 @@ export default function DocumentUpload({ isSuperAdmin, adminCommunityId, communi
             <button
               onClick={() => fileRef.current?.click()}
               disabled={isPending}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition disabled:opacity-50"
+              className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition disabled:opacity-50"
             >
               {isPending ? 'Przesyłanie…' : 'Wybierz plik i wyślij'}
             </button>

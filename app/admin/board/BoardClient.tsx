@@ -151,7 +151,7 @@ export default function BoardClient({ initialPosts, currentUserId, currentRole, 
           <button
             onClick={handlePost}
             disabled={isPending || !newContent.trim()}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50 transition"
+            className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50 transition"
           >
             {isPending ? 'Wysyłanie...' : 'Opublikuj'}
           </button>
@@ -240,11 +240,11 @@ function PostCard({
   const initials = authorName(post.author).charAt(0).toUpperCase()
 
   return (
-    <div className={`bg-gray-900 border rounded-xl p-4 space-y-3 ${post.pinned ? 'border-blue-800 bg-blue-950/40/30' : 'border-gray-800'}`}>
+    <div className={`bg-gray-900 border rounded-xl p-4 space-y-3 ${post.pinned ? 'border-green-800 bg-green-950/40/30' : 'border-gray-800'}`}>
       {/* Nagłówek */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-blue-900/40 text-blue-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 rounded-full bg-green-900/40 text-green-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
             {initials}
           </div>
           <div>
@@ -267,7 +267,7 @@ function PostCard({
               title={post.pinned ? 'Odepnij' : 'Przypnij'}
               className={`text-xs px-2 py-1 rounded-lg transition disabled:opacity-50 ${
                 post.pinned
-                  ? 'bg-blue-900/40 text-blue-400 hover:bg-blue-200'
+                  ? 'bg-green-900/40 text-green-400 hover:bg-green-200'
                   : 'text-gray-400 hover:bg-gray-900'
               }`}
             >
@@ -293,7 +293,7 @@ function PostCard({
       <div className="pt-1 border-t border-gray-800">
         <button
           onClick={() => onToggleReplies(post.id)}
-          className="text-xs text-blue-600 hover:underline"
+          className="text-xs text-green-600 hover:underline"
         >
           {expanded
             ? 'Ukryj odpowiedzi'
@@ -341,7 +341,7 @@ function PostCard({
               <button
                 onClick={() => onReplySubmit(post.id)}
                 disabled={isPending || !replyText.trim()}
-                className="bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-50 transition"
+                className="bg-green-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-50 transition"
               >
                 Wyślij
               </button>

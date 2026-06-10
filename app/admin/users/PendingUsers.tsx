@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { approveUser, rejectUser } from './actions'
 import { Community } from '@/types'
+import { useToast } from '@/components/ToastContext'
 
 interface PendingUser {
   id: string
@@ -29,6 +30,7 @@ export default function PendingUsers({ users, communities, apartments, isSuperAd
   const [selectedCommunity, setSelectedCommunity] = useState<Record<string, string>>({})
   const [selectedApartment, setSelectedApartment] = useState<Record<string, string>>({})
   const [isPending, startTransition] = useTransition()
+  const { showToast } = useToast()
 
   if (users.length === 0) return null
 
@@ -36,7 +38,10 @@ export default function PendingUsers({ users, communities, apartments, isSuperAd
     const communityId = isSuperAdmin ? selectedCommunity[userId] : (adminCommunityId ?? '')
     if (!communityId) return alert('Wybierz wspólnotę.')
     const apartmentId = selectedApartment[userId] || null
-    startTransition(() => approveUser(userId, communityId, apartmentId))
+    startTransition(async () => {
+      const result = await approveUser(userId, communityId, apartmentId)
+      if (result?.error) showToast(result.error, 'error')
+    })
   }
 
   const handleReject = (userId: string) => {
@@ -78,7 +83,7 @@ export default function PendingUsers({ users, communities, apartments, isSuperAd
                       setSelectedCommunity(prev => ({ ...prev, [u.id]: e.target.value }))
                       setSelectedApartment(prev => ({ ...prev, [u.id]: '' }))
                     }}
-                    className="text-sm bg-gray-900 text-gray-200 border border-gray-700 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="text-sm bg-gray-900 text-gray-200 border border-gray-700 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-green-400"
                   >
                     <option value="">Wybierz wspólnotę…</option>
                     {communities.map((c) => (
@@ -92,7 +97,7 @@ export default function PendingUsers({ users, communities, apartments, isSuperAd
                   <select
                     value={selectedApartment[u.id] ?? ''}
                     onChange={(e) => setSelectedApartment(prev => ({ ...prev, [u.id]: e.target.value }))}
-                    className="text-sm bg-gray-900 text-gray-200 border border-gray-700 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="text-sm bg-gray-900 text-gray-200 border border-gray-700 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-green-400"
                   >
                     <option value="">Lokal (opcjonalnie)…</option>
                     {availableApts.map((a) => (

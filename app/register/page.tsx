@@ -37,7 +37,7 @@ export default function RegisterPage() {
           </div>
           <Link
             href="/login"
-            className="inline-block mt-2 text-sm text-blue-600 hover:underline"
+            className="inline-block mt-2 text-sm text-green-600 hover:underline"
           >
             Wróć do logowania
           </Link>
@@ -89,7 +89,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg py-2.5 text-sm transition disabled:opacity-50"
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg py-2.5 text-sm transition disabled:opacity-50"
           >
             {loading ? 'Rejestruję...' : 'Zarejestruj się'}
           </button>
@@ -102,7 +102,7 @@ export default function RegisterPage() {
         )}
 
         <div className="text-center pt-2">
-          <Link href="/login" className="text-sm text-blue-600 hover:underline">
+          <Link href="/login" className="text-sm text-green-600 hover:underline">
             Masz już konto? Zaloguj się
           </Link>
         </div>

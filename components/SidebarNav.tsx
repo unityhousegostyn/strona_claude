@@ -87,7 +87,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
           <button
             onClick={() => setFinanceOpen(o => !o)}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
-              anyActive ? 'text-blue-400' : 'text-gray-400 hover:bg-gray-950 hover:text-gray-100'
+              anyActive ? 'text-green-400' : 'text-gray-400 hover:bg-gray-950 hover:text-gray-100'
             }`}
           >
             <span>{entry.icon}</span>
@@ -109,7 +109,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
                     href={sub.href}
                     onClick={closeMobile}
                     className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
-                      active ? 'bg-blue-950/40 text-blue-400' : 'text-gray-400 hover:bg-gray-950 hover:text-gray-100'
+                      active ? 'bg-green-950/40 text-green-400' : 'text-gray-400 hover:bg-gray-950 hover:text-gray-100'
                     }`}
                   >
                     <span className="text-base">{sub.icon}</span>
@@ -130,13 +130,13 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
         href={entry.href}
         onClick={closeMobile}
         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
-          active ? 'bg-blue-950/40 text-blue-400' : 'text-gray-400 hover:bg-gray-950 hover:text-gray-100'
+          active ? 'bg-green-950/40 text-green-400' : 'text-gray-400 hover:bg-gray-950 hover:text-gray-100'
         }`}
       >
         <span>{entry.icon}</span>
         <span className="flex-1">{entry.label}</span>
         {entry.href === '/admin/announcements' && unreadAnnouncements > 0 && (
-          <span className="bg-blue-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+          <span className="bg-green-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
             {unreadAnnouncements > 99 ? '99+' : unreadAnnouncements}
           </span>
         )}
@@ -166,7 +166,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
           onClick={() => setMobileOpen(false)}
           className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-950 transition"
         >
-          <div className="w-7 h-7 rounded-full bg-blue-900/40 text-blue-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
+          <div className="w-7 h-7 rounded-full bg-green-900/40 text-green-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
             {(profile.full_name ?? userEmail).charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
@@ -223,7 +223,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
         </nav>
         <div className="p-4 border-t border-gray-800 space-y-1">
           <Link href="/admin/profile" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-950 transition">
-            <div className="w-7 h-7 rounded-full bg-blue-900/40 text-blue-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
+            <div className="w-7 h-7 rounded-full bg-green-900/40 text-green-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
               {(profile.full_name ?? userEmail).charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">

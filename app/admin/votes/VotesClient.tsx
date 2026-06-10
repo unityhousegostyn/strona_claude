@@ -157,7 +157,7 @@ export default function VotesClient({ votes, communities, userId, communityId, i
           )}
           {isAdmin && (
             <button onClick={() => setShowForm(!showForm)}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+              className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
               + Nowa uchwała
             </button>
           )}
@@ -251,7 +251,7 @@ export default function VotesClient({ votes, communities, userId, communityId, i
           {formError && <p className="text-sm text-red-400">{formError}</p>}
           <div className="flex gap-3">
             <button onClick={handleCreate} disabled={isPending || uploading}
-              className="bg-blue-600 text-white text-sm font-semibold px-5 py-2 rounded-lg disabled:opacity-50">
+              className="bg-green-600 text-white text-sm font-semibold px-5 py-2 rounded-lg disabled:opacity-50">
               {uploading ? 'Przesyłanie pliku...' : isPending ? 'Tworzenie...' : 'Utwórz głosowanie'}
             </button>
             <button onClick={() => { setShowForm(false); setAttachmentFile(null) }}
@@ -304,7 +304,7 @@ export default function VotesClient({ votes, communities, userId, communityId, i
                       <div className="flex flex-wrap gap-2 mt-2">
                         {vote.link_url && (
                           <a href={vote.link_url} target="_blank" rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 bg-blue-950/30 border border-blue-900/50 px-2.5 py-1 rounded-lg transition">
+                            className="inline-flex items-center gap-1.5 text-xs text-green-400 hover:text-green-300 bg-green-950/30 border border-green-900/50 px-2.5 py-1 rounded-lg transition">
                             🔗 Otwórz dokument
                           </a>
                         )}
@@ -413,7 +413,7 @@ export default function VotesClient({ votes, communities, userId, communityId, i
               <button onClick={() => { setPinModal(null); setPin('') }}
                 className="text-sm text-gray-500 hover:text-gray-300 px-4 py-2">Anuluj</button>
               <button onClick={handleConfirmVote} disabled={isPending || pin.length !== 4}
-                className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-6 py-2 rounded-lg transition disabled:opacity-50">
+                className="bg-green-600 hover:bg-green-500 text-white text-sm font-semibold px-6 py-2 rounded-lg transition disabled:opacity-50">
                 {isPending ? 'Wysyłanie...' : 'Potwierdź'}
               </button>
             </div>

@@ -98,7 +98,7 @@ export default function TicketsClient({ tickets: initial, communities, userId, c
         <h2 className="text-2xl font-bold text-gray-100">Zgłoszenia</h2>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
+          className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
         >
           + Nowe zgłoszenie
         </button>
@@ -160,12 +160,12 @@ export default function TicketsClient({ tickets: initial, communities, userId, c
             <input
               type="file"
               onChange={e => setAttachment(e.target.files?.[0] ?? null)}
-              className="block w-full text-sm text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-950/40 file:text-blue-400 hover:file:bg-blue-900/40 transition"
+              className="block w-full text-sm text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-950/40 file:text-green-400 hover:file:bg-green-900/40 transition"
             />
             {attachment && <p className="text-xs text-gray-500 mt-1">Wybrany: {attachment.name}</p>}
           </div>
           <div className="flex gap-3">
-            <button onClick={handleSubmitTicket} disabled={isPending} className="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">
+            <button onClick={handleSubmitTicket} disabled={isPending} className="bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">
               {isPending ? 'Wysyłanie...' : 'Wyślij'}
             </button>
             <button onClick={() => setShowForm(false)} className="text-sm text-gray-500 hover:text-gray-300">Anuluj</button>
@@ -184,7 +184,7 @@ export default function TicketsClient({ tickets: initial, communities, userId, c
           <div
             key={t.id}
             className={`bg-gray-900 border rounded-xl p-4 flex items-start justify-between gap-4 cursor-pointer transition ${
-              tab === 'closed' ? 'border-gray-800 opacity-75 hover:opacity-100 hover:border-gray-700' : 'border-gray-800 hover:border-blue-700'
+              tab === 'closed' ? 'border-gray-800 opacity-75 hover:opacity-100 hover:border-gray-700' : 'border-gray-800 hover:border-green-700'
             }`}
             onClick={() => router.push(`/admin/tickets/${t.id}`)}
           >
@@ -205,7 +205,7 @@ export default function TicketsClient({ tickets: initial, communities, userId, c
                 <button
                   onClick={e => { e.stopPropagation(); handleStatusToggle(t) }}
                   disabled={isPending}
-                  className="text-xs text-blue-400 hover:underline disabled:opacity-50"
+                  className="text-xs text-green-400 hover:underline disabled:opacity-50"
                 >
                   {t.status === 'open' ? 'Zamknij' : 'Wznów'}
                 </button>

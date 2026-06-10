@@ -96,7 +96,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
                 key={p}
                 href={`/admin/audit?page=${p}`}
                 className={`min-w-[36px] px-3 py-1.5 rounded-lg text-sm font-medium transition text-center ${
-                  p === page ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800'
+                  p === page ? 'bg-green-600 text-white' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800'
                 }`}
               >
                 {p}

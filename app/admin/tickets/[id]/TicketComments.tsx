@@ -87,7 +87,7 @@ export default function TicketComments({ ticketId, comments: initial, currentUse
               </div>
               <div className={`max-w-[75%] ${isOwn ? 'items-end' : 'items-start'} flex flex-col gap-0.5`}>
                 <div className={`rounded-xl px-4 py-2.5 text-sm ${
-                  isOwn ? 'bg-blue-600 text-white' : 'bg-gray-900 border border-gray-800 text-gray-200'
+                  isOwn ? 'bg-green-600 text-white' : 'bg-gray-900 border border-gray-800 text-gray-200'
                 }`}>
                   {c.content}
                 </div>
@@ -111,7 +111,7 @@ export default function TicketComments({ ticketId, comments: initial, currentUse
         <button
           onClick={handleAdd}
           disabled={isPending || !content.trim()}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition disabled:opacity-50"
+          className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition disabled:opacity-50"
         >
           Wyślij
         </button>

@@ -277,7 +277,7 @@ export default function RaportyClient({
                 <div className="flex-1">
                   <p className="font-semibold text-gray-100 group-hover:text-white">{r.title}</p>
                   <p className="text-xs text-gray-500 mt-0.5">{r.subtitle}</p>
-                  <span className="inline-block mt-2 text-xs bg-blue-950/50 text-blue-400 px-2 py-0.5 rounded-full">{r.art}</span>
+                  <span className="inline-block mt-2 text-xs bg-green-950/50 text-green-400 px-2 py-0.5 rounded-full">{r.art}</span>
                 </div>
                 <svg className="w-4 h-4 text-gray-600 group-hover:text-gray-400 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -359,7 +359,7 @@ export default function RaportyClient({
                       <tfoot>
                         <tr className="border-t border-gray-600">
                           <td className="py-3 pr-4 font-bold text-gray-100">RAZEM</td>
-                          <td className="text-right py-3 px-3 font-bold text-blue-400">{pln(totalPaid)}</td>
+                          <td className="text-right py-3 px-3 font-bold text-green-400">{pln(totalPaid)}</td>
                           <td className="text-right py-3 px-3 font-bold text-yellow-400">{pln(totalOtherIncome)}</td>
                           <td className="text-right py-3 px-3 font-bold text-red-400">{pln(totalExpenses)}</td>
                           <td className={`text-right py-3 pl-3 font-bold ${totalBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>{pln(totalBalance)}</td>
@@ -445,7 +445,7 @@ export default function RaportyClient({
                         <tfoot>
                           <tr className="border-t border-gray-600">
                             <td colSpan={3} className="py-3 font-bold text-gray-100">RAZEM</td>
-                            <td className="text-right py-3 font-bold text-blue-400">{pln(totalCharged)}</td>
+                            <td className="text-right py-3 font-bold text-green-400">{pln(totalCharged)}</td>
                             <td className="text-right py-3 font-bold text-green-400">{pln(totalAptPaid)}</td>
                             <td className={`text-right py-3 font-bold ${totalAptPaid - totalCharged >= 0 ? 'text-green-400' : 'text-red-400'}`}>{pln(totalAptPaid - totalCharged)}</td>
                           </tr>
@@ -591,8 +591,8 @@ export default function RaportyClient({
                       </tr></thead>
                       <tbody>
                         {renovFundCumulative.map(r => (
-                          <tr key={r.year} className={`border-b border-gray-800/50 ${r.year === filterYear ? 'bg-blue-950/10' : ''}`}>
-                            <td className="py-2 pr-4 text-gray-300 font-medium">{r.year}{r.year === filterYear && <span className="ml-2 text-xs text-blue-400">(bieżący)</span>}</td>
+                          <tr key={r.year} className={`border-b border-gray-800/50 ${r.year === filterYear ? 'bg-green-950/10' : ''}`}>
+                            <td className="py-2 pr-4 text-gray-300 font-medium">{r.year}{r.year === filterYear && <span className="ml-2 text-xs text-green-400">(bieżący)</span>}</td>
                             <td className="text-right py-2 px-3 text-gray-300">{pln(r.naliczenia)}</td>
                             <td className="text-right py-2 px-3 text-gray-300">{r.wydatki > 0 ? pln(r.wydatki) : '—'}</td>
                             <td className={`text-right py-2 px-3 font-medium ${r.saldo >= 0 ? 'text-green-400' : 'text-red-400'}`}>{pln(r.saldo)}</td>
@@ -716,7 +716,7 @@ export default function RaportyClient({
 function ReportHeader({ title, subtitle, art }: { title: string; subtitle: string; art: string }) {
   return (
     <div className="border-b border-gray-700 pb-4">
-      <p className="text-xs text-blue-400 font-medium mb-1">{art}</p>
+      <p className="text-xs text-green-400 font-medium mb-1">{art}</p>
       <h3 className="text-xl font-bold text-gray-100">{title}</h3>
       <p className="text-sm text-gray-400 mt-0.5">{subtitle}</p>
       <p className="text-xs text-gray-600 mt-2">Wygenerowano: {new Date().toLocaleDateString('pl-PL')}</p>
@@ -725,7 +725,7 @@ function ReportHeader({ title, subtitle, art }: { title: string; subtitle: strin
 }
 
 function KpiCard({ label, value, color, note }: { label: string; value: string; color: 'green' | 'red' | 'blue'; note?: string }) {
-  const colors = { green: 'text-green-400', red: 'text-red-400', blue: 'text-blue-400' }
+  const colors = { green: 'text-green-400', red: 'text-red-400', blue: 'text-green-400' }
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
       <p className="text-xs text-gray-500 mb-1">{label}</p>

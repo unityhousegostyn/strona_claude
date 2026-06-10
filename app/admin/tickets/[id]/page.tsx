@@ -110,7 +110,7 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
             href={attachmentUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm text-blue-400 hover:underline bg-blue-950/40 px-3 py-1.5 rounded-lg"
+            className="inline-flex items-center gap-2 text-sm text-green-400 hover:underline bg-green-950/40 px-3 py-1.5 rounded-lg"
           >
             📎 {attachmentName}
           </a>

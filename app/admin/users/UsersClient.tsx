@@ -24,7 +24,7 @@ const roleLabel: Record<string, string> = {
 
 const roleBadge: Record<string, string> = {
   super_admin: 'bg-purple-100 text-purple-400',
-  admin: 'bg-blue-900/40 text-blue-400',
+  admin: 'bg-green-900/40 text-green-400',
   user: 'bg-gray-900 text-gray-400',
 }
 
@@ -86,7 +86,7 @@ export default function UsersClient({ users, isSuperAdmin }: Props) {
                 </td>
                 {isSuperAdmin && (
                   <td className="px-4 py-3 text-right">
-                    <Link href={`/admin/users/${u.id}`} className="text-sm text-blue-600 hover:underline">
+                    <Link href={`/admin/users/${u.id}`} className="text-sm text-green-600 hover:underline">
                       Edytuj
                     </Link>
                   </td>

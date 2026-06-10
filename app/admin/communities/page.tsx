@@ -19,7 +19,7 @@ export default async function CommunitiesPage() {
         <h2 className="text-2xl font-bold text-gray-100">Wspólnoty</h2>
         <Link
           href="/admin/communities/add"
-          className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
+          className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
         >
           + Dodaj wspólnotę
         </Link>
@@ -49,7 +49,7 @@ export default async function CommunitiesPage() {
                   <td className="px-4 py-3 text-right">
                     <Link
                       href={`/admin/communities/${c.id}`}
-                      className="text-sm text-blue-600 hover:underline"
+                      className="text-sm text-green-600 hover:underline"
                     >
                       Edytuj
                     </Link>

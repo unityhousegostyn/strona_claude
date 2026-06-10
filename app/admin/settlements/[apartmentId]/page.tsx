@@ -116,7 +116,7 @@ export default async function ApartmentSettlementPage({
             <Link key={y} href={`/admin/settlements/${apartmentId}?year=${y}`}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
                 y === year
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-green-600 text-white'
                   : 'bg-gray-900 text-gray-400 hover:text-gray-200 border border-gray-800'
               }`}>
               {y}

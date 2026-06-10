@@ -53,7 +53,7 @@ export default async function AnnouncementsPage() {
   const canEdit = isSuperAdmin || profile.role === 'admin'
 
   const targetLabel = (a: any) => {
-    if (a.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-blue-950/40 text-blue-400' }
+    if (a.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-green-950/40 text-green-400' }
     if (a.target === 'one') return { text: communityMap[a.community_id] ?? '—', cls: 'bg-gray-900 text-gray-400' }
     const names = (junctionMap[a.id] ?? []).map((cid) => communityMap[cid] ?? cid)
     return { text: names.join(', ') || '—', cls: 'bg-purple-950/30 text-purple-400' }
@@ -66,7 +66,7 @@ export default async function AnnouncementsPage() {
         {canEdit && (
           <Link
             href="/admin/announcements/add"
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
+            className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
           >
             + Dodaj ogłoszenie
           </Link>

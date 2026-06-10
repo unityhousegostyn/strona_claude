@@ -116,7 +116,7 @@ export default function MFAVerifyPage() {
         <button
           onClick={handleVerify}
           disabled={loading || code.length !== 6}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg py-2.5 text-sm transition disabled:opacity-50"
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg py-2.5 text-sm transition disabled:opacity-50"
         >
           {loading ? 'Weryfikacja...' : 'Zweryfikuj'}
         </button>

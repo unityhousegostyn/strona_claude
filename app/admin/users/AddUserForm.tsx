@@ -43,7 +43,7 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
     <>
       <button
         onClick={() => setOpen(true)}
-        className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition flex items-center gap-2"
+        className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition flex items-center gap-2"
       >
         + Dodaj użytkownika
       </button>
@@ -142,7 +142,7 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
                   <button
                     type="submit"
                     disabled={isPending}
-                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2 rounded-lg transition disabled:opacity-50"
+                    className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-5 py-2 rounded-lg transition disabled:opacity-50"
                   >
                     {isPending ? 'Tworzenie...' : 'Utwórz konto'}
                   </button>

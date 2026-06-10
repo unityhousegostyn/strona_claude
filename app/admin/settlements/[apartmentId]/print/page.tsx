@@ -132,7 +132,7 @@ export default async function PrintPage({
                 <tr key={row.month} className={i % 2 === 0 ? 'bg-gray-900 print:bg-white' : 'bg-gray-900/50 print:bg-gray-50'}>
                   <td className="px-2 py-1.5 font-medium text-gray-200 print:text-black border border-gray-800 print:border-gray-200">{row.monthName}</td>
                   <td className={`px-2 py-1.5 text-right border border-gray-800 print:border-gray-200 ${row.balance_start >= 0 ? 'text-green-400 print:text-green-700' : 'text-red-400 print:text-red-600'}`}>{pln(row.balance_start)}</td>
-                  <td className="px-2 py-1.5 text-right text-blue-300 print:text-blue-700 border border-gray-800 print:border-gray-200 font-medium">{pln(row.paid)}</td>
+                  <td className="px-2 py-1.5 text-right text-green-300 print:text-green-700 border border-gray-800 print:border-gray-200 font-medium">{pln(row.paid)}</td>
                   <td className="px-2 py-1.5 text-right text-gray-300 print:text-gray-700 border border-gray-800 print:border-gray-200">{row.hasRates ? pln(row.renovation) : '—'}</td>
                   <td className="px-2 py-1.5 text-right text-gray-300 print:text-gray-700 border border-gray-800 print:border-gray-200">{row.hasRates ? pln(row.operating) : '—'}</td>
                   <td className="px-2 py-1.5 text-right text-gray-300 print:text-gray-700 border border-gray-800 print:border-gray-200">{row.hasRates ? pln(row.manager) : '—'}</td>
@@ -148,7 +148,7 @@ export default async function PrintPage({
               <tr className="bg-gray-800 print:bg-gray-200 font-bold">
                 <td className="px-2 py-2 text-gray-200 print:text-black border border-gray-700 print:border-gray-400">RAZEM {year}</td>
                 <td className="px-2 py-2 text-right text-gray-500 border border-gray-700 print:border-gray-400">—</td>
-                <td className="px-2 py-2 text-right text-blue-300 print:text-blue-700 border border-gray-700 print:border-gray-400">{pln(totalPaid)}</td>
+                <td className="px-2 py-2 text-right text-green-300 print:text-green-700 border border-gray-700 print:border-gray-400">{pln(totalPaid)}</td>
                 <td className="px-2 py-2 text-right text-gray-200 print:text-black border border-gray-700 print:border-gray-400">{pln(totalRenovation)}</td>
                 <td className="px-2 py-2 text-right text-gray-200 print:text-black border border-gray-700 print:border-gray-400">{pln(totalOperating)}</td>
                 <td className="px-2 py-2 text-right text-gray-200 print:text-black border border-gray-700 print:border-gray-400">{pln(totalManager)}</td>
@@ -170,7 +170,7 @@ export default async function PrintPage({
           </div>
           <div>
             <p className="text-xs text-gray-500 print:text-gray-500">Łącznie wpłacono</p>
-            <p className="text-lg font-bold text-blue-400 print:text-blue-700 mt-0.5">{pln(totalPaid)}</p>
+            <p className="text-lg font-bold text-green-400 print:text-green-700 mt-0.5">{pln(totalPaid)}</p>
           </div>
           <div>
             <p className="text-xs text-gray-500 print:text-gray-500">{finalBalance >= 0 ? 'Nadpłata' : 'Niedopłata'}</p>

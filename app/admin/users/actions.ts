@@ -13,39 +13,47 @@ async function requireAdminOrSuperAdmin() {
   return { user: auth.user, profile: auth.profile }
 }
 
-export async function approveUser(userId: string, communityId: string, apartmentId?: string | null) {
-  const { user, profile } = await requireAdminOrSuperAdmin()
+export async function approveUser(userId: string, communityId: string, apartmentId?: string | null): Promise<{ error?: string }> {
+  try {
+    const { user, profile } = await requireAdminOrSuperAdmin()
 
-  if (profile.role === 'admin' && communityId !== profile.community_id) {
-    throw new Error('Brak uprawnień do tej wspólnoty')
+    if (profile.role === 'admin' && communityId !== profile.community_id) {
+      return { error: 'Brak uprawnień do tej wspólnoty' }
+    }
+
+    const admin = getSupabaseAdminClient()
+    const { error } = await admin
+      .from('profiles')
+      .update({ status: 'active', community_id: communityId })
+      .eq('id', userId)
+
+    if (error) return { error: error.message }
+
+    // Przypisz lokal jeśli podano
+    if (apartmentId) {
+      await admin.from('settlement_apartments').update({ owner_id: null }).eq('owner_id', userId)
+      const { error: aptError } = await admin
+        .from('settlement_apartments')
+        .update({ owner_id: userId })
+        .eq('id', apartmentId)
+      if (aptError) return { error: 'Błąd przypisywania mieszkania: ' + aptError.message }
+    }
+
+    await logActivity({ userId: user.id, action: 'approve_user', targetType: 'user', targetId: userId, meta: { communityId, apartmentId } })
+
+    // Wyślij email do zaakceptowanego użytkownika
+    const { data: approvedUser } = await admin.from('profiles').select('email').eq('id', userId).single()
+    const { data: community } = await admin.from('communities').select('name').eq('id', communityId).single()
+    if (approvedUser?.email) {
+      await sendAccountApprovedEmail({ to: approvedUser.email, communityName: community?.name ?? '' }).catch(() => {})
+    }
+
+    revalidatePath('/admin/users')
+    revalidatePath('/admin/settlements')
+    return {}
+  } catch (e: any) {
+    return { error: e.message ?? 'Nieznany błąd' }
   }
-
-  const admin = getSupabaseAdminClient()
-  const { error } = await admin
-    .from('profiles')
-    .update({ status: 'active', community_id: communityId })
-    .eq('id', userId)
-
-  if (error) throw new Error(error.message)
-
-  // Przypisz lokal jeśli podano
-  if (apartmentId) {
-    // Odepnij poprzednie przypisanie tego użytkownika (jeśli istnieje)
-    await admin.from('settlement_apartments').update({ owner_id: null }).eq('owner_id', userId)
-    await admin.from('settlement_apartments').update({ owner_id: userId }).eq('id', apartmentId)
-  }
-
-  await logActivity({ userId: user.id, action: 'approve_user', targetType: 'user', targetId: userId, meta: { communityId, apartmentId } })
-
-  // Wyślij email do zaakceptowanego użytkownika
-  const { data: approvedUser } = await admin.from('profiles').select('email').eq('id', userId).single()
-  const { data: community } = await admin.from('communities').select('name').eq('id', communityId).single()
-  if (approvedUser?.email) {
-    await sendAccountApprovedEmail({ to: approvedUser.email, communityName: community?.name ?? '' }).catch(() => {})
-  }
-
-  revalidatePath('/admin/users')
-  revalidatePath('/admin/settlements')
 }
 
 export async function addUser(data: {

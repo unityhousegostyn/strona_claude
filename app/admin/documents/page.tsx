@@ -59,7 +59,7 @@ export default async function DocumentsPage() {
   }
 
   const targetLabel = (d: any) => {
-    if (d.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-blue-950/40 text-blue-400' }
+    if (d.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-green-950/40 text-green-400' }
     if (d.target === 'one') return { text: communityMap[d.community_id] ?? '—', cls: 'bg-gray-900 text-gray-400' }
     const names = (junctionMap[d.id] ?? []).map((cid) => communityMap[cid] ?? cid)
     return { text: names.join(', ') || '—', cls: 'bg-purple-950/30 text-purple-400' }

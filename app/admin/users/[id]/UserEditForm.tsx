@@ -31,7 +31,6 @@ export default function UserEditForm({
   const [role, setRole] = useState(initialRole)
   const [communityId, setCommunityId] = useState(initialCommunityId ?? '')
   const [apartmentId, setApartmentId] = useState(currentApartmentId ?? '')
-  const [aptSaving, setAptSaving] = useState(false)
   const [resetSending, setResetSending] = useState(false)
 
   const handleSendPasswordReset = async () => {
@@ -55,6 +54,8 @@ export default function UserEditForm({
           role,
           community_id: role === 'super_admin' ? null : (communityId || null),
         })
+        // Zapisz mieszkanie razem z resztą danych
+        await assignApartment(userId, apartmentId || null)
         showToast('Użytkownik zaktualizowany')
         router.push('/admin/users')
       } catch (e: any) {
@@ -72,20 +73,6 @@ export default function UserEditForm({
         router.push('/admin/users')
       } catch (e: any) {
         showToast(e.message ?? 'Błąd', 'error')
-      }
-    })
-  }
-
-  const handleAssignApartment = () => {
-    setAptSaving(true)
-    startTransition(async () => {
-      try {
-        await assignApartment(userId, apartmentId || null)
-        showToast('Mieszkanie przypisane')
-      } catch (e: any) {
-        showToast(e.message ?? 'Błąd', 'error')
-      } finally {
-        setAptSaving(false)
       }
     })
   }
@@ -153,35 +140,26 @@ export default function UserEditForm({
       {/* Przypisanie mieszkania */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
         <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Przypisane mieszkanie</h3>
-        <div className="flex gap-3 items-end flex-wrap">
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-300 mb-1">Lokal</label>
-            <select className="input w-full" value={apartmentId} onChange={e => setApartmentId(e.target.value)}>
-              <option value="">— brak —</option>
-              {communities.map(comm => {
-                const commApts = apartments.filter(a => a.community_id === comm.id)
-                if (!commApts.length) return null
-                return (
-                  <optgroup key={comm.id} label={comm.name}>
-                    {commApts.map(a => (
-                      <option key={a.id} value={a.id} disabled={!!a.owner_id && a.owner_id !== userId}>
-                        {a.number}{a.owner_id && a.owner_id !== userId ? ' (zajęte)' : ''}
-                      </option>
-                    ))}
-                  </optgroup>
-                )
-              })}
-            </select>
-          </div>
-          <button
-            onClick={handleAssignApartment}
-            disabled={isPending || aptSaving}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition disabled:opacity-50"
-          >
-            {aptSaving ? 'Zapisuję...' : 'Zapisz'}
-          </button>
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Lokal</label>
+          <select className="input w-full" value={apartmentId} onChange={e => setApartmentId(e.target.value)}>
+            <option value="">— brak —</option>
+            {communities.map(comm => {
+              const commApts = apartments.filter(a => a.community_id === comm.id)
+              if (!commApts.length) return null
+              return (
+                <optgroup key={comm.id} label={comm.name}>
+                  {commApts.map(a => (
+                    <option key={a.id} value={a.id} disabled={!!a.owner_id && a.owner_id !== userId}>
+                      {a.number}{a.owner_id && a.owner_id !== userId ? ' (zajęte)' : ''}
+                    </option>
+                  ))}
+                </optgroup>
+              )
+            })}
+          </select>
         </div>
-        <p className="text-xs text-gray-600">Jeden użytkownik = jedno mieszkanie. Zajęte lokale są oznaczone.</p>
+        <p className="text-xs text-gray-500">Jeden użytkownik = jedno mieszkanie. Mieszkanie zapisuje się razem z resztą danych przyciskiem poniżej.</p>
       </div>
 
       <div className="flex items-center justify-between">
@@ -189,7 +167,7 @@ export default function UserEditForm({
           <button
             onClick={handleSave}
             disabled={isPending}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
+            className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
           >
             {isPending ? 'Zapisywanie...' : 'Zapisz zmiany'}
           </button>
@@ -206,7 +184,7 @@ export default function UserEditForm({
             <button
               onClick={handleSendPasswordReset}
               disabled={resetSending}
-              className="text-sm text-blue-400 hover:text-blue-300 font-medium px-4 py-2.5 rounded-lg border border-blue-900 hover:bg-blue-950/30 transition disabled:opacity-50"
+              className="text-sm text-green-400 hover:text-green-300 font-medium px-4 py-2.5 rounded-lg border border-green-900 hover:bg-green-950/30 transition disabled:opacity-50"
               title="Wysyła link resetowania hasła na e-mail użytkownika"
             >
               {resetSending ? 'Wysyłanie...' : '🔑 Reset hasła'}

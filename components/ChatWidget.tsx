@@ -55,7 +55,7 @@ export default function ChatWidget() {
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800 bg-gray-900">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm">🤖</div>
+              <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-sm">🤖</div>
               <div>
                 <p className="text-sm font-semibold text-gray-100">Asystent wspólnoty</p>
                 <p className="text-xs text-green-400">● Online</p>
@@ -73,7 +73,7 @@ export default function ChatWidget() {
               <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[85%] px-3 py-2 rounded-xl text-sm leading-relaxed ${
                   m.role === 'user'
-                    ? 'bg-blue-600 text-white rounded-br-sm'
+                    ? 'bg-green-600 text-white rounded-br-sm'
                     : 'bg-gray-800 text-gray-200 rounded-bl-sm'
                 }`}>
                   {m.text}
@@ -93,7 +93,7 @@ export default function ChatWidget() {
           {/* Input */}
           <div className="border-t border-gray-800 p-3 flex gap-2">
             <input
-              className="flex-1 bg-gray-800 border border-gray-700 text-gray-100 placeholder-gray-500 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 bg-gray-800 border border-gray-700 text-gray-100 placeholder-gray-500 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
               placeholder="Zadaj pytanie..."
               value={input}
               onChange={e => setInput(e.target.value)}
@@ -103,7 +103,7 @@ export default function ChatWidget() {
             <button
               onClick={send}
               disabled={loading || !input.trim()}
-              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white px-3 py-2 rounded-lg text-sm font-semibold transition"
+              className="bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white px-3 py-2 rounded-lg text-sm font-semibold transition"
             >
               →
             </button>
@@ -114,7 +114,7 @@ export default function ChatWidget() {
       {/* Floating button */}
       <button
         onClick={() => setOpen(o => !o)}
-        className="fixed bottom-4 right-4 z-50 w-13 h-13 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-2xl shadow-blue-900/50 transition-all hover:scale-105 flex items-center justify-center"
+        className="fixed bottom-4 right-4 z-50 w-13 h-13 bg-green-600 hover:bg-green-700 text-white rounded-full shadow-2xl shadow-green-900/50 transition-all hover:scale-105 flex items-center justify-center"
         style={{ width: 52, height: 52 }}
         title="Asystent AI wspólnoty"
       >

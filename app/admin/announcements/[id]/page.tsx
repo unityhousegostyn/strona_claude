@@ -39,7 +39,7 @@ export default async function AnnouncementDetailPage({ params }: { params: Promi
         <div className="flex items-start justify-between gap-4">
           <h2 className="text-xl font-bold text-gray-100">{announcement.title}</h2>
           {canEdit && (
-            <Link href={`/admin/announcements/edit/${id}`} className="text-sm text-blue-600 hover:underline flex-shrink-0">
+            <Link href={`/admin/announcements/edit/${id}`} className="text-sm text-green-600 hover:underline flex-shrink-0">
               Edytuj
             </Link>
           )}

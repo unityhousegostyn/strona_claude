@@ -26,7 +26,7 @@ interface Props {
 }
 
 const CATEGORIES = [
-  { value: 'manager', label: 'Zarządca', icon: '🏢', color: 'bg-blue-900/40 text-blue-400 border-blue-800' },
+  { value: 'manager', label: 'Zarządca', icon: '🏢', color: 'bg-green-900/40 text-green-400 border-green-800' },
   { value: 'emergency', label: 'Awaryjny', icon: '🚨', color: 'bg-red-900/40 text-red-400 border-red-800' },
   { value: 'service', label: 'Serwis', icon: '🔧', color: 'bg-yellow-900/40 text-yellow-400 border-yellow-800' },
   { value: 'security', label: 'Ochrona', icon: '🔒', color: 'bg-purple-900/40 text-purple-400 border-purple-800' },
@@ -106,7 +106,7 @@ export default function ContactsClient({ contacts, canEdit, isSuperAdmin, defaul
         {canEdit && (
           <button
             onClick={() => setShowForm(!showForm)}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
+            className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
           >
             + Dodaj kontakt
           </button>
@@ -158,7 +158,7 @@ export default function ContactsClient({ contacts, canEdit, isSuperAdmin, defaul
             </div>
           </div>
           <div className="flex gap-3 pt-1">
-            <button onClick={handleSubmit} disabled={isPending} className="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">
+            <button onClick={handleSubmit} disabled={isPending} className="bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">
               {isPending ? 'Zapisywanie...' : 'Zapisz'}
             </button>
             <button onClick={() => setShowForm(false)} className="text-sm text-gray-500 hover:text-gray-300">Anuluj</button>
@@ -242,12 +242,12 @@ export default function ContactsClient({ contacts, canEdit, isSuperAdmin, defaul
                 </div>
                 <div className="space-y-1">
                   {contact.phone && (
-                    <a href={`tel:${contact.phone}`} className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition">
+                    <a href={`tel:${contact.phone}`} className="flex items-center gap-2 text-sm text-green-400 hover:text-green-300 transition">
                       <span>📞</span> {contact.phone}
                     </a>
                   )}
                   {contact.email && (
-                    <a href={`mailto:${contact.email}`} className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition">
+                    <a href={`mailto:${contact.email}`} className="flex items-center gap-2 text-sm text-green-400 hover:text-green-300 transition">
                       <span>✉️</span> {contact.email}
                     </a>
                   )}

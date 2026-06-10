@@ -12,7 +12,7 @@ export default function LandingPage() {
         .lp *, .lp *::before, .lp *::after { box-sizing: border-box; margin: 0; padding: 0; }
         .lp {
           --bg: #030712; --bg2: #0f172a; --card: #111827; --border: #1f2937; --border2: #374151;
-          --blue: #2563eb; --blue-light: #3b82f6; --blue-dark: #1d4ed8;
+          --blue: #2563eb; --green-light: #3b82f6; --green-dark: #1d4ed8;
           --text: #f1f5f9; --text2: #94a3b8; --text3: #64748b;
           background: var(--bg); color: var(--text);
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
@@ -47,7 +47,7 @@ export default function LandingPage() {
           padding: 9px 20px; border-radius: 9px; border: none; cursor: pointer;
           transition: background .2s, transform .15s; text-decoration: none;
         }
-        .lp-btn:hover { background: var(--blue-dark); transform: translateY(-1px); color: #fff; }
+        .lp-btn:hover { background: var(--green-dark); transform: translateY(-1px); color: #fff; }
         .lp-btn-outline {
           background: transparent; border: 1px solid var(--border2); color: var(--text2);
         }
@@ -76,7 +76,7 @@ export default function LandingPage() {
           line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 22px;
           max-width: 800px; margin-left: auto; margin-right: auto;
         }
-        .lp-hero h1 span { color: var(--blue-light); }
+        .lp-hero h1 span { color: var(--green-light); }
         .lp-hero p {
           font-size: clamp(16px, 2.5vw, 20px); color: var(--text2);
           max-width: 560px; margin: 0 auto 40px;
@@ -137,7 +137,7 @@ export default function LandingPage() {
         .lp-container { max-width: 1100px; margin: 0 auto; }
         .lp-section-label {
           display: inline-block; font-size: 12px; font-weight: 600;
-          letter-spacing: .08em; text-transform: uppercase; color: var(--blue-light); margin-bottom: 12px;
+          letter-spacing: .08em; text-transform: uppercase; color: var(--green-light); margin-bottom: 12px;
         }
         .lp-section-title {
           font-size: clamp(26px, 4vw, 40px); font-weight: 800;
@@ -152,7 +152,7 @@ export default function LandingPage() {
         .lp-stats-grid { display: grid; grid-template-columns: repeat(4,1fr); }
         .lp-stat { padding: 40px 32px; border-right: 1px solid var(--border); text-align: center; }
         .lp-stat:last-child { border-right: none; }
-        .lp-stat-val { font-size: 40px; font-weight: 800; color: var(--blue-light); line-height: 1; margin-bottom: 8px; }
+        .lp-stat-val { font-size: 40px; font-weight: 800; color: var(--green-light); line-height: 1; margin-bottom: 8px; }
         .lp-stat-label { font-size: 14px; color: var(--text2); }
 
         /* FEATURES */
@@ -223,7 +223,7 @@ export default function LandingPage() {
         .lp-cta p { font-size: 18px; color: var(--text2); margin-bottom: 36px; }
         .lp-cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
         .lp-cta-sub { margin-top: 32px; font-size: 14px; color: var(--text3); }
-        .lp-cta-sub a { color: var(--blue-light); }
+        .lp-cta-sub a { color: var(--green-light); }
 
         /* FOOTER */
         .lp-footer { border-top: 1px solid var(--border); padding: 40px 24px; }
