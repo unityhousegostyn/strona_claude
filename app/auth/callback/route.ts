@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
+import { sendNewUserPendingEmail } from '@/lib/email'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -33,11 +34,38 @@ export async function GET(request: NextRequest) {
 
     if (user) {
       const admin = getSupabaseAdminClient()
-      await admin
+
+      const { data: profile } = await admin
+        .from('profiles')
+        .select('full_name, email, status')
+        .eq('id', user.id)
+        .single()
+
+      const { data: updated } = await admin
         .from('profiles')
         .update({ status: 'pending' })
         .eq('id', user.id)
         .eq('status', 'unconfirmed')
+        .select('id')
+        .single()
+
+      // Powiadom super_adminów o nowym użytkowniku oczekującym na akceptację
+      if (updated && profile) {
+        const { data: superAdmins } = await admin
+          .from('profiles')
+          .select('email')
+          .eq('role', 'super_admin')
+          .eq('status', 'active')
+
+        const emails = (superAdmins ?? []).map(a => a.email).filter(Boolean) as string[]
+        if (emails.length > 0) {
+          sendNewUserPendingEmail({
+            to: emails,
+            userName: profile.full_name ?? profile.email ?? 'Nieznany',
+            userEmail: profile.email ?? '',
+          }).catch(() => {})
+        }
+      }
 
       await supabase.auth.signOut()
     }

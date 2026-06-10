@@ -4,6 +4,7 @@ import { getAuthProfileAction } from '@/lib/getAuthProfile'
 import { revalidatePath } from 'next/cache'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import { logActivity } from '@/lib/audit'
+import { sendNewTicketEmail } from '@/lib/email'
 
 export async function toggleTicketStatus(ticketId: string, currentStatus: string) {
   const auth = await getAuthProfileAction()
@@ -69,17 +70,44 @@ export async function createTicket(formData: FormData): Promise<{ error?: string
       attachmentPath = storagePath
     }
 
-    const { error } = await admin.from('tickets').insert({
+    const { data: inserted, error } = await admin.from('tickets').insert({
       title,
       description,
       status: 'open',
       community_id: communityId,
       created_by: user.id,
       attachment_path: attachmentPath,
-    })
+    }).select('id').single()
 
     if (error) return { error: 'Błąd podczas tworzenia zgłoszenia: ' + error.message }
     await logActivity({ userId: user.id, action: 'create_ticket', targetType: 'ticket', meta: { title, communityId } })
+
+    // Powiadom super_adminów i admina wspólnoty o nowym zgłoszeniu
+    if (inserted?.id) {
+      const [{ data: superAdmins }, { data: communityAdmins }, { data: community }] = await Promise.all([
+        admin.from('profiles').select('email').eq('role', 'super_admin').eq('status', 'active'),
+        admin.from('profiles').select('email').eq('role', 'admin').eq('community_id', communityId).eq('status', 'active'),
+        admin.from('communities').select('name').eq('id', communityId).single(),
+      ])
+
+      const recipients = [
+        ...(superAdmins ?? []).map(a => a.email),
+        ...(communityAdmins ?? []).map(a => a.email),
+      ].filter((e): e is string => !!e && e !== profile.email)
+      const uniqueRecipients = [...new Set(recipients)]
+
+      if (uniqueRecipients.length > 0) {
+        sendNewTicketEmail({
+          to: uniqueRecipients,
+          ticketTitle: title,
+          ticketDescription: description,
+          authorName: profile.full_name ?? profile.email ?? 'Mieszkaniec',
+          communityName: community?.name ?? communityId,
+          ticketId: inserted.id,
+        }).catch(() => {})
+      }
+    }
+
     revalidatePath('/admin/tickets')
     return {}
   } catch (e: any) {

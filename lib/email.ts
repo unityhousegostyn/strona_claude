@@ -239,6 +239,71 @@ export async function sendAnnouncementEmail(params: {
   })
 }
 
+export async function sendNewUserPendingEmail(params: {
+  to: string | string[]
+  userName: string
+  userEmail: string
+}) {
+  await sendMail({
+    to: params.to,
+    subject: 'Nowy użytkownik oczekuje na akceptację',
+    html: layout(`
+      <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#1e3a5f;">Nowe zgłoszenie rejestracji</h1>
+      <p style="margin:0 0 24px;font-size:14px;color:#64748b;">Użytkownik oczekuje na zatwierdzenie konta</p>
+
+      <p style="font-size:15px;color:#334155;line-height:1.7;">
+        W systemie pojawił się nowy użytkownik, który potwierdził adres e-mail i oczekuje na akceptację przez administratora.
+      </p>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+        ${infoBox('Imię i nazwisko', params.userName)}
+        ${infoBox('Adres e-mail', params.userEmail)}
+        ${infoBox('Status', 'Oczekuje na akceptację')}
+      </table>
+
+      <div style="text-align:center;margin:32px 0;">
+        ${btn(`${APP_URL}/admin/users`, 'Przejdź do zarządzania użytkownikami')}
+      </div>
+
+      <p style="font-size:13px;color:#94a3b8;margin-top:24px;border-top:1px solid #f1f5f9;padding-top:16px;">
+        Wiadomość wysłana automatycznie po potwierdzeniu adresu e-mail przez nowego użytkownika.
+      </p>
+    `),
+  })
+}
+
+export async function sendNewTicketEmail(params: {
+  to: string | string[]
+  ticketTitle: string
+  ticketDescription: string
+  authorName: string
+  communityName: string
+  ticketId: string
+}) {
+  await sendMail({
+    to: params.to,
+    subject: `Nowe zgłoszenie: ${params.ticketTitle}`,
+    html: layout(`
+      <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#1e3a5f;">Nowe zgłoszenie</h1>
+      <p style="margin:0 0 24px;font-size:14px;color:#64748b;">Mieszkaniec złożył nowe zgłoszenie</p>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+        ${infoBox('Zgłoszenie', params.ticketTitle)}
+        ${infoBox('Zgłaszający', params.authorName)}
+        ${infoBox('Wspólnota', params.communityName)}
+        ${infoBox('Status', 'Otwarte')}
+      </table>
+
+      <p style="font-size:13px;font-weight:600;color:#64748b;margin:0 0 4px;">Opis zgłoszenia:</p>
+      ${quote(params.ticketDescription.replace(/\n/g, '<br>'))}
+
+      <div style="text-align:center;margin:32px 0;">
+        ${btn(`${APP_URL}/admin/tickets/${params.ticketId}`, 'Zobacz zgłoszenie')}
+      </div>
+    `),
+  })
+}
+
 export async function sendNewCommentEmail(params: {
   to: string
   ticketTitle: string

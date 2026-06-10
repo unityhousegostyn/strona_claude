@@ -29,12 +29,21 @@ export default async function UsersPage() {
     .order('created_at', { ascending: false })
   if (!isSuperAdmin) activeQuery.eq('community_id', profile.community_id)
 
-  const [{ data: pendingUsers }, { data: activeUsers }, { data: communities }] = await Promise.all([
+  // Lokale do przypisania przy zatwierdzaniu
+  const apartmentsQuery = admin
+    .from('settlement_apartments')
+    .select('id, number, community_id')
+    .eq('active', true)
+    .order('number')
+  if (!isSuperAdmin && profile.community_id) apartmentsQuery.eq('community_id', profile.community_id)
+
+  const [{ data: pendingUsers }, { data: activeUsers }, { data: communities }, { data: apartments }] = await Promise.all([
     pendingQuery,
     activeQuery,
     isSuperAdmin
       ? admin.from('communities').select('*').order('name')
-      : Promise.resolve({ data: [] }),
+      : admin.from('communities').select('id, name').eq('id', profile.community_id ?? ''),
+    apartmentsQuery,
   ])
 
   return (
@@ -51,6 +60,7 @@ export default async function UsersPage() {
       <PendingUsers
         users={pendingUsers ?? []}
         communities={communities ?? []}
+        apartments={apartments ?? []}
         isSuperAdmin={isSuperAdmin}
         adminCommunityId={profile.community_id}
       />

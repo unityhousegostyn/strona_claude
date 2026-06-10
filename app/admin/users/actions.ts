@@ -13,7 +13,7 @@ async function requireAdminOrSuperAdmin() {
   return { user: auth.user, profile: auth.profile }
 }
 
-export async function approveUser(userId: string, communityId: string) {
+export async function approveUser(userId: string, communityId: string, apartmentId?: string | null) {
   const { user, profile } = await requireAdminOrSuperAdmin()
 
   if (profile.role === 'admin' && communityId !== profile.community_id) {
@@ -27,7 +27,15 @@ export async function approveUser(userId: string, communityId: string) {
     .eq('id', userId)
 
   if (error) throw new Error(error.message)
-  await logActivity({ userId: user.id, action: 'approve_user', targetType: 'user', targetId: userId, meta: { communityId } })
+
+  // Przypisz lokal jeśli podano
+  if (apartmentId) {
+    // Odepnij poprzednie przypisanie tego użytkownika (jeśli istnieje)
+    await admin.from('settlement_apartments').update({ owner_id: null }).eq('owner_id', userId)
+    await admin.from('settlement_apartments').update({ owner_id: userId }).eq('id', apartmentId)
+  }
+
+  await logActivity({ userId: user.id, action: 'approve_user', targetType: 'user', targetId: userId, meta: { communityId, apartmentId } })
 
   // Wyślij email do zaakceptowanego użytkownika
   const { data: approvedUser } = await admin.from('profiles').select('email').eq('id', userId).single()
@@ -37,6 +45,7 @@ export async function approveUser(userId: string, communityId: string) {
   }
 
   revalidatePath('/admin/users')
+  revalidatePath('/admin/settlements')
 }
 
 export async function addUser(data: {
