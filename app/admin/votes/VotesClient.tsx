@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createVote, castVote, closeVote, deleteVote } from './actions'
+import { getSupabaseBrowserClient } from '@/lib/supabase/browser'
 import Link from 'next/link'
 
 interface Choice { choice: string; share_value: number; user_id: string }
@@ -15,6 +16,8 @@ interface Vote {
   voting_method: string
   deadline: string | null
   created_at: string
+  link_url: string | null
+  attachment_path: string | null
   community: { name: string } | null
   choices: Choice[]
 }
@@ -28,6 +31,12 @@ interface Props {
   isAdmin: boolean
   isSuperAdmin: boolean
   hasPin: boolean
+}
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+
+function getAttachmentUrl(path: string) {
+  return `${SUPABASE_URL}/storage/v1/object/public/documents/${path}`
 }
 
 function calcResults(vote: Vote) {
@@ -47,32 +56,64 @@ export default function VotesClient({ votes, communities, userId, communityId, i
     title: '', description: '',
     voting_method: 'by_share' as 'by_share' | 'one_per_owner',
     deadline: '', community_id: communityId ?? '',
+    link_url: '',
   })
+  const [attachmentFile, setAttachmentFile] = useState<File | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // PIN modal state
+  // PIN modal
   const [pinModal, setPinModal] = useState<{ voteId: string; choice: 'yes' | 'no' | 'abstain' } | null>(null)
   const [pin, setPin] = useState('')
   const [pinError, setPinError] = useState<string | null>(null)
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     setFormError(null)
+    let attachmentPath: string | null = null
+
+    if (attachmentFile) {
+      setUploading(true)
+      try {
+        const supabase = getSupabaseBrowserClient()
+        const safeName = attachmentFile.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+        const path = `votes/${Date.now()}_${safeName}`
+        const { error: uploadError } = await supabase.storage
+          .from('documents')
+          .upload(path, attachmentFile, { upsert: false })
+        if (uploadError) {
+          setFormError('Błąd przesyłania pliku: ' + uploadError.message)
+          setUploading(false)
+          return
+        }
+        attachmentPath = path
+      } catch {
+        setFormError('Błąd przesyłania pliku')
+        setUploading(false)
+        return
+      }
+      setUploading(false)
+    }
+
     startTransition(async () => {
-      const res = await createVote({ ...form, deadline: form.deadline || null })
+      const res = await createVote({
+        ...form,
+        deadline: form.deadline || null,
+        link_url: form.link_url.trim() || null,
+        attachment_path: attachmentPath,
+      })
       if (res.error) { setFormError(res.error); return }
       setShowForm(false)
-      setForm({ title: '', description: '', voting_method: 'by_share', deadline: '', community_id: communityId ?? '' })
+      setForm({ title: '', description: '', voting_method: 'by_share', deadline: '', community_id: communityId ?? '', link_url: '' })
+      setAttachmentFile(null)
+      if (fileInputRef.current) fileInputRef.current.value = ''
       router.refresh()
     })
   }
 
   const handleVote = (voteId: string, choice: 'yes' | 'no' | 'abstain') => {
-    if (!hasPin) {
-      alert('Ustaw PIN w Profilu przed głosowaniem.')
-      return
-    }
-    setPin('')
-    setPinError(null)
+    if (!hasPin) { alert('Ustaw PIN w Profilu przed głosowaniem.'); return }
+    setPin(''); setPinError(null)
     setPinModal({ voteId, choice })
   }
 
@@ -82,26 +123,19 @@ export default function VotesClient({ votes, communities, userId, communityId, i
     startTransition(async () => {
       const res = await castVote({ vote_id: pinModal.voteId, choice: pinModal.choice, pin })
       if (res.error) { setPinError(res.error); return }
-      setPinModal(null)
-      setPin('')
+      setPinModal(null); setPin('')
       router.refresh()
     })
   }
 
   const handleClose = (voteId: string) => {
     if (!confirm('Zamknąć głosowanie? Nie będzie można cofnąć.')) return
-    startTransition(async () => {
-      await closeVote(voteId)
-      router.refresh()
-    })
+    startTransition(async () => { await closeVote(voteId); router.refresh() })
   }
 
   const handleDelete = (voteId: string) => {
     if (!confirm('Usunąć uchwałę wraz z wszystkimi głosami?')) return
-    startTransition(async () => {
-      await deleteVote(voteId)
-      router.refresh()
-    })
+    startTransition(async () => { await deleteVote(voteId); router.refresh() })
   }
 
   const choiceLabel = { yes: 'ZA', no: 'PRZECIW', abstain: 'WSTRZYMUJĘ SIĘ' }
@@ -122,10 +156,8 @@ export default function VotesClient({ votes, communities, userId, communityId, i
             </Link>
           )}
           {isAdmin && (
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
-            >
+            <button onClick={() => setShowForm(!showForm)}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
               + Nowa uchwała
             </button>
           )}
@@ -139,8 +171,8 @@ export default function VotesClient({ votes, communities, userId, communityId, i
           <div className="space-y-3">
             <div>
               <label className="text-xs text-gray-400 block mb-1">Tytuł uchwały *</label>
-              <input className="input w-full" placeholder="np. Uchwała nr 1/2026 w sprawie..." value={form.title}
-                onChange={e => setForm(p => ({ ...p, title: e.target.value }))} />
+              <input className="input w-full" placeholder="np. Uchwała nr 1/2026 w sprawie..."
+                value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} />
             </div>
             <div>
               <label className="text-xs text-gray-400 block mb-1">Opis / treść uchwały</label>
@@ -172,14 +204,58 @@ export default function VotesClient({ votes, communities, userId, communityId, i
                 </div>
               )}
             </div>
+
+            {/* Dokumentacja */}
+            <div className="border-t border-gray-800 pt-3 space-y-3">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Dokumentacja (opcjonalnie)</p>
+              <div>
+                <label className="text-xs text-gray-400 block mb-1">🔗 Link do dokumentu zewnętrznego</label>
+                <input
+                  className="input w-full"
+                  type="url"
+                  placeholder="https://..."
+                  value={form.link_url}
+                  onChange={e => setForm(p => ({ ...p, link_url: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-400 block mb-1">📎 Załącznik</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+                    onChange={e => setAttachmentFile(e.target.files?.[0] ?? null)}
+                    className="hidden"
+                    id="vote-attachment"
+                  />
+                  <label htmlFor="vote-attachment"
+                    className="cursor-pointer text-sm bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 px-3 py-2 rounded-lg transition">
+                    Wybierz plik
+                  </label>
+                  {attachmentFile ? (
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-sm text-gray-300 truncate max-w-48">{attachmentFile.name}</span>
+                      <button type="button"
+                        onClick={() => { setAttachmentFile(null); if (fileInputRef.current) fileInputRef.current.value = '' }}
+                        className="text-xs text-gray-500 hover:text-red-400 flex-shrink-0 transition">✕</button>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-gray-600">PDF, DOC, XLS, obraz</span>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
+
           {formError && <p className="text-sm text-red-400">{formError}</p>}
           <div className="flex gap-3">
-            <button onClick={handleCreate} disabled={isPending}
+            <button onClick={handleCreate} disabled={isPending || uploading}
               className="bg-blue-600 text-white text-sm font-semibold px-5 py-2 rounded-lg disabled:opacity-50">
-              {isPending ? 'Tworzenie...' : 'Utwórz głosowanie'}
+              {uploading ? 'Przesyłanie pliku...' : isPending ? 'Tworzenie...' : 'Utwórz głosowanie'}
             </button>
-            <button onClick={() => setShowForm(false)} className="text-sm text-gray-500 hover:text-gray-300">Anuluj</button>
+            <button onClick={() => { setShowForm(false); setAttachmentFile(null) }}
+              className="text-sm text-gray-500 hover:text-gray-300">Anuluj</button>
           </div>
         </div>
       )}
@@ -188,7 +264,7 @@ export default function VotesClient({ votes, communities, userId, communityId, i
       {votes.length === 0 ? (
         <div className="text-center py-16 text-gray-500">
           <p className="text-4xl mb-3">🗳️</p>
-          <p>Brak głosowań. {isAdmin ? 'Utwórz pierwszą uchwałę.' : 'Administrator jeszcze nie dodał żadnych uchwał.'}</p>
+          <p>{isAdmin ? 'Utwórz pierwszą uchwałę.' : 'Administrator jeszcze nie dodał żadnych uchwał.'}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -200,9 +276,8 @@ export default function VotesClient({ votes, communities, userId, communityId, i
 
             return (
               <div key={vote.id} className={`bg-gray-900 border rounded-xl p-5 space-y-4 ${vote.status === 'open' ? 'border-gray-800' : 'border-gray-800/50 opacity-80'}`}>
-                {/* Nagłówek */}
                 <div className="flex items-start justify-between gap-3 flex-wrap">
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${vote.status === 'open' ? 'bg-green-900/30 text-green-400' : 'bg-gray-800 text-gray-500'}`}>
                         {vote.status === 'open' ? '● Otwarte' : '✓ Zamknięte'}
@@ -223,9 +298,27 @@ export default function VotesClient({ votes, communities, userId, communityId, i
                         Termin: {new Date(vote.deadline).toLocaleString('pl-PL')}
                       </p>
                     )}
+
+                    {/* Załącznik i link */}
+                    {(vote.link_url || vote.attachment_path) && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {vote.link_url && (
+                          <a href={vote.link_url} target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 bg-blue-950/30 border border-blue-900/50 px-2.5 py-1 rounded-lg transition">
+                            🔗 Otwórz dokument
+                          </a>
+                        )}
+                        {vote.attachment_path && (
+                          <a href={getAttachmentUrl(vote.attachment_path)} target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 text-xs text-gray-300 hover:text-gray-100 bg-gray-800 border border-gray-700 px-2.5 py-1 rounded-lg transition">
+                            📎 {vote.attachment_path.split('/').pop()?.replace(/^\d+_/, '') ?? 'Załącznik'}
+                          </a>
+                        )}
+                      </div>
+                    )}
                   </div>
                   {isAdmin && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       {vote.status === 'open' && (
                         <button onClick={() => handleClose(vote.id)} disabled={isPending}
                           className="text-xs text-yellow-400 hover:text-yellow-300 border border-yellow-800 px-2 py-1 rounded-lg transition">
@@ -278,14 +371,12 @@ export default function VotesClient({ votes, communities, userId, communityId, i
                     <p className="text-xs text-gray-600 italic">Administrator nie głosuje w uchwałach.</p>
                   </div>
                 )}
-
                 {myChoice && (
                   <div className="pt-1 border-t border-gray-800">
                     <p className="text-xs text-gray-500">
                       Twój głos: <span className={`font-semibold ${myChoice.choice === 'yes' ? 'text-green-400' : myChoice.choice === 'no' ? 'text-red-400' : 'text-gray-400'}`}>
                         {choiceLabel[myChoice.choice as keyof typeof choiceLabel]}
                       </span>
-                      {!isOpen && vote.status === 'open' && <span className="text-gray-600"> · głosowanie zakończone</span>}
                     </p>
                   </div>
                 )}
@@ -310,13 +401,9 @@ export default function VotesClient({ votes, communities, userId, communityId, i
             </div>
             <div className="flex justify-center">
               <input
-                type="password"
-                inputMode="numeric"
-                maxLength={4}
-                autoFocus
+                type="password" inputMode="numeric" maxLength={4} autoFocus
                 className="input w-32 text-center text-2xl tracking-widest"
-                placeholder="••••"
-                value={pin}
+                placeholder="••••" value={pin}
                 onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
                 onKeyDown={e => e.key === 'Enter' && pin.length === 4 && handleConfirmVote()}
               />
@@ -324,9 +411,7 @@ export default function VotesClient({ votes, communities, userId, communityId, i
             {pinError && <p className="text-sm text-red-400 text-center">{pinError}</p>}
             <div className="flex gap-3 justify-center">
               <button onClick={() => { setPinModal(null); setPin('') }}
-                className="text-sm text-gray-500 hover:text-gray-300 px-4 py-2">
-                Anuluj
-              </button>
+                className="text-sm text-gray-500 hover:text-gray-300 px-4 py-2">Anuluj</button>
               <button onClick={handleConfirmVote} disabled={isPending || pin.length !== 4}
                 className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-6 py-2 rounded-lg transition disabled:opacity-50">
                 {isPending ? 'Wysyłanie...' : 'Potwierdź'}

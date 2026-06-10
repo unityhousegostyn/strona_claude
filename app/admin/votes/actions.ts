@@ -19,6 +19,8 @@ export async function createVote(data: {
   voting_method: 'by_share' | 'one_per_owner'
   deadline?: string | null
   community_id: string
+  link_url?: string | null
+  attachment_path?: string | null
 }): Promise<{ error?: string; id?: string }> {
   const { user, profile } = await getActor()
   if (profile.role === 'user') return { error: 'Brak uprawnień' }
@@ -26,6 +28,12 @@ export async function createVote(data: {
     return { error: 'Brak uprawnień do tej wspólnoty' }
 
   if (!data.title.trim()) return { error: 'Tytuł jest wymagany' }
+
+  if (data.link_url) {
+    try { new URL(data.link_url) } catch {
+      return { error: 'Nieprawidłowy adres URL linku' }
+    }
+  }
 
   const admin = getSupabaseAdminClient()
   const { data: vote, error } = await admin.from('votes').insert({
@@ -36,6 +44,8 @@ export async function createVote(data: {
     voting_method: data.voting_method,
     deadline: data.deadline || null,
     status: 'open',
+    link_url: data.link_url || null,
+    attachment_path: data.attachment_path || null,
   }).select('id').single()
 
   if (error) return { error: error.message }
