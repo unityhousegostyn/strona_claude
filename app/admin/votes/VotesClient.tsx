@@ -262,7 +262,7 @@ export default function VotesClient({ votes, communities, userId, communityId, i
                 </div>
 
                 {/* Głosowanie */}
-                {isOpen && !myChoice && (
+                {isOpen && !myChoice && !isSuperAdmin && (
                   <div className="flex flex-wrap gap-2 pt-1 border-t border-gray-800">
                     <p className="w-full text-xs text-gray-500 mb-1">Twój głos:</p>
                     {(['yes', 'no', 'abstain'] as const).map(c => (
@@ -271,6 +271,11 @@ export default function VotesClient({ votes, communities, userId, communityId, i
                         {choiceLabel[c]}
                       </button>
                     ))}
+                  </div>
+                )}
+                {isOpen && !myChoice && isSuperAdmin && (
+                  <div className="pt-1 border-t border-gray-800">
+                    <p className="text-xs text-gray-600 italic">Administrator nie głosuje w uchwałach.</p>
                   </div>
                 )}
 
