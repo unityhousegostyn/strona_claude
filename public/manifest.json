@@ -4,8 +4,8 @@
   "description": "Panel zarządzania wspólnotą mieszkaniową",
   "start_url": "/admin/dashboard",
   "display": "standalone",
-  "background_color": "#030712",
-  "theme_color": "#030712",
+  "background_color": "#18140e",
+  "theme_color": "#d97706",
   "icons": [
     {
       "src": "/icon-192.png",
