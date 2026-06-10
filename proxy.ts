@@ -5,11 +5,12 @@ import { NextResponse, type NextRequest } from 'next/server'
 interface RateWindow { count: number; resetAt: number }
 const windows = new Map<string, RateWindow>()
 
-const LIMITS: Record<string, { max: number; windowMs: number }> = {
+// Rate limiting tylko dla POST (próby logowania) i API — GET stron nie jest limitowany
+const LIMITS: Record<string, { max: number; windowMs: number; postOnly?: boolean }> = {
   '/api/':     { max: 60,  windowMs: 60_000 },
-  '/login':    { max: 10,  windowMs: 60_000 },
-  '/register': { max: 5,   windowMs: 60_000 },
-  '/admin/':   { max: 200, windowMs: 60_000 },
+  '/login':    { max: 15,  windowMs: 60_000, postOnly: true },
+  '/register': { max: 10,  windowMs: 60_000, postOnly: true },
+  '/admin/':   { max: 300, windowMs: 60_000 },
 }
 
 function getRealIp(req: NextRequest): string {
@@ -18,10 +19,12 @@ function getRealIp(req: NextRequest): string {
     ?? 'unknown'
 }
 
-function checkRateLimit(ip: string, pathname: string): boolean {
+function checkRateLimit(ip: string, pathname: string, method: string): boolean {
   const prefix = Object.keys(LIMITS).find(p => pathname.startsWith(p))
   if (!prefix) return true
   const limit = LIMITS[prefix]
+  // Jeśli reguła dotyczy tylko POST, przepuść GET/HEAD bez liczenia
+  if (limit.postOnly && method !== 'POST') return true
   const key = `${ip}:${prefix}`
   const now = Date.now()
   const win = windows.get(key)
@@ -49,7 +52,7 @@ export async function proxy(request: NextRequest) {
   const ip = getRealIp(request)
 
   // Rate limiting
-  if (!checkRateLimit(ip, pathname)) {
+  if (!checkRateLimit(ip, pathname, request.method)) {
     return new NextResponse(
       JSON.stringify({ error: 'Zbyt wiele zadań. Poczekaj chwilę.' }),
       { status: 429, headers: { 'Content-Type': 'application/json', 'Retry-After': '60' } }
