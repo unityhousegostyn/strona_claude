@@ -93,7 +93,7 @@ export async function createTicket(formData: FormData): Promise<{ error?: string
       const recipients = [
         ...(superAdmins ?? []).map(a => a.email),
         ...(communityAdmins ?? []).map(a => a.email),
-      ].filter((e): e is string => !!e && e !== profile.email)
+      ].filter((e): e is string => !!e && e !== user.email)
       const uniqueRecipients = [...new Set(recipients)]
 
       if (uniqueRecipients.length > 0) {
@@ -101,7 +101,7 @@ export async function createTicket(formData: FormData): Promise<{ error?: string
           to: uniqueRecipients,
           ticketTitle: title,
           ticketDescription: description,
-          authorName: profile.full_name ?? profile.email ?? 'Mieszkaniec',
+          authorName: profile.full_name ?? user.email ?? 'Mieszkaniec',
           communityName: community?.name ?? communityId,
           ticketId: inserted.id,
         }).catch(() => {})
