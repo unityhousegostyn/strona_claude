@@ -65,11 +65,15 @@ export async function registerUser(formData: FormData) {
     return { success: false, message: 'Błąd zapisu profilu: ' + insertError.message }
   }
 
+  // Budujemy własny URL z tokenem — omijamy Supabase redirect i PKCE
+  const tokenHash = linkData.properties.hashed_token
+  const verifyUrl = `${APP_URL}/auth/callback?token_hash=${encodeURIComponent(tokenHash)}&type=signup`
+
   // Wyślij email weryfikacyjny przez Gmail/Nodemailer
   try {
     await sendEmailVerification({
       to: email,
-      confirmUrl: linkData.properties.action_link,
+      confirmUrl: verifyUrl,
       fullName: full_name,
     })
   } catch (err) {
