@@ -48,11 +48,11 @@ export default function LandingPage() {
           display: flex; align-items: center; justify-content: center; font-size: 18px;
         }
         .lp-nav-links { display: flex; align-items: center; gap: 8px; }
-        .lp-nav-links a {
+        .lp-nav-links a:not(.lp-btn) {
           font-size: 14px; color: var(--text2); padding: 8px 14px;
           border-radius: 8px; transition: color .2s, background .2s;
         }
-        .lp-nav-links a:hover { color: var(--text); background: rgba(26,71,49,.06); }
+        .lp-nav-links a:not(.lp-btn):hover { color: var(--text); background: rgba(26,71,49,.06); }
         .lp-btn {
           display: inline-flex; align-items: center; gap: 6px;
           background: var(--green); color: #fff; font-size: 14px; font-weight: 600;
