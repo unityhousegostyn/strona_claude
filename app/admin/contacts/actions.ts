@@ -62,7 +62,8 @@ export async function deleteContact(contactId: string): Promise<{ error?: string
       if (!contact || contact.community_id !== profile.community_id) return { error: 'Brak uprawnień' }
     }
 
-    await admin.from('contacts').delete().eq('id', contactId)
+    const { error: delError } = await admin.from('contacts').delete().eq('id', contactId)
+    if (delError) return { error: delError.message }
     await logActivity({ userId: user.id, action: 'delete_contact', targetType: 'contact', targetId: contactId })
     revalidatePath('/admin/contacts')
     return {}

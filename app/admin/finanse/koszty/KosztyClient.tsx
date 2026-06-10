@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { addExpense, updateExpense, deleteExpense, importExpensesCSV, bulkUpdateCategory } from './actions'
 import type { ExpenseCategory } from './categories'
 import { exportToExcel } from '@/lib/exportExcel'
+import Pagination from '@/components/Pagination'
 
 interface Expense {
   id: string; community_id: string; category: string; description: string
@@ -52,6 +53,8 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
   const [importComm, setImportComm] = useState(isSuperAdmin ? '' : defaultCommunityId)
   const [csvDragOver, setCsvDragOver] = useState(false)
   const [csvFileName, setCsvFileName] = useState<string | null>(null)
+  const [listPage, setListPage] = useState(1)
+  const LIST_PAGE_SIZE = 50
 
   const handleFile = useCallback((file: File) => {
     setCsvFileName(file.name); setImportResult(null)
@@ -97,6 +100,9 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
   const totalIncome = Object.values(monthlyIncome).reduce((s, v) => s + v, 0)
   const byCat: Record<string, number> = {}
   for (const e of filtered) byCat[e.category] = (byCat[e.category] ?? 0) + e.amount
+
+  const listTotalPages = Math.ceil(filtered.length / LIST_PAGE_SIZE)
+  const paginatedList = filtered.slice((listPage - 1) * LIST_PAGE_SIZE, listPage * LIST_PAGE_SIZE)
 
   const toggleSelect = (id: string) => setSelectedIds(prev => {
     const next = new Set(prev)
@@ -322,7 +328,7 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
             </div>
           ) : (
           <div className="space-y-2">
-            {filtered.map(e=>editId===e.id?(
+            {paginatedList.map(e=>editId===e.id?(
               <div key={e.id} className="bg-gray-900 border border-blue-800 rounded-xl p-4 space-y-3">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <select className="input text-sm" value={editForm.category} onChange={x=>setEditForm(p=>({...p,category:x.target.value as ExpenseCategory}))}>{categories.map(c=><option key={c.value} value={c.value}>{c.label}</option>)}</select>
@@ -346,6 +352,7 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
                 </div>
               </div>
             ))}
+            {listTotalPages > 1 && <Pagination page={listPage} totalPages={listTotalPages} onPageChange={p => { setListPage(p); setSelectedIds(new Set()) }} />}
             <div className="mt-4 pt-4 border-t border-gray-800 flex justify-between items-center"><p className="text-sm text-gray-500">{filtered.length} pozycji</p><p className="text-base font-bold text-red-400">Razem: {pln(totalExpenses)}</p></div>
           </div>
           )}

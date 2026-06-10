@@ -1,6 +1,7 @@
 'use server'
 
 import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
+import { logActivity } from '@/lib/audit'
 
 export async function addComment(ticketId: string, content: string) {
   const supabase = await getSupabaseServerClient()
@@ -34,5 +35,6 @@ export async function addComment(ticketId: string, content: string) {
     .single()
 
   if (error) throw new Error('Błąd podczas dodawania komentarza')
+  await logActivity({ userId: user.id, action: 'add_comment', targetType: 'ticket', targetId: ticketId })
   return comment
 }

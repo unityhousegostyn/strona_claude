@@ -56,7 +56,8 @@ export async function deletePost(postId: string): Promise<{ error?: string }> {
 
     if (!canDelete) return { error: 'Brak uprawnień' }
 
-    await admin.from('board_posts').delete().eq('id', postId)
+    const { error: delError } = await admin.from('board_posts').delete().eq('id', postId)
+    if (delError) return { error: delError.message }
     revalidatePath('/admin/board')
     return {}
   } catch (e: any) {
@@ -73,7 +74,8 @@ export async function togglePin(postId: string, pinned: boolean): Promise<{ erro
     if (!profile || profile.role === 'user') return { error: 'Brak uprawnień' }
 
     const admin = getSupabaseAdminClient()
-    await admin.from('board_posts').update({ pinned: !pinned }).eq('id', postId)
+    const { error: pinError } = await admin.from('board_posts').update({ pinned: !pinned }).eq('id', postId)
+    if (pinError) return { error: pinError.message }
     revalidatePath('/admin/board')
     return {}
   } catch (e: any) {
@@ -129,7 +131,8 @@ export async function deleteReply(replyId: string): Promise<{ error?: string }> 
 
     if (!canDelete) return { error: 'Brak uprawnień' }
 
-    await admin.from('board_replies').delete().eq('id', replyId)
+    const { error: delErr } = await admin.from('board_replies').delete().eq('id', replyId)
+    if (delErr) return { error: delErr.message }
     revalidatePath('/admin/board')
     return {}
   } catch (e: any) {

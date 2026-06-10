@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { addIncome, updateIncome, deleteIncome } from './actions'
 import type { IncomeCategory } from './income-categories'
 import { exportToExcel } from '@/lib/exportExcel'
+import Pagination from '@/components/Pagination'
 
 interface IncomeEntry {
   id: string; community_id: string; category: string; description: string
@@ -47,6 +48,8 @@ export default function PrzychodyClient({ incomeEntries, settlementsMap, communi
   const [csvFileName, setCsvFileName] = useState<string | null>(null)
   const [importResult, setImportResult] = useState<{ imported: number; errors: string[] } | null>(null)
   const [importComm, setImportComm] = useState(isSuperAdmin ? '' : defaultCommunityId)
+  const [listPage, setListPage] = useState(1)
+  const LIST_PAGE_SIZE = 50
 
   const handleCsvFile = useCallback((file: File) => {
     setCsvFileName(file.name); setImportResult(null)
@@ -104,6 +107,9 @@ export default function PrzychodyClient({ incomeEntries, settlementsMap, communi
   const totalOther = filtered.reduce((s, e) => s + e.amount, 0)
   const totalAll = totalSettlements + totalOther
   const maxBar = Math.max(...Object.values(monthlySettlements).map((v,i) => v + (monthlyOther[i+1] ?? 0)), 1)
+
+  const listTotalPages = Math.ceil(filtered.length / LIST_PAGE_SIZE)
+  const paginatedList = filtered.slice((listPage - 1) * LIST_PAGE_SIZE, listPage * LIST_PAGE_SIZE)
 
   const catLabel = (cat: string) => categories.find(c => c.value === cat)?.label ?? cat
   const catColors: Record<string, string> = { odsetki:'bg-yellow-950/40 text-yellow-400', zwrot:'bg-green-950/40 text-green-400', dotacja:'bg-blue-950/40 text-blue-400', inne:'bg-gray-800 text-gray-400' }
@@ -254,7 +260,7 @@ export default function PrzychodyClient({ incomeEntries, settlementsMap, communi
             <div className="text-center py-16 text-gray-500"><p className="text-3xl mb-3">💰</p><p>Brak przychodów za {filterYear} rok.</p><button onClick={() => setShowForm(true)} className="mt-4 text-sm text-green-400 hover:underline">+ Dodaj pierwszy przychód</button></div>
           ) : (
             <div className="space-y-2">
-              {filtered.map(e => editId === e.id ? (
+              {paginatedList.map(e => editId === e.id ? (
                 <div key={e.id} className="bg-gray-900 border border-green-800 rounded-xl p-4 space-y-3">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <select className="input text-sm" value={editForm.category} onChange={x => setEditForm(p => ({ ...p, category: x.target.value as IncomeCategory }))}>
@@ -281,6 +287,7 @@ export default function PrzychodyClient({ incomeEntries, settlementsMap, communi
                   </div>
                 </div>
               ))}
+              {listTotalPages > 1 && <Pagination page={listPage} totalPages={listTotalPages} onPageChange={setListPage} />}
               <div className="mt-4 pt-4 border-t border-gray-800 flex justify-between items-center"><p className="text-sm text-gray-500">{filtered.length} pozycji</p><p className="text-base font-bold text-green-400">Razem: {pln(totalOther)}</p></div>
             </div>
           )}

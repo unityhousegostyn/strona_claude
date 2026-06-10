@@ -86,3 +86,33 @@ export async function createTicket(formData: FormData): Promise<{ error?: string
     return { error: e.message ?? 'Nieznany błąd' }
   }
 }
+
+export async function updateTicket(ticketId: string, data: { title: string; description: string }): Promise<{ error?: string }> {
+  try {
+    const auth = await getAuthProfileAction()
+    if (auth.error !== null) return { error: auth.error }
+    const { user, profile } = auth
+    if (profile.role === 'user') return { error: 'Brak uprawnień' }
+
+    const title = data.title.trim()
+    const description = data.description.trim()
+    if (!title || title.length < 3 || title.length > 150) return { error: 'Tytuł musi mieć 3–150 znaków' }
+    if (!description || description.length < 10 || description.length > 2000) return { error: 'Opis musi mieć 10–2000 znaków' }
+
+    const admin = getSupabaseAdminClient()
+
+    if (profile.role === 'admin') {
+      const { data: ticket } = await admin.from('tickets').select('community_id').eq('id', ticketId).single()
+      if (!ticket || ticket.community_id !== profile.community_id) return { error: 'Brak uprawnień' }
+    }
+
+    const { error } = await admin.from('tickets').update({ title, description, updated_at: new Date().toISOString() }).eq('id', ticketId)
+    if (error) return { error: 'Błąd zapisu: ' + error.message }
+
+    await logActivity({ userId: user.id, action: 'edit_ticket', targetType: 'ticket', targetId: ticketId, meta: { title } })
+    revalidatePath(`/admin/tickets/${ticketId}`)
+    return {}
+  } catch (e: any) {
+    return { error: e.message ?? 'Nieznany błąd' }
+  }
+}

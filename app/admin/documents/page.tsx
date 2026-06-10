@@ -2,6 +2,7 @@ import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/
 import { getAuthProfile } from '@/lib/getAuthProfile'
 import { redirect } from 'next/navigation'
 import DocumentUpload from './DocumentUpload'
+import DocPreviewButton from './DocPreviewButton'
 import { deleteDocument } from './actions'
 
 export default async function DocumentsPage() {
@@ -109,14 +110,7 @@ export default async function DocumentsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0">
-                    <a
-                      href={getPublicUrl(d.storage_path)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:underline"
-                    >
-                      Pobierz
-                    </a>
+                    <DocPreviewButton url={getPublicUrl(d.storage_path)} name={d.name} />
                     {canUpload && (
                       <form action={deleteDocument.bind(null, d.id, d.storage_path)}>
                         <button type="submit" className="text-sm text-red-500 hover:text-red-400">
