@@ -163,6 +163,85 @@ export async function sendInvitation(data: {
   }
 }
 
+export async function sendBulkInvitations(data: {
+  contacts: { email: string; full_name?: string }[]
+  community_id: string
+}): Promise<{ sent: number; skipped: { email: string; reason: string }[] }> {
+  const { user: actor, profile: actorProfile } = await requireAdminOrSuperAdmin()
+
+  if (actorProfile.role === 'admin') {
+    if (data.community_id !== actorProfile.community_id) throw new Error('Brak uprawnień do tej wspólnoty')
+  }
+
+  const admin = getSupabaseAdminClient()
+
+  const { data: community } = await admin.from('communities').select('name').eq('id', data.community_id).single()
+  const communityName = community?.name ?? 'Wspólnota'
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+
+  // Pobierz istniejące emaile (profile + aktywne zaproszenia)
+  const emails = data.contacts.map(c => c.email.trim().toLowerCase()).filter(Boolean)
+  const { data: existingProfiles } = await admin.from('profiles').select('email').in('email', emails)
+  const { data: existingInvites } = await admin.from('invitations')
+    .select('email').in('email', emails).is('used_at', null).gt('expires_at', new Date().toISOString())
+
+  const existingSet = new Set([
+    ...(existingProfiles ?? []).map((p: any) => p.email),
+    ...(existingInvites ?? []).map((i: any) => i.email),
+  ])
+
+  const skipped: { email: string; reason: string }[] = []
+  const toInvite: typeof data.contacts = []
+
+  for (const c of data.contacts) {
+    const email = c.email.trim().toLowerCase()
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      skipped.push({ email: c.email, reason: 'Nieprawidłowy adres' })
+      continue
+    }
+    if (existingSet.has(email)) {
+      skipped.push({ email, reason: 'Już istnieje' })
+      continue
+    }
+    toInvite.push({ ...c, email })
+  }
+
+  if (toInvite.length === 0) return { sent: 0, skipped }
+
+  // Batch insert zaproszeń
+  const rows = toInvite.map(c => ({
+    email: c.email,
+    full_name: c.full_name?.trim() || null,
+    community_id: data.community_id,
+    invited_by: actor.id,
+    expires_at: expiresAt.toISOString(),
+  }))
+
+  const { data: inserted, error } = await admin.from('invitations').insert(rows).select('token, email, full_name')
+  if (error) throw new Error('Błąd zapisu zaproszeń: ' + error.message)
+
+  // Wysyłaj emaile (fire-and-forget per email, żeby nie blokować na wolnym SMTP)
+  let sent = 0
+  for (const inv of inserted ?? []) {
+    try {
+      await sendInvitationEmail({
+        to: inv.email,
+        communityName,
+        inviteUrl: `${APP_URL}/register?token=${inv.token}`,
+        fullName: inv.full_name ?? undefined,
+        expiresAt,
+      })
+      sent++
+    } catch {
+      skipped.push({ email: inv.email, reason: 'Błąd wysyłki' })
+    }
+  }
+
+  await logActivity({ userId: actor.id, action: 'send_bulk_invitations', targetType: 'user', meta: { count: sent, community_id: data.community_id } })
+  revalidatePath('/admin/users')
+  return { sent, skipped }
+}
+
 export async function rejectUser(userId: string) {
   const { user, profile } = await requireAdminOrSuperAdmin()
 
