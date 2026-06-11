@@ -1,0 +1,334 @@
+'use client'
+
+import { useState, useTransition } from 'react'
+import { addDeposit, closeDeposit, deleteDeposit } from './actions'
+
+type Deposit = {
+  id: string
+  community_id: string
+  type: 'lokata' | 'konto_oszczednosciowe'
+  bank_name: string | null
+  description: string | null
+  amount: number
+  interest_rate: number | null
+  start_date: string
+  end_date: string | null
+  status: 'active' | 'closed'
+}
+
+type Community = { id: string; name: string }
+
+function pln(n: number) {
+  return n.toLocaleString('pl-PL', { style: 'currency', currency: 'PLN' })
+}
+
+function daysLeft(end: string | null): number | null {
+  if (!end) return null
+  const diff = new Date(end).getTime() - Date.now()
+  return Math.ceil(diff / 86400000)
+}
+
+export default function LokatyClient({
+  communities,
+  initialDeposits,
+  isSuperAdmin,
+}: {
+  communities: Community[]
+  initialDeposits: Deposit[]
+  isSuperAdmin: boolean
+}) {
+  const [deposits, setDeposits] = useState<Deposit[]>(initialDeposits)
+  const [showForm, setShowForm] = useState(false)
+  const [, startTransition] = useTransition()
+
+  // Form state
+  const [communityId, setCommunityId] = useState(communities[0]?.id ?? '')
+  const [type, setType] = useState<'lokata' | 'konto_oszczednosciowe'>('lokata')
+  const [bankName, setBankName] = useState('')
+  const [description, setDescription] = useState('')
+  const [amount, setAmount] = useState('')
+  const [rate, setRate] = useState('')
+  const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10))
+  const [endDate, setEndDate] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const resetForm = () => {
+    setBankName(''); setDescription(''); setAmount(''); setRate('')
+    setStartDate(new Date().toISOString().slice(0, 10)); setEndDate('')
+    setType('lokata'); setError(null)
+  }
+
+  const handleAdd = async () => {
+    setError(null)
+    const amt = parseFloat(amount.replace(',', '.'))
+    if (!amt || amt <= 0) return setError('Podaj kwotę')
+    if (!startDate) return setError('Podaj datę założenia')
+
+    setSaving(true)
+    const res = await addDeposit({
+      community_id: communityId,
+      type,
+      bank_name: bankName || undefined,
+      description: description || undefined,
+      amount: amt,
+      interest_rate: rate ? parseFloat(rate.replace(',', '.')) : undefined,
+      start_date: startDate,
+      end_date: endDate || undefined,
+    })
+    setSaving(false)
+    if (res.error) { setError(res.error); return }
+    setShowForm(false)
+    resetForm()
+    // refresh — revalidatePath handles server, but we need client refresh
+    window.location.reload()
+  }
+
+  const handleClose = (id: string) => {
+    if (!confirm('Oznaczyć lokatę jako zakończoną?')) return
+    startTransition(async () => {
+      await closeDeposit(id)
+      setDeposits(d => d.map(x => x.id === id ? { ...x, status: 'closed' } : x))
+    })
+  }
+
+  const handleDelete = (id: string) => {
+    if (!confirm('Czy na pewno usunąć ten wpis?')) return
+    startTransition(async () => {
+      await deleteDeposit(id)
+      setDeposits(d => d.filter(x => x.id !== id))
+    })
+  }
+
+  const active = deposits.filter(d => d.status === 'active')
+  const closed = deposits.filter(d => d.status === 'closed')
+  const totalActive = active.reduce((s, d) => s + d.amount, 0)
+
+  const commMap = Object.fromEntries(communities.map(c => [c.id, c.name]))
+
+  const typeLabel = { lokata: '🏦 Lokata', konto_oszczednosciowe: '💳 Konto oszczędnościowe' }
+
+  return (
+    <div className="space-y-6">
+
+      {/* Podsumowanie */}
+      {active.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="bg-amber-950/30 border border-amber-800/40 rounded-xl p-4">
+            <p className="text-xs text-[#7a6a58] mb-1">Środki zablokowane</p>
+            <p className="text-2xl font-bold text-amber-400 tabular-nums">{pln(totalActive)}</p>
+            <p className="text-xs text-[#6a5a48] mt-1">{active.length} aktywna(-ych)</p>
+          </div>
+          {active.map(d => {
+            const days = daysLeft(d.end_date)
+            const urgent = days !== null && days <= 30 && days >= 0
+            const expired = days !== null && days < 0
+            return (
+              <div key={d.id} className={`rounded-xl p-4 border ${expired ? 'bg-red-950/20 border-red-900/40' : urgent ? 'bg-yellow-950/20 border-yellow-800/40' : 'bg-[#241e14] border-[#3a2e1e]'}`}>
+                <p className="text-xs font-medium text-[#b8a898] truncate">{d.bank_name ?? typeLabel[d.type]}</p>
+                <p className="text-lg font-bold text-[#f0ebe0] tabular-nums mt-1">{pln(d.amount)}</p>
+                {d.interest_rate && <p className="text-xs text-amber-500 mt-0.5">{d.interest_rate}% / rok</p>}
+                {d.end_date && (
+                  <p className={`text-xs mt-0.5 ${expired ? 'text-red-400 font-semibold' : urgent ? 'text-yellow-400' : 'text-[#6a5a48]'}`}>
+                    {expired ? '⚠️ Termin minął!' : days === 0 ? '⚠️ Dziś upływa termin' : `📅 ${days} dni do terminu`}
+                  </p>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Lista aktywnych */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xs font-semibold text-[#6a5a48] uppercase tracking-widest">Aktywne lokaty i konta</h3>
+          <button
+            onClick={() => { setShowForm(v => !v); if (showForm) resetForm() }}
+            className="flex items-center gap-1.5 text-sm font-semibold text-amber-500 hover:text-amber-400 transition"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={showForm ? 'M6 18L18 6M6 6l12 12' : 'M12 4v16m8-8H4'} />
+            </svg>
+            {showForm ? 'Anuluj' : 'Dodaj'}
+          </button>
+        </div>
+
+        {/* Formularz */}
+        {showForm && (
+          <div className="bg-[#241e14] border border-amber-800/40 rounded-xl p-5 mb-4 space-y-4">
+            <h4 className="text-sm font-semibold text-[#f0ebe0]">Nowa lokata / konto oszczędnościowe</h4>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {isSuperAdmin && communities.length > 1 && (
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-[#7a6a58] mb-1.5 uppercase tracking-wide">Wspólnota</label>
+                  <select value={communityId} onChange={e => setCommunityId(e.target.value)} className="input w-full">
+                    {communities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-semibold text-[#7a6a58] mb-1.5 uppercase tracking-wide">Typ</label>
+                <select value={type} onChange={e => setType(e.target.value as any)} className="input w-full">
+                  <option value="lokata">🏦 Lokata terminowa</option>
+                  <option value="konto_oszczednosciowe">💳 Konto oszczędnościowe</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#7a6a58] mb-1.5 uppercase tracking-wide">Bank</label>
+                <input value={bankName} onChange={e => setBankName(e.target.value)} placeholder="np. PKO BP, Santander…" className="input w-full" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#7a6a58] mb-1.5 uppercase tracking-wide">Kwota (zł) *</label>
+                <input value={amount} onChange={e => setAmount(e.target.value)} placeholder="np. 50000" type="number" min="0" step="0.01" className="input w-full" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#7a6a58] mb-1.5 uppercase tracking-wide">Oprocentowanie (% / rok)</label>
+                <input value={rate} onChange={e => setRate(e.target.value)} placeholder="np. 5.5" type="number" min="0" step="0.01" className="input w-full" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#7a6a58] mb-1.5 uppercase tracking-wide">Data założenia *</label>
+                <input value={startDate} onChange={e => setStartDate(e.target.value)} type="date" className="input w-full" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#7a6a58] mb-1.5 uppercase tracking-wide">Termin (data zakończenia)</label>
+                <input value={endDate} onChange={e => setEndDate(e.target.value)} type="date" className="input w-full" placeholder="Zostaw puste dla konta bez terminu" />
+                <p className="text-xs text-[#4a3c28] mt-1">Zostaw puste dla konta bez określonego terminu</p>
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-semibold text-[#7a6a58] mb-1.5 uppercase tracking-wide">Opis / notatka</label>
+                <input value={description} onChange={e => setDescription(e.target.value)} placeholder="np. Lokata 6-miesięczna, nr rachunku…" className="input w-full" />
+              </div>
+            </div>
+
+            {error && <p className="text-sm text-red-400 bg-red-950/20 border border-red-900/40 rounded-lg px-3 py-2">{error}</p>}
+
+            <div className="flex justify-end">
+              <button
+                onClick={handleAdd}
+                disabled={saving}
+                className="flex items-center gap-2 bg-amber-700 hover:bg-amber-600 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition disabled:opacity-40"
+              >
+                {saving ? 'Zapisuję…' : 'Dodaj lokatę'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {active.length === 0 && !showForm ? (
+          <div className="bg-[#241e14] border border-dashed border-[#3a2e1e] rounded-xl p-8 text-center">
+            <p className="text-4xl mb-3">🏦</p>
+            <p className="text-sm text-[#7a6a58]">Brak aktywnych lokat ani kont oszczędnościowych.</p>
+            <button onClick={() => setShowForm(true)} className="mt-3 text-sm text-amber-500 hover:underline">
+              + Dodaj pierwszą lokatę
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {active.map(d => <DepositRow key={d.id} d={d} commMap={commMap} isSuperAdmin={isSuperAdmin} onClose={handleClose} onDelete={handleDelete} showComm={isSuperAdmin && communities.length > 1} />)}
+          </div>
+        )}
+      </div>
+
+      {/* Zamknięte */}
+      {closed.length > 0 && (
+        <div>
+          <h3 className="text-xs font-semibold text-[#6a5a48] uppercase tracking-widest mb-3">Zakończone</h3>
+          <div className="space-y-2 opacity-60">
+            {closed.map(d => <DepositRow key={d.id} d={d} commMap={commMap} isSuperAdmin={isSuperAdmin} onClose={() => {}} onDelete={handleDelete} showComm={isSuperAdmin && communities.length > 1} />)}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function DepositRow({
+  d, commMap, isSuperAdmin, onClose, onDelete, showComm
+}: {
+  d: Deposit
+  commMap: Record<string, string>
+  isSuperAdmin: boolean
+  onClose: (id: string) => void
+  onDelete: (id: string) => void
+  showComm: boolean
+}) {
+  const days = daysLeft(d.end_date)
+  const expired = days !== null && days < 0
+  const urgent = days !== null && days <= 30 && days >= 0
+  const typeLabel: Record<string, string> = { lokata: '🏦 Lokata', konto_oszczednosciowe: '💳 Konto oszcz.' }
+
+  // Szacowane odsetki do terminu
+  let estimatedInterest: number | null = null
+  if (d.interest_rate && d.end_date) {
+    const months = (new Date(d.end_date).getTime() - new Date(d.start_date).getTime()) / (1000 * 60 * 60 * 24 * 365)
+    estimatedInterest = d.amount * (d.interest_rate / 100) * months
+  }
+
+  return (
+    <div className={`bg-[#241e14] border rounded-xl px-4 py-3.5 flex items-start gap-4 ${expired ? 'border-red-900/50' : urgent ? 'border-yellow-800/50' : 'border-[#3a2e1e]'}`}>
+      <div className="text-2xl flex-shrink-0 mt-0.5">{d.type === 'lokata' ? '🏦' : '💳'}</div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <p className="text-sm font-semibold text-[#f0ebe0]">
+              {d.bank_name || typeLabel[d.type]}
+              {d.status === 'closed' && <span className="ml-2 text-xs text-[#6a5a48] font-normal">(zakończona)</span>}
+            </p>
+            {d.description && <p className="text-xs text-[#7a6a58] mt-0.5 truncate">{d.description}</p>}
+            {showComm && <p className="text-xs text-[#4a3c28] mt-0.5">{commMap[d.community_id] ?? '—'}</p>}
+          </div>
+          <p className="text-base font-bold text-amber-400 tabular-nums flex-shrink-0">{pln(d.amount)}</p>
+        </div>
+
+        <div className="flex items-center gap-4 mt-2 flex-wrap">
+          {d.interest_rate != null && (
+            <span className="text-xs text-green-400 bg-green-950/20 border border-green-900/30 px-2 py-0.5 rounded-full">
+              {d.interest_rate}%/rok
+              {estimatedInterest ? ` ≈ +${pln(estimatedInterest)}` : ''}
+            </span>
+          )}
+          <span className="text-xs text-[#6a5a48]">od {new Date(d.start_date).toLocaleDateString('pl-PL')}</span>
+          {d.end_date && (
+            <span className={`text-xs font-medium ${expired ? 'text-red-400' : urgent ? 'text-yellow-400' : 'text-[#7a6a58]'}`}>
+              {expired ? '⚠️ termin minął' : `do ${new Date(d.end_date).toLocaleDateString('pl-PL')}${days !== null ? ` (${days} dni)` : ''}`}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {d.status === 'active' && (
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            onClick={() => onClose(d.id)}
+            title="Oznacz jako zakończona"
+            className="p-1.5 rounded-lg text-[#6a5a48] hover:text-amber-400 hover:bg-[#18140e] transition"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
+            </svg>
+          </button>
+          {isSuperAdmin && (
+            <button
+              onClick={() => onDelete(d.id)}
+              title="Usuń"
+              className="p-1.5 rounded-lg text-[#6a5a48] hover:text-red-400 hover:bg-red-950/20 transition"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}

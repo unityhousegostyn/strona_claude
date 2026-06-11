@@ -30,7 +30,7 @@ export default async function DashboardPage() {
       commCount, userCount, ticketCount, pendingCount,
       allTickets, communities, recentTickets, recentPosts, postAuthors,
       allApartments, allVotes, allEntries, activeUsers, allExpenses,
-      allIncome, recentAudit,
+      allIncome, allDeposits, recentAudit,
     ] = await Promise.all([
       admin.from('communities').select('id', { count: 'exact', head: true }),
       admin.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'active'),
@@ -49,6 +49,7 @@ export default async function DashboardPage() {
       admin.from('profiles').select('id, community_id').eq('role', 'user').eq('status', 'active'),
       admin.from('community_expenses').select('community_id, amount'),
       admin.from('community_income').select('community_id, amount'),
+      admin.from('community_deposits').select('community_id, amount, status'),
       admin.from('audit_logs').select('id, action, target_type, created_at, user_id').order('created_at', { ascending: false }).limit(8),
     ])
 
@@ -61,10 +62,10 @@ export default async function DashboardPage() {
     }
 
     // Per-community stats
-    interface CommStats { apartments: number; users: number; openTickets: number; openVotes: number; totalPaid: number; totalExpenses: number; totalIncome: number }
+    interface CommStats { apartments: number; users: number; openTickets: number; openVotes: number; totalPaid: number; totalExpenses: number; totalIncome: number; totalDeposits: number }
     const commStats: Record<string, CommStats> = {}
     for (const c of communities.data ?? []) {
-      commStats[c.id] = { apartments: 0, users: 0, openTickets: 0, openVotes: 0, totalPaid: 0, totalExpenses: 0, totalIncome: 0 }
+      commStats[c.id] = { apartments: 0, users: 0, openTickets: 0, openVotes: 0, totalPaid: 0, totalExpenses: 0, totalIncome: 0, totalDeposits: 0 }
     }
     for (const a of allApartments.data ?? []) {
       if (commStats[a.community_id]) commStats[a.community_id].apartments++
@@ -89,6 +90,9 @@ export default async function DashboardPage() {
     for (const e of allIncome.data ?? []) {
       if (commStats[e.community_id]) commStats[e.community_id].totalIncome += e.amount ?? 0
     }
+    for (const d of allDeposits.data ?? []) {
+      if (d.status === 'active' && commStats[d.community_id]) commStats[d.community_id].totalDeposits += d.amount ?? 0
+    }
 
     const totalApartments = (allApartments.data ?? []).length
     const openVotesCount = (allVotes.data ?? []).filter(v => v.status === 'open' && (!v.deadline || new Date(v.deadline) > now)).length
@@ -111,6 +115,7 @@ export default async function DashboardPage() {
     const totalPaidAll = Object.values(commStats).reduce((s, c) => s + c.totalPaid, 0)
     const totalExpAll = Object.values(commStats).reduce((s, c) => s + c.totalExpenses, 0)
     const totalIncomeAll = Object.values(commStats).reduce((s, c) => s + c.totalIncome, 0)
+    const totalDepositsAll = Object.values(commStats).reduce((s, c) => s + c.totalDeposits, 0)
     const totalBalance = totalPaidAll + totalIncomeAll - totalExpAll
 
     return (
@@ -160,11 +165,23 @@ export default async function DashboardPage() {
             <div className={`rounded-xl p-4 ${totalBalance >= 0 ? 'bg-amber-950/30 border border-amber-800/40' : 'bg-red-950/30 border border-red-900/40'}`}>
               <p className="text-xs text-[#6a5a48] mb-1">Łączne saldo</p>
               <p className={`text-3xl font-bold tabular-nums ${totalBalance >= 0 ? 'text-amber-400' : 'text-red-400'}`}>{pln(totalBalance)}</p>
-              <p className="text-xs text-[#6a5a48] mt-1">wpłaty + przychody − koszty, wszystkie wspólnoty</p>
+              <p className="text-xs text-[#6a5a48] mt-1">wpłaty + przychody − koszty</p>
             </div>
+            {totalDepositsAll > 0 && (
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-[#18140e] border border-[#3a2e1e] rounded-lg p-3">
+                  <p className="text-[10px] text-[#6a5a48] mb-0.5">🏦 Lokaty / Oszczędności</p>
+                  <p className="text-sm font-bold text-amber-400 tabular-nums">{pln(totalDepositsAll)}</p>
+                </div>
+                <div className="bg-[#18140e] border border-[#3a2e1e] rounded-lg p-3">
+                  <p className="text-[10px] text-[#6a5a48] mb-0.5">💳 Środki płynne</p>
+                  <p className="text-sm font-bold text-[#f0ebe0] tabular-nums">{pln(totalBalance - totalDepositsAll)}</p>
+                </div>
+              </div>
+            )}
             <div className="space-y-3">
               {(communities.data ?? []).map(c => {
-                const s = commStats[c.id] ?? { totalPaid: 0, totalExpenses: 0, totalIncome: 0 }
+                const s = commStats[c.id] ?? { totalPaid: 0, totalExpenses: 0, totalIncome: 0, totalDeposits: 0 }
                 const bal = s.totalPaid + s.totalIncome - s.totalExpenses
                 const pct = s.totalExpenses > 0 ? Math.min(100, Math.round(((s.totalPaid + s.totalIncome) / s.totalExpenses) * 100)) : (s.totalPaid + s.totalIncome > 0 ? 100 : 0)
                 return (
@@ -197,7 +214,7 @@ export default async function DashboardPage() {
           <h3 className="text-xs font-semibold text-[#6a5a48] uppercase tracking-widest mb-3">Przegląd wspólnot</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {(communities.data ?? []).map((c) => {
-              const s = commStats[c.id] ?? { apartments: 0, users: 0, openTickets: 0, openVotes: 0, totalPaid: 0, totalExpenses: 0, totalIncome: 0 }
+              const s = commStats[c.id] ?? { apartments: 0, users: 0, openTickets: 0, openVotes: 0, totalPaid: 0, totalExpenses: 0, totalIncome: 0, totalDeposits: 0 }
               const bal = s.totalPaid + s.totalIncome - s.totalExpenses
               return (
                 <div key={c.id} className="bg-[#241e14] border border-[#3a2e1e] rounded-xl p-5 hover:border-[#4a3c28] transition-colors">
@@ -232,6 +249,13 @@ export default async function DashboardPage() {
                       <p className="text-[10px] text-[#4a3c28] mt-0.5">
                         {Math.min(100, Math.round(((s.totalPaid + s.totalIncome) / s.totalExpenses) * 100))}% pokrycia kosztów
                       </p>
+                    </div>
+                  )}
+                  {s.totalDeposits > 0 && (
+                    <div className="flex items-center gap-2 mt-1.5 pt-1.5 border-t border-[#2a2218]">
+                      <span className="text-xs text-[#6a5a48]">🏦 Na lokacie:</span>
+                      <span className="text-xs font-semibold text-amber-500 tabular-nums">{pln(s.totalDeposits)}</span>
+                      <span className="text-[10px] text-[#4a3c28]">· płynne: {pln(bal - s.totalDeposits)}</span>
                     </div>
                   )}
                 </div>

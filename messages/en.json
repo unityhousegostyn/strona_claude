@@ -17,7 +17,8 @@
     "przychody": "Income",
     "raporty": "Reports",
     "water_meters": "Water Meters",
-    "messages": "Send Message"
+    "messages": "Send Message",
+    "lokaty": "Deposits / Savings"
   },
   "common": {
     "save": "Save",
