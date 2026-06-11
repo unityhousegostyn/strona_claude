@@ -29,7 +29,7 @@ export async function createCommunity(formData: { name: string; address: string 
   revalidatePath('/admin/communities')
 }
 
-export async function updateCommunity(id: string, formData: { name: string; address: string }) {
+export async function updateCommunity(id: string, formData: { name: string; address: string; water_meter_enabled?: boolean }) {
   await requireSuperAdmin()
 
   const name = formData.name.trim()
@@ -40,7 +40,9 @@ export async function updateCommunity(id: string, formData: { name: string; addr
   if (!id) throw new Error('Brak ID wspólnoty')
 
   const admin = getSupabaseAdminClient()
-  const { error } = await admin.from('communities').update({ name, address }).eq('id', id)
+  const updateData: Record<string, unknown> = { name, address }
+  if (formData.water_meter_enabled !== undefined) updateData.water_meter_enabled = formData.water_meter_enabled
+  const { error } = await admin.from('communities').update(updateData).eq('id', id)
   if (error) throw new Error('Błąd podczas zapisywania')
   const { user } = await requireSuperAdmin()
   await logActivity({ userId: user!.id, action: 'update_community', targetType: 'community', targetId: id, meta: { name } })

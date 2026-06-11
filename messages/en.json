@@ -15,7 +15,8 @@
     "finanse": "Finance",
     "koszty": "Expenses",
     "przychody": "Income",
-    "raporty": "Reports"
+    "raporty": "Reports",
+    "water_meters": "Water Meters"
   },
   "common": {
     "save": "Save",

@@ -46,6 +46,7 @@ function useNavEntries(role: string): NavEntry[] {
   }
   if (role === 'super_admin' || role === 'admin') {
     entries.push({ href: '/admin/users', label: t('nav.users'), icon: '👥' })
+    entries.push({ href: '/admin/water-meters', label: t('nav.water_meters'), icon: '💧' })
   }
   if (role === 'super_admin') {
     entries.push({ href: '/admin/audit', label: t('nav.audit'), icon: '🔍' })

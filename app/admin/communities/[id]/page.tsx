@@ -12,6 +12,7 @@ export default function EditCommunityPage() {
 
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
+  const [waterMeterEnabled, setWaterMeterEnabled] = useState(false)
   const [loading, setLoading] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -26,6 +27,7 @@ export default function EditCommunityPage() {
       if (data) {
         setName(data.name)
         setAddress(data.address)
+        setWaterMeterEnabled(data.water_meter_enabled ?? false)
       }
     }
     load()
@@ -40,7 +42,7 @@ export default function EditCommunityPage() {
     setError(null)
 
     try {
-      await updateCommunity(id as string, { name, address })
+      await updateCommunity(id as string, { name, address, water_meter_enabled: waterMeterEnabled })
       router.push('/admin/communities')
     } catch (e: any) {
       setError(e.message ?? 'Błąd podczas zapisywania.')
@@ -87,6 +89,19 @@ export default function EditCommunityPage() {
             value={address}
             onChange={(e) => setAddress(e.target.value)}
           />
+        </div>
+        <div className="flex items-center justify-between py-2">
+          <div>
+            <p className="text-sm font-medium text-[#b8a898]">Moduł liczników wody</p>
+            <p className="text-xs text-[#6a5a48] mt-0.5">Mieszkańcy tej wspólnoty mogą zgłaszać odczyty wodomierzy</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setWaterMeterEnabled(v => !v)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${waterMeterEnabled ? 'bg-blue-600' : 'bg-[#3a2e1e]'}`}
+          >
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${waterMeterEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+          </button>
         </div>
       </div>
 

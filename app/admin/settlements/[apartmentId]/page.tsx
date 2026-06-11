@@ -3,6 +3,7 @@ import { getAuthProfile } from '@/lib/getAuthProfile'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import MonthlyTable from './MonthlyTable'
+import WaterMeterForm from '@/components/WaterMeterForm'
 
 export default async function ApartmentSettlementPage({
   params,
@@ -37,6 +38,13 @@ export default async function ApartmentSettlementPage({
   }
 
   const readonly = profile.role === 'user'
+
+  // Sprawdź czy wspólnota ma włączone liczniki (tylko dla usera)
+  let waterMeterEnabled = false
+  if (profile.role === 'user') {
+    const { data: comm } = await admin.from('communities').select('water_meter_enabled').eq('id', apartment.community_id).single()
+    waterMeterEnabled = comm?.water_meter_enabled ?? false
+  }
 
   const [ratesRes, entriesRes, reconcRes, openingBalanceRes] = await Promise.all([
     admin.from('settlement_rates').select('*')
@@ -144,6 +152,10 @@ export default async function ApartmentSettlementPage({
         readonly={readonly}
         savedOpeningBalance={openingBalance}
       />
+
+      {profile.role === 'user' && waterMeterEnabled && apartment.has_meter && (
+        <WaterMeterForm apartmentId={apartmentId} />
+      )}
     </div>
   )
 }
