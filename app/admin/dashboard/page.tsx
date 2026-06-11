@@ -174,7 +174,7 @@ export default async function DashboardPage() {
                   <p className="text-sm font-bold text-amber-400 tabular-nums">{pln(totalDepositsAll)}</p>
                 </div>
                 <div className="bg-[#18140e] border border-[#3a2e1e] rounded-lg p-3">
-                  <p className="text-[10px] text-[#6a5a48] mb-0.5">💳 Środki płynne</p>
+                  <p className="text-[10px] text-[#6a5a48] mb-0.5">💳 Fundusz eksploatacyjny</p>
                   <p className="text-sm font-bold text-[#f0ebe0] tabular-nums">{pln(totalBalance - totalDepositsAll)}</p>
                 </div>
               </div>
@@ -255,7 +255,7 @@ export default async function DashboardPage() {
                     <div className="flex items-center gap-2 mt-1.5 pt-1.5 border-t border-[#2a2218]">
                       <span className="text-xs text-[#6a5a48]">🏦 Na lokacie:</span>
                       <span className="text-xs font-semibold text-amber-500 tabular-nums">{pln(s.totalDeposits)}</span>
-                      <span className="text-[10px] text-[#4a3c28]">· płynne: {pln(bal - s.totalDeposits)}</span>
+                      <span className="text-[10px] text-[#4a3c28]">· fundusz: {pln(bal - s.totalDeposits)}</span>
                     </div>
                   )}
                 </div>
