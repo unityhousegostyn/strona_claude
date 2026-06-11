@@ -29,8 +29,8 @@ export default async function DashboardPage() {
     const [
       commCount, userCount, ticketCount, pendingCount,
       allTickets, communities, recentTickets, recentPosts, postAuthors,
-      allApartments, allVotes, yearEntries, activeUsers, yearExpenses,
-      recentAudit,
+      allApartments, allVotes, allEntries, activeUsers, allExpenses,
+      allIncome, recentAudit,
     ] = await Promise.all([
       admin.from('communities').select('id', { count: 'exact', head: true }),
       admin.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'active'),
@@ -45,9 +45,10 @@ export default async function DashboardPage() {
       admin.from('profiles').select('id, full_name, email'),
       admin.from('settlement_apartments').select('id, community_id').eq('active', true),
       admin.from('votes').select('id, community_id, status, title, deadline, created_at').order('created_at', { ascending: false }),
-      admin.from('settlement_entries').select('paid, apartment:settlement_apartments!inner(community_id)').eq('year', currentYear),
+      admin.from('settlement_entries').select('paid, apartment:settlement_apartments!inner(community_id)'),
       admin.from('profiles').select('id, community_id').eq('role', 'user').eq('status', 'active'),
-      admin.from('community_expenses').select('community_id, amount').eq('year', currentYear),
+      admin.from('community_expenses').select('community_id, amount'),
+      admin.from('community_income').select('community_id, amount'),
       admin.from('audit_logs').select('id, action, target_type, created_at, user_id').order('created_at', { ascending: false }).limit(8),
     ])
 
@@ -60,10 +61,10 @@ export default async function DashboardPage() {
     }
 
     // Per-community stats
-    interface CommStats { apartments: number; users: number; openTickets: number; openVotes: number; totalPaid: number; totalExpenses: number }
+    interface CommStats { apartments: number; users: number; openTickets: number; openVotes: number; totalPaid: number; totalExpenses: number; totalIncome: number }
     const commStats: Record<string, CommStats> = {}
     for (const c of communities.data ?? []) {
-      commStats[c.id] = { apartments: 0, users: 0, openTickets: 0, openVotes: 0, totalPaid: 0, totalExpenses: 0 }
+      commStats[c.id] = { apartments: 0, users: 0, openTickets: 0, openVotes: 0, totalPaid: 0, totalExpenses: 0, totalIncome: 0 }
     }
     for (const a of allApartments.data ?? []) {
       if (commStats[a.community_id]) commStats[a.community_id].apartments++
@@ -78,12 +79,15 @@ export default async function DashboardPage() {
       const isActive = v.status === 'open' && (!v.deadline || new Date(v.deadline) > now)
       if (isActive && commStats[v.community_id]) commStats[v.community_id].openVotes++
     }
-    for (const e of yearEntries.data ?? []) {
+    for (const e of allEntries.data ?? []) {
       const commId = (e.apartment as any)?.community_id
       if (commId && commStats[commId]) commStats[commId].totalPaid += e.paid ?? 0
     }
-    for (const e of yearExpenses.data ?? []) {
+    for (const e of allExpenses.data ?? []) {
       if (commStats[e.community_id]) commStats[e.community_id].totalExpenses += e.amount ?? 0
+    }
+    for (const e of allIncome.data ?? []) {
+      if (commStats[e.community_id]) commStats[e.community_id].totalIncome += e.amount ?? 0
     }
 
     const totalApartments = (allApartments.data ?? []).length
@@ -103,10 +107,11 @@ export default async function DashboardPage() {
     }
     const chartData = Object.entries(months6).map(([name, v]) => ({ name, ...v }))
 
-    // Łączne sumy finansowe
+    // Łączne sumy finansowe (wszystkie lata — saldo bieżące konta)
     const totalPaidAll = Object.values(commStats).reduce((s, c) => s + c.totalPaid, 0)
     const totalExpAll = Object.values(commStats).reduce((s, c) => s + c.totalExpenses, 0)
-    const totalBalance = totalPaidAll - totalExpAll
+    const totalIncomeAll = Object.values(commStats).reduce((s, c) => s + c.totalIncome, 0)
+    const totalBalance = totalPaidAll + totalIncomeAll - totalExpAll
 
     return (
       <div className="space-y-6">
@@ -149,19 +154,19 @@ export default async function DashboardPage() {
           {/* Podsumowanie finansowe */}
           <div className="bg-[#241e14] border border-[#3a2e1e] rounded-xl p-5 flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-[#b8a898] uppercase tracking-wide">Finanse {currentYear}</h3>
+              <h3 className="text-sm font-semibold text-[#b8a898] uppercase tracking-wide">Stan konta</h3>
               <Link href="/admin/finanse/raporty" className="text-xs text-amber-500 hover:underline">Raporty →</Link>
             </div>
             <div className={`rounded-xl p-4 ${totalBalance >= 0 ? 'bg-amber-950/30 border border-amber-800/40' : 'bg-red-950/30 border border-red-900/40'}`}>
               <p className="text-xs text-[#6a5a48] mb-1">Łączne saldo</p>
               <p className={`text-3xl font-bold tabular-nums ${totalBalance >= 0 ? 'text-amber-400' : 'text-red-400'}`}>{pln(totalBalance)}</p>
-              <p className="text-xs text-[#6a5a48] mt-1">wpłaty − koszty, wszystkie wspólnoty</p>
+              <p className="text-xs text-[#6a5a48] mt-1">wpłaty + przychody − koszty, wszystkie wspólnoty</p>
             </div>
             <div className="space-y-3">
               {(communities.data ?? []).map(c => {
-                const s = commStats[c.id] ?? { totalPaid: 0, totalExpenses: 0 }
-                const bal = s.totalPaid - s.totalExpenses
-                const pct = s.totalExpenses > 0 ? Math.min(100, Math.round((s.totalPaid / s.totalExpenses) * 100)) : (s.totalPaid > 0 ? 100 : 0)
+                const s = commStats[c.id] ?? { totalPaid: 0, totalExpenses: 0, totalIncome: 0 }
+                const bal = s.totalPaid + s.totalIncome - s.totalExpenses
+                const pct = s.totalExpenses > 0 ? Math.min(100, Math.round(((s.totalPaid + s.totalIncome) / s.totalExpenses) * 100)) : (s.totalPaid + s.totalIncome > 0 ? 100 : 0)
                 return (
                   <div key={c.id}>
                     <div className="flex items-center justify-between mb-1">
@@ -192,8 +197,8 @@ export default async function DashboardPage() {
           <h3 className="text-xs font-semibold text-[#6a5a48] uppercase tracking-widest mb-3">Przegląd wspólnot</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {(communities.data ?? []).map((c) => {
-              const s = commStats[c.id] ?? { apartments: 0, users: 0, openTickets: 0, openVotes: 0, totalPaid: 0, totalExpenses: 0 }
-              const bal = s.totalPaid - s.totalExpenses
+              const s = commStats[c.id] ?? { apartments: 0, users: 0, openTickets: 0, openVotes: 0, totalPaid: 0, totalExpenses: 0, totalIncome: 0 }
+              const bal = s.totalPaid + s.totalIncome - s.totalExpenses
               return (
                 <div key={c.id} className="bg-[#241e14] border border-[#3a2e1e] rounded-xl p-5 hover:border-[#4a3c28] transition-colors">
                   <div className="flex items-start justify-between mb-4">
@@ -214,7 +219,7 @@ export default async function DashboardPage() {
                     </div>
                     <div className={`rounded-lg p-3 text-center ${bal >= 0 ? 'bg-amber-950/20 border border-amber-900/30' : 'bg-red-950/20 border border-red-900/30'}`}>
                       <p className={`text-sm font-bold tabular-nums leading-tight ${bal >= 0 ? 'text-amber-400' : 'text-red-400'}`}>{pln(bal)}</p>
-                      <p className="text-[10px] text-[#6a5a48] mt-0.5">Saldo {currentYear}</p>
+                      <p className="text-[10px] text-[#6a5a48] mt-0.5">Stan konta</p>
                     </div>
                   </div>
                   {/* mini pasek płatności */}
@@ -222,10 +227,10 @@ export default async function DashboardPage() {
                     <div>
                       <div className="h-1 bg-[#18140e] rounded-full overflow-hidden">
                         <div className={`h-full rounded-full ${bal >= 0 ? 'bg-amber-600' : 'bg-red-600'}`}
-                          style={{ width: `${Math.min(100, Math.round((s.totalPaid / s.totalExpenses) * 100))}%` }} />
+                          style={{ width: `${Math.min(100, Math.round(((s.totalPaid + s.totalIncome) / s.totalExpenses) * 100))}%` }} />
                       </div>
                       <p className="text-[10px] text-[#4a3c28] mt-0.5">
-                        {Math.min(100, Math.round((s.totalPaid / s.totalExpenses) * 100))}% pokrycia kosztów
+                        {Math.min(100, Math.round(((s.totalPaid + s.totalIncome) / s.totalExpenses) * 100))}% pokrycia kosztów
                       </p>
                     </div>
                   )}
