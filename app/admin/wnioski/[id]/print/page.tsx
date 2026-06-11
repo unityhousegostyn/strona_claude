@@ -17,7 +17,7 @@ export default async function PrintRequestPage({ params }: { params: { id: strin
 
   const { data: req } = await admin
     .from('community_requests')
-    .select('*, profile:profiles(full_name, email), community:communities(name, address)')
+    .select('*, community:communities(name)')
     .eq('id', params.id)
     .single()
 
@@ -27,9 +27,16 @@ export default async function PrintRequestPage({ params }: { params: { id: strin
   if (profile.role === 'user' && req.user_id !== user.id) redirect('/admin/wnioski')
   if (profile.role === 'admin' && req.community_id !== profile.community_id) redirect('/admin/wnioski')
 
-  const applicantName = req.profile?.full_name ?? req.profile?.email ?? 'Wnioskodawca'
+  // Pobierz dane wnioskodawcy osobno (FK do auth.users, nie profiles)
+  const { data: applicantProfile } = await admin
+    .from('profiles')
+    .select('full_name, email')
+    .eq('id', req.user_id)
+    .single()
+
+  const applicantName = applicantProfile?.full_name ?? applicantProfile?.email ?? 'Wnioskodawca'
   const communityName = req.community?.name ?? 'Wspólnota Mieszkaniowa'
-  const communityAddress = req.community?.address ?? ''
+  const communityAddress = ''
   const submittedDate = new Date(req.created_at).toLocaleDateString('pl-PL', {
     day: '2-digit', month: 'long', year: 'numeric',
   })

@@ -11,22 +11,44 @@ export default async function WnioskiPage() {
   const isSuperAdmin = profile.role === 'super_admin'
   const isUser = profile.role === 'user'
 
-  // Buduj zapytanie
+  // Pobierz wnioski (bez embedded join do profiles — FK jest do auth.users, nie profiles)
   let query = admin
     .from('community_requests')
-    .select('*, profile:profiles(full_name, email), community:communities(name)')
+    .select('*, community:communities(name)')
     .order('created_at', { ascending: false })
 
   if (isUser) {
-    // Mieszkaniec widzi tylko swoje wnioski
     query = query.eq('user_id', user.id) as any
   } else if (isAdmin && profile.community_id) {
-    // Admin widzi wnioski swojej wspólnoty
     query = query.eq('community_id', profile.community_id) as any
   }
-  // super_admin widzi wszystko
 
-  const { data: requests } = await query
+  const { data: requests, error } = await query
+
+  if (error) {
+    console.error('[wnioski/page] query error:', error.message)
+  }
+
+  const list = requests ?? []
+
+  // Pobierz dane profili dla znalezionych user_id
+  let profileMap: Record<string, { full_name: string | null; email: string }> = {}
+  if (list.length > 0) {
+    const userIds = [...new Set(list.map((r: any) => r.user_id))]
+    const { data: profiles } = await admin
+      .from('profiles')
+      .select('id, full_name, email')
+      .in('id', userIds)
+    for (const p of profiles ?? []) {
+      profileMap[p.id] = { full_name: p.full_name, email: p.email }
+    }
+  }
+
+  // Scal dane
+  const enriched = list.map((r: any) => ({
+    ...r,
+    profile: profileMap[r.user_id] ?? null,
+  }))
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -39,7 +61,7 @@ export default async function WnioskiPage() {
         </p>
       </div>
       <WnioskiClient
-        requests={(requests ?? []) as any}
+        requests={enriched as any}
         isAdmin={isAdmin}
         isSuperAdmin={isSuperAdmin}
         communityId={profile.community_id}
