@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import { getAuthProfileAction } from '@/lib/getAuthProfile'
 import { verifyPin } from '@/lib/pin'
+import { sendNewVoteEmail } from '@/lib/email'
 
 async function getActor() {
   const auth = await getAuthProfileAction()
@@ -50,6 +51,31 @@ export async function createVote(data: {
 
   if (error) return { error: error.message }
   revalidatePath('/admin/votes')
+
+  // Wyślij emaile do aktywnych mieszkańców wspólnoty
+  try {
+    const [usersRes, communityRes] = await Promise.all([
+      admin.from('profiles')
+        .select('email')
+        .eq('community_id', data.community_id)
+        .eq('role', 'user')
+        .eq('status', 'active')
+        .not('email', 'is', null),
+      admin.from('communities').select('name').eq('id', data.community_id).single(),
+    ])
+    const emails = (usersRes.data ?? []).map(u => u.email).filter(Boolean) as string[]
+    if (emails.length > 0) {
+      await sendNewVoteEmail({
+        to: emails,
+        voteTitle: data.title,
+        voteDescription: data.description,
+        deadline: data.deadline,
+        communityName: communityRes.data?.name ?? '',
+        voteId: vote.id,
+      })
+    }
+  } catch {}
+
   return { id: vote.id }
 }
 

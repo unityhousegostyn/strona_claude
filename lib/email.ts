@@ -475,6 +475,48 @@ function invitationLayout(communityName: string, content: string) {
 </html>`
 }
 
+export async function sendNewVoteEmail(params: {
+  to: string[]
+  voteTitle: string
+  voteDescription?: string | null
+  deadline?: string | null
+  communityName: string
+  voteId: string
+}) {
+  if (params.to.length === 0) return
+  const deadlineStr = params.deadline
+    ? new Date(params.deadline).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    : null
+
+  await sendMail({
+    to: params.to,
+    subject: `Nowe głosowanie: ${params.voteTitle}`,
+    html: layout(`
+      <p style="margin:0 0 4px;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#64748b;">NOWE GŁOSOWANIE</p>
+      <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#d97706;">${params.voteTitle}</h1>
+      <p style="margin:0 0 28px;font-size:13px;color:#64748b;">${params.communityName}</p>
+
+      ${params.voteDescription
+        ? `<div style="font-size:15px;color:#334155;line-height:1.8;margin-bottom:24px;">${params.voteDescription.replace(/\n/g, '<br>')}</div>`
+        : ''}
+
+      ${deadlineStr
+        ? `<table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
+            ${infoBox('Termin głosowania', deadlineStr)}
+           </table>`
+        : ''}
+
+      <p style="font-size:14px;color:#334155;line-height:1.7;margin:0 0 32px;">
+        Zaloguj się do panelu, aby oddać swój głos. Twój głos jest ważny dla wspólnoty.
+      </p>
+
+      <div style="text-align:center;margin:8px 0 16px;">
+        ${btn(`${APP_URL}/admin/votes`, 'Przejdź do głosowania')}
+      </div>
+    `),
+  })
+}
+
 // ── Kafelek funkcji (używany w zaproszeniu) ───────────────────────────────────
 
 function featureTile(icon: string, title: string, desc: string) {
