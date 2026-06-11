@@ -1,8 +1,18 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { submitRequest, updateRequestStatus, deleteRequest } from './actions'
 import type { RequestType, RequestStatus } from './actions'
+
+const TEMPLATE_FILES: Record<RequestType, string> = {
+  zaswiadczenie_zamieszkania:  '/templates/wnioski/01_zaswiadczenie_o_zamieszkaniu.docx',
+  zaswiadczenie_niezalegania:  '/templates/wnioski/02_zaswiadczenie_o_niezaleganiu.docx',
+  zmiana_danych:               '/templates/wnioski/03_zmiana_danych.docx',
+  naprawa:                     '/templates/wnioski/04_wniosek_o_naprawe.docx',
+  dokumenty:                   '/templates/wnioski/05_udostepnienie_dokumentow.docx',
+  inne:                        '/templates/wnioski/06_wniosek_ogolny.docx',
+}
 
 const REQUEST_TYPES: { value: RequestType; label: string; desc: string }[] = [
   { value: 'zaswiadczenie_zamieszkania',  label: 'Zaświadczenie o zamieszkaniu',      desc: 'Potwierdzenie zameldowania/zamieszkania w lokalu' },
@@ -300,6 +310,23 @@ function UserRequestRow({ req }: { req: CommunityRequest }) {
           {!req.admin_note && req.status === 'new' && (
             <p className="text-xs text-[#5a4a30] italic">Oczekuje na rozpatrzenie przez administrację.</p>
           )}
+          {/* Akcje */}
+          <div className="flex flex-wrap gap-2 pt-1">
+            <Link
+              href={`/admin/wnioski/${req.id}/print`}
+              target="_blank"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#3a2e1e] text-[#a89880] hover:text-[#f0ebe0] hover:border-[#5a4a30] transition"
+            >
+              🖨 Drukuj / Pobierz PDF
+            </Link>
+            <a
+              href={TEMPLATE_FILES[req.type]}
+              download
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#3a2e1e] text-[#a89880] hover:text-[#f0ebe0] hover:border-[#5a4a30] transition"
+            >
+              📄 Pobierz szablon DOCX
+            </a>
+          </div>
         </div>
       )}
     </div>
@@ -380,6 +407,27 @@ export default function WnioskiClient({ requests: initial, isAdmin, isSuperAdmin
             )}
           </div>
         )}
+      </div>
+
+      {/* Szablony do pobrania */}
+      <div className="border border-[#3a2e1e] rounded-xl p-4 bg-[#1a1410]">
+        <h3 className="text-sm font-semibold text-[#a89880] mb-3">📄 Szablony wniosków do druku (DOCX)</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {REQUEST_TYPES.map(rt => (
+            <a
+              key={rt.value}
+              href={TEMPLATE_FILES[rt.value]}
+              download
+              className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#3a2e1e] bg-[#241e14] text-[#7a6a58] hover:text-[#f0ebe0] hover:border-[#5a4a30] transition text-xs"
+            >
+              <span className="text-amber-600">↓</span>
+              <span>{rt.label}</span>
+            </a>
+          ))}
+        </div>
+        <p className="text-xs text-[#5a4a30] mt-3">
+          Pobierz szablon Word, wypełnij ręcznie i złóż w biurze — lub złóż wniosek elektronicznie powyżej.
+        </p>
       </div>
     </div>
   )
