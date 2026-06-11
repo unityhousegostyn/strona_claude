@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { addDeposit, closeDeposit, deleteDeposit } from './actions'
+import { addDeposit, matureDeposit, deleteDeposit } from './actions'
 
 type Deposit = {
   id: string
@@ -71,6 +71,7 @@ export default function LokatyClient({
   const [endDate, setEndDate] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [successMsg, setSuccessMsg] = useState<string | null>(null)
 
   const resetForm = () => {
     setBankName(''); setDescription(''); setAmount(''); setRate('')
@@ -103,18 +104,28 @@ export default function LokatyClient({
     window.location.reload()
   }
 
-  const handleClose = (id: string) => {
-    if (!confirm('Oznaczyć lokatę jako zakończoną?')) return
+  const handleMature = (id: string, netInterest: number) => {
+    const label = netInterest > 0
+      ? `Zakończyć lokatę i zaksięgować odsetki netto ${pln(netInterest)} do funduszu eksploatacyjnego?`
+      : 'Zakończyć lokatę? (brak oprocentowania — odsetki nie zostaną zaksięgowane)'
+    if (!confirm(label)) return
     startTransition(async () => {
-      await closeDeposit(id)
+      const res = await matureDeposit(id)
+      if (res.error) { alert(`Błąd: ${res.error}`); return }
       setDeposits(d => d.map(x => x.id === id ? { ...x, status: 'closed' } : x))
+      if (res.netInterest && res.netInterest > 0) {
+        setSuccessMsg(`✅ Lokata zakończona. Odsetki netto ${pln(res.netInterest)} zostały dodane do Przychodów.`)
+      } else {
+        setSuccessMsg('✅ Lokata zakończona.')
+      }
     })
   }
 
   const handleDelete = (id: string) => {
-    if (!confirm('Czy na pewno usunąć ten wpis?')) return
+    if (!confirm('Usunąć lokatę? Ta operacja nie księguje żadnych środków — użyj jej tylko jeśli wpis był błędny.')) return
     startTransition(async () => {
-      await deleteDeposit(id)
+      const res = await deleteDeposit(id)
+      if (res.error) { alert(`Błąd: ${res.error}`); return }
       setDeposits(d => d.filter(x => x.id !== id))
     })
   }
@@ -155,6 +166,14 @@ export default function LokatyClient({
               </div>
             )
           })}
+        </div>
+      )}
+
+      {/* Komunikat sukcesu */}
+      {successMsg && (
+        <div className="bg-green-950/20 border border-green-900/40 text-green-400 text-sm rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+          <span>{successMsg}</span>
+          <button onClick={() => setSuccessMsg(null)} className="text-green-600 hover:text-green-400 flex-shrink-0">✕</button>
         </div>
       )}
 
@@ -284,7 +303,7 @@ export default function LokatyClient({
           </div>
         ) : (
           <div className="space-y-2">
-            {active.map(d => <DepositRow key={d.id} d={d} commMap={commMap} isSuperAdmin={isSuperAdmin} onClose={handleClose} onDelete={handleDelete} showComm={isSuperAdmin && communities.length > 1} />)}
+            {active.map(d => <DepositRow key={d.id} d={d} commMap={commMap} isSuperAdmin={isSuperAdmin} onMature={handleMature} onDelete={handleDelete} showComm={isSuperAdmin && communities.length > 1} />)}
           </div>
         )}
       </div>
@@ -294,7 +313,7 @@ export default function LokatyClient({
         <div>
           <h3 className="text-xs font-semibold text-[#6a5a48] uppercase tracking-widest mb-3">Zakończone</h3>
           <div className="space-y-2 opacity-60">
-            {closed.map(d => <DepositRow key={d.id} d={d} commMap={commMap} isSuperAdmin={isSuperAdmin} onClose={() => {}} onDelete={handleDelete} showComm={isSuperAdmin && communities.length > 1} />)}
+            {closed.map(d => <DepositRow key={d.id} d={d} commMap={commMap} isSuperAdmin={isSuperAdmin} onMature={() => {}} onDelete={handleDelete} showComm={isSuperAdmin && communities.length > 1} />)}
           </div>
         </div>
       )}
@@ -303,88 +322,92 @@ export default function LokatyClient({
 }
 
 function DepositRow({
-  d, commMap, isSuperAdmin, onClose, onDelete, showComm
+  d, commMap, isSuperAdmin, onMature, onDelete, showComm
 }: {
   d: Deposit
   commMap: Record<string, string>
   isSuperAdmin: boolean
-  onClose: (id: string) => void
+  onMature: (id: string, netInterest: number) => void
   onDelete: (id: string) => void
   showComm: boolean
 }) {
   const days = daysLeft(d.end_date)
   const expired = days !== null && days < 0
   const urgent = days !== null && days <= 30 && days >= 0
-  const typeLabel: Record<string, string> = { lokata: '🏦 Lokata', konto_oszczednosciowe: '💳 Konto oszcz.' }
+  const typeLabel: Record<string, string> = { lokata: '🏦 Lokata', konto_oszczednościowe: '💳 Konto oszcz.' }
   const calc = d.interest_rate ? calcInterest(d.amount, d.interest_rate, d.start_date, d.end_date) : null
 
   return (
-    <div className={`bg-[#241e14] border rounded-xl px-4 py-3.5 flex items-start gap-4 ${expired ? 'border-red-900/50' : urgent ? 'border-yellow-800/50' : 'border-[#3a2e1e]'}`}>
-      <div className="text-2xl flex-shrink-0 mt-0.5">{d.type === 'lokata' ? '🏦' : '💳'}</div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <p className="text-sm font-semibold text-[#f0ebe0]">
-              {d.bank_name || typeLabel[d.type]}
-              {d.status === 'closed' && <span className="ml-2 text-xs text-[#6a5a48] font-normal">(zakończona)</span>}
-            </p>
-            {d.description && <p className="text-xs text-[#7a6a58] mt-0.5 truncate">{d.description}</p>}
-            {showComm && <p className="text-xs text-[#4a3c28] mt-0.5">{commMap[d.community_id] ?? '—'}</p>}
+    <div className={`bg-[#241e14] border rounded-xl px-4 py-3.5 ${expired ? 'border-red-900/50' : urgent ? 'border-yellow-800/50' : 'border-[#3a2e1e]'}`}>
+      <div className="flex items-start gap-4">
+        <div className="text-2xl flex-shrink-0 mt-0.5">{d.type === 'lokata' ? '🏦' : '💳'}</div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="text-sm font-semibold text-[#f0ebe0]">
+                {d.bank_name || typeLabel[d.type]}
+                {d.status === 'closed' && <span className="ml-2 text-xs text-[#6a5a48] font-normal">(zakończona)</span>}
+              </p>
+              {d.description && <p className="text-xs text-[#7a6a58] mt-0.5 truncate">{d.description}</p>}
+              {showComm && <p className="text-xs text-[#4a3c28] mt-0.5">{commMap[d.community_id] ?? '—'}</p>}
+            </div>
+            <p className="text-base font-bold text-amber-400 tabular-nums flex-shrink-0">{pln(d.amount)}</p>
           </div>
-          <p className="text-base font-bold text-amber-400 tabular-nums flex-shrink-0">{pln(d.amount)}</p>
-        </div>
 
-        <div className="flex items-center gap-3 mt-2 flex-wrap">
-          {d.interest_rate != null && (
-            <span className="text-xs text-amber-500 font-semibold">{d.interest_rate}% / rok</span>
-          )}
-          <span className="text-xs text-[#6a5a48]">od {new Date(d.start_date).toLocaleDateString('pl-PL')}</span>
-          {d.end_date && (
-            <span className={`text-xs font-medium ${expired ? 'text-red-400' : urgent ? 'text-yellow-400' : 'text-[#7a6a58]'}`}>
-              {expired ? '⚠️ termin minął' : `do ${new Date(d.end_date).toLocaleDateString('pl-PL')}${days !== null ? ` (${days} dni)` : ''}`}
-            </span>
+          <div className="flex items-center gap-3 mt-2 flex-wrap">
+            {d.interest_rate != null && (
+              <span className="text-xs text-amber-500 font-semibold">{d.interest_rate}% / rok</span>
+            )}
+            <span className="text-xs text-[#6a5a48]">od {new Date(d.start_date).toLocaleDateString('pl-PL')}</span>
+            {d.end_date && (
+              <span className={`text-xs font-medium ${expired ? 'text-red-400' : urgent ? 'text-yellow-400' : 'text-[#7a6a58]'}`}>
+                {expired ? '⚠️ termin minął' : `do ${new Date(d.end_date).toLocaleDateString('pl-PL')}${days !== null ? ` (${days} dni)` : ''}`}
+              </span>
+            )}
+          </div>
+
+          {calc && (
+            <div className="flex items-center gap-3 mt-2 pt-2 border-t border-[#2a2218] flex-wrap">
+              <span className="text-[10px] text-[#6a5a48]">
+                brutto <span className="text-[#b8a898] font-semibold">{pln(calc.gross)}</span>
+              </span>
+              <span className="text-[10px] text-[#4a3c28]">−</span>
+              <span className="text-[10px] text-[#6a5a48]">
+                Belka <span className="text-red-400 font-semibold">{pln(calc.tax)}</span>
+              </span>
+              <span className="text-[10px] text-[#4a3c28]">=</span>
+              <span className="text-xs font-bold text-green-400">netto +{pln(calc.net)}</span>
+              {!d.end_date && <span className="text-[10px] text-[#3a2e1e]">(szac. za 1 rok)</span>}
+            </div>
           )}
         </div>
-        {calc && (
-          <div className="flex items-center gap-3 mt-2 pt-2 border-t border-[#2a2218] flex-wrap">
-            <span className="text-[10px] text-[#6a5a48]">
-              brutto <span className="text-[#b8a898] font-semibold">{pln(calc.gross)}</span>
-            </span>
-            <span className="text-[10px] text-[#4a3c28]">−</span>
-            <span className="text-[10px] text-[#6a5a48]">
-              Belka <span className="text-red-400 font-semibold">{pln(calc.tax)}</span>
-            </span>
-            <span className="text-[10px] text-[#4a3c28]">=</span>
-            <span className="text-xs font-bold text-green-400">
-              netto +{pln(calc.net)}
-            </span>
-            {!d.end_date && <span className="text-[10px] text-[#3a2e1e]">(szac. za 1 rok)</span>}
-          </div>
-        )}
       </div>
 
+      {/* Przyciski akcji */}
       {d.status === 'active' && (
-        <div className="flex items-center gap-1 flex-shrink-0">
+        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#2a2218]">
+          {/* Zakończ i zaksięguj */}
           <button
-            onClick={() => onClose(d.id)}
-            title="Oznacz jako zakończona"
-            className="p-1.5 rounded-lg text-[#6a5a48] hover:text-amber-400 hover:bg-[#18140e] transition"
+            onClick={() => onMature(d.id, calc?.net ?? 0)}
+            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-green-950/30 border border-green-900/40 text-green-400 hover:bg-green-950/50 transition"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
+            Zakończ i zaksięguj{calc && calc.net > 0 ? ` (+${pln(calc.net)})` : ''}
           </button>
-          {isSuperAdmin && (
-            <button
-              onClick={() => onDelete(d.id)}
-              title="Usuń"
-              className="p-1.5 rounded-lg text-[#6a5a48] hover:text-red-400 hover:bg-red-950/20 transition"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-              </svg>
-            </button>
-          )}
+
+          {/* Usuń — błędny wpis */}
+          <button
+            onClick={() => onDelete(d.id)}
+            className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg text-[#6a5a48] hover:text-red-400 hover:bg-red-950/20 border border-transparent hover:border-red-900/30 transition"
+            title="Usuń bez księgowania (błędny wpis)"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+            Usuń (błędny wpis)
+          </button>
         </div>
       )}
     </div>
