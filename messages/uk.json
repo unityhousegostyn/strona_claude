@@ -16,7 +16,8 @@
     "koszty": "Витрати",
     "przychody": "Доходи",
     "raporty": "Звіти",
-    "water_meters": "Лічильники води"
+    "water_meters": "Лічильники води",
+    "messages": "Надіслати повідомлення"
   },
   "common": {
     "save": "Зберегти",

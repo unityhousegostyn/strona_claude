@@ -215,6 +215,32 @@ export async function sendPasswordResetEmail(params: {
   })
 }
 
+export async function sendCustomEmail(params: {
+  to: string[]
+  subject: string
+  body: string
+  senderName?: string
+}) {
+  if (params.to.length === 0) return
+  const sender = params.senderName ?? 'Zarząd Wspólnoty'
+  await sendMail({
+    to: params.to,
+    subject: params.subject,
+    html: layout(`
+      <p style="margin:0 0 4px;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#64748b;">WIADOMOŚĆ OD ZARZĄDU</p>
+      <h1 style="margin:0 0 32px;font-size:22px;font-weight:700;color:#d97706;">${params.subject}</h1>
+
+      <div style="font-size:15px;color:#334155;line-height:1.8;white-space:pre-line;">
+        ${params.body.replace(/\n/g, '<br>')}
+      </div>
+
+      <p style="margin:40px 0 0;font-size:13px;color:#94a3b8;border-top:1px solid #f1f5f9;padding-top:16px;">
+        Wiadomość wysłana przez: <strong>${sender}</strong>
+      </p>
+    `),
+  })
+}
+
 export async function sendAnnouncementEmail(params: {
   to: string[]
   title: string

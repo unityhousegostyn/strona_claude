@@ -16,7 +16,8 @@
     "koszty": "Koszty",
     "przychody": "Przychody",
     "raporty": "Raporty",
-    "water_meters": "Liczniki wody"
+    "water_meters": "Liczniki wody",
+    "messages": "Wyślij wiadomość"
   },
   "common": {
     "save": "Zapisz",
