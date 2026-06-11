@@ -18,8 +18,27 @@ type Deposit = {
 
 type Community = { id: string; name: string }
 
+const BELKA = 0.19
+
 function pln(n: number) {
   return n.toLocaleString('pl-PL', { style: 'currency', currency: 'PLN' })
+}
+
+function calcInterest(amount: number, rate: number, start: string, end: string | null): { gross: number; tax: number; net: number; days: number } | null {
+  if (!amount || !rate || !start) return null
+  const endDate = end ? new Date(end) : null
+  const startDate = new Date(start)
+  if (isNaN(startDate.getTime())) return null
+  if (endDate && isNaN(endDate.getTime())) return null
+  const msPerYear = 1000 * 60 * 60 * 24 * 365
+  const durationMs = endDate ? endDate.getTime() - startDate.getTime() : null
+  if (durationMs !== null && durationMs <= 0) return null
+  const years = durationMs !== null ? durationMs / msPerYear : 1 // fallback: 1 rok dla kont bez terminu
+  const days = durationMs !== null ? Math.round(durationMs / (1000 * 60 * 60 * 24)) : 365
+  const gross = amount * (rate / 100) * years
+  const tax = gross * BELKA
+  const net = gross - tax
+  return { gross, tax, net, days }
 }
 
 function daysLeft(end: string | null): number | null {
@@ -209,6 +228,38 @@ export default function LokatyClient({
               </div>
             </div>
 
+            {/* Kalkulator Belki — live */}
+            {(() => {
+              const amt = parseFloat(amount.replace(',', '.'))
+              const r = parseFloat(rate.replace(',', '.'))
+              const calc = amt > 0 && r > 0 ? calcInterest(amt, r, startDate, endDate || null) : null
+              if (!calc) return null
+              return (
+                <div className="bg-[#18140e] border border-[#3a2e1e] rounded-xl p-4">
+                  <p className="text-xs font-semibold text-[#7a6a58] uppercase tracking-wide mb-3">
+                    📊 Szacowany przychód{calc.days !== 365 ? ` (${calc.days} dni)` : ' (1 rok)'}
+                  </p>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="text-center">
+                      <p className="text-[10px] text-[#6a5a48] mb-1">Odsetki brutto</p>
+                      <p className="text-base font-bold text-[#b8a898] tabular-nums">{pln(calc.gross)}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-[10px] text-[#6a5a48] mb-1">Podatek Belki (19%)</p>
+                      <p className="text-base font-bold text-red-400 tabular-nums">−{pln(calc.tax)}</p>
+                    </div>
+                    <div className="text-center bg-green-950/20 border border-green-900/30 rounded-lg py-1.5">
+                      <p className="text-[10px] text-green-600 mb-1">Zysk netto</p>
+                      <p className="text-base font-bold text-green-400 tabular-nums">+{pln(calc.net)}</p>
+                    </div>
+                  </div>
+                  {!endDate && (
+                    <p className="text-[10px] text-[#4a3c28] mt-2">* Wyliczenie dla 1 roku. Ustaw datę zakończenia, aby zobaczyć dokładną kwotę.</p>
+                  )}
+                </div>
+              )
+            })()}
+
             {error && <p className="text-sm text-red-400 bg-red-950/20 border border-red-900/40 rounded-lg px-3 py-2">{error}</p>}
 
             <div className="flex justify-end">
@@ -265,13 +316,7 @@ function DepositRow({
   const expired = days !== null && days < 0
   const urgent = days !== null && days <= 30 && days >= 0
   const typeLabel: Record<string, string> = { lokata: '🏦 Lokata', konto_oszczednosciowe: '💳 Konto oszcz.' }
-
-  // Szacowane odsetki do terminu
-  let estimatedInterest: number | null = null
-  if (d.interest_rate && d.end_date) {
-    const months = (new Date(d.end_date).getTime() - new Date(d.start_date).getTime()) / (1000 * 60 * 60 * 24 * 365)
-    estimatedInterest = d.amount * (d.interest_rate / 100) * months
-  }
+  const calc = d.interest_rate ? calcInterest(d.amount, d.interest_rate, d.start_date, d.end_date) : null
 
   return (
     <div className={`bg-[#241e14] border rounded-xl px-4 py-3.5 flex items-start gap-4 ${expired ? 'border-red-900/50' : urgent ? 'border-yellow-800/50' : 'border-[#3a2e1e]'}`}>
@@ -289,12 +334,9 @@ function DepositRow({
           <p className="text-base font-bold text-amber-400 tabular-nums flex-shrink-0">{pln(d.amount)}</p>
         </div>
 
-        <div className="flex items-center gap-4 mt-2 flex-wrap">
+        <div className="flex items-center gap-3 mt-2 flex-wrap">
           {d.interest_rate != null && (
-            <span className="text-xs text-green-400 bg-green-950/20 border border-green-900/30 px-2 py-0.5 rounded-full">
-              {d.interest_rate}%/rok
-              {estimatedInterest ? ` ≈ +${pln(estimatedInterest)}` : ''}
-            </span>
+            <span className="text-xs text-amber-500 font-semibold">{d.interest_rate}% / rok</span>
           )}
           <span className="text-xs text-[#6a5a48]">od {new Date(d.start_date).toLocaleDateString('pl-PL')}</span>
           {d.end_date && (
@@ -303,6 +345,22 @@ function DepositRow({
             </span>
           )}
         </div>
+        {calc && (
+          <div className="flex items-center gap-3 mt-2 pt-2 border-t border-[#2a2218] flex-wrap">
+            <span className="text-[10px] text-[#6a5a48]">
+              brutto <span className="text-[#b8a898] font-semibold">{pln(calc.gross)}</span>
+            </span>
+            <span className="text-[10px] text-[#4a3c28]">−</span>
+            <span className="text-[10px] text-[#6a5a48]">
+              Belka <span className="text-red-400 font-semibold">{pln(calc.tax)}</span>
+            </span>
+            <span className="text-[10px] text-[#4a3c28]">=</span>
+            <span className="text-xs font-bold text-green-400">
+              netto +{pln(calc.net)}
+            </span>
+            {!d.end_date && <span className="text-[10px] text-[#3a2e1e]">(szac. za 1 rok)</span>}
+          </div>
+        )}
       </div>
 
       {d.status === 'active' && (
