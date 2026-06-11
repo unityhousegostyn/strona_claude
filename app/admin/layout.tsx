@@ -86,6 +86,24 @@ export default async function AdminLayout({
     }
   }
 
+  // Nowe wnioski do administracji
+  let newRequestsCount = 0
+  try {
+    let reqQuery = admin
+      .from('community_requests')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'new')
+    if (profile.role === 'admin' && profile.community_id) {
+      reqQuery = reqQuery.eq('community_id', profile.community_id) as any
+    }
+    if (profile.role !== 'user') {
+      const { count } = await reqQuery
+      newRequestsCount = count ?? 0
+    }
+  } catch {
+    newRequestsCount = 0
+  }
+
   // Nieprzeczytane powiadomienia
   let unreadNotifications = 0
   try {
@@ -108,6 +126,7 @@ export default async function AdminLayout({
           userEmail={user.email ?? ''}
           unreadAnnouncements={unreadCount}
           pendingUsers={pendingUsersCount}
+          newRequests={newRequestsCount}
         />
         {(profile.role === 'super_admin' || profile.role === 'admin') && (
           <><AutoRefresh intervalMs={60000} /><InactivityLogout /></>

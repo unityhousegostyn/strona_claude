@@ -18,7 +18,8 @@
     "raporty": "Reports",
     "water_meters": "Water Meters",
     "messages": "Send Message",
-    "lokaty": "Deposits / Savings"
+    "lokaty": "Deposits / Savings",
+    "wnioski": "Requests"
   },
   "common": {
     "save": "Save",
