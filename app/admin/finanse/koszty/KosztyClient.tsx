@@ -60,7 +60,18 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
     setCsvFileName(file.name); setImportResult(null)
     const reader = new FileReader()
     reader.onload = ev => {
-      const text = ev.target?.result as string
+      const buf = ev.target?.result as ArrayBuffer
+      // Próbuj UTF-8 (fatal=true rzuca błąd przy złych bajtach); fallback na Windows-1250
+      let text: string
+      try {
+        text = new TextDecoder('utf-8', { fatal: true }).decode(buf)
+      } catch {
+        text = new TextDecoder('windows-1250').decode(buf)
+      }
+      // Jeśli UTF-8 przeszedł ale zawiera znaki zastępcze — plik był w windows-1250
+      if (text.includes('�')) {
+        text = new TextDecoder('windows-1250').decode(buf)
+      }
       startTransition(async () => {
         try {
           const res = await importExpensesCSV(importComm, text)
@@ -71,7 +82,7 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
         }
       })
     }
-    reader.readAsText(file, 'utf-8')
+    reader.readAsArrayBuffer(file)
   }, [importComm, startTransition, router])
 
   const filtered = expenses.filter(e => {
