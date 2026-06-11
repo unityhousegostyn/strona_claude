@@ -32,20 +32,20 @@ export default async function AnnouncementDetailPage({ params }: { params: Promi
   return (
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/admin/announcements" className="text-sm text-[#7a6a58] hover:text-[#7a6a58]">← Ogłoszenia</Link>
+        <Link href="/admin/announcements" className="text-sm text-[#6b9478] hover:text-[#6b9478]">← Ogłoszenia</Link>
       </div>
 
-      <div className="bg-[#241e14] border border-[#3a2e1e] rounded-xl p-6 space-y-4">
+      <div className="bg-[#121c15] border border-[#1e3324] rounded-xl p-6 space-y-4">
         <div className="flex items-start justify-between gap-4">
-          <h2 className="text-xl font-bold text-[#f0ebe0]">{announcement.title}</h2>
+          <h2 className="text-xl font-bold text-[#ecfdf5]">{announcement.title}</h2>
           {canEdit && (
-            <Link href={`/admin/announcements/edit/${id}`} className="text-sm text-amber-500 hover:underline flex-shrink-0">
+            <Link href={`/admin/announcements/edit/${id}`} className="text-sm text-emerald-500 hover:underline flex-shrink-0">
               Edytuj
             </Link>
           )}
         </div>
-        <p className="text-sm text-[#6a5a48]">{new Date(announcement.created_at).toLocaleDateString('pl-PL')}</p>
-        <div className="text-sm text-[#b8a898] whitespace-pre-wrap leading-relaxed">
+        <p className="text-sm text-[#4d7a5f]">{new Date(announcement.created_at).toLocaleDateString('pl-PL')}</p>
+        <div className="text-sm text-[#a7f3d0] whitespace-pre-wrap leading-relaxed">
           {announcement.content}
         </div>
       </div>

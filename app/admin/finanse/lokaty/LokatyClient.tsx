@@ -144,22 +144,22 @@ export default function LokatyClient({
       {/* Podsumowanie */}
       {active.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <div className="bg-amber-950/30 border border-amber-800/40 rounded-xl p-4">
-            <p className="text-xs text-[#7a6a58] mb-1">Środki zablokowane</p>
-            <p className="text-2xl font-bold text-amber-400 tabular-nums">{pln(totalActive)}</p>
-            <p className="text-xs text-[#6a5a48] mt-1">{active.length} aktywna(-ych)</p>
+          <div className="bg-emerald-950/30 border border-emerald-800/40 rounded-xl p-4">
+            <p className="text-xs text-[#6b9478] mb-1">Środki zablokowane</p>
+            <p className="text-2xl font-bold text-emerald-400 tabular-nums">{pln(totalActive)}</p>
+            <p className="text-xs text-[#4d7a5f] mt-1">{active.length} aktywna(-ych)</p>
           </div>
           {active.map(d => {
             const days = daysLeft(d.end_date)
             const urgent = days !== null && days <= 30 && days >= 0
             const expired = days !== null && days < 0
             return (
-              <div key={d.id} className={`rounded-xl p-4 border ${expired ? 'bg-red-950/20 border-red-900/40' : urgent ? 'bg-yellow-950/20 border-yellow-800/40' : 'bg-[#241e14] border-[#3a2e1e]'}`}>
-                <p className="text-xs font-medium text-[#b8a898] truncate">{d.bank_name ?? typeLabel[d.type]}</p>
-                <p className="text-lg font-bold text-[#f0ebe0] tabular-nums mt-1">{pln(d.amount)}</p>
-                {d.interest_rate && <p className="text-xs text-amber-500 mt-0.5">{d.interest_rate}% / rok</p>}
+              <div key={d.id} className={`rounded-xl p-4 border ${expired ? 'bg-red-950/20 border-red-900/40' : urgent ? 'bg-yellow-950/20 border-yellow-800/40' : 'bg-[#121c15] border-[#1e3324]'}`}>
+                <p className="text-xs font-medium text-[#a7f3d0] truncate">{d.bank_name ?? typeLabel[d.type]}</p>
+                <p className="text-lg font-bold text-[#ecfdf5] tabular-nums mt-1">{pln(d.amount)}</p>
+                {d.interest_rate && <p className="text-xs text-emerald-500 mt-0.5">{d.interest_rate}% / rok</p>}
                 {d.end_date && (
-                  <p className={`text-xs mt-0.5 ${expired ? 'text-red-400 font-semibold' : urgent ? 'text-yellow-400' : 'text-[#6a5a48]'}`}>
+                  <p className={`text-xs mt-0.5 ${expired ? 'text-red-400 font-semibold' : urgent ? 'text-yellow-400' : 'text-[#4d7a5f]'}`}>
                     {expired ? '⚠️ Termin minął!' : days === 0 ? '⚠️ Dziś upływa termin' : `📅 ${days} dni do terminu`}
                   </p>
                 )}
@@ -180,10 +180,10 @@ export default function LokatyClient({
       {/* Lista aktywnych */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-xs font-semibold text-[#6a5a48] uppercase tracking-widest">Aktywne lokaty i konta</h3>
+          <h3 className="text-xs font-semibold text-[#4d7a5f] uppercase tracking-widest">Aktywne lokaty i konta</h3>
           <button
             onClick={() => { setShowForm(v => !v); if (showForm) resetForm() }}
-            className="flex items-center gap-1.5 text-sm font-semibold text-amber-500 hover:text-amber-400 transition"
+            className="flex items-center gap-1.5 text-sm font-semibold text-emerald-500 hover:text-emerald-400 transition"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={showForm ? 'M6 18L18 6M6 6l12 12' : 'M12 4v16m8-8H4'} />
@@ -194,13 +194,13 @@ export default function LokatyClient({
 
         {/* Formularz */}
         {showForm && (
-          <div className="bg-[#241e14] border border-amber-800/40 rounded-xl p-5 mb-4 space-y-4">
-            <h4 className="text-sm font-semibold text-[#f0ebe0]">Nowa lokata / konto oszczędnościowe</h4>
+          <div className="bg-[#121c15] border border-emerald-800/40 rounded-xl p-5 mb-4 space-y-4">
+            <h4 className="text-sm font-semibold text-[#ecfdf5]">Nowa lokata / konto oszczędnościowe</h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {isSuperAdmin && communities.length > 1 && (
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-[#7a6a58] mb-1.5 uppercase tracking-wide">Wspólnota</label>
+                  <label className="block text-xs font-semibold text-[#6b9478] mb-1.5 uppercase tracking-wide">Wspólnota</label>
                   <select value={communityId} onChange={e => setCommunityId(e.target.value)} className="input w-full">
                     {communities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
@@ -208,7 +208,7 @@ export default function LokatyClient({
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-[#7a6a58] mb-1.5 uppercase tracking-wide">Typ</label>
+                <label className="block text-xs font-semibold text-[#6b9478] mb-1.5 uppercase tracking-wide">Typ</label>
                 <select value={type} onChange={e => setType(e.target.value as any)} className="input w-full">
                   <option value="lokata">🏦 Lokata terminowa</option>
                   <option value="konto_oszczednosciowe">💳 Konto oszczędnościowe</option>
@@ -216,33 +216,33 @@ export default function LokatyClient({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#7a6a58] mb-1.5 uppercase tracking-wide">Bank</label>
+                <label className="block text-xs font-semibold text-[#6b9478] mb-1.5 uppercase tracking-wide">Bank</label>
                 <input value={bankName} onChange={e => setBankName(e.target.value)} placeholder="np. PKO BP, Santander…" className="input w-full" />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#7a6a58] mb-1.5 uppercase tracking-wide">Kwota (zł) *</label>
+                <label className="block text-xs font-semibold text-[#6b9478] mb-1.5 uppercase tracking-wide">Kwota (zł) *</label>
                 <input value={amount} onChange={e => setAmount(e.target.value)} placeholder="np. 50000" type="number" min="0" step="0.01" className="input w-full" />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#7a6a58] mb-1.5 uppercase tracking-wide">Oprocentowanie (% / rok)</label>
+                <label className="block text-xs font-semibold text-[#6b9478] mb-1.5 uppercase tracking-wide">Oprocentowanie (% / rok)</label>
                 <input value={rate} onChange={e => setRate(e.target.value)} placeholder="np. 5.5" type="number" min="0" step="0.01" className="input w-full" />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#7a6a58] mb-1.5 uppercase tracking-wide">Data założenia *</label>
+                <label className="block text-xs font-semibold text-[#6b9478] mb-1.5 uppercase tracking-wide">Data założenia *</label>
                 <input value={startDate} onChange={e => setStartDate(e.target.value)} type="date" className="input w-full" />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#7a6a58] mb-1.5 uppercase tracking-wide">Termin (data zakończenia)</label>
+                <label className="block text-xs font-semibold text-[#6b9478] mb-1.5 uppercase tracking-wide">Termin (data zakończenia)</label>
                 <input value={endDate} onChange={e => setEndDate(e.target.value)} type="date" className="input w-full" placeholder="Zostaw puste dla konta bez terminu" />
-                <p className="text-xs text-[#4a3c28] mt-1">Zostaw puste dla konta bez określonego terminu</p>
+                <p className="text-xs text-[#2a4a2a] mt-1">Zostaw puste dla konta bez określonego terminu</p>
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-[#7a6a58] mb-1.5 uppercase tracking-wide">Opis / notatka</label>
+                <label className="block text-xs font-semibold text-[#6b9478] mb-1.5 uppercase tracking-wide">Opis / notatka</label>
                 <input value={description} onChange={e => setDescription(e.target.value)} placeholder="np. Lokata 6-miesięczna, nr rachunku…" className="input w-full" />
               </div>
             </div>
@@ -254,17 +254,17 @@ export default function LokatyClient({
               const calc = amt > 0 && r > 0 ? calcInterest(amt, r, startDate, endDate || null) : null
               if (!calc) return null
               return (
-                <div className="bg-[#18140e] border border-[#3a2e1e] rounded-xl p-4">
-                  <p className="text-xs font-semibold text-[#7a6a58] uppercase tracking-wide mb-3">
+                <div className="bg-[#0d1410] border border-[#1e3324] rounded-xl p-4">
+                  <p className="text-xs font-semibold text-[#6b9478] uppercase tracking-wide mb-3">
                     📊 Szacowany przychód{calc.days !== 365 ? ` (${calc.days} dni)` : ' (1 rok)'}
                   </p>
                   <div className="grid grid-cols-3 gap-3">
                     <div className="text-center">
-                      <p className="text-[10px] text-[#6a5a48] mb-1">Odsetki brutto</p>
-                      <p className="text-base font-bold text-[#b8a898] tabular-nums">{pln(calc.gross)}</p>
+                      <p className="text-[10px] text-[#4d7a5f] mb-1">Odsetki brutto</p>
+                      <p className="text-base font-bold text-[#a7f3d0] tabular-nums">{pln(calc.gross)}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-[10px] text-[#6a5a48] mb-1">Podatek Belki (19%)</p>
+                      <p className="text-[10px] text-[#4d7a5f] mb-1">Podatek Belki (19%)</p>
                       <p className="text-base font-bold text-red-400 tabular-nums">−{pln(calc.tax)}</p>
                     </div>
                     <div className="text-center bg-green-950/20 border border-green-900/30 rounded-lg py-1.5">
@@ -273,7 +273,7 @@ export default function LokatyClient({
                     </div>
                   </div>
                   {!endDate && (
-                    <p className="text-[10px] text-[#4a3c28] mt-2">* Wyliczenie dla 1 roku. Ustaw datę zakończenia, aby zobaczyć dokładną kwotę.</p>
+                    <p className="text-[10px] text-[#2a4a2a] mt-2">* Wyliczenie dla 1 roku. Ustaw datę zakończenia, aby zobaczyć dokładną kwotę.</p>
                   )}
                 </div>
               )
@@ -285,7 +285,7 @@ export default function LokatyClient({
               <button
                 onClick={handleAdd}
                 disabled={saving}
-                className="flex items-center gap-2 bg-amber-700 hover:bg-amber-600 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition disabled:opacity-40"
+                className="flex items-center gap-2 bg-emerald-700 hover:bg-emerald-600 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition disabled:opacity-40"
               >
                 {saving ? 'Zapisuję…' : 'Dodaj lokatę'}
               </button>
@@ -294,10 +294,10 @@ export default function LokatyClient({
         )}
 
         {active.length === 0 && !showForm ? (
-          <div className="bg-[#241e14] border border-dashed border-[#3a2e1e] rounded-xl p-8 text-center">
+          <div className="bg-[#121c15] border border-dashed border-[#1e3324] rounded-xl p-8 text-center">
             <p className="text-4xl mb-3">🏦</p>
-            <p className="text-sm text-[#7a6a58]">Brak aktywnych lokat ani kont oszczędnościowych.</p>
-            <button onClick={() => setShowForm(true)} className="mt-3 text-sm text-amber-500 hover:underline">
+            <p className="text-sm text-[#6b9478]">Brak aktywnych lokat ani kont oszczędnościowych.</p>
+            <button onClick={() => setShowForm(true)} className="mt-3 text-sm text-emerald-500 hover:underline">
               + Dodaj pierwszą lokatę
             </button>
           </div>
@@ -311,7 +311,7 @@ export default function LokatyClient({
       {/* Zamknięte */}
       {closed.length > 0 && (
         <div>
-          <h3 className="text-xs font-semibold text-[#6a5a48] uppercase tracking-widest mb-3">Zakończone</h3>
+          <h3 className="text-xs font-semibold text-[#4d7a5f] uppercase tracking-widest mb-3">Zakończone</h3>
           <div className="space-y-2 opacity-60">
             {closed.map(d => <DepositRow key={d.id} d={d} commMap={commMap} isSuperAdmin={isSuperAdmin} onMature={() => {}} onDelete={handleDelete} showComm={isSuperAdmin && communities.length > 1} />)}
           </div>
@@ -338,46 +338,46 @@ function DepositRow({
   const calc = d.interest_rate ? calcInterest(d.amount, d.interest_rate, d.start_date, d.end_date) : null
 
   return (
-    <div className={`bg-[#241e14] border rounded-xl px-4 py-3.5 ${expired ? 'border-red-900/50' : urgent ? 'border-yellow-800/50' : 'border-[#3a2e1e]'}`}>
+    <div className={`bg-[#121c15] border rounded-xl px-4 py-3.5 ${expired ? 'border-red-900/50' : urgent ? 'border-yellow-800/50' : 'border-[#1e3324]'}`}>
       <div className="flex items-start gap-4">
         <div className="text-2xl flex-shrink-0 mt-0.5">{d.type === 'lokata' ? '🏦' : '💳'}</div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <p className="text-sm font-semibold text-[#f0ebe0]">
+              <p className="text-sm font-semibold text-[#ecfdf5]">
                 {d.bank_name || typeLabel[d.type]}
-                {d.status === 'closed' && <span className="ml-2 text-xs text-[#6a5a48] font-normal">(zakończona)</span>}
+                {d.status === 'closed' && <span className="ml-2 text-xs text-[#4d7a5f] font-normal">(zakończona)</span>}
               </p>
-              {d.description && <p className="text-xs text-[#7a6a58] mt-0.5 truncate">{d.description}</p>}
-              {showComm && <p className="text-xs text-[#4a3c28] mt-0.5">{commMap[d.community_id] ?? '—'}</p>}
+              {d.description && <p className="text-xs text-[#6b9478] mt-0.5 truncate">{d.description}</p>}
+              {showComm && <p className="text-xs text-[#2a4a2a] mt-0.5">{commMap[d.community_id] ?? '—'}</p>}
             </div>
-            <p className="text-base font-bold text-amber-400 tabular-nums flex-shrink-0">{pln(d.amount)}</p>
+            <p className="text-base font-bold text-emerald-400 tabular-nums flex-shrink-0">{pln(d.amount)}</p>
           </div>
 
           <div className="flex items-center gap-3 mt-2 flex-wrap">
             {d.interest_rate != null && (
-              <span className="text-xs text-amber-500 font-semibold">{d.interest_rate}% / rok</span>
+              <span className="text-xs text-emerald-500 font-semibold">{d.interest_rate}% / rok</span>
             )}
-            <span className="text-xs text-[#6a5a48]">od {new Date(d.start_date).toLocaleDateString('pl-PL')}</span>
+            <span className="text-xs text-[#4d7a5f]">od {new Date(d.start_date).toLocaleDateString('pl-PL')}</span>
             {d.end_date && (
-              <span className={`text-xs font-medium ${expired ? 'text-red-400' : urgent ? 'text-yellow-400' : 'text-[#7a6a58]'}`}>
+              <span className={`text-xs font-medium ${expired ? 'text-red-400' : urgent ? 'text-yellow-400' : 'text-[#6b9478]'}`}>
                 {expired ? '⚠️ termin minął' : `do ${new Date(d.end_date).toLocaleDateString('pl-PL')}${days !== null ? ` (${days} dni)` : ''}`}
               </span>
             )}
           </div>
 
           {calc && (
-            <div className="flex items-center gap-3 mt-2 pt-2 border-t border-[#2a2218] flex-wrap">
-              <span className="text-[10px] text-[#6a5a48]">
-                brutto <span className="text-[#b8a898] font-semibold">{pln(calc.gross)}</span>
+            <div className="flex items-center gap-3 mt-2 pt-2 border-t border-[#162418] flex-wrap">
+              <span className="text-[10px] text-[#4d7a5f]">
+                brutto <span className="text-[#a7f3d0] font-semibold">{pln(calc.gross)}</span>
               </span>
-              <span className="text-[10px] text-[#4a3c28]">−</span>
-              <span className="text-[10px] text-[#6a5a48]">
+              <span className="text-[10px] text-[#2a4a2a]">−</span>
+              <span className="text-[10px] text-[#4d7a5f]">
                 Belka <span className="text-red-400 font-semibold">{pln(calc.tax)}</span>
               </span>
-              <span className="text-[10px] text-[#4a3c28]">=</span>
+              <span className="text-[10px] text-[#2a4a2a]">=</span>
               <span className="text-xs font-bold text-green-400">netto +{pln(calc.net)}</span>
-              {!d.end_date && <span className="text-[10px] text-[#3a2e1e]">(szac. za 1 rok)</span>}
+              {!d.end_date && <span className="text-[10px] text-[#1e3324]">(szac. za 1 rok)</span>}
             </div>
           )}
         </div>
@@ -385,7 +385,7 @@ function DepositRow({
 
       {/* Przyciski akcji */}
       {d.status === 'active' && (
-        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#2a2218]">
+        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#162418]">
           {/* Zakończ i zaksięguj */}
           <button
             onClick={() => onMature(d.id, calc?.net ?? 0)}
@@ -400,7 +400,7 @@ function DepositRow({
           {/* Usuń — błędny wpis */}
           <button
             onClick={() => onDelete(d.id)}
-            className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg text-[#6a5a48] hover:text-red-400 hover:bg-red-950/20 border border-transparent hover:border-red-900/30 transition"
+            className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg text-[#4d7a5f] hover:text-red-400 hover:bg-red-950/20 border border-transparent hover:border-red-900/30 transition"
             title="Usuń bez księgowania (błędny wpis)"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

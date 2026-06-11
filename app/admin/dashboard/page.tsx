@@ -123,10 +123,10 @@ export default async function DashboardPage() {
         {/* ── Header ── */}
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-[#f0ebe0]">
+            <h2 className="text-2xl font-bold text-[#ecfdf5]">
               Witaj, {profile.full_name?.split(' ')[0] ?? 'Super Admin'} 👋
             </h2>
-            <p className="text-sm text-[#6a5a48] mt-1">
+            <p className="text-sm text-[#4d7a5f] mt-1">
               {now.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
             </p>
           </div>
@@ -157,25 +157,25 @@ export default async function DashboardPage() {
         {/* ── Finanse + Wykres ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Podsumowanie finansowe */}
-          <div className="bg-[#241e14] border border-[#3a2e1e] rounded-xl p-5 flex flex-col gap-4">
+          <div className="bg-[#121c15] border border-[#1e3324] rounded-xl p-5 flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-[#b8a898] uppercase tracking-wide">Stan konta</h3>
-              <Link href="/admin/finanse/raporty" className="text-xs text-amber-500 hover:underline">Raporty →</Link>
+              <h3 className="text-sm font-semibold text-[#a7f3d0] uppercase tracking-wide">Stan konta</h3>
+              <Link href="/admin/finanse/raporty" className="text-xs text-emerald-500 hover:underline">Raporty →</Link>
             </div>
-            <div className={`rounded-xl p-4 ${totalBalance >= 0 ? 'bg-amber-950/30 border border-amber-800/40' : 'bg-red-950/30 border border-red-900/40'}`}>
-              <p className="text-xs text-[#6a5a48] mb-1">Łączne saldo</p>
-              <p className={`text-3xl font-bold tabular-nums ${totalBalance >= 0 ? 'text-amber-400' : 'text-red-400'}`}>{pln(totalBalance)}</p>
-              <p className="text-xs text-[#6a5a48] mt-1">wpłaty + przychody − koszty</p>
+            <div className={`rounded-xl p-4 ${totalBalance >= 0 ? 'bg-emerald-950/30 border border-emerald-800/40' : 'bg-red-950/30 border border-red-900/40'}`}>
+              <p className="text-xs text-[#4d7a5f] mb-1">Łączne saldo</p>
+              <p className={`text-3xl font-bold tabular-nums ${totalBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{pln(totalBalance)}</p>
+              <p className="text-xs text-[#4d7a5f] mt-1">wpłaty + przychody − koszty</p>
             </div>
             {totalDepositsAll > 0 && (
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-[#18140e] border border-[#3a2e1e] rounded-lg p-3">
-                  <p className="text-[10px] text-[#6a5a48] mb-0.5">🏦 Lokaty / Oszczędności</p>
-                  <p className="text-sm font-bold text-amber-400 tabular-nums">{pln(totalDepositsAll)}</p>
+                <div className="bg-[#0d1410] border border-[#1e3324] rounded-lg p-3">
+                  <p className="text-[10px] text-[#4d7a5f] mb-0.5">🏦 Lokaty / Oszczędności</p>
+                  <p className="text-sm font-bold text-emerald-400 tabular-nums">{pln(totalDepositsAll)}</p>
                 </div>
-                <div className="bg-[#18140e] border border-[#3a2e1e] rounded-lg p-3">
-                  <p className="text-[10px] text-[#6a5a48] mb-0.5">💳 Fundusz eksploatacyjny</p>
-                  <p className="text-sm font-bold text-[#f0ebe0] tabular-nums">{pln(totalBalance - totalDepositsAll)}</p>
+                <div className="bg-[#0d1410] border border-[#1e3324] rounded-lg p-3">
+                  <p className="text-[10px] text-[#4d7a5f] mb-0.5">💳 Fundusz eksploatacyjny</p>
+                  <p className="text-sm font-bold text-[#ecfdf5] tabular-nums">{pln(totalBalance - totalDepositsAll)}</p>
                 </div>
               </div>
             )}
@@ -187,15 +187,15 @@ export default async function DashboardPage() {
                 return (
                   <div key={c.id}>
                     <div className="flex items-center justify-between mb-1">
-                      <p className="text-xs text-[#b8a898] truncate max-w-[140px]">{c.name}</p>
-                      <p className={`text-xs font-semibold tabular-nums ${bal >= 0 ? 'text-amber-400' : 'text-red-400'}`}>{pln(bal)}</p>
+                      <p className="text-xs text-[#a7f3d0] truncate max-w-[140px]">{c.name}</p>
+                      <p className={`text-xs font-semibold tabular-nums ${bal >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{pln(bal)}</p>
                     </div>
-                    <div className="h-1.5 bg-[#18140e] rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full transition-all ${bal >= 0 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${pct}%` }} />
+                    <div className="h-1.5 bg-[#0d1410] rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full transition-all ${bal >= 0 ? 'bg-emerald-500' : 'bg-red-500'}`} style={{ width: `${pct}%` }} />
                     </div>
                     <div className="flex justify-between mt-0.5">
-                      <span className="text-[10px] text-[#4a3c28]">wpłacono {pln(s.totalPaid)}</span>
-                      <span className="text-[10px] text-[#4a3c28]">koszty {pln(s.totalExpenses)}</span>
+                      <span className="text-[10px] text-[#2a4a2a]">wpłacono {pln(s.totalPaid)}</span>
+                      <span className="text-[10px] text-[#2a4a2a]">koszty {pln(s.totalExpenses)}</span>
                     </div>
                   </div>
                 )
@@ -211,51 +211,51 @@ export default async function DashboardPage() {
 
         {/* ── Przegląd wspólnot ── */}
         <div>
-          <h3 className="text-xs font-semibold text-[#6a5a48] uppercase tracking-widest mb-3">Przegląd wspólnot</h3>
+          <h3 className="text-xs font-semibold text-[#4d7a5f] uppercase tracking-widest mb-3">Przegląd wspólnot</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {(communities.data ?? []).map((c) => {
               const s = commStats[c.id] ?? { apartments: 0, users: 0, openTickets: 0, openVotes: 0, totalPaid: 0, totalExpenses: 0, totalIncome: 0, totalDeposits: 0 }
               const bal = s.totalPaid + s.totalIncome - s.totalExpenses
               return (
-                <div key={c.id} className="bg-[#241e14] border border-[#3a2e1e] rounded-xl p-5 hover:border-[#4a3c28] transition-colors">
+                <div key={c.id} className="bg-[#121c15] border border-[#1e3324] rounded-xl p-5 hover:border-[#2a4a2a] transition-colors">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h4 className="font-semibold text-[#f0ebe0]">{c.name}</h4>
-                      <p className="text-xs text-[#6a5a48] mt-0.5">{s.apartments} mieszkań · {s.users} mieszkańców</p>
+                      <h4 className="font-semibold text-[#ecfdf5]">{c.name}</h4>
+                      <p className="text-xs text-[#4d7a5f] mt-0.5">{s.apartments} mieszkań · {s.users} mieszkańców</p>
                     </div>
-                    <Link href="/admin/communities" className="text-xs text-[#6a5a48] hover:text-amber-400 transition ml-2 flex-shrink-0">Edytuj →</Link>
+                    <Link href="/admin/communities" className="text-xs text-[#4d7a5f] hover:text-emerald-400 transition ml-2 flex-shrink-0">Edytuj →</Link>
                   </div>
                   <div className="grid grid-cols-3 gap-2 mb-3">
-                    <div className={`rounded-lg p-3 text-center ${s.openTickets > 0 ? 'bg-yellow-950/30 border border-yellow-900/40' : 'bg-[#18140e]'}`}>
-                      <p className={`text-xl font-bold tabular-nums ${s.openTickets > 0 ? 'text-yellow-400' : 'text-[#f0ebe0]'}`}>{s.openTickets}</p>
-                      <p className="text-[10px] text-[#6a5a48] mt-0.5">Zgłoszenia</p>
+                    <div className={`rounded-lg p-3 text-center ${s.openTickets > 0 ? 'bg-yellow-950/30 border border-yellow-900/40' : 'bg-[#0d1410]'}`}>
+                      <p className={`text-xl font-bold tabular-nums ${s.openTickets > 0 ? 'text-yellow-400' : 'text-[#ecfdf5]'}`}>{s.openTickets}</p>
+                      <p className="text-[10px] text-[#4d7a5f] mt-0.5">Zgłoszenia</p>
                     </div>
-                    <div className={`rounded-lg p-3 text-center ${s.openVotes > 0 ? 'bg-amber-950/30 border border-amber-900/40' : 'bg-[#18140e]'}`}>
-                      <p className={`text-xl font-bold tabular-nums ${s.openVotes > 0 ? 'text-amber-400' : 'text-[#f0ebe0]'}`}>{s.openVotes}</p>
-                      <p className="text-[10px] text-[#6a5a48] mt-0.5">Głosowania</p>
+                    <div className={`rounded-lg p-3 text-center ${s.openVotes > 0 ? 'bg-emerald-950/30 border border-emerald-900/40' : 'bg-[#0d1410]'}`}>
+                      <p className={`text-xl font-bold tabular-nums ${s.openVotes > 0 ? 'text-emerald-400' : 'text-[#ecfdf5]'}`}>{s.openVotes}</p>
+                      <p className="text-[10px] text-[#4d7a5f] mt-0.5">Głosowania</p>
                     </div>
-                    <div className={`rounded-lg p-3 text-center ${bal >= 0 ? 'bg-amber-950/20 border border-amber-900/30' : 'bg-red-950/20 border border-red-900/30'}`}>
-                      <p className={`text-sm font-bold tabular-nums leading-tight ${bal >= 0 ? 'text-amber-400' : 'text-red-400'}`}>{pln(bal)}</p>
-                      <p className="text-[10px] text-[#6a5a48] mt-0.5">Stan konta</p>
+                    <div className={`rounded-lg p-3 text-center ${bal >= 0 ? 'bg-emerald-950/20 border border-emerald-900/30' : 'bg-red-950/20 border border-red-900/30'}`}>
+                      <p className={`text-sm font-bold tabular-nums leading-tight ${bal >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{pln(bal)}</p>
+                      <p className="text-[10px] text-[#4d7a5f] mt-0.5">Stan konta</p>
                     </div>
                   </div>
                   {/* mini pasek płatności */}
                   {s.totalExpenses > 0 && (
                     <div>
-                      <div className="h-1 bg-[#18140e] rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full ${bal >= 0 ? 'bg-amber-600' : 'bg-red-600'}`}
+                      <div className="h-1 bg-[#0d1410] rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${bal >= 0 ? 'bg-emerald-600' : 'bg-red-600'}`}
                           style={{ width: `${Math.min(100, Math.round(((s.totalPaid + s.totalIncome) / s.totalExpenses) * 100))}%` }} />
                       </div>
-                      <p className="text-[10px] text-[#4a3c28] mt-0.5">
+                      <p className="text-[10px] text-[#2a4a2a] mt-0.5">
                         {Math.min(100, Math.round(((s.totalPaid + s.totalIncome) / s.totalExpenses) * 100))}% pokrycia kosztów
                       </p>
                     </div>
                   )}
                   {s.totalDeposits > 0 && (
-                    <div className="flex items-center gap-2 mt-1.5 pt-1.5 border-t border-[#2a2218]">
-                      <span className="text-xs text-[#6a5a48]">🏦 Na lokacie:</span>
-                      <span className="text-xs font-semibold text-amber-500 tabular-nums">{pln(s.totalDeposits)}</span>
-                      <span className="text-[10px] text-[#4a3c28]">· fundusz: {pln(bal - s.totalDeposits)}</span>
+                    <div className="flex items-center gap-2 mt-1.5 pt-1.5 border-t border-[#162418]">
+                      <span className="text-xs text-[#4d7a5f]">🏦 Na lokacie:</span>
+                      <span className="text-xs font-semibold text-emerald-500 tabular-nums">{pln(s.totalDeposits)}</span>
+                      <span className="text-[10px] text-[#2a4a2a]">· fundusz: {pln(bal - s.totalDeposits)}</span>
                     </div>
                   )}
                 </div>
@@ -268,18 +268,18 @@ export default async function DashboardPage() {
         {activeVotesList.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-semibold text-[#6a5a48] uppercase tracking-widest">Aktywne głosowania</h3>
-              <Link href="/admin/votes" className="text-xs text-amber-500 hover:underline">Wszystkie</Link>
+              <h3 className="text-xs font-semibold text-[#4d7a5f] uppercase tracking-widest">Aktywne głosowania</h3>
+              <Link href="/admin/votes" className="text-xs text-emerald-500 hover:underline">Wszystkie</Link>
             </div>
             <div className="space-y-2">
               {activeVotesList.map((v: any) => (
                 <Link key={v.id} href="/admin/votes"
-                  className="flex items-center justify-between bg-[#241e14] border border-amber-800/30 rounded-xl px-4 py-3 hover:border-amber-600/50 transition">
+                  className="flex items-center justify-between bg-[#121c15] border border-emerald-800/30 rounded-xl px-4 py-3 hover:border-emerald-600/50 transition">
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-[#ddd5c5] truncate">{v.title}</p>
-                    <p className="text-xs text-[#7a6a58] mt-0.5">{commMap[v.community_id] ?? '—'}{v.deadline ? ` · do ${new Date(v.deadline).toLocaleDateString('pl-PL')}` : ''}</p>
+                    <p className="text-sm font-medium text-[#d1fae5] truncate">{v.title}</p>
+                    <p className="text-xs text-[#6b9478] mt-0.5">{commMap[v.community_id] ?? '—'}{v.deadline ? ` · do ${new Date(v.deadline).toLocaleDateString('pl-PL')}` : ''}</p>
                   </div>
-                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full ml-3 flex-shrink-0 bg-amber-900/30 text-amber-400 border border-amber-800/40">
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full ml-3 flex-shrink-0 bg-emerald-900/30 text-emerald-400 border border-emerald-800/40">
                     ● Otwarte
                   </span>
                 </Link>
@@ -293,22 +293,22 @@ export default async function DashboardPage() {
           {/* Ostatnie zgłoszenia */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-semibold text-[#6a5a48] uppercase tracking-widest">Ostatnie zgłoszenia</h3>
-              <Link href="/admin/tickets" className="text-xs text-amber-500 hover:underline">Wszystkie →</Link>
+              <h3 className="text-xs font-semibold text-[#4d7a5f] uppercase tracking-widest">Ostatnie zgłoszenia</h3>
+              <Link href="/admin/tickets" className="text-xs text-emerald-500 hover:underline">Wszystkie →</Link>
             </div>
             <div className="space-y-2">
               {(recentTickets.data ?? []).length === 0
-                ? <p className="text-sm text-[#7a6a58]">Brak zgłoszeń.</p>
+                ? <p className="text-sm text-[#6b9478]">Brak zgłoszeń.</p>
                 : (recentTickets.data ?? []).map((t: any) => (
                   <Link key={t.id} href={`/admin/tickets/${t.id}`}
-                    className="flex items-center gap-3 bg-[#241e14] border border-[#3a2e1e] rounded-xl px-4 py-3 hover:border-[#4a3c28] transition group">
-                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${t.status === 'open' ? 'bg-yellow-400' : 'bg-[#4a3c28]'}`} />
+                    className="flex items-center gap-3 bg-[#121c15] border border-[#1e3324] rounded-xl px-4 py-3 hover:border-[#2a4a2a] transition group">
+                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${t.status === 'open' ? 'bg-yellow-400' : 'bg-[#2a4a2a]'}`} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-[#ddd5c5] truncate group-hover:text-[#f0ebe0] transition">{t.title}</p>
-                      <p className="text-xs text-[#6a5a48] mt-0.5">{commMap[t.community_id] ?? '—'} · {new Date(t.created_at).toLocaleDateString('pl-PL')}</p>
+                      <p className="text-sm font-medium text-[#d1fae5] truncate group-hover:text-[#ecfdf5] transition">{t.title}</p>
+                      <p className="text-xs text-[#4d7a5f] mt-0.5">{commMap[t.community_id] ?? '—'} · {new Date(t.created_at).toLocaleDateString('pl-PL')}</p>
                     </div>
                     <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${
-                      t.status === 'open' ? 'bg-yellow-900/40 text-yellow-400' : 'bg-[#2a2218] text-[#6a5a48]'
+                      t.status === 'open' ? 'bg-yellow-900/40 text-yellow-400' : 'bg-[#162418] text-[#4d7a5f]'
                     }`}>{t.status === 'open' ? 'Otwarte' : 'Zamknięte'}</span>
                   </Link>
                 ))
@@ -319,18 +319,18 @@ export default async function DashboardPage() {
           {/* Ostatnia aktywność (audit log) */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-semibold text-[#6a5a48] uppercase tracking-widest">Ostatnia aktywność</h3>
-              <Link href="/admin/audit" className="text-xs text-amber-500 hover:underline">Audit log →</Link>
+              <h3 className="text-xs font-semibold text-[#4d7a5f] uppercase tracking-widest">Ostatnia aktywność</h3>
+              <Link href="/admin/audit" className="text-xs text-emerald-500 hover:underline">Audit log →</Link>
             </div>
-            <div className="bg-[#241e14] border border-[#3a2e1e] rounded-xl divide-y divide-[#3a2e1e]/60">
+            <div className="bg-[#121c15] border border-[#1e3324] rounded-xl divide-y divide-[#1e3324]/60">
               {(recentAudit.data ?? []).length === 0
-                ? <p className="text-sm text-[#7a6a58] p-4">Brak aktywności.</p>
+                ? <p className="text-sm text-[#6b9478] p-4">Brak aktywności.</p>
                 : (recentAudit.data ?? []).map((log: any) => (
                   <div key={log.id} className="flex items-center gap-3 px-4 py-2.5">
                     <span className="text-base flex-shrink-0">{auditIcon(log.action)}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-[#b8a898] truncate">{auditLabel(log.action, log.target_type)}</p>
-                      <p className="text-[10px] text-[#4a3c28] mt-0.5">{timeAgo(log.created_at)}</p>
+                      <p className="text-xs font-medium text-[#a7f3d0] truncate">{auditLabel(log.action, log.target_type)}</p>
+                      <p className="text-[10px] text-[#2a4a2a] mt-0.5">{timeAgo(log.created_at)}</p>
                     </div>
                   </div>
                 ))
@@ -341,7 +341,7 @@ export default async function DashboardPage() {
 
         {/* ── Szybkie akcje ── */}
         <div>
-          <h3 className="text-xs font-semibold text-[#6a5a48] uppercase tracking-widest mb-3">Szybkie akcje</h3>
+          <h3 className="text-xs font-semibold text-[#4d7a5f] uppercase tracking-widest mb-3">Szybkie akcje</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <QuickAction href="/admin/users" icon={<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>}
               label="Użytkownicy" badge={pendingCount.count ? `${pendingCount.count} czeka` : undefined} badgeColor="red" />
@@ -395,10 +395,10 @@ export default async function DashboardPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-[#f0ebe0]">
+          <h2 className="text-2xl font-bold text-[#ecfdf5]">
             Witaj, {profile.full_name?.split(' ')[0] ?? 'Administratorze'} 👋
           </h2>
-          <p className="text-sm text-[#6a5a48] mt-1">{community?.name ?? '—'}</p>
+          <p className="text-sm text-[#4d7a5f] mt-1">{community?.name ?? '—'}</p>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -417,16 +417,16 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-semibold text-[#ddd5c5]">Otwarte zgłoszenia</h3>
-              <Link href="/admin/tickets" className="text-sm text-amber-500 hover:underline">Zobacz wszystkie</Link>
+              <h3 className="text-base font-semibold text-[#d1fae5]">Otwarte zgłoszenia</h3>
+              <Link href="/admin/tickets" className="text-sm text-emerald-500 hover:underline">Zobacz wszystkie</Link>
             </div>
             {(openTickets.data ?? []).length === 0
-              ? <p className="text-sm text-[#7a6a58]">Brak otwartych zgłoszeń.</p>
+              ? <p className="text-sm text-[#6b9478]">Brak otwartych zgłoszeń.</p>
               : <div className="space-y-2">
                   {(openTickets.data ?? []).map((t: any) => (
                     <Link key={t.id} href={`/admin/tickets/${t.id}`}
-                      className="flex items-center justify-between bg-[#241e14] border border-[#3a2e1e] rounded-xl px-4 py-3 hover:border-green-700 transition">
-                      <p className="text-sm font-medium text-[#ddd5c5] truncate">{t.title}</p>
+                      className="flex items-center justify-between bg-[#121c15] border border-[#1e3324] rounded-xl px-4 py-3 hover:border-green-700 transition">
+                      <p className="text-sm font-medium text-[#d1fae5] truncate">{t.title}</p>
                       <span className="text-xs text-yellow-400 bg-yellow-950/30 px-2 py-0.5 rounded-full ml-2 flex-shrink-0">Otwarte</span>
                     </Link>
                   ))}
@@ -436,17 +436,17 @@ export default async function DashboardPage() {
 
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-semibold text-[#ddd5c5]">Ostatnie posty na tablicy</h3>
-              <Link href="/admin/board" className="text-sm text-amber-500 hover:underline">Tablica</Link>
+              <h3 className="text-base font-semibold text-[#d1fae5]">Ostatnie posty na tablicy</h3>
+              <Link href="/admin/board" className="text-sm text-emerald-500 hover:underline">Tablica</Link>
             </div>
             {(recentBoardPosts.data ?? []).length === 0
-              ? <p className="text-sm text-[#7a6a58]">Brak postów na tablicy.</p>
+              ? <p className="text-sm text-[#6b9478]">Brak postów na tablicy.</p>
               : <div className="space-y-2">
                   {(recentBoardPosts.data ?? []).map((p: any) => (
                     <Link key={p.id} href="/admin/board"
-                      className="block bg-[#241e14] border border-[#3a2e1e] rounded-xl px-4 py-3 hover:border-green-700 transition">
-                      <p className="text-sm text-[#ddd5c5] line-clamp-1">{p.content}</p>
-                      <p className="text-xs text-[#7a6a58] mt-1">
+                      className="block bg-[#121c15] border border-[#1e3324] rounded-xl px-4 py-3 hover:border-green-700 transition">
+                      <p className="text-sm text-[#d1fae5] line-clamp-1">{p.content}</p>
+                      <p className="text-xs text-[#6b9478] mt-1">
                         {authorMap[p.author_id] ?? '—'} · {new Date(p.created_at).toLocaleDateString('pl-PL')}
                       </p>
                     </Link>
@@ -458,8 +458,8 @@ export default async function DashboardPage() {
 
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-[#ddd5c5]">Ostatnie ogłoszenia</h3>
-            <Link href="/admin/announcements/add" className="text-sm text-amber-500 hover:underline">+ Dodaj</Link>
+            <h3 className="text-base font-semibold text-[#d1fae5]">Ostatnie ogłoszenia</h3>
+            <Link href="/admin/announcements/add" className="text-sm text-emerald-500 hover:underline">+ Dodaj</Link>
           </div>
           <AnnouncementList announcements={recentAnnouncements.data ?? []} />
         </div>
@@ -532,15 +532,15 @@ export default async function DashboardPage() {
         </h2>
         <p className="text-green-100 mt-1 text-sm">{community?.name ?? '—'} · {community?.address ?? ''}</p>
         <div className="flex gap-3 mt-4 flex-wrap">
-          <div className="bg-[#241e14]/20 rounded-xl px-4 py-2 text-center">
+          <div className="bg-[#121c15]/20 rounded-xl px-4 py-2 text-center">
             <p className="text-xl font-bold">{unreadCount}</p>
             <p className="text-xs text-green-100">Nowe ogłoszenia</p>
           </div>
-          <div className="bg-[#241e14]/20 rounded-xl px-4 py-2 text-center">
+          <div className="bg-[#121c15]/20 rounded-xl px-4 py-2 text-center">
             <p className="text-xl font-bold">{openCount}</p>
             <p className="text-xs text-green-100">Otwarte zgłoszenia</p>
           </div>
-          <div className="bg-[#241e14]/20 rounded-xl px-4 py-2 text-center">
+          <div className="bg-[#121c15]/20 rounded-xl px-4 py-2 text-center">
             <p className="text-xl font-bold">{(boardPosts.data ?? []).length}</p>
             <p className="text-xs text-green-100">Nowe posty</p>
           </div>
@@ -566,15 +566,15 @@ export default async function DashboardPage() {
         const totalDue = settlementRows.reduce((s, r) => s + r.total_due, 0)
 
         return (
-          <div className="bg-[#241e14] border border-[#3a2e1e] rounded-2xl p-5">
+          <div className="bg-[#121c15] border border-[#1e3324] rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-base font-semibold text-[#f0ebe0]">Rozliczenie {currentYear}</h3>
-                <p className="text-xs text-[#6a5a48] mt-0.5">Lokal {myApartment.number} · {myApartment.owner_name}</p>
+                <h3 className="text-base font-semibold text-[#ecfdf5]">Rozliczenie {currentYear}</h3>
+                <p className="text-xs text-[#4d7a5f] mt-0.5">Lokal {myApartment.number} · {myApartment.owner_name}</p>
               </div>
               <Link
                 href={`/admin/settlements/${myApartment.id}`}
-                className="text-sm text-amber-500 hover:underline"
+                className="text-sm text-emerald-500 hover:underline"
               >
                 Pełny widok →
               </Link>
@@ -582,39 +582,39 @@ export default async function DashboardPage() {
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {/* Saldo końcowe */}
-              <div className={`rounded-xl p-3 ${finalBalance >= 0 ? 'bg-amber-950/30 border border-amber-800' : 'bg-red-950/30 border border-red-900'}`}>
-                <p className="text-xs text-[#6a5a48] mb-1">Saldo {currentYear}</p>
-                <p className={`text-lg font-bold ${finalBalance >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
+              <div className={`rounded-xl p-3 ${finalBalance >= 0 ? 'bg-emerald-950/30 border border-emerald-800' : 'bg-red-950/30 border border-red-900'}`}>
+                <p className="text-xs text-[#4d7a5f] mb-1">Saldo {currentYear}</p>
+                <p className={`text-lg font-bold ${finalBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                   {pln(finalBalance)}
                 </p>
-                <p className={`text-xs mt-0.5 ${finalBalance >= 0 ? 'text-amber-500' : 'text-red-600'}`}>
+                <p className={`text-xs mt-0.5 ${finalBalance >= 0 ? 'text-emerald-500' : 'text-red-600'}`}>
                   {finalBalance >= 0 ? 'Nadpłata' : 'Niedopłata'}
                 </p>
               </div>
 
               {/* Bieżący miesiąc */}
-              <div className="bg-[#18140e] border border-[#3a2e1e] rounded-xl p-3">
-                <p className="text-xs text-[#6a5a48] mb-1">Naliczono ten mies.</p>
-                <p className="text-lg font-bold text-[#f0ebe0]">
+              <div className="bg-[#0d1410] border border-[#1e3324] rounded-xl p-3">
+                <p className="text-xs text-[#4d7a5f] mb-1">Naliczono ten mies.</p>
+                <p className="text-lg font-bold text-[#ecfdf5]">
                   {currentRow?.hasRates ? pln(currentRow.total_due) : '—'}
                 </p>
-                <p className="text-xs text-[#6a5a48] mt-0.5">
+                <p className="text-xs text-[#4d7a5f] mt-0.5">
                   {currentRow?.hasRates ? 'do zapłaty' : 'brak stawek'}
                 </p>
               </div>
 
               {/* Wpłacono w roku */}
-              <div className="bg-[#18140e] border border-[#3a2e1e] rounded-xl p-3">
-                <p className="text-xs text-[#6a5a48] mb-1">Wpłacono {currentYear}</p>
-                <p className="text-lg font-bold text-amber-400">{pln(totalPaid)}</p>
-                <p className="text-xs text-[#6a5a48] mt-0.5">łącznie</p>
+              <div className="bg-[#0d1410] border border-[#1e3324] rounded-xl p-3">
+                <p className="text-xs text-[#4d7a5f] mb-1">Wpłacono {currentYear}</p>
+                <p className="text-lg font-bold text-emerald-400">{pln(totalPaid)}</p>
+                <p className="text-xs text-[#4d7a5f] mt-0.5">łącznie</p>
               </div>
 
               {/* Naliczono w roku */}
-              <div className="bg-[#18140e] border border-[#3a2e1e] rounded-xl p-3">
-                <p className="text-xs text-[#6a5a48] mb-1">Naliczono {currentYear}</p>
-                <p className="text-lg font-bold text-[#b8a898]">{pln(totalDue)}</p>
-                <p className="text-xs text-[#6a5a48] mt-0.5">łącznie</p>
+              <div className="bg-[#0d1410] border border-[#1e3324] rounded-xl p-3">
+                <p className="text-xs text-[#4d7a5f] mb-1">Naliczono {currentYear}</p>
+                <p className="text-lg font-bold text-[#a7f3d0]">{pln(totalDue)}</p>
+                <p className="text-xs text-[#4d7a5f] mt-0.5">łącznie</p>
               </div>
             </div>
 
@@ -635,10 +635,10 @@ export default async function DashboardPage() {
                         isCurrentMonth
                           ? 'bg-green-500'
                           : isPast && row.paid > 0
-                          ? 'bg-amber-700/60'
+                          ? 'bg-emerald-700/60'
                           : isPast
                           ? 'bg-red-800/60'
-                          : 'bg-[#2a2218]'
+                          : 'bg-[#162418]'
                       }`}
                     />
                   )
@@ -656,17 +656,17 @@ export default async function DashboardPage() {
         {/* Ostatnie ogłoszenia */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-[#ddd5c5]">Ostatnie ogłoszenia</h3>
-            <Link href="/admin/announcements" className="text-sm text-amber-500 hover:underline">Zobacz wszystkie</Link>
+            <h3 className="text-base font-semibold text-[#d1fae5]">Ostatnie ogłoszenia</h3>
+            <Link href="/admin/announcements" className="text-sm text-emerald-500 hover:underline">Zobacz wszystkie</Link>
           </div>
           {(announcements.data ?? []).length === 0
-            ? <p className="text-sm text-[#7a6a58]">Brak ogłoszeń.</p>
+            ? <p className="text-sm text-[#6b9478]">Brak ogłoszeń.</p>
             : <div className="space-y-2">
                 {(announcements.data ?? []).map((a: any) => (
                   <Link key={a.id} href={`/admin/announcements/${a.id}`}
-                    className="block bg-[#241e14] border border-[#3a2e1e] rounded-xl px-4 py-3 hover:border-green-700 transition">
-                    <p className="text-sm font-medium text-[#ddd5c5] truncate">{a.title}</p>
-                    <p className="text-xs text-[#7a6a58] mt-0.5">{new Date(a.created_at).toLocaleDateString('pl-PL')}</p>
+                    className="block bg-[#121c15] border border-[#1e3324] rounded-xl px-4 py-3 hover:border-green-700 transition">
+                    <p className="text-sm font-medium text-[#d1fae5] truncate">{a.title}</p>
+                    <p className="text-xs text-[#6b9478] mt-0.5">{new Date(a.created_at).toLocaleDateString('pl-PL')}</p>
                   </Link>
                 ))}
               </div>
@@ -676,20 +676,20 @@ export default async function DashboardPage() {
         {/* Tablica — ostatnie posty */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-[#ddd5c5]">Tablica sąsiedzka</h3>
-            <Link href="/admin/board" className="text-sm text-amber-500 hover:underline">Przejdź</Link>
+            <h3 className="text-base font-semibold text-[#d1fae5]">Tablica sąsiedzka</h3>
+            <Link href="/admin/board" className="text-sm text-emerald-500 hover:underline">Przejdź</Link>
           </div>
           {(boardPosts.data ?? []).length === 0
-            ? <div className="bg-[#241e14] border border-dashed border-[#3a2e1e] rounded-xl p-5 text-center">
-                <p className="text-sm text-[#7a6a58] mb-2">Tablica jest pusta.</p>
-                <Link href="/admin/board" className="text-sm text-amber-500 hover:underline">Napisz pierwszą wiadomość →</Link>
+            ? <div className="bg-[#121c15] border border-dashed border-[#1e3324] rounded-xl p-5 text-center">
+                <p className="text-sm text-[#6b9478] mb-2">Tablica jest pusta.</p>
+                <Link href="/admin/board" className="text-sm text-emerald-500 hover:underline">Napisz pierwszą wiadomość →</Link>
               </div>
             : <div className="space-y-2">
                 {(boardPosts.data ?? []).map((p: any) => (
                   <Link key={p.id} href="/admin/board"
-                    className="block bg-[#241e14] border border-[#3a2e1e] rounded-xl px-4 py-3 hover:border-green-700 transition">
-                    <p className="text-sm text-[#ddd5c5] line-clamp-1">{p.content}</p>
-                    <p className="text-xs text-[#7a6a58] mt-1">
+                    className="block bg-[#121c15] border border-[#1e3324] rounded-xl px-4 py-3 hover:border-green-700 transition">
+                    <p className="text-sm text-[#d1fae5] line-clamp-1">{p.content}</p>
+                    <p className="text-xs text-[#6b9478] mt-1">
                       {authorMap[p.author_id] ?? '—'} · {new Date(p.created_at).toLocaleDateString('pl-PL')}
                     </p>
                   </Link>
@@ -702,21 +702,21 @@ export default async function DashboardPage() {
       {/* Moje zgłoszenia */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-base font-semibold text-[#ddd5c5]">Moje zgłoszenia</h3>
-          <Link href="/admin/tickets" className="text-sm text-amber-500 hover:underline">Nowe zgłoszenie</Link>
+          <h3 className="text-base font-semibold text-[#d1fae5]">Moje zgłoszenia</h3>
+          <Link href="/admin/tickets" className="text-sm text-emerald-500 hover:underline">Nowe zgłoszenie</Link>
         </div>
         {(myTickets.data ?? []).length === 0
-          ? <div className="bg-[#241e14] border border-dashed border-[#3a2e1e] rounded-xl p-6 text-center">
-              <p className="text-sm text-[#7a6a58] mb-3">Nie masz jeszcze żadnych zgłoszeń.</p>
-              <Link href="/admin/tickets" className="text-sm text-amber-500 font-medium hover:underline">Zgłoś problem →</Link>
+          ? <div className="bg-[#121c15] border border-dashed border-[#1e3324] rounded-xl p-6 text-center">
+              <p className="text-sm text-[#6b9478] mb-3">Nie masz jeszcze żadnych zgłoszeń.</p>
+              <Link href="/admin/tickets" className="text-sm text-emerald-500 font-medium hover:underline">Zgłoś problem →</Link>
             </div>
           : <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {(myTickets.data ?? []).map((t: any) => (
                 <Link key={t.id} href={`/admin/tickets/${t.id}`}
-                  className="flex items-center justify-between bg-[#241e14] border border-[#3a2e1e] rounded-xl px-4 py-3 hover:border-green-700 transition">
-                  <p className="text-sm font-medium text-[#ddd5c5] truncate">{t.title}</p>
+                  className="flex items-center justify-between bg-[#121c15] border border-[#1e3324] rounded-xl px-4 py-3 hover:border-green-700 transition">
+                  <p className="text-sm font-medium text-[#d1fae5] truncate">{t.title}</p>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ml-2 flex-shrink-0 ${
-                    t.status === 'open' ? 'bg-yellow-900/40 text-yellow-400' : 'bg-green-100 text-amber-400'
+                    t.status === 'open' ? 'bg-yellow-900/40 text-yellow-400' : 'bg-green-100 text-emerald-400'
                   }`}>{t.status === 'open' ? 'Otwarte' : 'Zamknięte'}</span>
                 </Link>
               ))}
@@ -728,18 +728,18 @@ export default async function DashboardPage() {
       {(docs.data ?? []).length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-[#ddd5c5]">Ostatnie dokumenty</h3>
-            <Link href="/admin/documents" className="text-sm text-amber-500 hover:underline">Zobacz wszystkie</Link>
+            <h3 className="text-base font-semibold text-[#d1fae5]">Ostatnie dokumenty</h3>
+            <Link href="/admin/documents" className="text-sm text-emerald-500 hover:underline">Zobacz wszystkie</Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {(docs.data ?? []).map((d: any) => {
               const ext = d.name.split('.').pop()?.toLowerCase()
               const icon = ext === 'pdf' ? '📄' : ['doc','docx'].includes(ext) ? '📝' : ['xls','xlsx'].includes(ext) ? '📊' : '📁'
               return (
-                <div key={d.id} className="bg-[#241e14] border border-[#3a2e1e] rounded-xl p-4 text-center hover:border-green-700 transition">
+                <div key={d.id} className="bg-[#121c15] border border-[#1e3324] rounded-xl p-4 text-center hover:border-green-700 transition">
                   <p className="text-3xl mb-2">{icon}</p>
-                  <p className="text-xs font-medium text-[#b8a898] truncate">{d.name}</p>
-                  <p className="text-xs text-[#7a6a58] mt-1">{new Date(d.created_at).toLocaleDateString('pl-PL')}</p>
+                  <p className="text-xs font-medium text-[#a7f3d0] truncate">{d.name}</p>
+                  <p className="text-xs text-[#6b9478] mt-1">{new Date(d.created_at).toLocaleDateString('pl-PL')}</p>
                 </div>
               )
             })}
@@ -758,20 +758,20 @@ function StatCardSvg({ label, value, href, icon, accent }: {
   const accentMap = {
     red:    { text: 'text-red-400',    bg: 'bg-red-950/30',    border: 'border-red-900/40',    icon: 'text-red-500' },
     yellow: { text: 'text-yellow-400', bg: 'bg-yellow-950/30', border: 'border-yellow-900/40', icon: 'text-yellow-500' },
-    amber:  { text: 'text-amber-400',  bg: 'bg-amber-950/30',  border: 'border-amber-900/40',  icon: 'text-amber-500' },
+    amber:  { text: 'text-emerald-400',  bg: 'bg-emerald-950/30',  border: 'border-emerald-900/40',  icon: 'text-emerald-500' },
   }
   const ac = accent ? accentMap[accent] : null
   return (
     <Link href={href}
-      className={`bg-[#241e14] border rounded-xl p-4 flex flex-col gap-2 hover:border-[#4a3c28] transition group ${ac ? ac.border : 'border-[#3a2e1e]'}`}>
-      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${ac ? ac.bg : 'bg-[#18140e]'}`}>
-        <svg className={`w-4 h-4 ${ac ? ac.icon : 'text-[#6a5a48]'} group-hover:scale-110 transition-transform`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      className={`bg-[#121c15] border rounded-xl p-4 flex flex-col gap-2 hover:border-[#2a4a2a] transition group ${ac ? ac.border : 'border-[#1e3324]'}`}>
+      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${ac ? ac.bg : 'bg-[#0d1410]'}`}>
+        <svg className={`w-4 h-4 ${ac ? ac.icon : 'text-[#4d7a5f]'} group-hover:scale-110 transition-transform`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           {icon}
         </svg>
       </div>
       <div>
-        <p className={`text-2xl font-bold tabular-nums ${ac ? ac.text : 'text-[#f0ebe0]'}`}>{value}</p>
-        <p className="text-xs text-[#6a5a48] mt-0.5">{label}</p>
+        <p className={`text-2xl font-bold tabular-nums ${ac ? ac.text : 'text-[#ecfdf5]'}`}>{value}</p>
+        <p className="text-xs text-[#4d7a5f] mt-0.5">{label}</p>
       </div>
     </Link>
   )
@@ -782,20 +782,20 @@ function QuickAction({ href, icon, label, badge, badgeColor }: {
 }) {
   const badgeColors: Record<string, string> = {
     red:  'bg-red-900/40 text-red-400',
-    blue: 'bg-amber-900/40 text-amber-400',
+    blue: 'bg-emerald-900/40 text-emerald-400',
     yellow: 'bg-yellow-900/40 text-yellow-400',
   }
   return (
     <Link href={href}
-      className="bg-[#241e14] border border-[#3a2e1e] rounded-xl p-4 flex flex-col items-center gap-3 hover:border-amber-800/60 hover:bg-amber-950/20 transition text-center group">
-      <div className="w-10 h-10 rounded-xl bg-[#18140e] flex items-center justify-center group-hover:bg-amber-950/40 transition">
-        <svg className="w-5 h-5 text-amber-600 group-hover:text-amber-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      className="bg-[#121c15] border border-[#1e3324] rounded-xl p-4 flex flex-col items-center gap-3 hover:border-emerald-800/60 hover:bg-emerald-950/20 transition text-center group">
+      <div className="w-10 h-10 rounded-xl bg-[#0d1410] flex items-center justify-center group-hover:bg-emerald-950/40 transition">
+        <svg className="w-5 h-5 text-emerald-600 group-hover:text-emerald-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           {icon}
         </svg>
       </div>
-      <span className="text-xs font-semibold text-[#b8a898] group-hover:text-[#f0ebe0] transition">{label}</span>
+      <span className="text-xs font-semibold text-[#a7f3d0] group-hover:text-[#ecfdf5] transition">{label}</span>
       {badge && (
-        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badgeColors[badgeColor ?? ''] ?? 'bg-[#2a2218] text-[#7a6a58]'}`}>
+        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badgeColors[badgeColor ?? ''] ?? 'bg-[#162418] text-[#6b9478]'}`}>
           {badge}
         </span>
       )}
@@ -804,14 +804,14 @@ function QuickAction({ href, icon, label, badge, badgeColor }: {
 }
 
 function AnnouncementList({ announcements }: { announcements: any[] }) {
-  if (announcements.length === 0) return <p className="text-sm text-[#7a6a58]">Brak ogłoszeń.</p>
+  if (announcements.length === 0) return <p className="text-sm text-[#6b9478]">Brak ogłoszeń.</p>
   return (
     <div className="space-y-2">
       {announcements.map((a: any) => (
         <Link key={a.id} href={`/admin/announcements/${a.id}`}
-          className="block bg-[#241e14] border border-[#3a2e1e] rounded-xl px-4 py-3 hover:border-[#4a3c28] transition">
-          <p className="text-sm font-medium text-[#ddd5c5] truncate">{a.title}</p>
-          <p className="text-xs text-[#7a6a58] mt-0.5">{new Date(a.created_at).toLocaleDateString('pl-PL')}</p>
+          className="block bg-[#121c15] border border-[#1e3324] rounded-xl px-4 py-3 hover:border-[#2a4a2a] transition">
+          <p className="text-sm font-medium text-[#d1fae5] truncate">{a.title}</p>
+          <p className="text-xs text-[#6b9478] mt-0.5">{new Date(a.created_at).toLocaleDateString('pl-PL')}</p>
         </Link>
       ))}
     </div>

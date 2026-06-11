@@ -37,8 +37,8 @@ export default async function MessagesPage() {
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
-        <h2 className="text-2xl font-bold text-[#f0ebe0]">Wyślij wiadomość</h2>
-        <p className="text-sm text-[#6a5a48] mt-1">Wyślij email do mieszkańców bezpośrednio z systemu</p>
+        <h2 className="text-2xl font-bold text-[#ecfdf5]">Wyślij wiadomość</h2>
+        <p className="text-sm text-[#4d7a5f] mt-1">Wyślij email do mieszkańców bezpośrednio z systemu</p>
       </div>
       <MessagesClient
         communities={communities}

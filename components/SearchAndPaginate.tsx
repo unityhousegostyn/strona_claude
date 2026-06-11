@@ -45,7 +45,7 @@ export default function SearchAndPaginate<T extends { id: string }>({
       />
 
       {paged.length === 0 ? (
-        <p className="text-sm text-[#7a6a58]">{search ? 'Brak wyników dla podanej frazy.' : emptyText}</p>
+        <p className="text-sm text-[#6b9478]">{search ? 'Brak wyników dla podanej frazy.' : emptyText}</p>
       ) : (
         <div className="space-y-3">{paged.map(renderItem)}</div>
       )}
@@ -55,15 +55,15 @@ export default function SearchAndPaginate<T extends { id: string }>({
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-3 py-1.5 text-sm border border-[#3a2e1e] rounded-lg hover:bg-[#18140e] disabled:opacity-40 transition"
+            className="px-3 py-1.5 text-sm border border-[#1e3324] rounded-lg hover:bg-[#0d1410] disabled:opacity-40 transition"
           >
             ← Poprzednia
           </button>
-          <span className="text-sm text-[#6a5a48]">{page} / {totalPages}</span>
+          <span className="text-sm text-[#4d7a5f]">{page} / {totalPages}</span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="px-3 py-1.5 text-sm border border-[#3a2e1e] rounded-lg hover:bg-[#18140e] disabled:opacity-40 transition"
+            className="px-3 py-1.5 text-sm border border-[#1e3324] rounded-lg hover:bg-[#0d1410] disabled:opacity-40 transition"
           >
             Następna →
           </button>

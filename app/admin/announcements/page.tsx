@@ -53,8 +53,8 @@ export default async function AnnouncementsPage() {
   const canEdit = isSuperAdmin || profile.role === 'admin'
 
   const targetLabel = (a: any) => {
-    if (a.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-amber-950/40 text-amber-400' }
-    if (a.target === 'one') return { text: communityMap[a.community_id] ?? '—', cls: 'bg-[#241e14] text-[#7a6a58]' }
+    if (a.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-emerald-950/40 text-emerald-400' }
+    if (a.target === 'one') return { text: communityMap[a.community_id] ?? '—', cls: 'bg-[#121c15] text-[#6b9478]' }
     const names = (junctionMap[a.id] ?? []).map((cid) => communityMap[cid] ?? cid)
     return { text: names.join(', ') || '—', cls: 'bg-purple-950/30 text-purple-400' }
   }
@@ -62,11 +62,11 @@ export default async function AnnouncementsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-[#f0ebe0]">Ogłoszenia</h2>
+        <h2 className="text-2xl font-bold text-[#ecfdf5]">Ogłoszenia</h2>
         {canEdit && (
           <Link
             href="/admin/announcements/add"
-            className="bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
           >
             + Dodaj ogłoszenie
           </Link>

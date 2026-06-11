@@ -379,7 +379,7 @@ export async function sendInvitationEmail(params: {
         ${greeting}
       </p>
       <p style="font-size:15px;color:#c8b89a;line-height:1.8;margin:0 0 28px;">
-        Zarząd Państwa wspólnoty zaprasza do korzystania z <strong style="color:#f0ebe0;">cyfrowego panelu mieszkańca</strong>.
+        Zarząd Państwa wspólnoty zaprasza do korzystania z <strong style="color:#ecfdf5;">cyfrowego panelu mieszkańca</strong>.
         W jednym miejscu znajdą Państwo rozliczenia, dokumenty i bieżące informacje ze wspólnoty.
       </p>
 
@@ -412,14 +412,14 @@ export async function sendInvitationEmail(params: {
       </div>
 
       <!-- Wygasanie -->
-      <div style="background:#2a2218;border:1px solid #3a2e1e;border-radius:8px;padding:14px 18px;text-align:center;margin:0 0 8px;">
-        <p style="margin:0;font-size:12px;color:#6a5a48;">
-          ⏳&nbsp; Link jest ważny do <strong style="color:#b8a898;">${expiryStr}</strong>.
+      <div style="background:#162418;border:1px solid #1e3324;border-radius:8px;padding:14px 18px;text-align:center;margin:0 0 8px;">
+        <p style="margin:0;font-size:12px;color:#4d7a5f;">
+          ⏳&nbsp; Link jest ważny do <strong style="color:#a7f3d0;">${expiryStr}</strong>.
           Po tym terminie prosimy skontaktować się z zarządem.
         </p>
       </div>
 
-      <p style="font-size:12px;color:#4a3c28;text-align:center;margin:16px 0 0;">
+      <p style="font-size:12px;color:#2a4a2a;text-align:center;margin:16px 0 0;">
         Jeżeli nie spodziewali się Państwo tego zaproszenia, prosimy zignorować tę wiadomość.
       </p>
     `),
@@ -436,7 +436,7 @@ function invitationLayout(communityName: string, content: string) {
   const footerLines = [
     address && `<span>${address}</span>`,
     phone   && `<span>Tel.: ${phone}</span>`,
-    `<span><a href="${website}" style="color:#4a3c28;text-decoration:none;">${website.replace(/^https?:\/\//, '')}</a></span>`,
+    `<span><a href="${website}" style="color:#2a4a2a;text-decoration:none;">${website.replace(/^https?:\/\//, '')}</a></span>`,
   ].filter(Boolean).join(' &nbsp;·&nbsp; ')
 
   return `<!DOCTYPE html>
@@ -460,8 +460,8 @@ function invitationLayout(communityName: string, content: string) {
                   <span style="font-size:18px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">&#127968;</span>
                 </td>
                 <td style="padding-left:12px;">
-                  <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:#6a5a48;">Panel Zarządzania</p>
-                  <p style="margin:2px 0 0;font-size:16px;font-weight:700;color:#f0ebe0;">${communityName}</p>
+                  <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:#4d7a5f;">Panel Zarządzania</p>
+                  <p style="margin:2px 0 0;font-size:16px;font-weight:700;color:#ecfdf5;">${communityName}</p>
                 </td>
               </tr>
             </table>
@@ -470,25 +470,25 @@ function invitationLayout(communityName: string, content: string) {
 
         <!-- HERO BANNER -->
         <tr>
-          <td style="background:linear-gradient(145deg,#1e1810,#2a2218);border-radius:16px 16px 0 0;border:1px solid #3a2e1e;border-bottom:none;padding:40px 40px 32px;text-align:center;">
+          <td style="background:linear-gradient(145deg,#1e1810,#162418);border-radius:16px 16px 0 0;border:1px solid #1e3324;border-bottom:none;padding:40px 40px 32px;text-align:center;">
             <div style="display:inline-block;background:#d97706;border-radius:50%;width:56px;height:56px;line-height:56px;font-size:26px;margin:0 0 20px;">🏠</div>
-            <h1 style="margin:0 0 8px;font-size:28px;font-weight:800;color:#f0ebe0;letter-spacing:-0.5px;">Zaproszenie do wspólnoty</h1>
-            <p style="margin:0;font-size:15px;color:#7a6a58;">Otrzymali Państwo dostęp do cyfrowego panelu mieszkańca</p>
+            <h1 style="margin:0 0 8px;font-size:28px;font-weight:800;color:#ecfdf5;letter-spacing:-0.5px;">Zaproszenie do wspólnoty</h1>
+            <p style="margin:0;font-size:15px;color:#6b9478;">Otrzymali Państwo dostęp do cyfrowego panelu mieszkańca</p>
           </td>
         </tr>
 
         <!-- TREŚĆ -->
         <tr>
-          <td style="background:#18140e;border:1px solid #3a2e1e;border-top:none;border-bottom:none;padding:32px 40px;">
+          <td style="background:#0d1410;border:1px solid #1e3324;border-top:none;border-bottom:none;padding:32px 40px;">
             ${content}
           </td>
         </tr>
 
         <!-- STOPKA -->
         <tr>
-          <td style="background:#0e0b07;border:1px solid #3a2e1e;border-top:1px solid #2a2218;border-radius:0 0 16px 16px;padding:20px 40px;text-align:center;">
-            <p style="margin:0;font-size:12px;color:#3a2e1e;line-height:1.8;">${footerLines}</p>
-            <p style="margin:10px 0 0;font-size:11px;color:#2a2218;">
+          <td style="background:#0e0b07;border:1px solid #1e3324;border-top:1px solid #162418;border-radius:0 0 16px 16px;padding:20px 40px;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#1e3324;line-height:1.8;">${footerLines}</p>
+            <p style="margin:10px 0 0;font-size:11px;color:#162418;">
               Wiadomość wygenerowana automatycznie. Prosimy nie odpowiadać na ten email.
             </p>
           </td>
@@ -546,9 +546,9 @@ export async function sendNewVoteEmail(params: {
 // ── Kafelek funkcji (używany w zaproszeniu) ───────────────────────────────────
 
 function featureTile(icon: string, title: string, desc: string) {
-  return `<div style="background:#1e1810;border:1px solid #3a2e1e;border-radius:10px;padding:16px;">
+  return `<div style="background:#1e1810;border:1px solid #1e3324;border-radius:10px;padding:16px;">
     <p style="margin:0 0 6px;font-size:20px;line-height:1;">${icon}</p>
-    <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#f0ebe0;">${title}</p>
-    <p style="margin:0;font-size:12px;color:#6a5a48;line-height:1.5;">${desc}</p>
+    <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#ecfdf5;">${title}</p>
+    <p style="margin:0;font-size:12px;color:#4d7a5f;line-height:1.5;">${desc}</p>
   </div>`
 }

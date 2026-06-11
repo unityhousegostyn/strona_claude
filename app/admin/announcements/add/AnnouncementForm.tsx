@@ -57,13 +57,13 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
 
   return (
     <div className="max-w-xl space-y-6">
-      <h2 className="text-2xl font-bold text-[#f0ebe0]">Dodaj ogłoszenie</h2>
+      <h2 className="text-2xl font-bold text-[#ecfdf5]">Dodaj ogłoszenie</h2>
 
       {error && (
         <div className="bg-red-950/30 border border-red-900 text-red-400 text-sm rounded-lg px-4 py-3">{error}</div>
       )}
 
-      <div className="bg-[#241e14] border border-[#3a2e1e] rounded-xl p-6 space-y-4">
+      <div className="bg-[#121c15] border border-[#1e3324] rounded-xl p-6 space-y-4">
 
         {/* Zasięg — tylko super_admin */}
         {isSuperAdmin && (
@@ -80,8 +80,8 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
                   onClick={() => setTarget(opt.value)}
                   className={`text-sm px-3 py-1.5 rounded-lg border font-medium transition ${
                     target === opt.value
-                      ? 'bg-amber-600 border-green-600 text-white'
-                      : 'border-[#3a2e1e] text-[#7a6a58] hover:bg-[#18140e]'
+                      ? 'bg-emerald-600 border-green-600 text-white'
+                      : 'border-[#1e3324] text-[#6b9478] hover:bg-[#0d1410]'
                   }`}
                 >
                   {opt.label}
@@ -97,7 +97,7 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
             <select
               value={communityId}
               onChange={(e) => setCommunityId(e.target.value)}
-              className="w-full border border-[#3a2e1e] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full border border-[#1e3324] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
             >
               <option value="">Wybierz wspólnotę…</option>
               {communities.map((c) => (
@@ -110,14 +110,14 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
         {/* Wybrane wspólnoty — checkboxy */}
         {isSuperAdmin && target === 'selected' && (
           <Field label="Wybierz wspólnoty">
-            <div className="space-y-2 max-h-48 overflow-y-auto border border-[#3a2e1e] rounded-lg p-3">
+            <div className="space-y-2 max-h-48 overflow-y-auto border border-[#1e3324] rounded-lg p-3">
               {communities.map((c) => (
-                <label key={c.id} className="flex items-center gap-2 cursor-pointer text-sm text-[#b8a898]">
+                <label key={c.id} className="flex items-center gap-2 cursor-pointer text-sm text-[#a7f3d0]">
                   <input
                     type="checkbox"
                     checked={selectedIds.includes(c.id)}
                     onChange={() => toggleCommunity(c.id)}
-                    className="rounded border-[#3a2e1e] text-amber-500"
+                    className="rounded border-[#1e3324] text-emerald-500"
                   />
                   {c.name}
                 </label>
@@ -128,7 +128,7 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
 
         <Field label="Tytuł">
           <input
-            className="w-full border border-[#3a2e1e] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+            className="w-full border border-[#1e3324] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Tytuł ogłoszenia"
@@ -137,7 +137,7 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
 
         <Field label="Treść">
           <textarea
-            className="w-full border border-[#3a2e1e] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 min-h-[100px]"
+            className="w-full border border-[#1e3324] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 min-h-[100px]"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Treść ogłoszenia…"
@@ -146,10 +146,10 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
 
         <div className="grid grid-cols-2 gap-4">
           <Field label="Data rozpoczęcia">
-            <input type="date" className="w-full border border-[#3a2e1e] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            <input type="date" className="w-full border border-[#1e3324] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
           </Field>
           <Field label="Data zakończenia">
-            <input type="date" className="w-full border border-[#3a2e1e] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            <input type="date" className="w-full border border-[#1e3324] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
           </Field>
         </div>
       </div>
@@ -160,7 +160,7 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
             <div
               onClick={() => setPinned(v => !v)}
               className={`w-5 h-5 rounded border-2 flex items-center justify-center transition ${
-                pinned ? 'bg-amber-600 border-amber-600' : 'border-[#3a2e1e] hover:border-amber-700'
+                pinned ? 'bg-emerald-600 border-emerald-600' : 'border-[#1e3324] hover:border-emerald-700'
               }`}
             >
               {pinned && (
@@ -170,8 +170,8 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
               )}
             </div>
             <div>
-              <span className="text-sm font-medium text-[#b8a898]">Przypnij ogłoszenie na górze</span>
-              <p className="text-xs text-[#4a3c28]">Przypięte ogłoszenia wyświetlają się zawsze jako pierwsze</p>
+              <span className="text-sm font-medium text-[#a7f3d0]">Przypnij ogłoszenie na górze</span>
+              <p className="text-xs text-[#2a4a2a]">Przypięte ogłoszenia wyświetlają się zawsze jako pierwsze</p>
             </div>
           </label>
         </Field>
@@ -180,13 +180,13 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
         <button
           onClick={handleSubmit}
           disabled={isPending}
-          className="bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
         >
           {isPending ? 'Zapisywanie…' : 'Zapisz ogłoszenie'}
         </button>
         <button
           onClick={() => router.back()}
-          className="text-sm text-[#7a6a58] hover:text-[#f0ebe0] px-5 py-2.5 rounded-lg border border-[#3a2e1e] hover:bg-[#18140e] transition"
+          className="text-sm text-[#6b9478] hover:text-[#ecfdf5] px-5 py-2.5 rounded-lg border border-[#1e3324] hover:bg-[#0d1410] transition"
         >
           Anuluj
         </button>
@@ -198,7 +198,7 @@ export default function AnnouncementForm({ isSuperAdmin, adminCommunityId, commu
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-[#b8a898] mb-1">{label}</label>
+      <label className="block text-sm font-medium text-[#a7f3d0] mb-1">{label}</label>
       {children}
     </div>
   )

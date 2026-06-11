@@ -55,13 +55,13 @@ export default function DocumentUpload({ isSuperAdmin, adminCommunityId, communi
       {!showPanel ? (
         <button
           onClick={() => setShowPanel(true)}
-          className="bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
         >
           + Dodaj dokument
         </button>
       ) : (
-        <div className="bg-[#241e14] border border-[#3a2e1e] rounded-xl p-5 space-y-4">
-          <h3 className="font-semibold text-[#ddd5c5] text-sm">Nowy dokument</h3>
+        <div className="bg-[#121c15] border border-[#1e3324] rounded-xl p-5 space-y-4">
+          <h3 className="font-semibold text-[#d1fae5] text-sm">Nowy dokument</h3>
 
           {error && (
             <p className="text-sm text-red-400 bg-red-950/30 border border-red-900 rounded-lg px-3 py-2">{error}</p>
@@ -69,7 +69,7 @@ export default function DocumentUpload({ isSuperAdmin, adminCommunityId, communi
 
           {isSuperAdmin && (
             <div>
-              <label className="block text-sm font-medium text-[#b8a898] mb-1">Zasięg</label>
+              <label className="block text-sm font-medium text-[#a7f3d0] mb-1">Zasięg</label>
               <div className="flex gap-2 flex-wrap">
                 {([
                   { value: 'all', label: '🌐 Wszystkie' },
@@ -82,8 +82,8 @@ export default function DocumentUpload({ isSuperAdmin, adminCommunityId, communi
                     onClick={() => setTarget(opt.value)}
                     className={`text-sm px-3 py-1.5 rounded-lg border font-medium transition ${
                       target === opt.value
-                        ? 'bg-amber-600 border-green-600 text-white'
-                        : 'border-[#3a2e1e] text-[#7a6a58] hover:bg-[#18140e]'
+                        ? 'bg-emerald-600 border-green-600 text-white'
+                        : 'border-[#1e3324] text-[#6b9478] hover:bg-[#0d1410]'
                     }`}
                   >
                     {opt.label}
@@ -95,11 +95,11 @@ export default function DocumentUpload({ isSuperAdmin, adminCommunityId, communi
 
           {isSuperAdmin && target === 'one' && (
             <div>
-              <label className="block text-sm font-medium text-[#b8a898] mb-1">Wspólnota</label>
+              <label className="block text-sm font-medium text-[#a7f3d0] mb-1">Wspólnota</label>
               <select
                 value={communityId}
                 onChange={(e) => setCommunityId(e.target.value)}
-                className="w-full border border-[#3a2e1e] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="w-full border border-[#1e3324] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
               >
                 <option value="">Wybierz wspólnotę…</option>
                 {communities.map((c) => (
@@ -111,15 +111,15 @@ export default function DocumentUpload({ isSuperAdmin, adminCommunityId, communi
 
           {isSuperAdmin && target === 'selected' && (
             <div>
-              <label className="block text-sm font-medium text-[#b8a898] mb-1">Wybierz wspólnoty</label>
-              <div className="space-y-2 max-h-40 overflow-y-auto border border-[#3a2e1e] rounded-lg p-3">
+              <label className="block text-sm font-medium text-[#a7f3d0] mb-1">Wybierz wspólnoty</label>
+              <div className="space-y-2 max-h-40 overflow-y-auto border border-[#1e3324] rounded-lg p-3">
                 {communities.map((c) => (
-                  <label key={c.id} className="flex items-center gap-2 cursor-pointer text-sm text-[#b8a898]">
+                  <label key={c.id} className="flex items-center gap-2 cursor-pointer text-sm text-[#a7f3d0]">
                     <input
                       type="checkbox"
                       checked={selectedIds.includes(c.id)}
                       onChange={() => toggleCommunity(c.id)}
-                      className="rounded border-[#3a2e1e] text-amber-500 focus:ring-amber-400"
+                      className="rounded border-[#1e3324] text-emerald-500 focus:ring-emerald-400"
                     />
                     {c.name}
                   </label>
@@ -132,13 +132,13 @@ export default function DocumentUpload({ isSuperAdmin, adminCommunityId, communi
             <button
               onClick={() => fileRef.current?.click()}
               disabled={isPending}
-              className="bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition disabled:opacity-50"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition disabled:opacity-50"
             >
               {isPending ? 'Przesyłanie…' : 'Wybierz plik i wyślij'}
             </button>
             <button
               onClick={() => { setShowPanel(false); setError(null) }}
-              className="text-sm text-[#6a5a48] hover:text-[#b8a898]"
+              className="text-sm text-[#4d7a5f] hover:text-[#a7f3d0]"
             >
               Anuluj
             </button>

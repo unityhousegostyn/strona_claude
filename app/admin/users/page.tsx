@@ -58,7 +58,7 @@ export default async function UsersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h2 className="text-2xl font-bold text-[#f0ebe0]">Użytkownicy</h2>
+        <h2 className="text-2xl font-bold text-[#ecfdf5]">Użytkownicy</h2>
         <div className="flex items-center gap-2">
           <InviteModal
             communities={communities ?? []}

@@ -139,15 +139,15 @@ export default function VotesClient({ votes, communities, userId, communityId, i
   }
 
   const choiceLabel = { yes: 'ZA', no: 'PRZECIW', abstain: 'WSTRZYMUJĘ SIĘ' }
-  const choiceColor = { yes: 'bg-amber-600 hover:bg-amber-500', no: 'bg-red-600 hover:bg-red-500', abstain: 'bg-[#4a3c28] hover:bg-[#5a4a38]' }
+  const choiceColor = { yes: 'bg-emerald-600 hover:bg-emerald-500', no: 'bg-red-600 hover:bg-red-500', abstain: 'bg-[#2a4a2a] hover:bg-[#5a4a38]' }
 
   return (
     <div className="space-y-6 max-w-4xl">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-[#f0ebe0]">🗳️ Głosowania</h2>
-          <p className="text-sm text-[#6a5a48] mt-0.5">Uchwały wspólnoty mieszkaniowej</p>
+          <h2 className="text-2xl font-bold text-[#ecfdf5]">🗳️ Głosowania</h2>
+          <p className="text-sm text-[#4d7a5f] mt-0.5">Uchwały wspólnoty mieszkaniowej</p>
         </div>
         <div className="flex items-center gap-3">
           {!hasPin && (
@@ -157,7 +157,7 @@ export default function VotesClient({ votes, communities, userId, communityId, i
           )}
           {isAdmin && (
             <button onClick={() => setShowForm(!showForm)}
-              className="bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
               + Nowa uchwała
             </button>
           )}
@@ -166,22 +166,22 @@ export default function VotesClient({ votes, communities, userId, communityId, i
 
       {/* Formularz nowej uchwały */}
       {showForm && isAdmin && (
-        <div className="bg-[#241e14] border border-[#3a2e1e] rounded-xl p-5 space-y-4">
-          <h3 className="font-semibold text-[#ddd5c5]">Nowa uchwała</h3>
+        <div className="bg-[#121c15] border border-[#1e3324] rounded-xl p-5 space-y-4">
+          <h3 className="font-semibold text-[#d1fae5]">Nowa uchwała</h3>
           <div className="space-y-3">
             <div>
-              <label className="text-xs text-[#7a6a58] block mb-1">Tytuł uchwały *</label>
+              <label className="text-xs text-[#6b9478] block mb-1">Tytuł uchwały *</label>
               <input className="input w-full" placeholder="np. Uchwała nr 1/2026 w sprawie..."
                 value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} />
             </div>
             <div>
-              <label className="text-xs text-[#7a6a58] block mb-1">Opis / treść uchwały</label>
+              <label className="text-xs text-[#6b9478] block mb-1">Opis / treść uchwały</label>
               <textarea className="input w-full min-h-24 resize-y" placeholder="Treść uchwały..."
                 value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="text-xs text-[#7a6a58] block mb-1">Metoda głosowania</label>
+                <label className="text-xs text-[#6b9478] block mb-1">Metoda głosowania</label>
                 <select className="input w-full" value={form.voting_method}
                   onChange={e => setForm(p => ({ ...p, voting_method: e.target.value as 'by_share' | 'one_per_owner' }))}>
                   <option value="by_share">Wg udziałów (art. 23 UWL)</option>
@@ -189,13 +189,13 @@ export default function VotesClient({ votes, communities, userId, communityId, i
                 </select>
               </div>
               <div>
-                <label className="text-xs text-[#7a6a58] block mb-1">Termin głosowania</label>
+                <label className="text-xs text-[#6b9478] block mb-1">Termin głosowania</label>
                 <input className="input w-full" type="datetime-local" value={form.deadline}
                   onChange={e => setForm(p => ({ ...p, deadline: e.target.value }))} />
               </div>
               {isSuperAdmin && (
                 <div>
-                  <label className="text-xs text-[#7a6a58] block mb-1">Wspólnota</label>
+                  <label className="text-xs text-[#6b9478] block mb-1">Wspólnota</label>
                   <select className="input w-full" value={form.community_id}
                     onChange={e => setForm(p => ({ ...p, community_id: e.target.value }))}>
                     <option value="">— wybierz wspólnotę —</option>
@@ -206,10 +206,10 @@ export default function VotesClient({ votes, communities, userId, communityId, i
             </div>
 
             {/* Dokumentacja */}
-            <div className="border-t border-[#3a2e1e] pt-3 space-y-3">
-              <p className="text-xs font-medium text-[#6a5a48] uppercase tracking-wider">Dokumentacja (opcjonalnie)</p>
+            <div className="border-t border-[#1e3324] pt-3 space-y-3">
+              <p className="text-xs font-medium text-[#4d7a5f] uppercase tracking-wider">Dokumentacja (opcjonalnie)</p>
               <div>
-                <label className="text-xs text-[#7a6a58] block mb-1">🔗 Link do dokumentu zewnętrznego</label>
+                <label className="text-xs text-[#6b9478] block mb-1">🔗 Link do dokumentu zewnętrznego</label>
                 <input
                   className="input w-full"
                   type="url"
@@ -219,7 +219,7 @@ export default function VotesClient({ votes, communities, userId, communityId, i
                 />
               </div>
               <div>
-                <label className="text-xs text-[#7a6a58] block mb-1">📎 Załącznik</label>
+                <label className="text-xs text-[#6b9478] block mb-1">📎 Załącznik</label>
                 <div className="flex items-center gap-3">
                   <input
                     ref={fileInputRef}
@@ -230,18 +230,18 @@ export default function VotesClient({ votes, communities, userId, communityId, i
                     id="vote-attachment"
                   />
                   <label htmlFor="vote-attachment"
-                    className="cursor-pointer text-sm bg-[#2a2218] hover:bg-[#342c1e] border border-[#3a2e1e] text-[#b8a898] px-3 py-2 rounded-lg transition">
+                    className="cursor-pointer text-sm bg-[#162418] hover:bg-[#1c2e1e] border border-[#1e3324] text-[#a7f3d0] px-3 py-2 rounded-lg transition">
                     Wybierz plik
                   </label>
                   {attachmentFile ? (
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-sm text-[#b8a898] truncate max-w-48">{attachmentFile.name}</span>
+                      <span className="text-sm text-[#a7f3d0] truncate max-w-48">{attachmentFile.name}</span>
                       <button type="button"
                         onClick={() => { setAttachmentFile(null); if (fileInputRef.current) fileInputRef.current.value = '' }}
-                        className="text-xs text-[#6a5a48] hover:text-red-400 flex-shrink-0 transition">✕</button>
+                        className="text-xs text-[#4d7a5f] hover:text-red-400 flex-shrink-0 transition">✕</button>
                     </div>
                   ) : (
-                    <span className="text-xs text-[#6a5a48]">PDF, DOC, XLS, obraz</span>
+                    <span className="text-xs text-[#4d7a5f]">PDF, DOC, XLS, obraz</span>
                   )}
                 </div>
               </div>
@@ -251,18 +251,18 @@ export default function VotesClient({ votes, communities, userId, communityId, i
           {formError && <p className="text-sm text-red-400">{formError}</p>}
           <div className="flex gap-3">
             <button onClick={handleCreate} disabled={isPending || uploading}
-              className="bg-amber-600 text-white text-sm font-semibold px-5 py-2 rounded-lg disabled:opacity-50">
+              className="bg-emerald-600 text-white text-sm font-semibold px-5 py-2 rounded-lg disabled:opacity-50">
               {uploading ? 'Przesyłanie pliku...' : isPending ? 'Tworzenie...' : 'Utwórz głosowanie'}
             </button>
             <button onClick={() => { setShowForm(false); setAttachmentFile(null) }}
-              className="text-sm text-[#6a5a48] hover:text-[#b8a898]">Anuluj</button>
+              className="text-sm text-[#4d7a5f] hover:text-[#a7f3d0]">Anuluj</button>
           </div>
         </div>
       )}
 
       {/* Lista głosowań */}
       {votes.length === 0 ? (
-        <div className="text-center py-16 text-[#6a5a48]">
+        <div className="text-center py-16 text-[#4d7a5f]">
           <p className="text-4xl mb-3">🗳️</p>
           <p>{isAdmin ? 'Utwórz pierwszą uchwałę.' : 'Administrator jeszcze nie dodał żadnych uchwał.'}</p>
         </div>
@@ -275,26 +275,26 @@ export default function VotesClient({ votes, communities, userId, communityId, i
             const totalVoters = vote.choices.length
 
             return (
-              <div key={vote.id} className={`bg-[#241e14] border rounded-xl p-5 space-y-4 ${vote.status === 'open' ? 'border-[#3a2e1e]' : 'border-[#3a2e1e]/50 opacity-80'}`}>
+              <div key={vote.id} className={`bg-[#121c15] border rounded-xl p-5 space-y-4 ${vote.status === 'open' ? 'border-[#1e3324]' : 'border-[#1e3324]/50 opacity-80'}`}>
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${vote.status === 'open' ? 'bg-amber-900/30 text-amber-400' : 'bg-[#2a2218] text-[#6a5a48]'}`}>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${vote.status === 'open' ? 'bg-emerald-900/30 text-emerald-400' : 'bg-[#162418] text-[#4d7a5f]'}`}>
                         {vote.status === 'open' ? '● Otwarte' : '✓ Zamknięte'}
                       </span>
                       {isSuperAdmin && vote.community && (
-                        <span className="text-xs text-[#6a5a48]">{vote.community.name}</span>
+                        <span className="text-xs text-[#4d7a5f]">{vote.community.name}</span>
                       )}
-                      <span className="text-xs text-[#6a5a48]">
+                      <span className="text-xs text-[#4d7a5f]">
                         {vote.voting_method === 'by_share' ? 'wg udziałów' : '1 lokal = 1 głos'}
                       </span>
                     </div>
-                    <h3 className="text-base font-semibold text-[#f0ebe0]">{vote.title}</h3>
+                    <h3 className="text-base font-semibold text-[#ecfdf5]">{vote.title}</h3>
                     {vote.description && (
-                      <p className="text-sm text-[#7a6a58] mt-1 whitespace-pre-wrap">{vote.description}</p>
+                      <p className="text-sm text-[#6b9478] mt-1 whitespace-pre-wrap">{vote.description}</p>
                     )}
                     {vote.deadline && (
-                      <p className="text-xs text-[#6a5a48] mt-1">
+                      <p className="text-xs text-[#4d7a5f] mt-1">
                         Termin: {new Date(vote.deadline).toLocaleString('pl-PL')}
                       </p>
                     )}
@@ -304,13 +304,13 @@ export default function VotesClient({ votes, communities, userId, communityId, i
                       <div className="flex flex-wrap gap-2 mt-2">
                         {vote.link_url && (
                           <a href={vote.link_url} target="_blank" rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 bg-amber-950/30 border border-amber-800/50 px-2.5 py-1 rounded-lg transition">
+                            className="inline-flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 bg-emerald-950/30 border border-emerald-800/50 px-2.5 py-1 rounded-lg transition">
                             🔗 Otwórz dokument
                           </a>
                         )}
                         {vote.attachment_path && (
                           <a href={getAttachmentUrl(vote.attachment_path)} target="_blank" rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-xs text-[#b8a898] hover:text-[#f0ebe0] bg-[#2a2218] border border-[#3a2e1e] px-2.5 py-1 rounded-lg transition">
+                            className="inline-flex items-center gap-1.5 text-xs text-[#a7f3d0] hover:text-[#ecfdf5] bg-[#162418] border border-[#1e3324] px-2.5 py-1 rounded-lg transition">
                             📎 {vote.attachment_path.split('/').pop()?.replace(/^\d+_/, '') ?? 'Załącznik'}
                           </a>
                         )}
@@ -326,14 +326,14 @@ export default function VotesClient({ votes, communities, userId, communityId, i
                         </button>
                       )}
                       <button onClick={() => handleDelete(vote.id)} disabled={isPending}
-                        className="text-xs text-[#6a5a48] hover:text-red-400 transition">✕</button>
+                        className="text-xs text-[#4d7a5f] hover:text-red-400 transition">✕</button>
                     </div>
                   )}
                 </div>
 
                 {/* Wyniki */}
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs text-[#6a5a48] mb-1">
+                  <div className="flex items-center justify-between text-xs text-[#4d7a5f] mb-1">
                     <span>Wyniki ({totalVoters} głosów)</span>
                     {vote.voting_method === 'by_share' && res.total > 0 && (
                       <span>Łączny udział: {(res.total * 100).toFixed(2)}%</span>
@@ -345,19 +345,19 @@ export default function VotesClient({ votes, communities, userId, communityId, i
                     { label: 'Wstrzymało się', value: res.ab, pct: res.pct(res.ab), color: 'bg-[#5a4a38]' },
                   ].map(r => (
                     <div key={r.label} className="flex items-center gap-3">
-                      <span className="text-xs text-[#7a6a58] w-24">{r.label}</span>
-                      <div className="flex-1 bg-[#2a2218] rounded-full h-2">
+                      <span className="text-xs text-[#6b9478] w-24">{r.label}</span>
+                      <div className="flex-1 bg-[#162418] rounded-full h-2">
                         <div className={`${r.color} h-2 rounded-full transition-all`} style={{ width: `${r.pct}%` }} />
                       </div>
-                      <span className="text-xs text-[#b8a898] w-12 text-right">{r.pct}%</span>
+                      <span className="text-xs text-[#a7f3d0] w-12 text-right">{r.pct}%</span>
                     </div>
                   ))}
                 </div>
 
                 {/* Głosowanie */}
                 {isOpen && !myChoice && !isSuperAdmin && (
-                  <div className="flex flex-wrap gap-2 pt-1 border-t border-[#3a2e1e]">
-                    <p className="w-full text-xs text-[#6a5a48] mb-1">Twój głos:</p>
+                  <div className="flex flex-wrap gap-2 pt-1 border-t border-[#1e3324]">
+                    <p className="w-full text-xs text-[#4d7a5f] mb-1">Twój głos:</p>
                     {(['yes', 'no', 'abstain'] as const).map(c => (
                       <button key={c} onClick={() => handleVote(vote.id, c)} disabled={isPending}
                         className={`${choiceColor[c]} text-white text-xs font-bold px-4 py-1.5 rounded-lg transition disabled:opacity-50`}>
@@ -367,14 +367,14 @@ export default function VotesClient({ votes, communities, userId, communityId, i
                   </div>
                 )}
                 {isOpen && !myChoice && isSuperAdmin && (
-                  <div className="pt-1 border-t border-[#3a2e1e]">
-                    <p className="text-xs text-[#6a5a48] italic">Administrator nie głosuje w uchwałach.</p>
+                  <div className="pt-1 border-t border-[#1e3324]">
+                    <p className="text-xs text-[#4d7a5f] italic">Administrator nie głosuje w uchwałach.</p>
                   </div>
                 )}
                 {myChoice && (
-                  <div className="pt-1 border-t border-[#3a2e1e]">
-                    <p className="text-xs text-[#6a5a48]">
-                      Twój głos: <span className={`font-semibold ${myChoice.choice === 'yes' ? 'text-amber-400' : myChoice.choice === 'no' ? 'text-red-400' : 'text-[#7a6a58]'}`}>
+                  <div className="pt-1 border-t border-[#1e3324]">
+                    <p className="text-xs text-[#4d7a5f]">
+                      Twój głos: <span className={`font-semibold ${myChoice.choice === 'yes' ? 'text-emerald-400' : myChoice.choice === 'no' ? 'text-red-400' : 'text-[#6b9478]'}`}>
                         {choiceLabel[myChoice.choice as keyof typeof choiceLabel]}
                       </span>
                     </p>
@@ -389,12 +389,12 @@ export default function VotesClient({ votes, communities, userId, communityId, i
       {/* Modal PIN */}
       {pinModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-[#18140e] border border-[#3a2e1e] rounded-2xl w-full max-w-sm shadow-2xl p-6 space-y-5">
+          <div className="bg-[#0d1410] border border-[#1e3324] rounded-2xl w-full max-w-sm shadow-2xl p-6 space-y-5">
             <div className="text-center">
               <p className="text-3xl mb-2">🔐</p>
-              <h3 className="text-base font-semibold text-[#f0ebe0]">Potwierdź głos PINem</h3>
-              <p className="text-sm text-[#7a6a58] mt-1">
-                Głosujesz: <span className={`font-bold ${pinModal.choice === 'yes' ? 'text-amber-400' : pinModal.choice === 'no' ? 'text-red-400' : 'text-[#7a6a58]'}`}>
+              <h3 className="text-base font-semibold text-[#ecfdf5]">Potwierdź głos PINem</h3>
+              <p className="text-sm text-[#6b9478] mt-1">
+                Głosujesz: <span className={`font-bold ${pinModal.choice === 'yes' ? 'text-emerald-400' : pinModal.choice === 'no' ? 'text-red-400' : 'text-[#6b9478]'}`}>
                   {choiceLabel[pinModal.choice]}
                 </span>
               </p>
@@ -411,9 +411,9 @@ export default function VotesClient({ votes, communities, userId, communityId, i
             {pinError && <p className="text-sm text-red-400 text-center">{pinError}</p>}
             <div className="flex gap-3 justify-center">
               <button onClick={() => { setPinModal(null); setPin('') }}
-                className="text-sm text-[#6a5a48] hover:text-[#b8a898] px-4 py-2">Anuluj</button>
+                className="text-sm text-[#4d7a5f] hover:text-[#a7f3d0] px-4 py-2">Anuluj</button>
               <button onClick={handleConfirmVote} disabled={isPending || pin.length !== 4}
-                className="bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold px-6 py-2 rounded-lg transition disabled:opacity-50">
+                className="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold px-6 py-2 rounded-lg transition disabled:opacity-50">
                 {isPending ? 'Wysyłanie...' : 'Potwierdź'}
               </button>
             </div>

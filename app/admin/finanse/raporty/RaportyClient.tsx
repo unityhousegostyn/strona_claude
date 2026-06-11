@@ -248,8 +248,8 @@ export default function RaportyClient({
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3 print:hidden">
         <div>
-          <h2 className="text-2xl font-bold text-[#f0ebe0]">📊 Raporty finansowe</h2>
-          <p className="text-sm text-[#6a5a48] mt-0.5">Dokumentacja zgodna z UoWL i KC</p>
+          <h2 className="text-2xl font-bold text-[#ecfdf5]">📊 Raporty finansowe</h2>
+          <p className="text-sm text-[#4d7a5f] mt-0.5">Dokumentacja zgodna z UoWL i KC</p>
         </div>
         <div className="flex gap-3 flex-wrap">
           {isSuperAdmin && (
@@ -270,16 +270,16 @@ export default function RaportyClient({
             <button
               key={r.type}
               onClick={() => setActiveReport(r.type)}
-              className="text-left bg-[#241e14] border border-[#3a2e1e] hover:border-[#4a3c28] rounded-xl p-5 transition group"
+              className="text-left bg-[#121c15] border border-[#1e3324] hover:border-[#2a4a2a] rounded-xl p-5 transition group"
             >
               <div className="flex items-start gap-4">
                 <span className="text-3xl">{r.icon}</span>
                 <div className="flex-1">
-                  <p className="font-semibold text-[#f0ebe0] group-hover:text-white">{r.title}</p>
-                  <p className="text-xs text-[#6a5a48] mt-0.5">{r.subtitle}</p>
-                  <span className="inline-block mt-2 text-xs bg-amber-950/50 text-amber-400 px-2 py-0.5 rounded-full">{r.art}</span>
+                  <p className="font-semibold text-[#ecfdf5] group-hover:text-white">{r.title}</p>
+                  <p className="text-xs text-[#4d7a5f] mt-0.5">{r.subtitle}</p>
+                  <span className="inline-block mt-2 text-xs bg-emerald-950/50 text-emerald-400 px-2 py-0.5 rounded-full">{r.art}</span>
                 </div>
-                <svg className="w-4 h-4 text-[#6a5a48] group-hover:text-[#7a6a58] mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-[#4d7a5f] group-hover:text-[#6b9478] mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
@@ -293,17 +293,17 @@ export default function RaportyClient({
         <div>
           {/* Back + print */}
           <div className="flex items-center gap-3 mb-5 print:hidden">
-            <button onClick={() => setActiveReport(null)} className="flex items-center gap-2 text-sm text-[#7a6a58] hover:text-[#f0ebe0] transition">
+            <button onClick={() => setActiveReport(null)} className="flex items-center gap-2 text-sm text-[#6b9478] hover:text-[#ecfdf5] transition">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               Wróć do listy raportów
             </button>
             <div className="flex-1" />
-            <button onClick={handleExportExcel} className="flex items-center gap-2 text-sm bg-[#2a2218] hover:bg-[#342c1e] text-[#ddd5c5] px-4 py-2 rounded-lg transition">
+            <button onClick={handleExportExcel} className="flex items-center gap-2 text-sm bg-[#162418] hover:bg-[#1c2e1e] text-[#d1fae5] px-4 py-2 rounded-lg transition">
               📊 Eksport Excel
             </button>
-            <button onClick={handlePrint} className="flex items-center gap-2 text-sm bg-[#2a2218] hover:bg-[#342c1e] text-[#ddd5c5] px-4 py-2 rounded-lg transition">
+            <button onClick={handlePrint} className="flex items-center gap-2 text-sm bg-[#162418] hover:bg-[#1c2e1e] text-[#d1fae5] px-4 py-2 rounded-lg transition">
               🖨️ Drukuj / zapisz PDF
             </button>
           </div>
@@ -331,12 +331,12 @@ export default function RaportyClient({
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-[#3a2e1e]">
-                          <th className="text-left py-2 pr-4 text-[#7a6a58] font-medium">Miesiąc</th>
-                          <th className="text-right py-2 px-3 text-[#7a6a58] font-medium">Wpłaty</th>
-                          <th className="text-right py-2 px-3 text-[#7a6a58] font-medium">Inne przychody</th>
-                          <th className="text-right py-2 px-3 text-[#7a6a58] font-medium">Koszty</th>
-                          <th className="text-right py-2 pl-3 text-[#7a6a58] font-medium">Saldo</th>
+                        <tr className="border-b border-[#1e3324]">
+                          <th className="text-left py-2 pr-4 text-[#6b9478] font-medium">Miesiąc</th>
+                          <th className="text-right py-2 px-3 text-[#6b9478] font-medium">Wpłaty</th>
+                          <th className="text-right py-2 px-3 text-[#6b9478] font-medium">Inne przychody</th>
+                          <th className="text-right py-2 px-3 text-[#6b9478] font-medium">Koszty</th>
+                          <th className="text-right py-2 pl-3 text-[#6b9478] font-medium">Saldo</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -346,23 +346,23 @@ export default function RaportyClient({
                           const bal = inc - exp
                           const hasData = inc > 0 || exp > 0
                           return (
-                            <tr key={m} className={`border-b border-[#3a2e1e]/50 ${!hasData ? 'opacity-40' : ''}`}>
-                              <td className="py-2 pr-4 text-[#b8a898]">{MONTHS_FULL[m - 1]}</td>
-                              <td className="text-right py-2 px-3 text-[#ddd5c5]">{monthlyPaid[m] > 0 ? pln(monthlyPaid[m]) : '—'}</td>
-                              <td className="text-right py-2 px-3 text-[#ddd5c5]">{monthlyOtherIncome[m] > 0 ? pln(monthlyOtherIncome[m]) : '—'}</td>
-                              <td className="text-right py-2 px-3 text-[#ddd5c5]">{exp > 0 ? pln(exp) : '—'}</td>
-                              <td className={`text-right py-2 pl-3 font-medium ${bal >= 0 ? 'text-amber-400' : 'text-red-400'}`}>{hasData ? pln(bal) : '—'}</td>
+                            <tr key={m} className={`border-b border-[#1e3324]/50 ${!hasData ? 'opacity-40' : ''}`}>
+                              <td className="py-2 pr-4 text-[#a7f3d0]">{MONTHS_FULL[m - 1]}</td>
+                              <td className="text-right py-2 px-3 text-[#d1fae5]">{monthlyPaid[m] > 0 ? pln(monthlyPaid[m]) : '—'}</td>
+                              <td className="text-right py-2 px-3 text-[#d1fae5]">{monthlyOtherIncome[m] > 0 ? pln(monthlyOtherIncome[m]) : '—'}</td>
+                              <td className="text-right py-2 px-3 text-[#d1fae5]">{exp > 0 ? pln(exp) : '—'}</td>
+                              <td className={`text-right py-2 pl-3 font-medium ${bal >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{hasData ? pln(bal) : '—'}</td>
                             </tr>
                           )
                         })}
                       </tbody>
                       <tfoot>
-                        <tr className="border-t border-[#4a3c28]">
-                          <td className="py-3 pr-4 font-bold text-[#f0ebe0]">RAZEM</td>
-                          <td className="text-right py-3 px-3 font-bold text-amber-400">{pln(totalPaid)}</td>
+                        <tr className="border-t border-[#2a4a2a]">
+                          <td className="py-3 pr-4 font-bold text-[#ecfdf5]">RAZEM</td>
+                          <td className="text-right py-3 px-3 font-bold text-emerald-400">{pln(totalPaid)}</td>
                           <td className="text-right py-3 px-3 font-bold text-yellow-400">{pln(totalOtherIncome)}</td>
                           <td className="text-right py-3 px-3 font-bold text-red-400">{pln(totalExpenses)}</td>
-                          <td className={`text-right py-3 pl-3 font-bold ${totalBalance >= 0 ? 'text-amber-400' : 'text-red-400'}`}>{pln(totalBalance)}</td>
+                          <td className={`text-right py-3 pl-3 font-bold ${totalBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{pln(totalBalance)}</td>
                         </tr>
                       </tfoot>
                     </table>
@@ -375,20 +375,20 @@ export default function RaportyClient({
                     const byCat: Record<string, number> = {}
                     for (const e of commExpenses) byCat[e.category] = (byCat[e.category] ?? 0) + e.amount
                     const sorted = Object.entries(byCat).sort((a, b) => b[1] - a[1])
-                    if (sorted.length === 0) return <p className="text-[#6a5a48] text-sm">Brak kosztów w tym roku.</p>
+                    if (sorted.length === 0) return <p className="text-[#4d7a5f] text-sm">Brak kosztów w tym roku.</p>
                     return (
                       <table className="w-full text-sm">
-                        <thead><tr className="border-b border-[#3a2e1e]"><th className="text-left py-2 text-[#7a6a58] font-medium">Kategoria</th><th className="text-right py-2 text-[#7a6a58] font-medium">Kwota</th><th className="text-right py-2 text-[#7a6a58] font-medium">%</th></tr></thead>
+                        <thead><tr className="border-b border-[#1e3324]"><th className="text-left py-2 text-[#6b9478] font-medium">Kategoria</th><th className="text-right py-2 text-[#6b9478] font-medium">Kwota</th><th className="text-right py-2 text-[#6b9478] font-medium">%</th></tr></thead>
                         <tbody>
                           {sorted.map(([cat, amt]) => (
-                            <tr key={cat} className="border-b border-[#3a2e1e]/50">
-                              <td className="py-2 text-[#b8a898]">{EXP_CAT_LABELS[cat] ?? cat}</td>
-                              <td className="text-right py-2 text-[#ddd5c5]">{pln(amt)}</td>
-                              <td className="text-right py-2 text-[#7a6a58]">{totalExpenses > 0 ? Math.round(amt / totalExpenses * 100) : 0}%</td>
+                            <tr key={cat} className="border-b border-[#1e3324]/50">
+                              <td className="py-2 text-[#a7f3d0]">{EXP_CAT_LABELS[cat] ?? cat}</td>
+                              <td className="text-right py-2 text-[#d1fae5]">{pln(amt)}</td>
+                              <td className="text-right py-2 text-[#6b9478]">{totalExpenses > 0 ? Math.round(amt / totalExpenses * 100) : 0}%</td>
                             </tr>
                           ))}
                         </tbody>
-                        <tfoot><tr className="border-t border-[#4a3c28]"><td className="py-2 font-bold text-[#f0ebe0]">Razem</td><td className="text-right py-2 font-bold text-red-400">{pln(totalExpenses)}</td><td /></tr></tfoot>
+                        <tfoot><tr className="border-t border-[#2a4a2a]"><td className="py-2 font-bold text-[#ecfdf5]">Razem</td><td className="text-right py-2 font-bold text-red-400">{pln(totalExpenses)}</td><td /></tr></tfoot>
                       </table>
                     )
                   })()}
@@ -415,39 +415,39 @@ export default function RaportyClient({
 
                 <ReportSection title={`Rozliczenie per lokal (${commApts.length} lokali)`}>
                   {aptReconciliation.length === 0
-                    ? <p className="text-[#6a5a48] text-sm">Brak danych dla wybranej wspólnoty i roku.</p>
+                    ? <p className="text-[#4d7a5f] text-sm">Brak danych dla wybranej wspólnoty i roku.</p>
                     : <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
-                          <tr className="border-b border-[#3a2e1e]">
-                            <th className="text-left py-2 pr-3 text-[#7a6a58] font-medium">Lokal</th>
-                            <th className="text-left py-2 pr-3 text-[#7a6a58] font-medium">Właściciel</th>
-                            <th className="text-right py-2 px-2 text-[#7a6a58] font-medium">m²</th>
-                            <th className="text-right py-2 px-2 text-[#7a6a58] font-medium">Naliczono</th>
-                            <th className="text-right py-2 px-2 text-[#7a6a58] font-medium">Wpłacono</th>
-                            <th className="text-right py-2 pl-2 text-[#7a6a58] font-medium">Saldo</th>
+                          <tr className="border-b border-[#1e3324]">
+                            <th className="text-left py-2 pr-3 text-[#6b9478] font-medium">Lokal</th>
+                            <th className="text-left py-2 pr-3 text-[#6b9478] font-medium">Właściciel</th>
+                            <th className="text-right py-2 px-2 text-[#6b9478] font-medium">m²</th>
+                            <th className="text-right py-2 px-2 text-[#6b9478] font-medium">Naliczono</th>
+                            <th className="text-right py-2 px-2 text-[#6b9478] font-medium">Wpłacono</th>
+                            <th className="text-right py-2 pl-2 text-[#6b9478] font-medium">Saldo</th>
                           </tr>
                         </thead>
                         <tbody>
                           {aptReconciliation.map(({ apt, paid, charged, balance }) => (
-                            <tr key={apt.id} className="border-b border-[#3a2e1e]/50 hover:bg-[#2a2218]/20">
-                              <td className="py-2 pr-3 font-mono text-[#ddd5c5]">{apt.number}</td>
-                              <td className="py-2 pr-3 text-[#b8a898] truncate max-w-[160px]">{apt.owner_name}</td>
-                              <td className="text-right py-2 px-2 text-[#7a6a58]">{apt.area_m2}</td>
-                              <td className="text-right py-2 px-2 text-[#b8a898]">{charged > 0 ? pln(charged) : '—'}</td>
-                              <td className="text-right py-2 px-2 text-[#b8a898]">{paid > 0 ? pln(paid) : '—'}</td>
-                              <td className={`text-right py-2 pl-2 font-semibold ${balance > 0.01 ? 'text-amber-400' : balance < -0.01 ? 'text-red-400' : 'text-[#6a5a48]'}`}>
+                            <tr key={apt.id} className="border-b border-[#1e3324]/50 hover:bg-[#162418]/20">
+                              <td className="py-2 pr-3 font-mono text-[#d1fae5]">{apt.number}</td>
+                              <td className="py-2 pr-3 text-[#a7f3d0] truncate max-w-[160px]">{apt.owner_name}</td>
+                              <td className="text-right py-2 px-2 text-[#6b9478]">{apt.area_m2}</td>
+                              <td className="text-right py-2 px-2 text-[#a7f3d0]">{charged > 0 ? pln(charged) : '—'}</td>
+                              <td className="text-right py-2 px-2 text-[#a7f3d0]">{paid > 0 ? pln(paid) : '—'}</td>
+                              <td className={`text-right py-2 pl-2 font-semibold ${balance > 0.01 ? 'text-emerald-400' : balance < -0.01 ? 'text-red-400' : 'text-[#4d7a5f]'}`}>
                                 {balance > 0.01 ? '+' : ''}{pln(balance)}
                               </td>
                             </tr>
                           ))}
                         </tbody>
                         <tfoot>
-                          <tr className="border-t border-[#4a3c28]">
-                            <td colSpan={3} className="py-3 font-bold text-[#f0ebe0]">RAZEM</td>
-                            <td className="text-right py-3 font-bold text-amber-400">{pln(totalCharged)}</td>
-                            <td className="text-right py-3 font-bold text-amber-400">{pln(totalAptPaid)}</td>
-                            <td className={`text-right py-3 font-bold ${totalAptPaid - totalCharged >= 0 ? 'text-amber-400' : 'text-red-400'}`}>{pln(totalAptPaid - totalCharged)}</td>
+                          <tr className="border-t border-[#2a4a2a]">
+                            <td colSpan={3} className="py-3 font-bold text-[#ecfdf5]">RAZEM</td>
+                            <td className="text-right py-3 font-bold text-emerald-400">{pln(totalCharged)}</td>
+                            <td className="text-right py-3 font-bold text-emerald-400">{pln(totalAptPaid)}</td>
+                            <td className={`text-right py-3 font-bold ${totalAptPaid - totalCharged >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{pln(totalAptPaid - totalCharged)}</td>
                           </tr>
                         </tfoot>
                       </table>
@@ -474,33 +474,33 @@ export default function RaportyClient({
                 </div>
 
                 {debtors.length === 0
-                  ? <div className="text-center py-12 bg-amber-950/20 border border-amber-800 rounded-xl"><p className="text-3xl mb-3">✅</p><p className="text-amber-400 font-semibold">Brak zaległości w {filterYear} roku.</p></div>
+                  ? <div className="text-center py-12 bg-emerald-950/20 border border-emerald-800 rounded-xl"><p className="text-3xl mb-3">✅</p><p className="text-emerald-400 font-semibold">Brak zaległości w {filterYear} roku.</p></div>
                   : <ReportSection title={`Lokale z zaległościami (${debtors.length})`}>
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
-                          <tr className="border-b border-[#3a2e1e]">
-                            <th className="text-left py-2 pr-3 text-[#7a6a58] font-medium">Lokal</th>
-                            <th className="text-left py-2 pr-3 text-[#7a6a58] font-medium">Właściciel</th>
-                            <th className="text-right py-2 px-2 text-[#7a6a58] font-medium">Naliczono</th>
-                            <th className="text-right py-2 px-2 text-[#7a6a58] font-medium">Wpłacono</th>
-                            <th className="text-right py-2 pl-2 text-[#7a6a58] font-medium">Zaległość</th>
+                          <tr className="border-b border-[#1e3324]">
+                            <th className="text-left py-2 pr-3 text-[#6b9478] font-medium">Lokal</th>
+                            <th className="text-left py-2 pr-3 text-[#6b9478] font-medium">Właściciel</th>
+                            <th className="text-right py-2 px-2 text-[#6b9478] font-medium">Naliczono</th>
+                            <th className="text-right py-2 px-2 text-[#6b9478] font-medium">Wpłacono</th>
+                            <th className="text-right py-2 pl-2 text-[#6b9478] font-medium">Zaległość</th>
                           </tr>
                         </thead>
                         <tbody>
                           {debtors.map(({ apt, paid, charged, balance }) => (
-                            <tr key={apt.id} className="border-b border-[#3a2e1e]/50">
-                              <td className="py-2 pr-3 font-mono text-[#ddd5c5]">{apt.number}</td>
-                              <td className="py-2 pr-3 text-[#b8a898]">{apt.owner_name}</td>
-                              <td className="text-right py-2 px-2 text-[#b8a898]">{pln(charged)}</td>
-                              <td className="text-right py-2 px-2 text-[#b8a898]">{pln(paid)}</td>
+                            <tr key={apt.id} className="border-b border-[#1e3324]/50">
+                              <td className="py-2 pr-3 font-mono text-[#d1fae5]">{apt.number}</td>
+                              <td className="py-2 pr-3 text-[#a7f3d0]">{apt.owner_name}</td>
+                              <td className="text-right py-2 px-2 text-[#a7f3d0]">{pln(charged)}</td>
+                              <td className="text-right py-2 px-2 text-[#a7f3d0]">{pln(paid)}</td>
                               <td className="text-right py-2 pl-2 font-bold text-red-400">{pln(Math.abs(balance))}</td>
                             </tr>
                           ))}
                         </tbody>
                         <tfoot>
-                          <tr className="border-t border-[#4a3c28]">
-                            <td colSpan={4} className="py-3 font-bold text-[#f0ebe0]">Łącznie zaległości</td>
+                          <tr className="border-t border-[#2a4a2a]">
+                            <td colSpan={4} className="py-3 font-bold text-[#ecfdf5]">Łącznie zaległości</td>
                             <td className="text-right py-3 font-bold text-red-400">{pln(totalDebt)}</td>
                           </tr>
                         </tfoot>
@@ -522,7 +522,7 @@ export default function RaportyClient({
                 />
 
                 {!latestRate
-                  ? <div className="text-center py-12 text-[#6a5a48]"><p className="text-3xl mb-3">⚙️</p><p>Brak zdefiniowanych stawek dla tej wspólnoty.</p></div>
+                  ? <div className="text-center py-12 text-[#4d7a5f]"><p className="text-3xl mb-3">⚙️</p><p>Brak zdefiniowanych stawek dla tej wspólnoty.</p></div>
                   : <>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <KpiCard label="Plan roczny" value={pln(Object.values(planByCategory).reduce((s, v) => s + v, 0))} color="blue" note={`stawki z ${latestRate.effective_from}`} />
@@ -532,11 +532,11 @@ export default function RaportyClient({
 
                     <ReportSection title="Porównanie per kategoria">
                       <table className="w-full text-sm">
-                        <thead><tr className="border-b border-[#3a2e1e]">
-                          <th className="text-left py-2 pr-4 text-[#7a6a58] font-medium">Kategoria</th>
-                          <th className="text-right py-2 px-3 text-[#7a6a58] font-medium">Plan</th>
-                          <th className="text-right py-2 px-3 text-[#7a6a58] font-medium">Wykonanie</th>
-                          <th className="text-right py-2 pl-3 text-[#7a6a58] font-medium">Różnica</th>
+                        <thead><tr className="border-b border-[#1e3324]">
+                          <th className="text-left py-2 pr-4 text-[#6b9478] font-medium">Kategoria</th>
+                          <th className="text-right py-2 px-3 text-[#6b9478] font-medium">Plan</th>
+                          <th className="text-right py-2 px-3 text-[#6b9478] font-medium">Wykonanie</th>
+                          <th className="text-right py-2 pl-3 text-[#6b9478] font-medium">Różnica</th>
                         </tr></thead>
                         <tbody>
                           {Object.keys({ ...planByCategory, ...executionByCategory }).sort().map(cat => {
@@ -544,11 +544,11 @@ export default function RaportyClient({
                             const exec = executionByCategory[cat] ?? 0
                             const diff = exec - plan
                             return (
-                              <tr key={cat} className="border-b border-[#3a2e1e]/50">
-                                <td className="py-2 pr-4 text-[#b8a898]">{EXP_CAT_LABELS[cat] ?? cat}</td>
-                                <td className="text-right py-2 px-3 text-[#b8a898]">{plan > 0 ? pln(plan) : '—'}</td>
-                                <td className="text-right py-2 px-3 text-[#b8a898]">{exec > 0 ? pln(exec) : '—'}</td>
-                                <td className={`text-right py-2 pl-3 font-medium ${diff > 0 ? 'text-red-400' : diff < 0 ? 'text-amber-400' : 'text-[#6a5a48]'}`}>
+                              <tr key={cat} className="border-b border-[#1e3324]/50">
+                                <td className="py-2 pr-4 text-[#a7f3d0]">{EXP_CAT_LABELS[cat] ?? cat}</td>
+                                <td className="text-right py-2 px-3 text-[#a7f3d0]">{plan > 0 ? pln(plan) : '—'}</td>
+                                <td className="text-right py-2 px-3 text-[#a7f3d0]">{exec > 0 ? pln(exec) : '—'}</td>
+                                <td className={`text-right py-2 pl-3 font-medium ${diff > 0 ? 'text-red-400' : diff < 0 ? 'text-emerald-400' : 'text-[#4d7a5f]'}`}>
                                   {plan > 0 || exec > 0 ? (diff > 0 ? '+' : '') + pln(diff) : '—'}
                                 </td>
                               </tr>
@@ -580,23 +580,23 @@ export default function RaportyClient({
 
                 <ReportSection title="Historia funduszu remontowego">
                   {renovFundCumulative.length === 0
-                    ? <p className="text-[#6a5a48] text-sm">Brak danych.</p>
+                    ? <p className="text-[#4d7a5f] text-sm">Brak danych.</p>
                     : <table className="w-full text-sm">
-                      <thead><tr className="border-b border-[#3a2e1e]">
-                        <th className="text-left py-2 pr-4 text-[#7a6a58] font-medium">Rok</th>
-                        <th className="text-right py-2 px-3 text-[#7a6a58] font-medium">Naliczenia</th>
-                        <th className="text-right py-2 px-3 text-[#7a6a58] font-medium">Wydatki na remonty</th>
-                        <th className="text-right py-2 px-3 text-[#7a6a58] font-medium">Saldo roku</th>
-                        <th className="text-right py-2 pl-3 text-[#7a6a58] font-medium">Saldo skum.</th>
+                      <thead><tr className="border-b border-[#1e3324]">
+                        <th className="text-left py-2 pr-4 text-[#6b9478] font-medium">Rok</th>
+                        <th className="text-right py-2 px-3 text-[#6b9478] font-medium">Naliczenia</th>
+                        <th className="text-right py-2 px-3 text-[#6b9478] font-medium">Wydatki na remonty</th>
+                        <th className="text-right py-2 px-3 text-[#6b9478] font-medium">Saldo roku</th>
+                        <th className="text-right py-2 pl-3 text-[#6b9478] font-medium">Saldo skum.</th>
                       </tr></thead>
                       <tbody>
                         {renovFundCumulative.map(r => (
-                          <tr key={r.year} className={`border-b border-[#3a2e1e]/50 ${r.year === filterYear ? 'bg-amber-950/10' : ''}`}>
-                            <td className="py-2 pr-4 text-[#b8a898] font-medium">{r.year}{r.year === filterYear && <span className="ml-2 text-xs text-amber-400">(bieżący)</span>}</td>
-                            <td className="text-right py-2 px-3 text-[#b8a898]">{pln(r.naliczenia)}</td>
-                            <td className="text-right py-2 px-3 text-[#b8a898]">{r.wydatki > 0 ? pln(r.wydatki) : '—'}</td>
-                            <td className={`text-right py-2 px-3 font-medium ${r.saldo >= 0 ? 'text-amber-400' : 'text-red-400'}`}>{pln(r.saldo)}</td>
-                            <td className={`text-right py-2 pl-3 font-bold ${r.cumulative >= 0 ? 'text-amber-400' : 'text-red-400'}`}>{pln(r.cumulative)}</td>
+                          <tr key={r.year} className={`border-b border-[#1e3324]/50 ${r.year === filterYear ? 'bg-emerald-950/10' : ''}`}>
+                            <td className="py-2 pr-4 text-[#a7f3d0] font-medium">{r.year}{r.year === filterYear && <span className="ml-2 text-xs text-emerald-400">(bieżący)</span>}</td>
+                            <td className="text-right py-2 px-3 text-[#a7f3d0]">{pln(r.naliczenia)}</td>
+                            <td className="text-right py-2 px-3 text-[#a7f3d0]">{r.wydatki > 0 ? pln(r.wydatki) : '—'}</td>
+                            <td className={`text-right py-2 px-3 font-medium ${r.saldo >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{pln(r.saldo)}</td>
+                            <td className={`text-right py-2 pl-3 font-bold ${r.cumulative >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{pln(r.cumulative)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -629,8 +629,8 @@ export default function RaportyClient({
                     if (commExpenses.some(e => e.month === m)) months.push(m)
                   }
                   if (months.length === 0) return (
-                    <div className="bg-[#241e14] border border-[#3a2e1e] rounded-xl p-5">
-                      <p className="text-[#6a5a48] text-sm">Brak kosztów w roku {filterYear}.</p>
+                    <div className="bg-[#121c15] border border-[#1e3324] rounded-xl p-5">
+                      <p className="text-[#4d7a5f] text-sm">Brak kosztów w roku {filterYear}.</p>
                     </div>
                   )
                   let grandTotal = 0
@@ -647,28 +647,28 @@ export default function RaportyClient({
                             <div className="overflow-x-auto">
                               <table className="w-full text-sm">
                                 <thead>
-                                  <tr className="border-b border-[#3a2e1e]">
-                                    <th className="text-left py-2 pr-3 text-[#7a6a58] font-medium w-24">Data</th>
-                                    <th className="text-left py-2 pr-3 text-[#7a6a58] font-medium">Od kogo / opis</th>
-                                    <th className="text-left py-2 pr-3 text-[#7a6a58] font-medium w-32">Kategoria</th>
-                                    <th className="text-left py-2 pr-3 text-[#7a6a58] font-medium w-28">Nr faktury</th>
-                                    <th className="text-right py-2 text-[#7a6a58] font-medium w-28">Kwota</th>
+                                  <tr className="border-b border-[#1e3324]">
+                                    <th className="text-left py-2 pr-3 text-[#6b9478] font-medium w-24">Data</th>
+                                    <th className="text-left py-2 pr-3 text-[#6b9478] font-medium">Od kogo / opis</th>
+                                    <th className="text-left py-2 pr-3 text-[#6b9478] font-medium w-32">Kategoria</th>
+                                    <th className="text-left py-2 pr-3 text-[#6b9478] font-medium w-28">Nr faktury</th>
+                                    <th className="text-right py-2 text-[#6b9478] font-medium w-28">Kwota</th>
                                   </tr>
                                 </thead>
                                 <tbody>
                                   {rows.map((e, i) => (
-                                    <tr key={i} className="border-b border-[#3a2e1e]/50 hover:bg-[#2a2218]/20">
-                                      <td className="py-2 pr-3 text-[#7a6a58] text-xs">{e.expense_date}</td>
-                                      <td className="py-2 pr-3 text-[#ddd5c5]">{e.description}</td>
-                                      <td className="py-2 pr-3 text-[#7a6a58] text-xs">{EXP_CAT_LABELS[e.category] ?? e.category}</td>
-                                      <td className="py-2 pr-3 text-[#7a6a58] text-xs font-mono">{e.invoice_number ?? '—'}</td>
-                                      <td className="text-right py-2 text-[#ddd5c5] font-medium">{pln(e.amount)}</td>
+                                    <tr key={i} className="border-b border-[#1e3324]/50 hover:bg-[#162418]/20">
+                                      <td className="py-2 pr-3 text-[#6b9478] text-xs">{e.expense_date}</td>
+                                      <td className="py-2 pr-3 text-[#d1fae5]">{e.description}</td>
+                                      <td className="py-2 pr-3 text-[#6b9478] text-xs">{EXP_CAT_LABELS[e.category] ?? e.category}</td>
+                                      <td className="py-2 pr-3 text-[#6b9478] text-xs font-mono">{e.invoice_number ?? '—'}</td>
+                                      <td className="text-right py-2 text-[#d1fae5] font-medium">{pln(e.amount)}</td>
                                     </tr>
                                   ))}
                                 </tbody>
                                 <tfoot>
-                                  <tr className="border-t border-[#4a3c28]">
-                                    <td colSpan={4} className="py-2 pr-3 text-sm font-semibold text-[#b8a898]">Razem {MONTHS_SHORT[m - 1]}</td>
+                                  <tr className="border-t border-[#2a4a2a]">
+                                    <td colSpan={4} className="py-2 pr-3 text-sm font-semibold text-[#a7f3d0]">Razem {MONTHS_SHORT[m - 1]}</td>
                                     <td className="text-right py-2 font-bold text-red-400">{pln(monthTotal)}</td>
                                   </tr>
                                 </tfoot>
@@ -679,8 +679,8 @@ export default function RaportyClient({
                       })}
 
                       {/* Grand total */}
-                      <div className="bg-[#2a2218]/60 border border-[#3a2e1e] rounded-xl p-4 flex items-center justify-between">
-                        <span className="font-bold text-[#f0ebe0] text-sm">SUMA ROCZNA {filterYear}</span>
+                      <div className="bg-[#162418]/60 border border-[#1e3324] rounded-xl p-4 flex items-center justify-between">
+                        <span className="font-bold text-[#ecfdf5] text-sm">SUMA ROCZNA {filterYear}</span>
                         <span className="font-bold text-red-400 text-lg">{pln(grandTotal)}</span>
                       </div>
                     </div>
@@ -715,30 +715,30 @@ export default function RaportyClient({
 
 function ReportHeader({ title, subtitle, art }: { title: string; subtitle: string; art: string }) {
   return (
-    <div className="border-b border-[#3a2e1e] pb-4">
-      <p className="text-xs text-amber-400 font-medium mb-1">{art}</p>
-      <h3 className="text-xl font-bold text-[#f0ebe0]">{title}</h3>
-      <p className="text-sm text-[#7a6a58] mt-0.5">{subtitle}</p>
-      <p className="text-xs text-[#6a5a48] mt-2">Wygenerowano: {new Date().toLocaleDateString('pl-PL')}</p>
+    <div className="border-b border-[#1e3324] pb-4">
+      <p className="text-xs text-emerald-400 font-medium mb-1">{art}</p>
+      <h3 className="text-xl font-bold text-[#ecfdf5]">{title}</h3>
+      <p className="text-sm text-[#6b9478] mt-0.5">{subtitle}</p>
+      <p className="text-xs text-[#4d7a5f] mt-2">Wygenerowano: {new Date().toLocaleDateString('pl-PL')}</p>
     </div>
   )
 }
 
 function KpiCard({ label, value, color, note }: { label: string; value: string; color: 'green' | 'red' | 'blue'; note?: string }) {
-  const colors = { green: 'text-amber-400', red: 'text-red-400', blue: 'text-amber-400' }
+  const colors = { green: 'text-emerald-400', red: 'text-red-400', blue: 'text-emerald-400' }
   return (
-    <div className="bg-[#241e14] border border-[#3a2e1e] rounded-xl p-4 text-center">
-      <p className="text-xs text-[#6a5a48] mb-1">{label}</p>
+    <div className="bg-[#121c15] border border-[#1e3324] rounded-xl p-4 text-center">
+      <p className="text-xs text-[#4d7a5f] mb-1">{label}</p>
       <p className={`text-xl font-bold ${colors[color]}`}>{value}</p>
-      {note && <p className="text-xs text-[#6a5a48] mt-0.5">{note}</p>}
+      {note && <p className="text-xs text-[#4d7a5f] mt-0.5">{note}</p>}
     </div>
   )
 }
 
 function ReportSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-[#241e14] border border-[#3a2e1e] rounded-xl p-5">
-      <h4 className="text-sm font-semibold text-[#7a6a58] mb-4">{title}</h4>
+    <div className="bg-[#121c15] border border-[#1e3324] rounded-xl p-5">
+      <h4 className="text-sm font-semibold text-[#6b9478] mb-4">{title}</h4>
       {children}
     </div>
   )
@@ -746,8 +746,8 @@ function ReportSection({ title, children }: { title: string; children: React.Rea
 
 function LegalFooter({ text }: { text: string }) {
   return (
-    <div className="border-t border-[#3a2e1e] pt-4">
-      <p className="text-xs text-[#6a5a48] leading-relaxed">⚖️ <em>{text}</em></p>
+    <div className="border-t border-[#1e3324] pt-4">
+      <p className="text-xs text-[#4d7a5f] leading-relaxed">⚖️ <em>{text}</em></p>
     </div>
   )
 }

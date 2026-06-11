@@ -49,21 +49,21 @@ export default function ChatWidget() {
     <>
       {/* Panel */}
       {open && (
-        <div className="fixed bottom-20 right-4 z-50 w-[340px] sm:w-[380px] bg-[#241e14] border border-[#3a2e1e] rounded-2xl shadow-2xl shadow-black/60 flex flex-col overflow-hidden"
+        <div className="fixed bottom-20 right-4 z-50 w-[340px] sm:w-[380px] bg-[#121c15] border border-[#1e3324] rounded-2xl shadow-2xl shadow-black/60 flex flex-col overflow-hidden"
           style={{ height: '480px' }}>
 
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[#3a2e1e] bg-[#241e14]">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[#1e3324] bg-[#121c15]">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-amber-600 flex items-center justify-center text-sm">🤖</div>
+              <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-sm">🤖</div>
               <div>
-                <p className="text-sm font-semibold text-[#f0ebe0]">Asystent wspólnoty</p>
-                <p className="text-xs text-amber-400">● Online</p>
+                <p className="text-sm font-semibold text-[#ecfdf5]">Asystent wspólnoty</p>
+                <p className="text-xs text-emerald-400">● Online</p>
               </div>
             </div>
             <button
               onClick={() => setOpen(false)}
-              className="text-[#6a5a48] hover:text-[#b8a898] transition text-lg leading-none"
+              className="text-[#4d7a5f] hover:text-[#a7f3d0] transition text-lg leading-none"
             >✕</button>
           </div>
 
@@ -73,8 +73,8 @@ export default function ChatWidget() {
               <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[85%] px-3 py-2 rounded-xl text-sm leading-relaxed ${
                   m.role === 'user'
-                    ? 'bg-amber-600 text-white rounded-br-sm'
-                    : 'bg-[#2a2218] text-[#ddd5c5] rounded-bl-sm'
+                    ? 'bg-emerald-600 text-white rounded-br-sm'
+                    : 'bg-[#162418] text-[#d1fae5] rounded-bl-sm'
                 }`}>
                   {m.text}
                 </div>
@@ -82,7 +82,7 @@ export default function ChatWidget() {
             ))}
             {loading && (
               <div className="flex justify-start">
-                <div className="bg-[#2a2218] text-[#7a6a58] px-3 py-2 rounded-xl rounded-bl-sm text-sm">
+                <div className="bg-[#162418] text-[#6b9478] px-3 py-2 rounded-xl rounded-bl-sm text-sm">
                   <span className="animate-pulse">Szukam w dokumentach...</span>
                 </div>
               </div>
@@ -91,9 +91,9 @@ export default function ChatWidget() {
           </div>
 
           {/* Input */}
-          <div className="border-t border-[#3a2e1e] p-3 flex gap-2">
+          <div className="border-t border-[#1e3324] p-3 flex gap-2">
             <input
-              className="flex-1 bg-[#2a2218] border border-[#3a2e1e] text-[#f0ebe0] placeholder-stone-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="flex-1 bg-[#162418] border border-[#1e3324] text-[#ecfdf5] placeholder-stone-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
               placeholder="Zadaj pytanie..."
               value={input}
               onChange={e => setInput(e.target.value)}
@@ -103,7 +103,7 @@ export default function ChatWidget() {
             <button
               onClick={send}
               disabled={loading || !input.trim()}
-              className="bg-amber-600 hover:bg-amber-700 disabled:opacity-40 text-white px-3 py-2 rounded-lg text-sm font-semibold transition"
+              className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white px-3 py-2 rounded-lg text-sm font-semibold transition"
             >
               →
             </button>
@@ -114,7 +114,7 @@ export default function ChatWidget() {
       {/* Floating button */}
       <button
         onClick={() => setOpen(o => !o)}
-        className="fixed bottom-4 right-4 z-50 w-13 h-13 bg-amber-600 hover:bg-amber-700 text-white rounded-full shadow-2xl shadow-green-900/50 transition-all hover:scale-105 flex items-center justify-center"
+        className="fixed bottom-4 right-4 z-50 w-13 h-13 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full shadow-2xl shadow-green-900/50 transition-all hover:scale-105 flex items-center justify-center"
         style={{ width: 52, height: 52 }}
         title="Asystent AI wspólnoty"
       >

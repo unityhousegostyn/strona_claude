@@ -92,11 +92,11 @@ export default function UserEditForm({
 
   return (
     <div className="space-y-4">
-      <div className="bg-[#241e14] border border-[#3a2e1e] rounded-xl p-5 space-y-4">
-        <h3 className="text-xs font-semibold text-[#7a6a58] uppercase tracking-wide">Edytuj dane</h3>
+      <div className="bg-[#121c15] border border-[#1e3324] rounded-xl p-5 space-y-4">
+        <h3 className="text-xs font-semibold text-[#6b9478] uppercase tracking-wide">Edytuj dane</h3>
 
         <div>
-          <label className="block text-sm font-medium text-[#b8a898] mb-1">Imię i nazwisko</label>
+          <label className="block text-sm font-medium text-[#a7f3d0] mb-1">Imię i nazwisko</label>
           <input
             className="input"
             value={fullName}
@@ -106,7 +106,7 @@ export default function UserEditForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[#b8a898] mb-1">Rola</label>
+          <label className="block text-sm font-medium text-[#a7f3d0] mb-1">Rola</label>
           <select
             className="input"
             value={role}
@@ -117,12 +117,12 @@ export default function UserEditForm({
             <option value="admin">Administrator</option>
             <option value="super_admin">Super Admin</option>
           </select>
-          {isSelf && <p className="text-xs text-[#7a6a58] mt-1">Nie możesz zmienić własnej roli.</p>}
+          {isSelf && <p className="text-xs text-[#6b9478] mt-1">Nie możesz zmienić własnej roli.</p>}
         </div>
 
         {role !== 'super_admin' && (
           <div>
-            <label className="block text-sm font-medium text-[#b8a898] mb-1">Wspólnota</label>
+            <label className="block text-sm font-medium text-[#a7f3d0] mb-1">Wspólnota</label>
             <select
               className="input"
               value={communityId}
@@ -138,10 +138,10 @@ export default function UserEditForm({
       </div>
 
       {/* Przypisanie mieszkania */}
-      <div className="bg-[#241e14] border border-[#3a2e1e] rounded-xl p-5 space-y-4">
-        <h3 className="text-xs font-semibold text-[#7a6a58] uppercase tracking-wide">Przypisane mieszkanie</h3>
+      <div className="bg-[#121c15] border border-[#1e3324] rounded-xl p-5 space-y-4">
+        <h3 className="text-xs font-semibold text-[#6b9478] uppercase tracking-wide">Przypisane mieszkanie</h3>
         <div>
-          <label className="block text-sm font-medium text-[#b8a898] mb-1">Lokal</label>
+          <label className="block text-sm font-medium text-[#a7f3d0] mb-1">Lokal</label>
           <select className="input w-full" value={apartmentId} onChange={e => setApartmentId(e.target.value)}>
             <option value="">— brak —</option>
             {communities.map(comm => {
@@ -159,7 +159,7 @@ export default function UserEditForm({
             })}
           </select>
         </div>
-        <p className="text-xs text-[#6a5a48]">Jeden użytkownik = jedno mieszkanie. Mieszkanie zapisuje się razem z resztą danych przyciskiem poniżej.</p>
+        <p className="text-xs text-[#4d7a5f]">Jeden użytkownik = jedno mieszkanie. Mieszkanie zapisuje się razem z resztą danych przyciskiem poniżej.</p>
       </div>
 
       <div className="flex items-center justify-between">
@@ -167,13 +167,13 @@ export default function UserEditForm({
           <button
             onClick={handleSave}
             disabled={isPending}
-            className="bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
           >
             {isPending ? 'Zapisywanie...' : 'Zapisz zmiany'}
           </button>
           <button
             onClick={() => router.back()}
-            className="text-sm text-[#7a6a58] hover:text-[#f0ebe0] px-5 py-2.5 rounded-lg border border-[#3a2e1e] hover:bg-[#18140e] transition"
+            className="text-sm text-[#6b9478] hover:text-[#ecfdf5] px-5 py-2.5 rounded-lg border border-[#1e3324] hover:bg-[#0d1410] transition"
           >
             Anuluj
           </button>
@@ -184,7 +184,7 @@ export default function UserEditForm({
             <button
               onClick={handleSendPasswordReset}
               disabled={resetSending}
-              className="text-sm text-amber-400 hover:text-amber-300 font-medium px-4 py-2.5 rounded-lg border border-amber-800 hover:bg-amber-950/30 transition disabled:opacity-50"
+              className="text-sm text-emerald-400 hover:text-emerald-300 font-medium px-4 py-2.5 rounded-lg border border-emerald-800 hover:bg-emerald-950/30 transition disabled:opacity-50"
               title="Wysyła link resetowania hasła na e-mail użytkownika"
             >
               {resetSending ? 'Wysyłanie...' : '🔑 Reset hasła'}

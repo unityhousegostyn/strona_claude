@@ -76,14 +76,14 @@ export default function PushSubscribe() {
   if (status === 'unsupported') return null // Niewidoczne na niezgodnych przeglądarkach
 
   return (
-    <div className="bg-[#241e14] border border-[#3a2e1e] rounded-xl p-6 space-y-4">
+    <div className="bg-[#121c15] border border-[#1e3324] rounded-xl p-6 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-[#6a5a48] uppercase tracking-wide">Powiadomienia push</h3>
-          <p className="text-xs text-[#6a5a48] mt-1">Nowe ogłoszenia i zgłoszenia w czasie rzeczywistym</p>
+          <h3 className="text-sm font-semibold text-[#4d7a5f] uppercase tracking-wide">Powiadomienia push</h3>
+          <p className="text-xs text-[#4d7a5f] mt-1">Nowe ogłoszenia i zgłoszenia w czasie rzeczywistym</p>
         </div>
         {status === 'subscribed'
-          ? <span className="text-xs bg-amber-900/30 text-amber-400 border border-amber-700 px-2 py-0.5 rounded-full">✓ Włączone</span>
+          ? <span className="text-xs bg-emerald-900/30 text-emerald-400 border border-emerald-700 px-2 py-0.5 rounded-full">✓ Włączone</span>
           : status === 'denied'
           ? <span className="text-xs bg-red-900/30 text-red-400 border border-red-800 px-2 py-0.5 rounded-full">Zablokowane</span>
           : <span className="text-xs bg-orange-900/30 text-orange-400 border border-orange-800 px-2 py-0.5 rounded-full">Wyłączone</span>
@@ -93,18 +93,18 @@ export default function PushSubscribe() {
       {error && <p className="text-sm text-red-400 bg-red-950/30 border border-red-900 rounded-lg px-3 py-2">{error}</p>}
 
       {status === 'denied' && (
-        <p className="text-sm text-[#7a6a58]">
+        <p className="text-sm text-[#6b9478]">
           Powiadomienia zostały zablokowane w przeglądarce. Aby je włączyć, przejdź do ustawień strony w przeglądarce i pozwól na powiadomienia.
         </p>
       )}
 
       {status === 'unsubscribed' && (
         <div className="space-y-2">
-          <p className="text-sm text-[#7a6a58]">Włącz powiadomienia, aby otrzymywać alerty o nowych ogłoszeniach i odpowiedziach na zgłoszenia.</p>
+          <p className="text-sm text-[#6b9478]">Włącz powiadomienia, aby otrzymywać alerty o nowych ogłoszeniach i odpowiedziach na zgłoszenia.</p>
           <button
             onClick={handleSubscribe}
             disabled={working}
-            className="bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
           >
             {working ? 'Włączanie...' : '🔔 Włącz powiadomienia'}
           </button>
@@ -113,11 +113,11 @@ export default function PushSubscribe() {
 
       {status === 'subscribed' && (
         <div className="space-y-2">
-          <p className="text-sm text-[#7a6a58]">Otrzymujesz powiadomienia push na tym urządzeniu.</p>
+          <p className="text-sm text-[#6b9478]">Otrzymujesz powiadomienia push na tym urządzeniu.</p>
           <button
             onClick={handleUnsubscribe}
             disabled={working}
-            className="text-sm text-[#7a6a58] hover:text-[#b8a898] border border-[#3a2e1e] px-4 py-2 rounded-lg transition disabled:opacity-50"
+            className="text-sm text-[#6b9478] hover:text-[#a7f3d0] border border-[#1e3324] px-4 py-2 rounded-lg transition disabled:opacity-50"
           >
             {working ? 'Wyłączanie...' : 'Wyłącz powiadomienia'}
           </button>

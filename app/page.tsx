@@ -11,18 +11,18 @@ export default function LandingPage() {
       <style>{`
         .lp *, .lp *::before, .lp *::after { box-sizing: border-box; margin: 0; padding: 0; }
         .lp {
-          --bg:      #18140e;
-          --bg2:     #1e1810;
-          --card:    #241e14;
-          --border:  #3a2e1e;
-          --border2: #4a3c28;
-          --green:   #0d0a06;
-          --green2:  #080604;
-          --gold:    #f59e0b;
-          --gold2:   #d97706;
-          --text:    #f0ebe0;
-          --text2:   #b0a090;
-          --text3:   #7a6a58;
+          --bg:      #0d1410;
+          --bg2:     #162418;
+          --card:    #121c15;
+          --border:  #1e3324;
+          --border2: #2a4a2a;
+          --green:   #0d1410;
+          --green2:  #0a100d;
+          --gold:    #059669;
+          --gold2:   #047857;
+          --text:    #ecfdf5;
+          --text2:   #6b9478;
+          --text3:   #6b9478;
           background: var(--bg);
           color: var(--text);
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
@@ -34,7 +34,7 @@ export default function LandingPage() {
         /* NAV */
         .lp-nav {
           position: sticky; top: 0; z-index: 100;
-          background: rgba(14,10,6,0.93); backdrop-filter: blur(12px);
+          background: rgba(13,20,16,0.93); backdrop-filter: blur(12px);
           border-bottom: 1px solid var(--border);
           padding: 0 24px;
         }
@@ -52,18 +52,18 @@ export default function LandingPage() {
           font-size: 14px; color: var(--text2); padding: 8px 14px;
           border-radius: 8px; transition: color .2s, background .2s;
         }
-        .lp-nav-links a:not(.lp-btn):hover { color: var(--text); background: rgba(217,119,6,.07); }
+        .lp-nav-links a:not(.lp-btn):hover { color: var(--text); background: rgba(5,150,105,.07); }
         .lp-btn {
           display: inline-flex; align-items: center; gap: 6px;
-          background: #d97706; color: #fff; font-size: 14px; font-weight: 600;
+          background: #059669; color: #fff; font-size: 14px; font-weight: 600;
           padding: 9px 20px; border-radius: 9px; border: none; cursor: pointer;
           transition: background .2s, transform .15s; text-decoration: none;
         }
-        .lp-btn:hover { background: #b45309; transform: translateY(-1px); color: #fff; }
+        .lp-btn:hover { background: #047857; transform: translateY(-1px); color: #fff; }
         .lp-btn-outline {
           background: transparent; border: 1px solid var(--border2); color: var(--text2);
         }
-        .lp-btn-outline:hover { background: rgba(217,119,6,.06); color: var(--text); }
+        .lp-btn-outline:hover { background: rgba(5,150,105,.06); color: var(--text); }
         .lp-btn-lg { font-size: 16px; padding: 13px 28px; border-radius: 11px; }
 
         /* HERO */
@@ -74,12 +74,12 @@ export default function LandingPage() {
         .lp-hero::before {
           content: ''; position: absolute; top: -100px; left: 50%;
           transform: translateX(-50%); width: 800px; height: 500px;
-          background: radial-gradient(ellipse, rgba(217,119,6,.06) 0%, transparent 70%);
+          background: radial-gradient(ellipse, rgba(5,150,105,.06) 0%, transparent 70%);
           pointer-events: none;
         }
         .lp-badge {
           display: inline-flex; align-items: center; gap: 6px;
-          background: rgba(212,160,23,.12); border: 1px solid rgba(212,160,23,.35);
+          background: rgba(52,211,153,.12); border: 1px solid rgba(52,211,153,.35);
           color: var(--gold2); font-size: 13px; font-weight: 500;
           padding: 5px 14px; border-radius: 99px; margin-bottom: 28px;
         }
@@ -109,7 +109,7 @@ export default function LandingPage() {
         .lp-dot { width: 10px; height: 10px; border-radius: 50%; }
         .lp-dot-r { background: #ef4444; } .lp-dot-y { background: #f59e0b; } .lp-dot-g { background: #22c55e; }
         .lp-mockup-url {
-          flex: 1; background: rgba(217,119,6,.07); border-radius: 6px;
+          flex: 1; background: rgba(5,150,105,.07); border-radius: 6px;
           height: 24px; margin: 0 12px; display: flex; align-items: center; padding: 0 10px;
         }
         .lp-mockup-url span { font-size: 11px; color: var(--text3); }
@@ -142,8 +142,8 @@ export default function LandingPage() {
           padding: 9px 12px; display: flex; justify-content: space-between; align-items: center;
         }
         .lp-mock-row-text { font-size: 11px; color: var(--text2); }
-        .lp-mock-badge { font-size: 10px; padding: 2px 7px; border-radius: 99px; background: rgba(212,160,23,.15); color: var(--gold2); }
-        .lp-mock-badge.green { background: rgba(217,119,6,.12); color: var(--gold); }
+        .lp-mock-badge { font-size: 10px; padding: 2px 7px; border-radius: 99px; background: rgba(52,211,153,.15); color: var(--gold2); }
+        .lp-mock-badge.green { background: rgba(5,150,105,.12); color: var(--gold); }
 
         /* SECTIONS */
         .lp-section { padding: 80px 24px; }
@@ -183,12 +183,12 @@ export default function LandingPage() {
           display: flex; align-items: center; justify-content: center;
           font-size: 22px; margin-bottom: 18px;
         }
-        .fi-green   { background: rgba(217,119,6,.12); }
-        .fi-gold    { background: rgba(212,160,23,.12); }
-        .fi-sage    { background: rgba(217,119,6,.08); }
-        .fi-amber   { background: rgba(212,160,23,.10); }
-        .fi-stone   { background: rgba(120,100,80,.10); }
-        .fi-warm    { background: rgba(180,60,40,.08); }
+        .fi-green   { background: rgba(5,150,105,.12); }
+        .fi-gold    { background: rgba(52,211,153,.12); }
+        .fi-sage    { background: rgba(5,150,105,.08); }
+        .fi-amber   { background: rgba(52,211,153,.10); }
+        .fi-stone   { background: rgba(52,211,153,.10); }
+        .fi-warm    { background: rgba(5,150,105,.08); }
         .lp-feat h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
         .lp-feat p  { font-size: 14px; color: var(--text2); line-height: 1.6; }
 
@@ -213,9 +213,9 @@ export default function LandingPage() {
           font-size: 12px; font-weight: 600; padding: 4px 12px;
           border-radius: 99px; margin-bottom: 16px;
         }
-        .rb-green  { background: rgba(217,119,6,.12);  color: var(--gold2);  border: 1px solid rgba(217,119,6,.22); }
-        .rb-gold   { background: rgba(212,160,23,.12); color: var(--gold2);  border: 1px solid rgba(212,160,23,.30); }
-        .rb-stone  { background: rgba(120,100,80,.10); color: #7a6650;       border: 1px solid rgba(120,100,80,.25); }
+        .rb-green  { background: rgba(5,150,105,.12);  color: var(--gold2);  border: 1px solid rgba(5,150,105,.22); }
+        .rb-gold   { background: rgba(52,211,153,.12); color: var(--gold2);  border: 1px solid rgba(52,211,153,.30); }
+        .rb-stone  { background: rgba(52,211,153,.10); color: #4d9678;       border: 1px solid rgba(52,211,153,.25); }
         .lp-role h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; color: var(--text); }
         .lp-role-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
         .lp-role-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: var(--text2); }

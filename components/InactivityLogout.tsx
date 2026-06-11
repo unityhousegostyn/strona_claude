@@ -78,18 +78,18 @@ export default function InactivityLogout() {
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-[#241e14] border border-[#3a2e1e] rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center space-y-5">
+      <div className="bg-[#121c15] border border-[#1e3324] rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center space-y-5">
         <div className="text-5xl">⏱️</div>
         <div>
-          <h2 className="text-lg font-bold text-[#f0ebe0]">Brak aktywności</h2>
-          <p className="text-sm text-[#7a6a58] mt-1">Zostaniesz automatycznie wylogowany za</p>
+          <h2 className="text-lg font-bold text-[#ecfdf5]">Brak aktywności</h2>
+          <p className="text-sm text-[#6b9478] mt-1">Zostaniesz automatycznie wylogowany za</p>
         </div>
         <div className="text-6xl font-mono font-bold text-red-400">
           {countdown}s
         </div>
         <button
           onClick={stayActive}
-          className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-3 rounded-xl transition text-sm"
+          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl transition text-sm"
         >
           Zostań zalogowany
         </button>

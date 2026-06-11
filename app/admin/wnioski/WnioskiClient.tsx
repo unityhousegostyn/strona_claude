@@ -25,7 +25,7 @@ const REQUEST_TYPES: { value: RequestType; label: string; desc: string }[] = [
 
 const STATUS_CONFIG: Record<RequestStatus, { label: string; color: string; bg: string }> = {
   new:         { label: 'Nowy',         color: 'text-blue-400',   bg: 'bg-blue-950/40 border-blue-900/50' },
-  in_progress: { label: 'W trakcie',    color: 'text-amber-400',  bg: 'bg-amber-950/40 border-amber-900/50' },
+  in_progress: { label: 'W trakcie',    color: 'text-emerald-400',  bg: 'bg-emerald-950/40 border-emerald-900/50' },
   done:        { label: 'Zakończony',   color: 'text-green-400',  bg: 'bg-green-950/40 border-green-900/50' },
   rejected:    { label: 'Odrzucony',    color: 'text-red-400',    bg: 'bg-red-950/40 border-red-900/50' },
 }
@@ -86,8 +86,8 @@ function NewRequestForm({ onSubmitted }: { onSubmitted: () => void }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-[#1a1410] border border-[#3a2e1e] rounded-xl p-5 space-y-4">
-      <h3 className="text-base font-semibold text-[#f0ebe0]">Nowy wniosek</h3>
+    <form onSubmit={handleSubmit} className="bg-[#111a13] border border-[#1e3324] rounded-xl p-5 space-y-4">
+      <h3 className="text-base font-semibold text-[#ecfdf5]">Nowy wniosek</h3>
 
       {/* Typ wniosku */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -98,8 +98,8 @@ function NewRequestForm({ onSubmitted }: { onSubmitted: () => void }) {
             onClick={() => setType(rt.value)}
             className={`text-left px-3 py-2.5 rounded-lg border text-sm transition ${
               type === rt.value
-                ? 'border-amber-600 bg-amber-950/30 text-amber-300'
-                : 'border-[#3a2e1e] bg-[#241e14] text-[#a89880] hover:border-[#5a4a30] hover:text-[#f0ebe0]'
+                ? 'border-emerald-600 bg-emerald-950/30 text-emerald-300'
+                : 'border-[#1e3324] bg-[#121c15] text-[#6b9478] hover:border-[#2d5c3f] hover:text-[#ecfdf5]'
             }`}
           >
             <p className="font-medium">{rt.label}</p>
@@ -110,7 +110,7 @@ function NewRequestForm({ onSubmitted }: { onSubmitted: () => void }) {
 
       {/* Tytuł */}
       <div>
-        <label className="text-xs text-[#7a6a58] block mb-1">
+        <label className="text-xs text-[#6b9478] block mb-1">
           Tytuł wniosku <span className="text-red-400">*</span>
         </label>
         <input
@@ -120,20 +120,20 @@ function NewRequestForm({ onSubmitted }: { onSubmitted: () => void }) {
           placeholder={`np. Prośba o ${selectedType.label.toLowerCase()}`}
           required
           maxLength={200}
-          className="w-full bg-[#241e14] border border-[#3a2e1e] rounded-lg px-3 py-2 text-sm text-[#f0ebe0] placeholder-[#5a4a30] focus:outline-none focus:border-amber-700"
+          className="w-full bg-[#121c15] border border-[#1e3324] rounded-lg px-3 py-2 text-sm text-[#ecfdf5] placeholder-[#2d5c3f] focus:outline-none focus:border-emerald-700"
         />
       </div>
 
       {/* Opis */}
       <div>
-        <label className="text-xs text-[#7a6a58] block mb-1">Szczegóły (opcjonalnie)</label>
+        <label className="text-xs text-[#6b9478] block mb-1">Szczegóły (opcjonalnie)</label>
         <textarea
           value={description}
           onChange={e => setDescription(e.target.value)}
           rows={3}
           maxLength={1000}
           placeholder="Opisz szczegółowo czego potrzebujesz, podaj dodatkowe informacje..."
-          className="w-full bg-[#241e14] border border-[#3a2e1e] rounded-lg px-3 py-2 text-sm text-[#f0ebe0] placeholder-[#5a4a30] focus:outline-none focus:border-amber-700 resize-none"
+          className="w-full bg-[#121c15] border border-[#1e3324] rounded-lg px-3 py-2 text-sm text-[#ecfdf5] placeholder-[#2d5c3f] focus:outline-none focus:border-emerald-700 resize-none"
         />
       </div>
 
@@ -143,7 +143,7 @@ function NewRequestForm({ onSubmitted }: { onSubmitted: () => void }) {
       <button
         type="submit"
         disabled={loading || !title.trim()}
-        className="px-5 py-2 bg-amber-700 hover:bg-amber-600 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition"
+        className="px-5 py-2 bg-emerald-700 hover:bg-emerald-600 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition"
       >
         {loading ? 'Wysyłanie…' : 'Złóż wniosek'}
       </button>
@@ -197,33 +197,33 @@ function AdminRequestRow({ req, isSuperAdmin, onUpdated }: {
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${cfg.bg} ${cfg.color}`}>
               {cfg.label}
             </span>
-            <span className="text-xs text-[#7a6a58]">{typeLabel(req.type)}</span>
+            <span className="text-xs text-[#6b9478]">{typeLabel(req.type)}</span>
             {isSuperAdmin && req.community && (
-              <span className="text-xs text-[#5a4a30]">· {req.community.name}</span>
+              <span className="text-xs text-[#2d5c3f]">· {req.community.name}</span>
             )}
           </div>
-          <p className="text-sm font-medium text-[#f0ebe0] truncate">{req.title}</p>
-          <p className="text-xs text-[#7a6a58] mt-0.5">{applicant} · {formatDate(req.created_at)}</p>
+          <p className="text-sm font-medium text-[#ecfdf5] truncate">{req.title}</p>
+          <p className="text-xs text-[#6b9478] mt-0.5">{applicant} · {formatDate(req.created_at)}</p>
         </div>
-        <svg className={`w-4 h-4 text-[#5a4a30] mt-1 flex-shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`}
+        <svg className={`w-4 h-4 text-[#2d5c3f] mt-1 flex-shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`}
           fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
 
       {expanded && (
-        <div className="px-4 pb-4 space-y-3 border-t border-[#3a2e1e] pt-3">
+        <div className="px-4 pb-4 space-y-3 border-t border-[#1e3324] pt-3">
           {req.description && (
-            <p className="text-sm text-[#a89880] whitespace-pre-wrap">{req.description}</p>
+            <p className="text-sm text-[#6b9478] whitespace-pre-wrap">{req.description}</p>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-[#7a6a58] block mb-1">Status</label>
+              <label className="text-xs text-[#6b9478] block mb-1">Status</label>
               <select
                 value={status}
                 onChange={e => setStatus(e.target.value as RequestStatus)}
-                className="w-full bg-[#241e14] border border-[#3a2e1e] rounded-lg px-3 py-2 text-sm text-[#f0ebe0] focus:outline-none focus:border-amber-700"
+                className="w-full bg-[#121c15] border border-[#1e3324] rounded-lg px-3 py-2 text-sm text-[#ecfdf5] focus:outline-none focus:border-emerald-700"
               >
                 <option value="new">Nowy</option>
                 <option value="in_progress">W trakcie</option>
@@ -232,14 +232,14 @@ function AdminRequestRow({ req, isSuperAdmin, onUpdated }: {
               </select>
             </div>
             <div>
-              <label className="text-xs text-[#7a6a58] block mb-1">Odpowiedź dla mieszkańca</label>
+              <label className="text-xs text-[#6b9478] block mb-1">Odpowiedź dla mieszkańca</label>
               <input
                 type="text"
                 value={note}
                 onChange={e => setNote(e.target.value)}
                 maxLength={500}
                 placeholder="np. Zaświadczenie gotowe do odbioru w biurze"
-                className="w-full bg-[#241e14] border border-[#3a2e1e] rounded-lg px-3 py-2 text-sm text-[#f0ebe0] placeholder-[#5a4a30] focus:outline-none focus:border-amber-700"
+                className="w-full bg-[#121c15] border border-[#1e3324] rounded-lg px-3 py-2 text-sm text-[#ecfdf5] placeholder-[#2d5c3f] focus:outline-none focus:border-emerald-700"
               />
             </div>
           </div>
@@ -250,7 +250,7 @@ function AdminRequestRow({ req, isSuperAdmin, onUpdated }: {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="px-4 py-1.5 bg-amber-700 hover:bg-amber-600 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition"
+              className="px-4 py-1.5 bg-emerald-700 hover:bg-emerald-600 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition"
             >
               {saving ? 'Zapisuję…' : 'Zapisz'}
             </button>
@@ -285,44 +285,44 @@ function UserRequestRow({ req }: { req: CommunityRequest }) {
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${cfg.bg} ${cfg.color}`}>
               {cfg.label}
             </span>
-            <span className="text-xs text-[#7a6a58]">{typeLabel(req.type)}</span>
+            <span className="text-xs text-[#6b9478]">{typeLabel(req.type)}</span>
           </div>
-          <p className="text-sm font-medium text-[#f0ebe0] truncate">{req.title}</p>
-          <p className="text-xs text-[#7a6a58] mt-0.5">{formatDate(req.created_at)}</p>
+          <p className="text-sm font-medium text-[#ecfdf5] truncate">{req.title}</p>
+          <p className="text-xs text-[#6b9478] mt-0.5">{formatDate(req.created_at)}</p>
         </div>
-        <svg className={`w-4 h-4 text-[#5a4a30] mt-1 flex-shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`}
+        <svg className={`w-4 h-4 text-[#2d5c3f] mt-1 flex-shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`}
           fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
 
       {expanded && (
-        <div className="px-4 pb-4 border-t border-[#3a2e1e] pt-3 space-y-2">
+        <div className="px-4 pb-4 border-t border-[#1e3324] pt-3 space-y-2">
           {req.description && (
-            <p className="text-sm text-[#a89880] whitespace-pre-wrap">{req.description}</p>
+            <p className="text-sm text-[#6b9478] whitespace-pre-wrap">{req.description}</p>
           )}
           {req.admin_note && (
-            <div className="bg-[#241e14] rounded-lg p-3 border border-[#3a2e1e]">
-              <p className="text-xs text-[#7a6a58] mb-1">Odpowiedź administracji:</p>
-              <p className="text-sm text-[#f0ebe0]">{req.admin_note}</p>
+            <div className="bg-[#121c15] rounded-lg p-3 border border-[#1e3324]">
+              <p className="text-xs text-[#6b9478] mb-1">Odpowiedź administracji:</p>
+              <p className="text-sm text-[#ecfdf5]">{req.admin_note}</p>
             </div>
           )}
           {!req.admin_note && req.status === 'new' && (
-            <p className="text-xs text-[#5a4a30] italic">Oczekuje na rozpatrzenie przez administrację.</p>
+            <p className="text-xs text-[#2d5c3f] italic">Oczekuje na rozpatrzenie przez administrację.</p>
           )}
           {/* Akcje */}
           <div className="flex flex-wrap gap-2 pt-1">
             <Link
               href={`/admin/wnioski/${req.id}/print`}
               target="_blank"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#3a2e1e] text-[#a89880] hover:text-[#f0ebe0] hover:border-[#5a4a30] transition"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#1e3324] text-[#6b9478] hover:text-[#ecfdf5] hover:border-[#2d5c3f] transition"
             >
               🖨 Drukuj / Pobierz PDF
             </Link>
             <a
               href={TEMPLATE_FILES[req.type]}
               download
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#3a2e1e] text-[#a89880] hover:text-[#f0ebe0] hover:border-[#5a4a30] transition"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#1e3324] text-[#6b9478] hover:text-[#ecfdf5] hover:border-[#2d5c3f] transition"
             >
               📄 Pobierz szablon DOCX
             </a>
@@ -364,7 +364,7 @@ export default function WnioskiClient({ requests: initial, isAdmin, isSuperAdmin
         {(isAdmin || isSuperAdmin) && (
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-semibold text-[#f0ebe0]">Wnioski</h3>
+              <h3 className="text-base font-semibold text-[#ecfdf5]">Wnioski</h3>
               {newCount > 0 && (
                 <span className="bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
                   {newCount} nowych
@@ -379,8 +379,8 @@ export default function WnioskiClient({ requests: initial, isAdmin, isSuperAdmin
                   onClick={() => setStatusFilter(s)}
                   className={`px-3 py-1 rounded-full text-xs font-medium transition border ${
                     statusFilter === s
-                      ? 'bg-amber-700 border-amber-600 text-white'
-                      : 'bg-transparent border-[#3a2e1e] text-[#7a6a58] hover:text-[#f0ebe0] hover:border-[#5a4a30]'
+                      ? 'bg-emerald-700 border-emerald-600 text-white'
+                      : 'bg-transparent border-[#1e3324] text-[#6b9478] hover:text-[#ecfdf5] hover:border-[#2d5c3f]'
                   }`}
                 >
                   {s === 'all' ? 'Wszystkie' : STATUS_CONFIG[s].label}
@@ -391,11 +391,11 @@ export default function WnioskiClient({ requests: initial, isAdmin, isSuperAdmin
         )}
 
         {!isAdmin && !isSuperAdmin && requests.length > 0 && (
-          <h3 className="text-sm font-semibold text-[#7a6a58] mb-3">Twoje wnioski</h3>
+          <h3 className="text-sm font-semibold text-[#6b9478] mb-3">Twoje wnioski</h3>
         )}
 
         {filtered.length === 0 ? (
-          <p className="text-sm text-[#5a4a30] py-6 text-center">
+          <p className="text-sm text-[#2d5c3f] py-6 text-center">
             {statusFilter === 'all' ? 'Brak wniosków.' : `Brak wniosków o statusie „${STATUS_CONFIG[statusFilter]?.label}".`}
           </p>
         ) : (
@@ -410,22 +410,22 @@ export default function WnioskiClient({ requests: initial, isAdmin, isSuperAdmin
       </div>
 
       {/* Szablony do pobrania */}
-      <div className="border border-[#3a2e1e] rounded-xl p-4 bg-[#1a1410]">
-        <h3 className="text-sm font-semibold text-[#a89880] mb-3">📄 Szablony wniosków do druku (DOCX)</h3>
+      <div className="border border-[#1e3324] rounded-xl p-4 bg-[#111a13]">
+        <h3 className="text-sm font-semibold text-[#6b9478] mb-3">📄 Szablony wniosków do druku (DOCX)</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {REQUEST_TYPES.map(rt => (
             <a
               key={rt.value}
               href={TEMPLATE_FILES[rt.value]}
               download
-              className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#3a2e1e] bg-[#241e14] text-[#7a6a58] hover:text-[#f0ebe0] hover:border-[#5a4a30] transition text-xs"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#1e3324] bg-[#121c15] text-[#6b9478] hover:text-[#ecfdf5] hover:border-[#2d5c3f] transition text-xs"
             >
-              <span className="text-amber-600">↓</span>
+              <span className="text-emerald-600">↓</span>
               <span>{rt.label}</span>
             </a>
           ))}
         </div>
-        <p className="text-xs text-[#5a4a30] mt-3">
+        <p className="text-xs text-[#2d5c3f] mt-3">
           Pobierz szablon Word, wypełnij ręcznie i złóż w biurze — lub złóż wniosek elektronicznie powyżej.
         </p>
       </div>

@@ -75,7 +75,7 @@ export default function NotificationBell({ initialUnread = 0 }: { initialUnread?
     <div ref={ref} className="relative">
       <button
         onClick={openDropdown}
-        className="relative p-2 rounded-lg text-[#7a6a58] hover:bg-[#18140e] hover:text-[#f0ebe0] transition"
+        className="relative p-2 rounded-lg text-[#6b9478] hover:bg-[#0d1410] hover:text-[#ecfdf5] transition"
         aria-label="Powiadomienia"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -90,15 +90,15 @@ export default function NotificationBell({ initialUnread = 0 }: { initialUnread?
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-[#241e14] border border-[#3a2e1e] rounded-xl shadow-2xl z-50 overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 w-80 bg-[#121c15] border border-[#1e3324] rounded-xl shadow-2xl z-50 overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[#3a2e1e]">
-            <span className="text-sm font-semibold text-[#f0ebe0]">Powiadomienia</span>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[#1e3324]">
+            <span className="text-sm font-semibold text-[#ecfdf5]">Powiadomienia</span>
             {unread > 0 && (
               <button
                 onClick={handleMarkAll}
                 disabled={isPending}
-                className="text-xs text-amber-400 hover:text-amber-300 disabled:opacity-50 transition"
+                className="text-xs text-emerald-400 hover:text-emerald-300 disabled:opacity-50 transition"
               >
                 Oznacz wszystkie
               </button>
@@ -108,34 +108,34 @@ export default function NotificationBell({ initialUnread = 0 }: { initialUnread?
           {/* Lista */}
           <div className="max-h-[400px] overflow-y-auto">
             {!loaded && (
-              <div className="px-4 py-8 text-center text-sm text-[#6a5a48]">Ładowanie…</div>
+              <div className="px-4 py-8 text-center text-sm text-[#4d7a5f]">Ładowanie…</div>
             )}
             {loaded && notifications.length === 0 && (
               <div className="px-4 py-8 text-center">
                 <p className="text-2xl mb-2">🔔</p>
-                <p className="text-sm text-[#7a6a58]">Brak powiadomień</p>
+                <p className="text-sm text-[#6b9478]">Brak powiadomień</p>
               </div>
             )}
             {notifications.map(n => {
               const inner = (
                 <div
-                  className={`flex gap-3 px-4 py-3 border-b border-[#3a2e1e]/50 hover:bg-[#2a2218] transition cursor-pointer ${
-                    !n.read ? 'bg-amber-950/20' : ''
+                  className={`flex gap-3 px-4 py-3 border-b border-[#1e3324]/50 hover:bg-[#162418] transition cursor-pointer ${
+                    !n.read ? 'bg-emerald-950/20' : ''
                   }`}
                   onClick={() => handleClick(n)}
                 >
                   <span className="text-lg flex-shrink-0 mt-0.5">{TYPE_ICON[n.type] ?? '🔔'}</span>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm leading-snug ${!n.read ? 'text-[#f0ebe0] font-medium' : 'text-[#b8a898]'}`}>
+                    <p className={`text-sm leading-snug ${!n.read ? 'text-[#ecfdf5] font-medium' : 'text-[#a7f3d0]'}`}>
                       {n.title}
                     </p>
                     {n.body && (
-                      <p className="text-xs text-[#6a5a48] mt-0.5 truncate">{n.body}</p>
+                      <p className="text-xs text-[#4d7a5f] mt-0.5 truncate">{n.body}</p>
                     )}
-                    <p className="text-xs text-[#4a3c28] mt-1">{timeAgo(n.created_at)}</p>
+                    <p className="text-xs text-[#2a4a2a] mt-1">{timeAgo(n.created_at)}</p>
                   </div>
                   {!n.read && (
-                    <div className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0 mt-2" />
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0 mt-2" />
                   )}
                 </div>
               )
