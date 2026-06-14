@@ -41,13 +41,12 @@ export default async function AdminLayout({
 
   const profileWithCommunity = { ...profile, community }
 
-  // Liczba nieprzeczytanych aktywnych ogłoszeń
+  // Liczba wszystkich aktywnych ogłoszeń (widocznych dla użytkownika)
   let unreadCount = 0
   let pendingUsersCount = 0
   try {
     const now = new Date()
 
-    // Pobierz tylko aktywne ogłoszenia (nie archiwalne) — filtruj po wspólnocie
     let annQuery = admin.from('announcements').select('id, start_date, end_date')
     if (profile.role !== 'super_admin' && profile.community_id) {
       annQuery = annQuery.or(`community_id.eq.${profile.community_id},target.eq.all`) as any
@@ -59,16 +58,7 @@ export default async function AdminLayout({
       if (a.start_date && new Date(a.start_date) > now) return false
       return true
     })
-    const activeIds = activeAnns.map((a: any) => a.id)
-
-    const { data: readRows } = await admin
-      .from('read_announcements')
-      .select('announcement_id')
-      .eq('user_id', user.id)
-      .in('announcement_id', activeIds.length ? activeIds : ['00000000-0000-0000-0000-000000000000'])
-
-    const readCount = (readRows ?? []).length
-    unreadCount = Math.max(0, activeIds.length - readCount)
+    unreadCount = activeAnns.length
   } catch {
     unreadCount = 0
   }
