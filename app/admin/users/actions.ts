@@ -62,7 +62,7 @@ export async function addUser(data: {
   email: string
   full_name: string
   password: string
-  role: 'user' | 'admin'
+  role: 'user' | 'admin' | 'super_admin'
   community_id: string
 }): Promise<{ error?: string }> {
   try {
@@ -71,6 +71,10 @@ export async function addUser(data: {
     if (actorProfile.role === 'admin') {
       if (data.community_id !== actorProfile.community_id) return { error: 'Brak uprawnień do tej wspólnoty' }
       if (data.role !== 'user') return { error: 'Administrator może dodawać tylko mieszkańców' }
+    }
+    // Tylko super_admin może tworzyć konta super_admin
+    if (data.role === 'super_admin' && actorProfile.role !== 'super_admin') {
+      return { error: 'Tylko Super Admin może tworzyć konta Super Admin' }
     }
 
     const admin = getSupabaseAdminClient()
@@ -86,7 +90,7 @@ export async function addUser(data: {
       id: created.user.id,
       full_name: data.full_name,
       role: data.role,
-      community_id: data.community_id,
+      community_id: data.role === 'super_admin' ? null : data.community_id,
       status: 'active',
     })
     if (profileError) return { error: profileError.message }

@@ -102,10 +102,11 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
                     <select
                       className="input w-full"
                       value={form.role}
-                      onChange={(e) => setForm((f) => ({ ...f, role: e.target.value as 'user' | 'admin' }))}
+                      onChange={(e) => setForm((f) => ({ ...f, role: e.target.value as 'user' | 'admin' | 'super_admin' }))}
                     >
                       <option value="user">Mieszkaniec</option>
                       {isSuperAdmin && <option value="admin">Administrator</option>}
+                      {isSuperAdmin && <option value="super_admin">Super Admin</option>}
                     </select>
                   </div>
                   <div>
