@@ -16,7 +16,7 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
     email: '',
     full_name: '',
     password: '',
-    role: 'user' as 'user' | 'admin',
+    role: 'user' as 'user' | 'admin' | 'super_admin',
     community_id: adminCommunityId ?? '',
   })
   const [error, setError] = useState<string | null>(null)
