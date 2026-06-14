@@ -5,6 +5,7 @@ import PendingUsers from './PendingUsers'
 import AddUserForm from './AddUserForm'
 import UsersClient from './UsersClient'
 import InviteModal from './InviteModal'
+import CopyRegisterLink from './CopyRegisterLink'
 
 export default async function UsersPage() {
   // Auth check — anon client (RLS)
@@ -60,6 +61,9 @@ export default async function UsersPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h2 className="text-2xl font-bold text-[#ecfdf5]">Użytkownicy</h2>
         <div className="flex items-center gap-2">
+          {profile.community_id && (
+            <CopyRegisterLink communityId={profile.community_id} />
+          )}
           <InviteModal
             communities={communities ?? []}
             isSuperAdmin={isSuperAdmin}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { registerUser, getInvitation } from './actions'
+import { registerUser, getInvitation, getCommunity } from './actions'
 import Link from 'next/link'
 
 type InviteData = {
@@ -13,27 +13,38 @@ type InviteData = {
   community_name: string
 } | null
 
+type CommunityData = {
+  community_id: string
+  community_name: string
+} | null
+
 function RegisterForm() {
   const searchParams = useSearchParams()
   const token = searchParams.get('token') ?? ''
+  const communityIdParam = searchParams.get('community_id') ?? ''
 
   const [loading, setLoading] = useState(false)
-  const [checkingToken, setCheckingToken] = useState(!!token)
+  const [checkingToken, setCheckingToken] = useState(!!token || !!communityIdParam)
   const [invite, setInvite] = useState<InviteData>(null)
+  const [communityData, setCommunityData] = useState<CommunityData>(null)
   const [tokenError, setTokenError] = useState(false)
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null)
 
   useEffect(() => {
-    if (!token) return
-    getInvitation(token).then(data => {
-      setCheckingToken(false)
-      if (!data || 'error' in data) {
-        setTokenError(true)
-      } else {
-        setInvite(data)
-      }
-    })
-  }, [token])
+    if (token) {
+      getInvitation(token).then(data => {
+        setCheckingToken(false)
+        if (!data || 'error' in data) setTokenError(true)
+        else setInvite(data)
+      })
+    } else if (communityIdParam) {
+      getCommunity(communityIdParam).then(data => {
+        setCheckingToken(false)
+        if (!data) setTokenError(true)
+        else setCommunityData(data)
+      })
+    }
+  }, [token, communityIdParam])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -42,6 +53,7 @@ function RegisterForm() {
 
     const formData = new FormData(e.currentTarget)
     if (token) formData.set('invite_token', token)
+    if (communityIdParam) formData.set('community_id_param', communityIdParam)
     const res = await registerUser(formData)
 
     setLoading(false)
@@ -129,7 +141,7 @@ function RegisterForm() {
     <main className="min-h-screen flex items-center justify-center bg-[#0d1410] p-4">
       <div className="w-full max-w-sm">
 
-        {/* Baner zaproszenia */}
+        {/* Baner zaproszenia personalnego */}
         {invite && (
           <div className="bg-emerald-950/30 border border-emerald-700/40 rounded-xl px-4 py-3 mb-4 flex items-center gap-3">
             <span className="text-2xl flex-shrink-0">🏠</span>
@@ -143,10 +155,22 @@ function RegisterForm() {
           </div>
         )}
 
+        {/* Baner rejestracji przez link wspólnoty */}
+        {communityData && !invite && (
+          <div className="bg-emerald-950/30 border border-emerald-700/40 rounded-xl px-4 py-3 mb-4 flex items-center gap-3">
+            <span className="text-2xl flex-shrink-0">🏢</span>
+            <div>
+              <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wide">Rejestracja do wspólnoty</p>
+              <p className="text-sm text-[#ecfdf5] font-medium">{communityData.community_name}</p>
+              <p className="text-xs text-[#6b9478]">Konto zostanie aktywowane po weryfikacji przez administratora</p>
+            </div>
+          </div>
+        )}
+
         <div className="bg-[#121c15] border border-[#1e3324] rounded-2xl shadow-2xl shadow-black/40 p-8 space-y-5">
           <div>
             <h1 className="text-2xl font-bold text-[#ecfdf5]">
-              {invite ? 'Utwórz konto' : 'Rejestracja'}
+              {invite || communityData ? 'Utwórz konto' : 'Rejestracja'}
             </h1>
             <p className="text-sm text-[#4d7a5f] mt-1">
               {invite ? 'Już prawie gotowe — ustaw hasło do konta' : 'Utwórz konto w panelu wspólnoty'}
@@ -201,7 +225,7 @@ function RegisterForm() {
               {loading ? (
                 <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Rejestruję…</>
               ) : (
-                invite ? 'Utwórz konto i dołącz do wspólnoty' : 'Zarejestruj się'
+                (invite || communityData) ? 'Utwórz konto i dołącz do wspólnoty' : 'Zarejestruj się'
               )}
             </button>
           </form>

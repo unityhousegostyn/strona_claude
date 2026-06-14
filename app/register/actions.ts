@@ -6,6 +6,18 @@ import { sendEmailVerification } from '@/lib/email'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
+export async function getCommunity(communityId: string) {
+  if (!communityId) return null
+  const admin = getSupabaseAdminClient()
+  const { data } = await admin
+    .from('communities')
+    .select('id, name')
+    .eq('id', communityId)
+    .maybeSingle()
+  if (!data) return null
+  return { community_id: data.id as string, community_name: data.name as string }
+}
+
 export async function getInvitation(token: string) {
   if (!token) return null
   const admin = getSupabaseAdminClient()
@@ -28,6 +40,7 @@ export async function getInvitation(token: string) {
 
 export async function registerUser(formData: FormData) {
   const token = formData.get('invite_token') as string | null
+  const communityIdParam = formData.get('community_id_param') as string | null
 
   const rawData = {
     email: formData.get('email'),
@@ -82,14 +95,21 @@ export async function registerUser(formData: FormData) {
   const userId = linkData.user?.id
   if (!userId) return { success: false, message: 'Błąd: nie udało się pobrać ID użytkownika.' }
 
-  // Profil — zaproszeni dostają community_id od razu; status 'invited' (aktywowany po weryfikacji email)
+  // Jeśli community_id_param (link rejestracyjny) — sprawdź czy wspólnota istnieje
+  let communityIdFromLink: string | null = null
+  if (!invitation && communityIdParam) {
+    const { data: comm } = await admin.from('communities').select('id').eq('id', communityIdParam).maybeSingle()
+    if (comm) communityIdFromLink = comm.id
+  }
+
+  // Profil — zaproszeni: community_id od razu + 'invited'; link: community_id + 'unconfirmed' (czeka na akceptację); brak: 'unconfirmed'
   const { error: insertError } = await admin.from('profiles').insert({
     id: userId,
     email,
     full_name,
     role: 'user',
     status: invitation ? 'invited' : 'unconfirmed',
-    community_id: invitation?.community_id ?? null,
+    community_id: invitation?.community_id ?? communityIdFromLink ?? null,
   })
 
   if (insertError) {
