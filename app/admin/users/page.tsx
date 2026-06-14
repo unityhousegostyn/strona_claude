@@ -61,9 +61,10 @@ export default async function UsersPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h2 className="text-2xl font-bold text-[#ecfdf5]">Użytkownicy</h2>
         <div className="flex items-center gap-2">
-          {profile.community_id && (
-            <CopyRegisterLink communityId={profile.community_id} />
-          )}
+          <CopyRegisterLink
+            communityId={profile.community_id}
+            communities={isSuperAdmin ? (communities ?? []) : undefined}
+          />
           <InviteModal
             communities={communities ?? []}
             isSuperAdmin={isSuperAdmin}
