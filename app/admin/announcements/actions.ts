@@ -121,6 +121,70 @@ export async function createAnnouncement(formData: {
   }
 }
 
+export async function updateAnnouncement(
+  id: string,
+  formData: {
+    title: string
+    content: string
+    start_date: string
+    end_date: string
+    target: 'all' | 'one' | 'selected'
+    community_id: string | null
+    community_ids: string[]
+    pinned?: boolean
+  }
+): Promise<{ error?: string }> {
+  try {
+    const auth = await getAuthProfileAction()
+    if (auth.error !== null) return { error: auth.error }
+    if (auth.profile.role === 'user') return { error: 'Brak uprawnień' }
+    const { user, profile } = auth
+
+    const title = formData.title?.trim()
+    const content = formData.content?.trim()
+    if (!title || title.length < 3 || title.length > 150) return { error: 'Tytuł musi mieć 3–150 znaków' }
+    if (!content || content.length < 10 || content.length > 5000) return { error: 'Treść musi mieć 10–5000 znaków' }
+    if (!['all', 'one', 'selected'].includes(formData.target)) return { error: 'Nieprawidłowy cel ogłoszenia' }
+
+    if (profile.role === 'admin') {
+      if (formData.target !== 'one' || formData.community_id !== profile.community_id) {
+        return { error: 'Admin może edytować ogłoszenia tylko swojej wspólnoty' }
+      }
+    }
+
+    const admin = getSupabaseAdminClient()
+
+    const { error } = await admin
+      .from('announcements')
+      .update({
+        title,
+        content,
+        start_date: formData.start_date || null,
+        end_date: formData.end_date || null,
+        target: formData.target,
+        community_id: formData.target === 'one' ? formData.community_id : null,
+        pinned: formData.pinned ?? false,
+      })
+      .eq('id', id)
+
+    if (error) return { error: error.message }
+
+    // Aktualizacja junction table dla target=selected
+    await admin.from('announcement_communities').delete().eq('announcement_id', id)
+    if (formData.target === 'selected' && formData.community_ids.length > 0) {
+      const rows = formData.community_ids.map((cid) => ({ announcement_id: id, community_id: cid }))
+      const { error: jErr } = await admin.from('announcement_communities').insert(rows)
+      if (jErr) return { error: jErr.message }
+    }
+
+    await logActivity({ userId: user.id, action: 'update_announcement', targetType: 'announcement', targetId: id, meta: { title } })
+    revalidatePath('/admin/announcements')
+    return {}
+  } catch (e: any) {
+    return { error: e.message ?? 'Nieznany błąd' }
+  }
+}
+
 export async function togglePin(announcementId: string, pinned: boolean): Promise<{ error?: string }> {
   try {
     const auth = await getAuthProfileAction()
