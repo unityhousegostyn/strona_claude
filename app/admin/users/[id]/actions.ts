@@ -65,13 +65,12 @@ export async function deactivateUser(userId: string) {
 export async function assignApartment(userId: string, apartmentId: string | null) {
   await requireSuperAdmin()
   const admin = getSupabaseAdminClient()
-  // Odepnij poprzednie mieszkanie tego użytkownika
-  await admin.from('settlement_apartments').update({ owner_id: null }).eq('owner_id', userId)
-  // Przypisz nowe (jeśli podano)
-  if (apartmentId) {
-    const { error } = await admin.from('settlement_apartments').update({ owner_id: userId }).eq('id', apartmentId)
-    if (error) throw new Error('Błąd podczas przypisywania mieszkania')
-  }
+  // Zapisz apartment_id bezpośrednio w profiles (wiele użytkowników może być w tym samym lokalu)
+  const { error } = await admin
+    .from('profiles')
+    .update({ apartment_id: apartmentId })
+    .eq('id', userId)
+  if (error) throw new Error('Błąd podczas przypisywania mieszkania')
   revalidatePath('/admin/users')
   revalidatePath('/admin/settlements')
 }

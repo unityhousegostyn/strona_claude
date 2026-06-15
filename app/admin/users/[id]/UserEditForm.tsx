@@ -150,8 +150,8 @@ export default function UserEditForm({
               return (
                 <optgroup key={comm.id} label={comm.name}>
                   {commApts.map(a => (
-                    <option key={a.id} value={a.id} disabled={!!a.owner_id && a.owner_id !== userId}>
-                      {a.number}{a.owner_id && a.owner_id !== userId ? ' (zajęte)' : ''}
+                    <option key={a.id} value={a.id}>
+                      {a.number}
                     </option>
                   ))}
                 </optgroup>

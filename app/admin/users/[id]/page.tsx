@@ -28,14 +28,15 @@ export default async function UserEditPage({ params }: { params: Promise<{ id: s
     .select('id, name')
     .order('name')
 
-  // Pobierz mieszkania (wszystkie aktywne) + aktualnie przypisane do tego użytkownika
+  // Pobierz mieszkania (wszystkie aktywne)
   const { data: apartments } = await admin
     .from('settlement_apartments')
     .select('id, number, community_id, owner_id')
     .eq('active', true)
     .order('number')
 
-  const currentApartment = (apartments ?? []).find(a => a.owner_id === id) ?? null
+  // Aktualny lokal z profiles.apartment_id (obsługuje wielu mieszkańców na lokal)
+  const currentApartmentId: string | null = (profile as any).apartment_id ?? null
 
   return (
     <div className="max-w-xl space-y-6">
@@ -67,7 +68,7 @@ export default async function UserEditPage({ params }: { params: Promise<{ id: s
         initialCommunityId={profile.community_id ?? null}
         communities={communities ?? []}
         apartments={apartments ?? []}
-        currentApartmentId={currentApartment?.id ?? null}
+        currentApartmentId={currentApartmentId}
         isSelf={id === currentUser.id}
       />
     </div>

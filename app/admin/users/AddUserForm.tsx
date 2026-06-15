@@ -4,13 +4,16 @@ import { useState, useTransition } from 'react'
 import { addUser } from './actions'
 import { Community } from '@/types'
 
+interface Apartment { id: string; number: string; community_id: string }
+
 interface Props {
   communities: Community[]
   isSuperAdmin: boolean
   adminCommunityId: string | null
+  apartments: Apartment[]
 }
 
-export default function AddUserForm({ communities, isSuperAdmin, adminCommunityId }: Props) {
+export default function AddUserForm({ communities, isSuperAdmin, adminCommunityId, apartments }: Props) {
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({
     email: '',
@@ -18,6 +21,7 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
     password: '',
     role: 'user' as 'user' | 'admin' | 'super_admin',
     community_id: adminCommunityId ?? '',
+    apartment_id: '',
   })
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -26,15 +30,15 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
-    if (!form.community_id) { setError('Wybierz wspólnotę'); return }
+    if (!form.community_id && form.role !== 'super_admin') { setError('Wybierz wspólnotę'); return }
     startTransition(async () => {
-      const result = await addUser(form)
+      const result = await addUser({ ...form, apartment_id: form.apartment_id || null })
       if (result.error) { setError(result.error); return }
       setSuccess(true)
       setTimeout(() => {
         setOpen(false)
         setSuccess(false)
-        setForm({ email: '', full_name: '', password: '', role: 'user', community_id: adminCommunityId ?? '' })
+        setForm({ email: '', full_name: '', password: '', role: 'user', community_id: adminCommunityId ?? '', apartment_id: '' })
       }, 1200)
     })
   }
@@ -129,6 +133,24 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
                     )}
                   </div>
                 </div>
+
+                {form.role === 'user' && (
+                  <div>
+                    <label className="block text-xs text-[#6b9478] mb-1">Lokal (opcjonalnie)</label>
+                    <select
+                      className="input w-full"
+                      value={form.apartment_id}
+                      onChange={(e) => setForm((f) => ({ ...f, apartment_id: e.target.value }))}
+                    >
+                      <option value="">— brak przypisania —</option>
+                      {apartments
+                        .filter(a => !form.community_id || a.community_id === form.community_id)
+                        .map((a) => (
+                          <option key={a.id} value={a.id}>{a.number}</option>
+                        ))}
+                    </select>
+                  </div>
+                )}
 
                 {error && <p className="text-sm text-red-400">{error}</p>}
 

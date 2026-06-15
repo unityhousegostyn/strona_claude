@@ -74,6 +74,7 @@ export default async function UsersPage() {
             communities={communities ?? []}
             isSuperAdmin={isSuperAdmin}
             adminCommunityId={profile.community_id}
+            apartments={apartments ?? []}
           />
         </div>
       </div>

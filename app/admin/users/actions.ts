@@ -64,6 +64,7 @@ export async function addUser(data: {
   password: string
   role: 'user' | 'admin' | 'super_admin'
   community_id: string
+  apartment_id?: string | null
 }): Promise<{ error?: string }> {
   try {
     const { user: actor, profile: actorProfile } = await requireAdminOrSuperAdmin()
@@ -91,11 +92,12 @@ export async function addUser(data: {
       full_name: data.full_name,
       role: data.role,
       community_id: data.role === 'super_admin' ? null : data.community_id,
+      apartment_id: data.apartment_id || null,
       status: 'active',
     })
     if (profileError) return { error: profileError.message }
 
-    await logActivity({ userId: actor.id, action: 'create_user', targetType: 'user', targetId: created.user.id })
+    await logActivity({ userId: actor.id, action: 'create_user', targetType: 'user', targetId: created.user.id, meta: { apartment_id: data.apartment_id } })
     revalidatePath('/admin/users')
     return {}
   } catch (e: any) {
