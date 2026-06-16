@@ -53,8 +53,8 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-[#0d1410] border border-[#1e3324] rounded-2xl w-full max-w-md shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+          <div className="bg-[#0d1410] border border-[#1e3324] rounded-t-2xl sm:rounded-2xl w-full max-w-md shadow-2xl max-h-[92dvh] flex flex-col">
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#1e3324]">
               <h3 className="text-base font-semibold text-[#ecfdf5]">Dodaj użytkownika</h3>
               <button onClick={() => setOpen(false)} className="text-[#4d7a5f] hover:text-[#a7f3d0] text-xl leading-none">×</button>
@@ -65,7 +65,7 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
                 <p className="text-emerald-400 text-lg font-semibold">✓ Użytkownik dodany</p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+              <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4 overflow-y-auto flex-1">
                 <div>
                   <label className="block text-xs text-[#6b9478] mb-1">Imię i nazwisko</label>
                   <input

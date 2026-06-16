@@ -30,11 +30,11 @@ export default function DocPreviewButton({ url, name }: Props) {
 
       {open && (
         <div
-          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/70 flex items-end sm:items-center justify-center p-0 sm:p-4"
           onClick={() => setOpen(false)}
         >
           <div
-            className="bg-[#121c15] border border-[#1e3324] rounded-2xl overflow-hidden flex flex-col max-w-4xl w-full max-h-[90vh] shadow-2xl"
+            className="bg-[#121c15] border border-[#1e3324] rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col max-w-4xl w-full max-h-[92dvh] shadow-2xl"
             onClick={e => e.stopPropagation()}
           >
             {/* Header */}

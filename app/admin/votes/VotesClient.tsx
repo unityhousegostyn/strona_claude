@@ -388,8 +388,8 @@ export default function VotesClient({ votes, communities, userId, communityId, i
 
       {/* Modal PIN */}
       {pinModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-[#0d1410] border border-[#1e3324] rounded-2xl w-full max-w-sm shadow-2xl p-6 space-y-5">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4">
+          <div className="bg-[#0d1410] border border-[#1e3324] rounded-t-2xl sm:rounded-2xl w-full max-w-sm shadow-2xl p-6 space-y-5 overflow-y-auto max-h-[92dvh]">
             <div className="text-center">
               <p className="text-3xl mb-2">🔐</p>
               <h3 className="text-base font-semibold text-[#ecfdf5]">Potwierdź głos PINem</h3>

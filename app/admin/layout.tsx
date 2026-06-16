@@ -127,7 +127,7 @@ export default async function AdminLayout({
           <div className="hidden lg:flex items-center justify-end px-6 pt-4 pb-0">
             <NotificationBell initialUnread={unreadNotifications} />
           </div>
-          <main className="flex-1 p-4 lg:p-6 overflow-auto pt-[72px] lg:pt-3">
+          <main className="flex-1 p-4 lg:p-6 overflow-auto pt-[72px] pb-20 lg:pt-3 lg:pb-6">
             {children}
           </main>
         </div>

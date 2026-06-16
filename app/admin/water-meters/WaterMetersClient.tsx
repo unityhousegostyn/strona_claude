@@ -118,9 +118,9 @@ export default function WaterMetersClient({ readings, isSuperAdmin }: { readings
 
       {/* Modal odrzucenia */}
       {rejectId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setRejectId(null)}/>
-          <div className="relative bg-[#1e1810] border border-[#1e3324] rounded-2xl p-6 w-full max-w-sm space-y-4">
+          <div className="relative bg-[#1e1810] border border-[#1e3324] rounded-t-2xl sm:rounded-2xl p-6 w-full max-w-sm space-y-4 overflow-y-auto max-h-[92dvh]">
             <h3 className="text-base font-bold text-[#ecfdf5]">Odrzuć odczyt</h3>
             <textarea
               value={rejectReason}

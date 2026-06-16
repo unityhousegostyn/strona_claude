@@ -350,7 +350,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                 <p className="text-sm text-[#4d7a5f]">Brak lokali. Dodaj pierwszy lokal.</p>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="w-full text-sm min-w-[600px]">
                     <thead>
                       <tr className="border-b border-[#1e3324]">
                         {['Nr', 'Właściciel', 'Pow. m²', 'Udział KW', 'Osoby', 'Wodomierz', `Saldo ${new Date().getFullYear()}`, ''].map(h => (

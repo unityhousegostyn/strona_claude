@@ -67,7 +67,7 @@ interface Props {
 export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0, pendingUsers = 0, newRequests = 0 }: Props) {
   const pathname = usePathname()
   const router = useRouter()
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false)
   const [financeOpen, setFinanceOpen] = useState(pathname.startsWith('/admin/finanse'))
   const navItems = useNavEntries(profile.role)
 
@@ -81,6 +81,13 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
     super_admin: 'Super Admin',
     admin: 'Administrator',
     user: 'Mieszkaniec',
+  }
+
+  const getBadge = (href: string) => {
+    if (href === '/admin/announcements' && unreadAnnouncements > 0) return { count: unreadAnnouncements, color: 'bg-emerald-600' }
+    if (href === '/admin/users' && pendingUsers > 0) return { count: pendingUsers, color: 'bg-red-600' }
+    if (href === '/admin/wnioski' && newRequests > 0) return { count: newRequests, color: 'bg-blue-600' }
+    return null
   }
 
   const renderEntry = (entry: NavEntry, closeMobile: () => void) => {
@@ -128,6 +135,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
     }
 
     const active = pathname.startsWith(entry.href)
+    const badge = getBadge(entry.href)
     return (
       <Link
         key={entry.href}
@@ -139,24 +147,22 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
       >
         <span>{entry.icon}</span>
         <span className="flex-1">{entry.label}</span>
-        {entry.href === '/admin/announcements' && unreadAnnouncements > 0 && (
-          <span className="bg-emerald-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-            {unreadAnnouncements > 99 ? '99+' : unreadAnnouncements}
-          </span>
-        )}
-        {entry.href === '/admin/users' && pendingUsers > 0 && (
-          <span className="bg-red-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-            {pendingUsers > 99 ? '99+' : pendingUsers}
-          </span>
-        )}
-        {entry.href === '/admin/wnioski' && newRequests > 0 && (
-          <span className="bg-blue-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-            {newRequests > 99 ? '99+' : newRequests}
+        {badge && (
+          <span className={`${badge.color} text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center`}>
+            {badge.count > 99 ? '99+' : badge.count}
           </span>
         )}
       </Link>
     )
   }
+
+  // Bottom nav items (5 tabs: 4 key pages + Więcej)
+  const bottomNavItems: NavItem[] = [
+    { href: '/admin/dashboard', label: 'Start', icon: '🏠' },
+    { href: '/admin/settlements', label: 'Rozliczenia', icon: '🧾' },
+    { href: '/admin/wnioski', label: 'Wnioski', icon: '📝' },
+    { href: '/admin/announcements', label: 'Ogłoszenia', icon: '📢' },
+  ]
 
   const NavContent = () => (
     <>
@@ -166,13 +172,12 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
       </div>
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {navItems.map(entry => renderEntry(entry, () => setMobileOpen(false)))}
+        {navItems.map(entry => renderEntry(entry, () => {}))}
       </nav>
 
       <div className="p-4 border-t border-[#1e3324] space-y-1">
         <Link
           href="/admin/profile"
-          onClick={() => setMobileOpen(false)}
           className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#0d1410] transition"
         >
           <div className="w-7 h-7 rounded-full bg-emerald-900/40 text-emerald-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
@@ -195,58 +200,100 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
 
   return (
     <>
-      {/* Mobile top bar */}
+      {/* ── MOBILE ── */}
+
+      {/* Top bar — uproszczony, bez hamburgera */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-[#121c15] border-b border-[#1e3324] flex items-center justify-between px-4 h-14">
         <h1 className="text-base font-bold text-[#ecfdf5]">🏢 Wspólnoty</h1>
-        <button
-          onClick={() => setMobileOpen(true)}
-          className="p-2 rounded-lg text-[#6b9478] hover:bg-[#121c15] transition"
-          aria-label="Otwórz menu"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
+        <Link href="/admin/profile" className="w-8 h-8 rounded-full bg-emerald-900/40 text-emerald-400 text-sm font-bold flex items-center justify-center">
+          {(profile.full_name ?? userEmail).charAt(0).toUpperCase()}
+        </Link>
       </div>
 
-      {/* Mobile overlay */}
-      {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-black/40" onClick={() => setMobileOpen(false)} />
+      {/* Bottom navigation bar */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#121c15] border-t border-[#1e3324] flex items-stretch h-16 safe-area-bottom">
+        {bottomNavItems.map(item => {
+          const active = pathname.startsWith(item.href)
+          const badge = getBadge(item.href)
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-xs font-medium transition relative ${
+                active ? 'text-emerald-400' : 'text-[#6b9478]'
+              }`}
+            >
+              {active && (
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-emerald-500 rounded-full" />
+              )}
+              <span className="text-xl leading-none">{item.icon}</span>
+              <span className="text-[10px] leading-none">{item.label}</span>
+              {badge && (
+                <span className={`absolute top-2 right-1/4 ${badge.color} text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center`}>
+                  {badge.count > 9 ? '9+' : badge.count}
+                </span>
+              )}
+            </Link>
+          )
+        })}
+
+        {/* Więcej — otwiera drawer */}
+        <button
+          onClick={() => setDrawerOpen(true)}
+          className="flex-1 flex flex-col items-center justify-center gap-0.5 text-xs font-medium text-[#6b9478] transition"
+        >
+          <span className="text-xl leading-none">☰</span>
+          <span className="text-[10px] leading-none">Więcej</span>
+          {(pendingUsers > 0 || newRequests > 0) && (
+            <span className="absolute top-2 right-1 bg-red-600 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+              !
+            </span>
+          )}
+        </button>
+      </nav>
+
+      {/* Drawer overlay */}
+      {drawerOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/50"
+          onClick={() => setDrawerOpen(false)}
+        />
       )}
 
-      {/* Mobile drawer */}
-      <aside className={`
-        lg:hidden fixed top-0 left-0 z-50 h-full w-72 bg-[#121c15] shadow-2xl shadow-black/60 flex flex-col transition-transform duration-300
-        ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
+      {/* Drawer — pełne menu z dołu */}
+      <div className={`
+        lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#121c15] rounded-t-2xl shadow-2xl
+        transition-transform duration-300 max-h-[85vh] flex flex-col
+        ${drawerOpen ? 'translate-y-0' : 'translate-y-full'}
       `}>
-        <div className="flex items-center justify-between p-4 border-b border-[#1e3324]">
-          <h1 className="text-lg font-bold text-[#ecfdf5]">🏢 Wspólnoty</h1>
-          <button onClick={() => setMobileOpen(false)} className="p-1.5 rounded-lg text-[#6b9478] hover:bg-[#121c15] transition">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+        {/* Handle */}
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 bg-[#1e3324] rounded-full" />
         </div>
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {navItems.map(entry => renderEntry(entry, () => setMobileOpen(false)))}
+        <div className="flex items-center justify-between px-5 py-3 border-b border-[#1e3324]">
+          <span className="text-sm font-semibold text-[#ecfdf5]">Menu</span>
+          <button onClick={() => setDrawerOpen(false)} className="text-[#6b9478] hover:text-[#ecfdf5] text-xl leading-none">×</button>
+        </div>
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto pb-safe">
+          {navItems.map(entry => renderEntry(entry, () => setDrawerOpen(false)))}
         </nav>
-        <div className="p-4 border-t border-[#1e3324] space-y-1">
-          <Link href="/admin/profile" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#0d1410] transition">
-            <div className="w-7 h-7 rounded-full bg-emerald-900/40 text-emerald-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
+        <div className="p-4 border-t border-[#1e3324] flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-full bg-emerald-900/40 text-emerald-400 text-xs font-bold flex items-center justify-center">
               {(profile.full_name ?? userEmail).charAt(0).toUpperCase()}
             </div>
-            <div className="min-w-0">
-              <p className="text-xs font-medium text-[#ecfdf5] truncate">{profile.full_name ?? userEmail}</p>
+            <div>
+              <p className="text-xs font-medium text-[#ecfdf5] truncate max-w-[180px]">{profile.full_name ?? userEmail}</p>
               <p className="text-xs text-[#6b9478]">{roleLabel[profile.role]}</p>
             </div>
-          </Link>
-          <button onClick={handleLogout} className="w-full text-left text-sm text-red-400 font-medium px-3 py-2 rounded-lg hover:bg-red-950/30 transition">
-            Wyloguj się
+          </div>
+          <button onClick={handleLogout} className="text-sm text-red-400 font-medium px-3 py-1.5 rounded-lg hover:bg-red-950/30 transition">
+            Wyloguj
           </button>
         </div>
-      </aside>
+      </div>
 
-      {/* Desktop sidebar */}
+      {/* ── DESKTOP sidebar ── */}
       <aside className="hidden lg:flex w-64 bg-[#121c15] border-r border-[#1e3324] flex-col shrink-0">
         <NavContent />
       </aside>

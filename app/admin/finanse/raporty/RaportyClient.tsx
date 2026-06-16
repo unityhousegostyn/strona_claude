@@ -531,7 +531,7 @@ export default function RaportyClient({
                     </div>
 
                     <ReportSection title="Porównanie per kategoria">
-                      <table className="w-full text-sm">
+                      <div className="overflow-x-auto"><table className="w-full text-sm min-w-[400px]">
                         <thead><tr className="border-b border-[#1e3324]">
                           <th className="text-left py-2 pr-4 text-[#6b9478] font-medium">Kategoria</th>
                           <th className="text-right py-2 px-3 text-[#6b9478] font-medium">Plan</th>
@@ -555,7 +555,7 @@ export default function RaportyClient({
                             )
                           })}
                         </tbody>
-                      </table>
+                      </table></div>
                     </ReportSection>
                   </>}
 
@@ -581,7 +581,7 @@ export default function RaportyClient({
                 <ReportSection title="Historia funduszu remontowego">
                   {renovFundCumulative.length === 0
                     ? <p className="text-[#4d7a5f] text-sm">Brak danych.</p>
-                    : <table className="w-full text-sm">
+                    : <div className="overflow-x-auto"><table className="w-full text-sm min-w-[480px]">
                       <thead><tr className="border-b border-[#1e3324]">
                         <th className="text-left py-2 pr-4 text-[#6b9478] font-medium">Rok</th>
                         <th className="text-right py-2 px-3 text-[#6b9478] font-medium">Naliczenia</th>
@@ -600,7 +600,7 @@ export default function RaportyClient({
                           </tr>
                         ))}
                       </tbody>
-                    </table>}
+                    </table></div>}
                 </ReportSection>
 
                 <LegalFooter text="Zarząd prowadzi ewidencję funduszu remontowego zgodnie z art. 29 ust. 1a UoWL. Środki funduszu są własnością wspólnoty i nie podlegają podziałowi między właścicieli (uchwała SN z 21.12.2007, III CZP 65/07)." />
