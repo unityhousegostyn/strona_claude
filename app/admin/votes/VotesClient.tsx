@@ -6,7 +6,7 @@ import { createVote, castVote, closeVote, deleteVote } from './actions'
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser'
 import Link from 'next/link'
 
-interface Choice { choice: string; share_value: number; user_id: string }
+interface Choice { choice: string; share_value: number; user_id: string; apartment_id: string | null }
 interface Vote {
   id: string
   community_id: string
@@ -27,6 +27,7 @@ interface Props {
   votes: Vote[]
   communities: Community[]
   userId: string
+  userApartmentId: string | null
   communityId: string | null
   isAdmin: boolean
   isSuperAdmin: boolean
@@ -48,7 +49,7 @@ function calcResults(vote: Vote) {
   return { yes, no, ab, total, pct: (v: number) => total > 0 ? Math.round(v / total * 100) : 0 }
 }
 
-export default function VotesClient({ votes, communities, userId, communityId, isAdmin, isSuperAdmin, hasPin }: Props) {
+export default function VotesClient({ votes, communities, userId, userApartmentId, communityId, isAdmin, isSuperAdmin, hasPin }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [showForm, setShowForm] = useState(false)
@@ -270,9 +271,13 @@ export default function VotesClient({ votes, communities, userId, communityId, i
         <div className="space-y-4">
           {votes.map(vote => {
             const res = calcResults(vote)
-            const myChoice = vote.choices.find(c => c.user_id === userId)
+            // Głos identyfikowany po lokalu (nie userze) — jedno mieszkanie = jeden głos
+            const myChoice = userApartmentId
+              ? vote.choices.find(c => c.apartment_id === userApartmentId)
+              : vote.choices.find(c => c.user_id === userId)
             const isOpen = vote.status === 'open' && (!vote.deadline || new Date(vote.deadline) > new Date())
-            const totalVoters = vote.choices.length
+            // Liczba unikalnych lokali które zagłosowały
+            const totalVoters = new Set(vote.choices.map(c => c.apartment_id ?? c.user_id)).size
 
             return (
               <div key={vote.id} className={`bg-[#121c15] border rounded-xl p-5 space-y-4 ${vote.status === 'open' ? 'border-[#1e3324]' : 'border-[#1e3324]/50 opacity-80'}`}>

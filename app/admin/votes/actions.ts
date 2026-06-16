@@ -109,26 +109,52 @@ export async function castVote(data: {
   if (vote.deadline && new Date(vote.deadline) < new Date())
     return { error: 'Termin głosowania minął' }
 
-  // Pobierz mieszkanie właściciela (dla udziału)
+  // Pobierz lokal użytkownika z profiles.apartment_id (nowy system — wiele userów per lokal)
+  const { data: profileWithApt } = await admin
+    .from('profiles')
+    .select('apartment_id')
+    .eq('id', user.id)
+    .single()
+
+  const apartmentId = (profileWithApt as any)?.apartment_id ?? null
+
+  if (!apartmentId)
+    return { error: 'Nie masz przypisanego lokalu. Skontaktuj się z administratorem.' }
+
+  // Pobierz udział lokalu
   const { data: apartment } = await admin
     .from('settlement_apartments')
-    .select('id, share_numerator, share_denominator')
-    .eq('owner_id', user.id)
+    .select('id, share_numerator, share_denominator, community_id')
+    .eq('id', apartmentId)
     .eq('community_id', vote.community_id)
     .eq('active', true)
     .single()
 
-  const shareValue = apartment?.share_numerator && apartment?.share_denominator
+  if (!apartment)
+    return { error: 'Twój lokal nie należy do tej wspólnoty lub jest nieaktywny.' }
+
+  const shareValue = apartment.share_numerator && apartment.share_denominator
     ? apartment.share_numerator / apartment.share_denominator
     : 1
+
+  // Sprawdź czy ten lokal już głosował
+  const { data: existingVote } = await admin
+    .from('vote_choices')
+    .select('id, user_id')
+    .eq('vote_id', data.vote_id)
+    .eq('apartment_id', apartment.id)
+    .maybeSingle()
+
+  if (existingVote && existingVote.user_id !== user.id)
+    return { error: 'Ten lokal już oddał głos w tej uchwale.' }
 
   const { error } = await admin.from('vote_choices').upsert({
     vote_id: data.vote_id,
     user_id: user.id,
-    apartment_id: apartment?.id ?? null,
+    apartment_id: apartment.id,
     choice: data.choice,
     share_value: shareValue,
-  }, { onConflict: 'vote_id,user_id' })
+  }, { onConflict: 'vote_id,apartment_id' })
 
   if (error) return { error: error.message }
   revalidatePath(`/admin/votes/${data.vote_id}`)

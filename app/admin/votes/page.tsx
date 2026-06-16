@@ -24,19 +24,27 @@ export default async function VotesPage() {
 
   const { data: votes } = await admin
     .from('votes')
-    .select('*, community:communities(name), choices:vote_choices(choice, share_value, user_id)')
+    .select('*, community:communities(name), choices:vote_choices(choice, share_value, user_id, apartment_id)')
     .in('community_id', communityIds.length ? communityIds : ['00000000-0000-0000-0000-000000000000'])
     .order('created_at', { ascending: false })
 
   const isSuperAdmin = profile.role === 'super_admin'
   const isAdmin = profile.role === 'admin' || isSuperAdmin
-  const hasPin = !!(await admin.from('profiles').select('voting_pin_hash').eq('id', user.id).single()).data?.voting_pin_hash
+
+  const [pinRes, profileAptRes] = await Promise.all([
+    admin.from('profiles').select('voting_pin_hash').eq('id', user.id).single(),
+    admin.from('profiles').select('apartment_id').eq('id', user.id).single(),
+  ])
+
+  const hasPin = !!pinRes.data?.voting_pin_hash
+  const userApartmentId: string | null = (profileAptRes.data as any)?.apartment_id ?? null
 
   return (
     <VotesClient
       votes={votes ?? []}
       communities={communities}
       userId={user.id}
+      userApartmentId={userApartmentId}
       communityId={communityId ?? null}
       isAdmin={isAdmin}
       isSuperAdmin={isSuperAdmin}
