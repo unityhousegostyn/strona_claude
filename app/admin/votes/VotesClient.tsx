@@ -31,6 +31,7 @@ interface Props {
   isAdmin: boolean
   isSuperAdmin: boolean
   hasPin: boolean
+  nextResolutionNumber: number
 }
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
@@ -48,15 +49,17 @@ function calcResults(vote: Vote) {
   return { yes, no, ab, total, pct: (v: number) => total > 0 ? Math.round(v / total * 100) : 0 }
 }
 
-export default function VotesClient({ votes, communities, userId, userApartmentId, communityId, isAdmin, isSuperAdmin, hasPin }: Props) {
+export default function VotesClient({ votes, communities, userId, userApartmentId, communityId, isAdmin, isSuperAdmin, hasPin, nextResolutionNumber }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [showForm, setShowForm] = useState(false)
+  const currentYear = new Date().getFullYear()
   const [form, setForm] = useState({
     title: '', description: '',
     voting_method: 'by_share' as 'by_share' | 'one_per_owner',
     deadline: '', community_id: communityId ?? '',
     link_url: '',
+    resolution_number: nextResolutionNumber,
   })
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
@@ -101,7 +104,7 @@ export default function VotesClient({ votes, communities, userId, userApartmentI
       })
       if (res.error) { setFormError(res.error); return }
       setShowForm(false)
-      setForm({ title: '', description: '', voting_method: 'by_share', deadline: '', community_id: communityId ?? '', link_url: '' })
+      setForm({ title: '', description: '', voting_method: 'by_share', deadline: '', community_id: communityId ?? '', link_url: '', resolution_number: nextResolutionNumber + 1 })
       setAttachmentFile(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
       router.refresh()
@@ -170,6 +173,16 @@ export default function VotesClient({ votes, communities, userId, userApartmentI
         <div className="bg-[#121c15] border border-[#1e3324] rounded-xl p-5 space-y-4">
           <h3 className="font-semibold text-[#d1fae5]">Nowa uchwała</h3>
           <div className="space-y-3">
+            <div>
+              <label className="text-xs text-[#6b9478] block mb-1">Numer uchwały</label>
+              <div className="flex items-center gap-2">
+                <input className="input w-24 text-center" type="number" min={1}
+                  value={form.resolution_number}
+                  onChange={e => setForm(p => ({ ...p, resolution_number: parseInt(e.target.value) || 1 }))} />
+                <span className="text-sm text-[#4d7a5f]">/ {currentYear}</span>
+                <span className="text-xs text-[#4d7a5f] ml-2">(edytowalne)</span>
+              </div>
+            </div>
             <div>
               <label className="text-xs text-[#6b9478] block mb-1">Tytuł uchwały *</label>
               <input className="input w-full" placeholder="np. Uchwała nr 1/2026 w sprawie..."

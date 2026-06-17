@@ -31,6 +31,22 @@ export default async function VotesPage() {
   const isSuperAdmin = profile.role === 'super_admin'
   const isAdmin = profile.role === 'admin' || isSuperAdmin
 
+  // Oblicz następny numer uchwały dla domyślnej wspólnoty (do formularza tworzenia)
+  const defaultCommunityId = communityId ?? communities[0]?.id ?? null
+  let nextResolutionNumber = 1
+  if (defaultCommunityId) {
+    const currentYear = new Date().getFullYear()
+    const { data: lastNum } = await admin
+      .from('votes')
+      .select('resolution_number')
+      .eq('community_id', defaultCommunityId)
+      .gte('created_at', `${currentYear}-01-01`)
+      .order('resolution_number', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    nextResolutionNumber = ((lastNum as any)?.resolution_number ?? 0) + 1
+  }
+
   const [pinRes, profileAptRes] = await Promise.all([
     admin.from('profiles').select('voting_pin_hash').eq('id', user.id).single(),
     admin.from('profiles').select('apartment_id').eq('id', user.id).single(),
@@ -49,6 +65,7 @@ export default async function VotesPage() {
       isAdmin={isAdmin}
       isSuperAdmin={isSuperAdmin}
       hasPin={hasPin}
+      nextResolutionNumber={nextResolutionNumber}
     />
   )
 }
