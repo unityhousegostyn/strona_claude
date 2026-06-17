@@ -180,7 +180,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   <div class="page">
     <div class="header">
       <div class="community">${communityName}${communityAddress ? ' · ' + communityAddress : ''}</div>
-      ${resolutionNumber !== '—' ? `<div class="res-num">Nr uchwały: ${resolutionNumber}</div>` : ''}
       <h1>${vote.title}</h1>
     </div>
 
