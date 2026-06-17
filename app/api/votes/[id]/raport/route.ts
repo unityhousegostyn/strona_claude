@@ -28,7 +28,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       id, title, description, status, voting_method, created_at, closed_at, deadline,
       resolution_number, community_id,
       community:communities(name, address),
-      choices:vote_choices(id, choice, share_value, created_at, apartment_id, user_id)
+      choices:vote_choices(id, choice, share_value, apartment_id, user_id)
     `)
     .eq('id', id)
     .single()
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       <td><strong>${apt.apartment_number}</strong></td>
       <td style="font-family:monospace">${share}</td>
       <td>${c ? `<span style="${badgeStyle}">${choiceLabel[c.choice]}</span>` : '<span style="color:#9ca3af;font-style:italic">brak głosu</span>'}</td>
-      <td style="font-size:8.5pt;color:#6b7280">${c ? fmtDateTime(c.created_at) : '—'}</td>
+      <td style="font-size:8.5pt;color:#6b7280">—</td>
       <td style="font-size:8.5pt">${c ? voterName : '—'}</td>
     </tr>`
   }).join('')
