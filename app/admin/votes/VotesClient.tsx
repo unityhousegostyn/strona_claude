@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { createVote, castVote, closeVote, deleteVote, uploadVoteAttachment } from './actions'
+import { createVote, castVote, closeVote, deleteVote, uploadVoteAttachment, updateResolutionNumber } from './actions'
 import Link from 'next/link'
 
 interface Choice { choice: string; share_value: number; user_id: string; apartment_id: string | null }
@@ -17,6 +17,7 @@ interface Vote {
   created_at: string
   link_url: string | null
   attachment_path: string | null
+  resolution_number: number | null
   community: { name: string } | null
   choices: Choice[]
 }
@@ -65,6 +66,10 @@ export default function VotesClient({ votes, communities, userId, userApartmentI
   const [formError, setFormError] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Inline edit numeru uchwały
+  const [editingResNum, setEditingResNum] = useState<string | null>(null) // voteId
+  const [editResNumValue, setEditResNumValue] = useState<number>(1)
 
   // PIN modal
   const [pinModal, setPinModal] = useState<{ voteId: string; choice: 'yes' | 'no' | 'abstain' } | null>(null)
@@ -136,6 +141,14 @@ export default function VotesClient({ votes, communities, userId, userApartmentI
   const handleDelete = (voteId: string) => {
     if (!confirm('Usunąć uchwałę wraz z wszystkimi głosami?')) return
     startTransition(async () => { await deleteVote(voteId); router.refresh() })
+  }
+
+  const handleSaveResNum = (voteId: string) => {
+    startTransition(async () => {
+      await updateResolutionNumber(voteId, editResNumValue)
+      setEditingResNum(null)
+      router.refresh()
+    })
   }
 
   const choiceLabel = { yes: 'ZA', no: 'PRZECIW', abstain: 'WSTRZYMUJĘ SIĘ' }
@@ -306,6 +319,39 @@ export default function VotesClient({ votes, communities, userId, userApartmentI
                       <span className="text-xs text-[#4d7a5f]">
                         {vote.voting_method === 'by_share' ? 'wg udziałów' : '1 lokal = 1 głos'}
                       </span>
+                      {/* Numer uchwały z inline edit dla admina */}
+                      {isAdmin && (
+                        editingResNum === vote.id ? (
+                          <span className="flex items-center gap-1">
+                            <input
+                              type="number" min={1}
+                              className="input w-14 text-center text-xs py-0.5 px-1 h-6"
+                              value={editResNumValue}
+                              onChange={e => setEditResNumValue(parseInt(e.target.value) || 1)}
+                              onKeyDown={e => { if (e.key === 'Enter') handleSaveResNum(vote.id); if (e.key === 'Escape') setEditingResNum(null) }}
+                              autoFocus
+                            />
+                            <span className="text-xs text-[#4d7a5f]">/{new Date(vote.created_at).getFullYear()}</span>
+                            <button onClick={() => handleSaveResNum(vote.id)} disabled={isPending}
+                              className="text-xs text-emerald-400 hover:text-emerald-300 px-1">✓</button>
+                            <button onClick={() => setEditingResNum(null)}
+                              className="text-xs text-[#4d7a5f] hover:text-red-400 px-1">✕</button>
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => { setEditingResNum(vote.id); setEditResNumValue(vote.resolution_number ?? 1) }}
+                            className="text-xs text-[#4d7a5f] hover:text-emerald-400 border border-[#1e3324] px-2 py-0.5 rounded transition"
+                            title="Zmień numer uchwały"
+                          >
+                            Nr {vote.resolution_number ? `${vote.resolution_number}/${new Date(vote.created_at).getFullYear()}` : '—'} ✎
+                          </button>
+                        )
+                      )}
+                      {!isAdmin && vote.resolution_number && (
+                        <span className="text-xs text-[#4d7a5f]">
+                          Nr {vote.resolution_number}/{new Date(vote.created_at).getFullYear()}
+                        </span>
+                      )}
                     </div>
                     <h3 className="text-base font-semibold text-[#ecfdf5]">{vote.title}</h3>
                     {vote.description && (

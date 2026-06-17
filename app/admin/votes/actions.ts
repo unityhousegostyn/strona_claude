@@ -233,6 +233,23 @@ export async function castVote(data: {
   return {}
 }
 
+// ── ZMIANA NUMERU UCHWAŁY ────────────────────────────────────────────────────
+
+export async function updateResolutionNumber(voteId: string, resolutionNumber: number): Promise<{ error?: string }> {
+  const { profile } = await getActor()
+  if (profile.role === 'user') return { error: 'Brak uprawnień' }
+
+  const admin = getSupabaseAdminClient()
+  const { error } = await admin.from('votes')
+    .update({ resolution_number: resolutionNumber })
+    .eq('id', voteId)
+
+  if (error) return { error: error.message }
+  revalidatePath('/admin/votes')
+  revalidatePath('/admin/votes/rejestr')
+  return {}
+}
+
 // ── ZAMKNIĘCIE GŁOSOWANIA ────────────────────────────────────────────────────
 
 export async function closeVote(voteId: string): Promise<{ error?: string }> {
