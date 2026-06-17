@@ -49,11 +49,23 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     for (const p of profilesData ?? []) { profileMap[p.id] = p }
   }
 
-  const { data: apartments } = await admin
+  // Pobierz lokale — najpierw przez community_id, fallback przez IDs z głosów
+  let { data: apartments, error: aptErr } = await admin
     .from('settlement_apartments')
     .select('id, apartment_number, share_numerator, share_denominator, active')
     .eq('community_id', vote.community_id)
     .order('apartment_number')
+
+  // Fallback: jeśli brak lokali per community, pobierz przez apartment_id z głosów
+  const aptIdsFromChoices = [...new Set(choices.map((c: any) => c.apartment_id).filter(Boolean))] as string[]
+  if ((!apartments || apartments.length === 0) && aptIdsFromChoices.length > 0) {
+    const { data: aptByIds } = await admin
+      .from('settlement_apartments')
+      .select('id, apartment_number, share_numerator, share_denominator, active, community_id')
+      .in('id', aptIdsFromChoices)
+      .order('apartment_number')
+    apartments = aptByIds
+  }
 
   const communityRaw = vote.community as any
   const community = Array.isArray(communityRaw) ? communityRaw[0] : communityRaw
@@ -120,6 +132,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     communityId: vote.community_id,
     apartmentsCount: apartments?.length ?? 0,
     choicesCount: choices.length,
+    aptIdsFromChoices,
+    aptErr: aptErr?.message,
     apartments: apartments?.slice(0, 3),
   }, null, 2)
 
