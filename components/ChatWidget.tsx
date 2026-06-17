@@ -49,16 +49,16 @@ export default function ChatWidget() {
     <>
       {/* Panel */}
       {open && (
-        <div className="fixed bottom-20 right-4 z-50 w-[340px] sm:w-[380px] bg-[#121c15] border border-[#1e3324] rounded-2xl shadow-2xl shadow-black/60 flex flex-col overflow-hidden"
+        <div className="fixed bottom-20 right-4 z-50 w-[340px] sm:w-[380px] bg-[#051210] border border-[#0f2d2a] rounded-2xl shadow-2xl shadow-black/60 flex flex-col overflow-hidden"
           style={{ height: '480px' }}>
 
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[#1e3324] bg-[#121c15]">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[#0f2d2a] bg-[#051210]">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-sm">🤖</div>
+              <div className="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center text-sm">🤖</div>
               <div>
-                <p className="text-sm font-semibold text-[#ecfdf5]">Asystent wspólnoty</p>
-                <p className="text-xs text-emerald-400">● Online</p>
+                <p className="text-sm font-semibold text-[#f0fdfa]">Asystent wspólnoty</p>
+                <p className="text-xs text-teal-400">● Online</p>
               </div>
             </div>
             <button
@@ -73,7 +73,7 @@ export default function ChatWidget() {
               <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[85%] px-3 py-2 rounded-xl text-sm leading-relaxed ${
                   m.role === 'user'
-                    ? 'bg-emerald-600 text-white rounded-br-sm'
+                    ? 'bg-teal-600 text-white rounded-br-sm'
                     : 'bg-[#162418] text-[#d1fae5] rounded-bl-sm'
                 }`}>
                   {m.text}
@@ -82,7 +82,7 @@ export default function ChatWidget() {
             ))}
             {loading && (
               <div className="flex justify-start">
-                <div className="bg-[#162418] text-[#6b9478] px-3 py-2 rounded-xl rounded-bl-sm text-sm">
+                <div className="bg-[#162418] text-[#4d9e94] px-3 py-2 rounded-xl rounded-bl-sm text-sm">
                   <span className="animate-pulse">Szukam w dokumentach...</span>
                 </div>
               </div>
@@ -91,9 +91,9 @@ export default function ChatWidget() {
           </div>
 
           {/* Input */}
-          <div className="border-t border-[#1e3324] p-3 flex gap-2">
+          <div className="border-t border-[#0f2d2a] p-3 flex gap-2">
             <input
-              className="flex-1 bg-[#162418] border border-[#1e3324] text-[#ecfdf5] placeholder-stone-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="flex-1 bg-[#162418] border border-[#0f2d2a] text-[#f0fdfa] placeholder-stone-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
               placeholder="Zadaj pytanie..."
               value={input}
               onChange={e => setInput(e.target.value)}
@@ -103,7 +103,7 @@ export default function ChatWidget() {
             <button
               onClick={send}
               disabled={loading || !input.trim()}
-              className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white px-3 py-2 rounded-lg text-sm font-semibold transition"
+              className="bg-teal-600 hover:bg-teal-700 disabled:opacity-40 text-white px-3 py-2 rounded-lg text-sm font-semibold transition"
             >
               →
             </button>
@@ -114,7 +114,7 @@ export default function ChatWidget() {
       {/* Floating button */}
       <button
         onClick={() => setOpen(o => !o)}
-        className="fixed bottom-4 right-4 z-50 w-13 h-13 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full shadow-2xl shadow-green-900/50 transition-all hover:scale-105 flex items-center justify-center"
+        className="fixed bottom-4 right-4 z-50 w-13 h-13 bg-teal-600 hover:bg-teal-700 text-white rounded-full shadow-2xl shadow-green-900/50 transition-all hover:scale-105 flex items-center justify-center"
         style={{ width: 52, height: 52 }}
         title="Asystent AI wspólnoty"
       >

@@ -117,8 +117,8 @@ export default async function PrintRequestPage({ params }: { params: { id: strin
             font-weight: bold;
           }
           .status-new         { background: #dbeafe; color: #1d4ed8; }
-          .status-in_progress { background: #fef3c7; color: #92400e; }
-          .status-done        { background: #fef3c7; color: #065f46; }
+          .status-in_progress { background: #ccfbf1; color: #92400e; }
+          .status-done        { background: #ccfbf1; color: #065f46; }
           .status-rejected    { background: #fee2e2; color: #991b1b; }
           .signature-area {
             margin-top: 50px;

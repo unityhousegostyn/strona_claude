@@ -85,7 +85,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
   }
 
   const getBadge = (href: string) => {
-    if (href === '/admin/announcements' && unreadAnnouncements > 0) return { count: unreadAnnouncements, color: 'bg-emerald-600' }
+    if (href === '/admin/announcements' && unreadAnnouncements > 0) return { count: unreadAnnouncements, color: 'bg-teal-600' }
     if (href === '/admin/users' && pendingUsers > 0) return { count: pendingUsers, color: 'bg-red-600' }
     if (href === '/admin/wnioski' && newRequests > 0) return { count: newRequests, color: 'bg-blue-600' }
     return null
@@ -99,7 +99,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
           <button
             onClick={() => setFinanceOpen(o => !o)}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
-              anyActive ? 'text-emerald-400' : 'text-[#6b9478] hover:bg-[#0d1410] hover:text-[#ecfdf5]'
+              anyActive ? 'text-teal-400' : 'text-[#4d9e94] hover:bg-[#081918] hover:text-[#f0fdfa]'
             }`}
           >
             <span>{entry.icon}</span>
@@ -112,7 +112,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
             </svg>
           </button>
           {financeOpen && (
-            <div className="ml-4 mt-0.5 space-y-0.5 border-l border-[#1e3324] pl-3">
+            <div className="ml-4 mt-0.5 space-y-0.5 border-l border-[#0f2d2a] pl-3">
               {entry.subItems.map(sub => {
                 const active = pathname.startsWith(sub.href)
                 return (
@@ -121,7 +121,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
                     href={sub.href}
                     onClick={closeMobile}
                     className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
-                      active ? 'bg-emerald-950/40 text-emerald-400' : 'text-[#6b9478] hover:bg-[#0d1410] hover:text-[#ecfdf5]'
+                      active ? 'bg-teal-950/40 text-teal-400' : 'text-[#4d9e94] hover:bg-[#081918] hover:text-[#f0fdfa]'
                     }`}
                   >
                     <span className="text-base">{sub.icon}</span>
@@ -143,7 +143,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
         href={entry.href}
         onClick={closeMobile}
         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
-          active ? 'bg-emerald-950/40 text-emerald-400' : 'text-[#6b9478] hover:bg-[#0d1410] hover:text-[#ecfdf5]'
+          active ? 'bg-teal-950/40 text-teal-400' : 'text-[#4d9e94] hover:bg-[#081918] hover:text-[#f0fdfa]'
         }`}
       >
         <span>{entry.icon}</span>
@@ -167,26 +167,26 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
 
   const NavContent = () => (
     <>
-      <div className="p-5 border-b border-[#1e3324]">
-        <h1 className="text-lg font-bold text-[#ecfdf5]">🏢 Wspólnoty</h1>
-        <p className="text-xs text-[#6b9478] mt-0.5">Panel zarządzania</p>
+      <div className="p-5 border-b border-[#0f2d2a]">
+        <h1 className="text-lg font-bold text-[#f0fdfa]">🏢 Wspólnoty</h1>
+        <p className="text-xs text-[#4d9e94] mt-0.5">Panel zarządzania</p>
       </div>
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {navItems.map(entry => renderEntry(entry, () => {}))}
       </nav>
 
-      <div className="p-4 border-t border-[#1e3324] space-y-1">
+      <div className="p-4 border-t border-[#0f2d2a] space-y-1">
         <Link
           href="/admin/profile"
-          className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#0d1410] transition"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#081918] transition"
         >
-          <div className="w-7 h-7 rounded-full bg-emerald-900/40 text-emerald-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
+          <div className="w-7 h-7 rounded-full bg-teal-900/40 text-teal-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
             {(profile.full_name ?? userEmail).charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-[#ecfdf5] truncate">{profile.full_name ?? userEmail}</p>
-            <p className="text-xs text-[#6b9478]">{roleLabel[profile.role]}</p>
+            <p className="text-xs font-medium text-[#f0fdfa] truncate">{profile.full_name ?? userEmail}</p>
+            <p className="text-xs text-[#4d9e94]">{roleLabel[profile.role]}</p>
           </div>
         </Link>
         <ThemeToggle />
@@ -205,15 +205,15 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
       {/* ── MOBILE ── */}
 
       {/* Top bar — uproszczony, bez hamburgera */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-[#121c15] border-b border-[#1e3324] flex items-center justify-between px-4 h-14">
-        <h1 className="text-base font-bold text-[#ecfdf5]">🏢 Wspólnoty</h1>
-        <Link href="/admin/profile" className="w-8 h-8 rounded-full bg-emerald-900/40 text-emerald-400 text-sm font-bold flex items-center justify-center">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-[#051210] border-b border-[#0f2d2a] flex items-center justify-between px-4 h-14">
+        <h1 className="text-base font-bold text-[#f0fdfa]">🏢 Wspólnoty</h1>
+        <Link href="/admin/profile" className="w-8 h-8 rounded-full bg-teal-900/40 text-teal-400 text-sm font-bold flex items-center justify-center">
           {(profile.full_name ?? userEmail).charAt(0).toUpperCase()}
         </Link>
       </div>
 
       {/* Bottom navigation bar */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#121c15] border-t border-[#1e3324] flex items-stretch h-16 safe-area-bottom">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#051210] border-t border-[#0f2d2a] flex items-stretch h-16 safe-area-bottom">
         {bottomNavItems.map(item => {
           const active = pathname.startsWith(item.href)
           const badge = getBadge(item.href)
@@ -222,11 +222,11 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
               key={item.href}
               href={item.href}
               className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-xs font-medium transition relative ${
-                active ? 'text-emerald-400' : 'text-[#6b9478]'
+                active ? 'text-teal-400' : 'text-[#4d9e94]'
               }`}
             >
               {active && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-emerald-500 rounded-full" />
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-teal-500 rounded-full" />
               )}
               <span className="text-xl leading-none">{item.icon}</span>
               <span className="text-[10px] leading-none">{item.label}</span>
@@ -242,7 +242,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
         {/* Więcej — otwiera drawer */}
         <button
           onClick={() => setDrawerOpen(true)}
-          className="flex-1 flex flex-col items-center justify-center gap-0.5 text-xs font-medium text-[#6b9478] transition"
+          className="flex-1 flex flex-col items-center justify-center gap-0.5 text-xs font-medium text-[#4d9e94] transition"
         >
           <span className="text-xl leading-none">☰</span>
           <span className="text-[10px] leading-none">Więcej</span>
@@ -264,29 +264,29 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
 
       {/* Drawer — pełne menu z dołu */}
       <div className={`
-        lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#121c15] rounded-t-2xl shadow-2xl
+        lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#051210] rounded-t-2xl shadow-2xl
         transition-transform duration-300 max-h-[85vh] flex flex-col
         ${drawerOpen ? 'translate-y-0' : 'translate-y-full'}
       `}>
         {/* Handle */}
         <div className="flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 bg-[#1e3324] rounded-full" />
+          <div className="w-10 h-1 bg-[#0f2d2a] rounded-full" />
         </div>
-        <div className="flex items-center justify-between px-5 py-3 border-b border-[#1e3324]">
-          <span className="text-sm font-semibold text-[#ecfdf5]">Menu</span>
-          <button onClick={() => setDrawerOpen(false)} className="text-[#6b9478] hover:text-[#ecfdf5] text-xl leading-none">×</button>
+        <div className="flex items-center justify-between px-5 py-3 border-b border-[#0f2d2a]">
+          <span className="text-sm font-semibold text-[#f0fdfa]">Menu</span>
+          <button onClick={() => setDrawerOpen(false)} className="text-[#4d9e94] hover:text-[#f0fdfa] text-xl leading-none">×</button>
         </div>
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto pb-safe">
           {navItems.map(entry => renderEntry(entry, () => setDrawerOpen(false)))}
         </nav>
-        <div className="p-4 border-t border-[#1e3324] space-y-1">
+        <div className="p-4 border-t border-[#0f2d2a] space-y-1">
           <div className="flex items-center gap-2 px-3 py-2">
-            <div className="w-7 h-7 rounded-full bg-amber-900/40 text-amber-400 text-xs font-bold flex items-center justify-center">
+            <div className="w-7 h-7 rounded-full bg-teal-900/40 text-teal-400 text-xs font-bold flex items-center justify-center">
               {(profile.full_name ?? userEmail).charAt(0).toUpperCase()}
             </div>
             <div>
-              <p className="text-xs font-medium text-[#fef9ee] truncate max-w-[180px]">{profile.full_name ?? userEmail}</p>
-              <p className="text-xs text-[#b45309]">{roleLabel[profile.role]}</p>
+              <p className="text-xs font-medium text-[#f0fdfa] truncate max-w-[180px]">{profile.full_name ?? userEmail}</p>
+              <p className="text-xs text-[#0f766e]">{roleLabel[profile.role]}</p>
             </div>
           </div>
           <ThemeToggle />
@@ -297,7 +297,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
       </div>
 
       {/* ── DESKTOP sidebar ── */}
-      <aside className="hidden lg:flex w-64 bg-[#121c15] border-r border-[#1e3324] flex-col shrink-0">
+      <aside className="hidden lg:flex w-64 bg-[#051210] border-r border-[#0f2d2a] flex-col shrink-0">
         <NavContent />
       </aside>
     </>

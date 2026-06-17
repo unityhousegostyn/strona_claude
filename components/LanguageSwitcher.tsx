@@ -14,8 +14,8 @@ export default function LanguageSwitcher() {
           onClick={() => setLocale(l)}
           className={`text-xs px-3 py-1.5 rounded-lg transition ${
             locale === l
-              ? 'bg-emerald-600 text-white font-semibold'
-              : 'bg-[#162418] text-[#6b9478] hover:bg-[#1c2e1e] hover:text-[#d1fae5]'
+              ? 'bg-teal-600 text-white font-semibold'
+              : 'bg-[#162418] text-[#4d9e94] hover:bg-[#1c2e1e] hover:text-[#d1fae5]'
           }`}
         >
           {LOCALE_LABELS[l]}

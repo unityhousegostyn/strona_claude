@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "black-translucent",
-    "msapplication-TileColor": "#d97706",
+    "msapplication-TileColor": "#0d9488",
   },
 };
 
@@ -44,9 +44,9 @@ export default function RootLayout({
     >
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-        <meta name="theme-color" content="#d97706" />
+        <meta name="theme-color" content="#0d9488" />
       </head>
-      <body className="min-h-full flex flex-col bg-[#18110a]">
+      <body className="min-h-full flex flex-col bg-[#051210]">
         <ThemeProvider>
           {children}
           <CookieBanner />

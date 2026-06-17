@@ -2,16 +2,16 @@ import Link from 'next/link'
 
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen bg-[#18110a] py-12 px-4">
-      <div className="max-w-2xl mx-auto bg-[#1e1409] rounded-xl shadow-lg shadow-black/30 border border-[#33200d] p-8 space-y-6">
+    <main className="min-h-screen bg-[#051210] py-12 px-4">
+      <div className="max-w-2xl mx-auto bg-[#081918] rounded-xl shadow-lg shadow-black/30 border border-[#0f2d2a] p-8 space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#fef9ee]">Polityka Prywatności</h1>
-          <p className="text-sm text-[#b45309] mt-1">Panel Zarządzania Wspólnotą Mieszkaniową</p>
+          <h1 className="text-2xl font-bold text-[#f0fdfa]">Polityka Prywatności</h1>
+          <p className="text-sm text-[#0f766e] mt-1">Panel Zarządzania Wspólnotą Mieszkaniową</p>
         </div>
 
         <section className="space-y-2">
-          <h2 className="text-base font-semibold text-[#fef3c7]">1. Administrator danych</h2>
-          <p className="text-sm text-[#b45309] leading-relaxed">
+          <h2 className="text-base font-semibold text-[#ccfbf1]">1. Administrator danych</h2>
+          <p className="text-sm text-[#0f766e] leading-relaxed">
             Administratorem Twoich danych osobowych jest zarządca wspólnoty mieszkaniowej,
             do której należysz. W sprawach dotyczących danych osobowych możesz kontaktować
             się z administratorem poprzez panel zgłoszeń lub bezpośrednio z zarządem wspólnoty.
@@ -19,11 +19,11 @@ export default function PrivacyPage() {
         </section>
 
         <section className="space-y-2">
-          <h2 className="text-base font-semibold text-[#fef3c7]">2. Cel i podstawa przetwarzania</h2>
-          <p className="text-sm text-[#b45309] leading-relaxed">
+          <h2 className="text-base font-semibold text-[#ccfbf1]">2. Cel i podstawa przetwarzania</h2>
+          <p className="text-sm text-[#0f766e] leading-relaxed">
             Twoje dane (adres e-mail, imię i nazwisko, dane kontaktowe) przetwarzamy w celu:
           </p>
-          <ul className="text-sm text-[#b45309] space-y-1 pl-4 list-disc">
+          <ul className="text-sm text-[#0f766e] space-y-1 pl-4 list-disc">
             <li>obsługi konta w panelu mieszkańca — podstawa: art. 6 ust. 1 lit. b RODO (wykonanie umowy),</li>
             <li>komunikacji dotyczącej spraw wspólnoty — podstawa: art. 6 ust. 1 lit. f RODO (prawnie uzasadniony interes),</li>
             <li>wypełnienia obowiązków prawnych zarządcy — podstawa: art. 6 ust. 1 lit. c RODO.</li>
@@ -31,8 +31,8 @@ export default function PrivacyPage() {
         </section>
 
         <section className="space-y-2">
-          <h2 className="text-base font-semibold text-[#fef3c7]">3. Okres przechowywania</h2>
-          <p className="text-sm text-[#b45309] leading-relaxed">
+          <h2 className="text-base font-semibold text-[#ccfbf1]">3. Okres przechowywania</h2>
+          <p className="text-sm text-[#0f766e] leading-relaxed">
             Dane przechowywane są przez okres korzystania z panelu oraz przez czas wymagany
             przepisami prawa (np. dokumentacja wspólnoty — do 5 lat od zakończenia roku obrachunkowego).
             Po usunięciu konta dane są anonimizowane lub usuwane w ciągu 30 dni.
@@ -40,11 +40,11 @@ export default function PrivacyPage() {
         </section>
 
         <section className="space-y-2">
-          <h2 className="text-base font-semibold text-[#fef3c7]">4. Twoje prawa</h2>
-          <p className="text-sm text-[#b45309] leading-relaxed">
+          <h2 className="text-base font-semibold text-[#ccfbf1]">4. Twoje prawa</h2>
+          <p className="text-sm text-[#0f766e] leading-relaxed">
             Na podstawie RODO przysługują Ci następujące prawa:
           </p>
-          <ul className="text-sm text-[#b45309] space-y-1 pl-4 list-disc">
+          <ul className="text-sm text-[#0f766e] space-y-1 pl-4 list-disc">
             <li>prawo dostępu do swoich danych,</li>
             <li>prawo do sprostowania (poprawienia) danych,</li>
             <li>prawo do usunięcia danych („prawo do bycia zapomnianym"),</li>
@@ -56,8 +56,8 @@ export default function PrivacyPage() {
         </section>
 
         <section className="space-y-2">
-          <h2 className="text-base font-semibold text-[#fef3c7]">5. Odbiorcy danych</h2>
-          <p className="text-sm text-[#b45309] leading-relaxed">
+          <h2 className="text-base font-semibold text-[#ccfbf1]">5. Odbiorcy danych</h2>
+          <p className="text-sm text-[#0f766e] leading-relaxed">
             Twoje dane mogą być przekazywane podmiotom świadczącym usługi techniczne
             (hosting, poczta elektroniczna) wyłącznie w zakresie niezbędnym do realizacji
             ww. celów. Dane nie są przekazywane poza Europejski Obszar Gospodarczy.
@@ -65,15 +65,15 @@ export default function PrivacyPage() {
         </section>
 
         <section className="space-y-2">
-          <h2 className="text-base font-semibold text-[#fef3c7]">6. Pliki cookies</h2>
-          <p className="text-sm text-[#b45309] leading-relaxed">
+          <h2 className="text-base font-semibold text-[#ccfbf1]">6. Pliki cookies</h2>
+          <p className="text-sm text-[#0f766e] leading-relaxed">
             Panel używa wyłącznie niezbędnych plików cookies sesji służących do uwierzytelnienia
             zalogowanego użytkownika. Nie stosujemy cookies analitycznych ani marketingowych.
           </p>
         </section>
 
-        <div className="pt-2 border-t border-[#33200d]">
-          <Link href="/login" className="text-sm text-amber-500 hover:underline">
+        <div className="pt-2 border-t border-[#0f2d2a]">
+          <Link href="/login" className="text-sm text-teal-500 hover:underline">
             ← Wróć do logowania
           </Link>
         </div>

@@ -95,10 +95,10 @@ export default function TicketsClient({ tickets: initial, communities, userId, c
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-[#fef9ee]">Zgłoszenia</h2>
+        <h2 className="text-2xl font-bold text-[#f0fdfa]">Zgłoszenia</h2>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
+          className="bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
         >
           + Nowe zgłoszenie
         </button>
@@ -106,7 +106,7 @@ export default function TicketsClient({ tickets: initial, communities, userId, c
 
       {/* Wyszukiwarka */}
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a16207] text-sm">🔍</span>
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#115e59] text-sm">🔍</span>
         <input
           className="input w-full pl-8 text-sm"
           placeholder="Szukaj zgłoszeń..."
@@ -114,23 +114,23 @@ export default function TicketsClient({ tickets: initial, communities, userId, c
           onChange={e => handleSearch(e.target.value)}
         />
         {search && (
-          <button onClick={() => handleSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a16207] hover:text-[#fde68a] text-xs">✕</button>
+          <button onClick={() => handleSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#115e59] hover:text-[#99f6e4] text-xs">✕</button>
         )}
       </div>
 
       {/* Zakładki */}
-      <div className="flex gap-1 bg-[#1e1409] rounded-xl p-1 w-fit">
+      <div className="flex gap-1 bg-[#081918] rounded-xl p-1 w-fit">
         {(['open', 'closed'] as Tab[]).map(t => (
           <button
             key={t}
             onClick={() => handleTabChange(t)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
-              tab === t ? 'bg-[#271a0c] text-[#fef9ee] shadow-lg shadow-black/30' : 'text-[#a16207] hover:text-[#fde68a]'
+              tab === t ? 'bg-[#0c2220] text-[#f0fdfa] shadow-lg shadow-black/30' : 'text-[#115e59] hover:text-[#99f6e4]'
             }`}
           >
             {t === 'open' ? 'Aktywne' : 'Archiwum'}
             <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${
-              t === 'open' ? 'bg-yellow-900/40 text-yellow-400' : 'bg-[#271a0c] text-[#b45309]'
+              t === 'open' ? 'bg-yellow-900/40 text-yellow-400' : 'bg-[#0c2220] text-[#0f766e]'
             }`}>
               {t === 'open' ? openCount : closedCount}
             </span>
@@ -140,8 +140,8 @@ export default function TicketsClient({ tickets: initial, communities, userId, c
 
       {/* Formularz nowego zgłoszenia */}
       {showForm && tab === 'open' && (
-        <div className="bg-[#1e1409] border border-[#33200d] rounded-xl p-5 space-y-3">
-          <h3 className="font-semibold text-[#fef3c7]">Nowe zgłoszenie</h3>
+        <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-5 space-y-3">
+          <h3 className="font-semibold text-[#ccfbf1]">Nowe zgłoszenie</h3>
           {formError && (
             <div className="bg-red-950/30 border border-red-900 text-red-400 text-sm rounded-lg px-3 py-2">{formError}</div>
           )}
@@ -154,21 +154,21 @@ export default function TicketsClient({ tickets: initial, communities, userId, c
           <input className="input w-full" placeholder="Tytuł (min. 3 znaki)" value={title} onChange={e => setTitle(e.target.value)} />
           <textarea className="input w-full min-h-[80px]" placeholder="Opis problemu (min. 10 znaków)" value={description} onChange={e => setDescription(e.target.value)} />
           <div>
-            <label className="block text-sm font-medium text-[#fde68a] mb-1">
-              Załącznik <span className="text-[#b45309] font-normal">(opcjonalnie, max 10 MB)</span>
+            <label className="block text-sm font-medium text-[#99f6e4] mb-1">
+              Załącznik <span className="text-[#0f766e] font-normal">(opcjonalnie, max 10 MB)</span>
             </label>
             <input
               type="file"
               onChange={e => setAttachment(e.target.files?.[0] ?? null)}
-              className="block w-full text-sm text-[#b45309] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-amber-950/40 file:text-amber-400 hover:file:bg-amber-900/40 transition"
+              className="block w-full text-sm text-[#0f766e] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-teal-950/40 file:text-teal-400 hover:file:bg-teal-900/40 transition"
             />
-            {attachment && <p className="text-xs text-[#a16207] mt-1">Wybrany: {attachment.name}</p>}
+            {attachment && <p className="text-xs text-[#115e59] mt-1">Wybrany: {attachment.name}</p>}
           </div>
           <div className="flex gap-3">
-            <button onClick={handleSubmitTicket} disabled={isPending} className="bg-amber-600 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">
+            <button onClick={handleSubmitTicket} disabled={isPending} className="bg-teal-600 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">
               {isPending ? 'Wysyłanie...' : 'Wyślij'}
             </button>
-            <button onClick={() => setShowForm(false)} className="text-sm text-[#a16207] hover:text-[#fde68a]">Anuluj</button>
+            <button onClick={() => setShowForm(false)} className="text-sm text-[#115e59] hover:text-[#99f6e4]">Anuluj</button>
           </div>
         </div>
       )}
@@ -176,28 +176,28 @@ export default function TicketsClient({ tickets: initial, communities, userId, c
       {/* Lista zgłoszeń */}
       <div className="space-y-3">
         {filtered.length === 0 && (
-          <p className="text-sm text-[#b45309]">
+          <p className="text-sm text-[#0f766e]">
             {search ? `Brak wyników dla "${search}".` : tab === 'open' ? 'Brak aktywnych zgłoszeń.' : 'Brak zgłoszeń w archiwum.'}
           </p>
         )}
         {paginated.map(t => (
           <div
             key={t.id}
-            className={`bg-[#1e1409] border rounded-xl p-4 flex items-start justify-between gap-4 cursor-pointer transition ${
-              tab === 'closed' ? 'border-[#33200d] opacity-75 hover:opacity-100 hover:border-[#33200d]' : 'border-[#33200d] hover:border-green-700'
+            className={`bg-[#081918] border rounded-xl p-4 flex items-start justify-between gap-4 cursor-pointer transition ${
+              tab === 'closed' ? 'border-[#0f2d2a] opacity-75 hover:opacity-100 hover:border-[#0f2d2a]' : 'border-[#0f2d2a] hover:border-green-700'
             }`}
             onClick={() => router.push(`/admin/tickets/${t.id}`)}
           >
             <div className="min-w-0">
-              <p className={`font-semibold truncate ${tab === 'closed' ? 'text-[#a16207]' : 'text-[#fef9ee]'}`}>{t.title}</p>
-              <p className="text-sm text-[#a16207] mt-1 line-clamp-1">{t.description}</p>
-              <p className="text-xs text-[#b45309] mt-2">
+              <p className={`font-semibold truncate ${tab === 'closed' ? 'text-[#115e59]' : 'text-[#f0fdfa]'}`}>{t.title}</p>
+              <p className="text-sm text-[#115e59] mt-1 line-clamp-1">{t.description}</p>
+              <p className="text-xs text-[#0f766e] mt-2">
                 {t.community?.name} · {new Date(t.created_at).toLocaleDateString('pl-PL')}
               </p>
             </div>
             <div className="flex flex-col items-end gap-2 flex-shrink-0">
               <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                t.status === 'open' ? 'bg-yellow-900/40 text-yellow-400' : 'bg-amber-900/40 text-amber-400'
+                t.status === 'open' ? 'bg-yellow-900/40 text-yellow-400' : 'bg-teal-900/40 text-teal-400'
               }`}>
                 {t.status === 'open' ? 'Otwarte' : 'Zamknięte'}
               </span>
@@ -205,7 +205,7 @@ export default function TicketsClient({ tickets: initial, communities, userId, c
                 <button
                   onClick={e => { e.stopPropagation(); handleStatusToggle(t) }}
                   disabled={isPending}
-                  className="text-xs text-amber-400 hover:underline disabled:opacity-50"
+                  className="text-xs text-teal-400 hover:underline disabled:opacity-50"
                 >
                   {t.status === 'open' ? 'Zamknij' : 'Wznów'}
                 </button>

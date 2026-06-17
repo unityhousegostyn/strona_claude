@@ -170,52 +170,52 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
   }
 
   const catLabel = (cat: string) => categories.find(c => c.value === cat)?.label ?? cat
-  const catColors: Record<string, string> = { zarząd:'bg-amber-950/40 text-amber-400', woda:'bg-cyan-950/40 text-cyan-400', śmieci:'bg-amber-950/40 text-amber-400', remonty:'bg-orange-950/40 text-orange-400', ubezpieczenie:'bg-purple-950/40 text-purple-400', energia:'bg-yellow-950/40 text-yellow-400', fundusz_remontowy:'bg-red-950/40 text-red-400', inne:'bg-[#271a0c] text-[#b45309]' }
+  const catColors: Record<string, string> = { zarząd:'bg-teal-950/40 text-teal-400', woda:'bg-cyan-950/40 text-cyan-400', śmieci:'bg-teal-950/40 text-teal-400', remonty:'bg-orange-950/40 text-orange-400', ubezpieczenie:'bg-purple-950/40 text-purple-400', energia:'bg-yellow-950/40 text-yellow-400', fundusz_remontowy:'bg-red-950/40 text-red-400', inne:'bg-[#0c2220] text-[#0f766e]' }
   const maxBar = Math.max(...Object.values(monthlyExpenses), ...Object.values(monthlyIncome), 1)
 
   return (
     <div className="space-y-6 max-w-5xl">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-[#fef9ee]">💸 Koszty wspólnoty</h2>
-          <p className="text-sm text-[#a16207] mt-0.5">Faktury, remonty i inne wydatki</p>
+          <h2 className="text-2xl font-bold text-[#f0fdfa]">💸 Koszty wspólnoty</h2>
+          <p className="text-sm text-[#115e59] mt-0.5">Faktury, remonty i inne wydatki</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={handleExportExcel} disabled={filtered.length === 0} className="bg-[#271a0c] hover:bg-[#2a1b09] text-[#fef3c7] text-sm font-semibold px-4 py-2 rounded-lg transition disabled:opacity-40" title="Eksportuj do Excela">📊 Eksport Excel</button>
-          <button onClick={() => setShowForm(!showForm)} className="bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">+ Dodaj koszt</button>
+          <button onClick={handleExportExcel} disabled={filtered.length === 0} className="bg-[#0c2220] hover:bg-[#0a1f1d] text-[#ccfbf1] text-sm font-semibold px-4 py-2 rounded-lg transition disabled:opacity-40" title="Eksportuj do Excela">📊 Eksport Excel</button>
+          <button onClick={() => setShowForm(!showForm)} className="bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">+ Dodaj koszt</button>
         </div>
       </div>
 
       {showForm && (
-        <div className="bg-[#1e1409] border border-[#33200d] rounded-xl p-5 space-y-4">
-          <h3 className="font-semibold text-[#fef3c7]">Nowy koszt</h3>
+        <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-5 space-y-4">
+          <h3 className="font-semibold text-[#ccfbf1]">Nowy koszt</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {isSuperAdmin && <div><label className="text-xs text-[#b45309] block mb-1">Wspólnota *</label><select className="input w-full" value={form.community_id} onChange={e => setForm(p => ({...p, community_id: e.target.value}))}><option value="">— wybierz wspólnotę —</option>{communities.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></div>}
-            <div><label className="text-xs text-[#b45309] block mb-1">Kategoria *</label><select className="input w-full" value={form.category} onChange={e => setForm(p => ({...p, category: e.target.value as ExpenseCategory}))}>{categories.map(c=><option key={c.value} value={c.value}>{c.label}</option>)}</select></div>
-            <div className="sm:col-span-2"><label className="text-xs text-[#b45309] block mb-1">Opis *</label><input className="input w-full" placeholder="np. Faktura ZGKIM za wodę" value={form.description} onChange={e => setForm(p => ({...p, description: e.target.value}))} /></div>
-            <div><label className="text-xs text-[#b45309] block mb-1">Kwota (zł) *</label><input className="input w-full" type="number" step="0.01" min="0" value={form.amount} onChange={e => setForm(p => ({...p, amount: e.target.value}))} /></div>
-            <div><label className="text-xs text-[#b45309] block mb-1">Data *</label><input className="input w-full" type="date" value={form.expense_date} onChange={e => setForm(p => ({...p, expense_date: e.target.value}))} /></div>
-            <div><label className="text-xs text-[#b45309] block mb-1">Nr faktury</label><input className="input w-full" placeholder="FV/123/2026" value={form.invoice_number} onChange={e => setForm(p => ({...p, invoice_number: e.target.value}))} /></div>
+            {isSuperAdmin && <div><label className="text-xs text-[#0f766e] block mb-1">Wspólnota *</label><select className="input w-full" value={form.community_id} onChange={e => setForm(p => ({...p, community_id: e.target.value}))}><option value="">— wybierz wspólnotę —</option>{communities.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></div>}
+            <div><label className="text-xs text-[#0f766e] block mb-1">Kategoria *</label><select className="input w-full" value={form.category} onChange={e => setForm(p => ({...p, category: e.target.value as ExpenseCategory}))}>{categories.map(c=><option key={c.value} value={c.value}>{c.label}</option>)}</select></div>
+            <div className="sm:col-span-2"><label className="text-xs text-[#0f766e] block mb-1">Opis *</label><input className="input w-full" placeholder="np. Faktura ZGKIM za wodę" value={form.description} onChange={e => setForm(p => ({...p, description: e.target.value}))} /></div>
+            <div><label className="text-xs text-[#0f766e] block mb-1">Kwota (zł) *</label><input className="input w-full" type="number" step="0.01" min="0" value={form.amount} onChange={e => setForm(p => ({...p, amount: e.target.value}))} /></div>
+            <div><label className="text-xs text-[#0f766e] block mb-1">Data *</label><input className="input w-full" type="date" value={form.expense_date} onChange={e => setForm(p => ({...p, expense_date: e.target.value}))} /></div>
+            <div><label className="text-xs text-[#0f766e] block mb-1">Nr faktury</label><input className="input w-full" placeholder="FV/123/2026" value={form.invoice_number} onChange={e => setForm(p => ({...p, invoice_number: e.target.value}))} /></div>
           </div>
           {formError && <p className="text-sm text-red-400">{formError}</p>}
           <div className="flex gap-3">
-            <button onClick={handleAdd} disabled={isPending} className="bg-amber-600 text-white text-sm font-semibold px-5 py-2 rounded-lg disabled:opacity-50">{isPending ? 'Zapisuję...' : 'Dodaj koszt'}</button>
-            <button onClick={() => setShowForm(false)} className="text-sm text-[#a16207] hover:text-[#fde68a]">Anuluj</button>
+            <button onClick={handleAdd} disabled={isPending} className="bg-teal-600 text-white text-sm font-semibold px-5 py-2 rounded-lg disabled:opacity-50">{isPending ? 'Zapisuję...' : 'Dodaj koszt'}</button>
+            <button onClick={() => setShowForm(false)} className="text-sm text-[#115e59] hover:text-[#99f6e4]">Anuluj</button>
           </div>
         </div>
       )}
 
       {/* Import CSV */}
-      <div className="bg-[#1e1409] border border-[#33200d] rounded-xl p-4 space-y-3">
-        <div><p className="text-sm font-semibold text-[#fde68a]">📥 Import z pliku CSV</p><p className="text-xs text-[#a16207] mt-0.5">Format: <code className="text-[#b45309]">data;opis;kategoria;kwota;nr_faktury</code></p></div>
+      <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-4 space-y-3">
+        <div><p className="text-sm font-semibold text-[#99f6e4]">📥 Import z pliku CSV</p><p className="text-xs text-[#115e59] mt-0.5">Format: <code className="text-[#0f766e]">data;opis;kategoria;kwota;nr_faktury</code></p></div>
         {isSuperAdmin && <select className="input text-sm w-full sm:w-auto" value={importComm} onChange={e => setImportComm(e.target.value)}><option value="">— wybierz wspólnotę —</option>{communities.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select>}
-        <div onDragOver={e=>{e.preventDefault();setCsvDragOver(true)}} onDragLeave={()=>setCsvDragOver(false)} onDrop={e=>{e.preventDefault();setCsvDragOver(false);const f=e.dataTransfer.files[0];if(f)handleFile(f)}} onClick={()=>fileRef.current?.click()} className={`cursor-pointer rounded-xl border-2 border-dashed transition-all py-8 px-4 text-center select-none ${csvDragOver?'border-green-500 bg-amber-950/20':csvFileName?'border-green-700 bg-amber-950/20':'border-[#33200d] bg-[#271a0c]/30 hover:border-[#3d2008]'}`}>
+        <div onDragOver={e=>{e.preventDefault();setCsvDragOver(true)}} onDragLeave={()=>setCsvDragOver(false)} onDrop={e=>{e.preventDefault();setCsvDragOver(false);const f=e.dataTransfer.files[0];if(f)handleFile(f)}} onClick={()=>fileRef.current?.click()} className={`cursor-pointer rounded-xl border-2 border-dashed transition-all py-8 px-4 text-center select-none ${csvDragOver?'border-green-500 bg-teal-950/20':csvFileName?'border-green-700 bg-teal-950/20':'border-[#0f2d2a] bg-[#0c2220]/30 hover:border-[#133835]'}`}>
           <input ref={fileRef} type="file" accept=".csv,.txt" className="hidden" onChange={e=>{const f=e.target.files?.[0];if(f)handleFile(f);if(fileRef.current)fileRef.current.value=''}} />
           <div className="text-3xl mb-2">{isPending?'⏳':csvFileName?'✅':'📂'}</div>
-          {isPending?<p className="text-sm text-[#b45309]">Importowanie...</p>:csvFileName?<p className="text-sm font-medium text-amber-400">{csvFileName}</p>:<><p className="text-sm font-medium text-[#fde68a]">Przeciągnij plik CSV tutaj</p><p className="text-xs text-[#a16207] mt-1">lub kliknij żeby wybrać z dysku</p></>}
+          {isPending?<p className="text-sm text-[#0f766e]">Importowanie...</p>:csvFileName?<p className="text-sm font-medium text-teal-400">{csvFileName}</p>:<><p className="text-sm font-medium text-[#99f6e4]">Przeciągnij plik CSV tutaj</p><p className="text-xs text-[#115e59] mt-1">lub kliknij żeby wybrać z dysku</p></>}
         </div>
-        <a href={`data:text/plain;charset=utf-8,${encodeURIComponent('data;opis;kategoria;kwota;nr_faktury\n2026-06-01;Faktura ZGKIM za wodę;woda;1250.00;FV/100/2026')}`} download="szablon_kosztow.csv" className="text-xs text-amber-400 hover:text-amber-300 underline">Pobierz szablon</a>
-        {importResult && <div className={`text-sm rounded-lg p-3 ${importResult.imported>0?'bg-amber-950/30 border border-amber-700 text-amber-400':'bg-red-950/30 border border-red-800 text-red-400'}`}>{importResult.imported>0&&<p className="font-semibold">✓ Zaimportowano {importResult.imported} wpisów.</p>}{importResult.errors.map((err,i)=><p key={i} className="text-xs mt-1">⚠ {err}</p>)}</div>}
+        <a href={`data:text/plain;charset=utf-8,${encodeURIComponent('data;opis;kategoria;kwota;nr_faktury\n2026-06-01;Faktura ZGKIM za wodę;woda;1250.00;FV/100/2026')}`} download="szablon_kosztow.csv" className="text-xs text-teal-400 hover:text-teal-300 underline">Pobierz szablon</a>
+        {importResult && <div className={`text-sm rounded-lg p-3 ${importResult.imported>0?'bg-teal-950/30 border border-teal-700 text-teal-400':'bg-red-950/30 border border-red-800 text-red-400'}`}>{importResult.imported>0&&<p className="font-semibold">✓ Zaimportowano {importResult.imported} wpisów.</p>}{importResult.errors.map((err,i)=><p key={i} className="text-xs mt-1">⚠ {err}</p>)}</div>}
       </div>
 
       {/* Filtry + tabs */}
@@ -228,39 +228,39 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
         </select>
         <select className="input text-sm" value={filterCat} onChange={e=>setFilterCat(e.target.value)}><option value="">Wszystkie kategorie</option>{categories.map(c=><option key={c.value} value={c.value}>{c.label}</option>)}</select>
         {(filterMonth !== 0 || filterCat !== '' || search !== '' || (isSuperAdmin && filterComm !== '')) && (
-          <button onClick={() => { setFilterMonth(0); setFilterCat(''); setSearch(''); if (isSuperAdmin) setFilterComm('') }} className="text-xs text-[#a16207] hover:text-[#fde68a] border border-[#33200d] hover:border-[#3d2008] px-3 py-1.5 rounded-lg transition">✕ Wyczyść filtry</button>
+          <button onClick={() => { setFilterMonth(0); setFilterCat(''); setSearch(''); if (isSuperAdmin) setFilterComm('') }} className="text-xs text-[#115e59] hover:text-[#99f6e4] border border-[#0f2d2a] hover:border-[#133835] px-3 py-1.5 rounded-lg transition">✕ Wyczyść filtry</button>
         )}
         <div className="relative flex-1 min-w-[180px]">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a16207] text-sm">🔍</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#115e59] text-sm">🔍</span>
           <input
             className="input w-full pl-8 text-sm"
             placeholder="Szukaj opisu, kwoty, nr faktury…"
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
-          {search && <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#a16207] hover:text-[#fde68a] text-xs">✕</button>}
+          {search && <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#115e59] hover:text-[#99f6e4] text-xs">✕</button>}
         </div>
-        <div className="flex gap-1 bg-[#1e1409] rounded-lg p-1">
-          {(['list','summary'] as const).map(t=><button key={t} onClick={()=>setTab(t)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${tab===t?'bg-[#271a0c] text-[#fef9ee]':'text-[#a16207] hover:text-[#fde68a]'}`}>{t==='list'?'📋 Lista':'📊 Podsumowanie'}</button>)}
+        <div className="flex gap-1 bg-[#081918] rounded-lg p-1">
+          {(['list','summary'] as const).map(t=><button key={t} onClick={()=>setTab(t)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${tab===t?'bg-[#0c2220] text-[#f0fdfa]':'text-[#115e59] hover:text-[#99f6e4]'}`}>{t==='list'?'📋 Lista':'📊 Podsumowanie'}</button>)}
         </div>
       </div>
 
       {tab==='summary'?(
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-[#1e1409] border border-[#33200d] rounded-xl p-4 text-center"><p className="text-xs text-[#a16207] mb-1">Wpłaty mieszkańców</p><p className="text-2xl font-bold text-amber-400">{pln(totalIncome)}</p></div>
-            <div className="bg-[#1e1409] border border-[#33200d] rounded-xl p-4 text-center"><p className="text-xs text-[#a16207] mb-1">Koszty wspólnoty</p><p className="text-2xl font-bold text-red-400">{pln(totalExpenses)}</p></div>
-            <div className={`rounded-xl p-4 text-center border ${totalIncome-totalExpenses>=0?'bg-amber-950/20 border-amber-800':'bg-red-950/20 border-red-900'}`}><p className="text-xs text-[#a16207] mb-1">Saldo</p><p className={`text-2xl font-bold ${totalIncome-totalExpenses>=0?'text-amber-400':'text-red-400'}`}>{pln(totalIncome-totalExpenses)}</p></div>
+            <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-4 text-center"><p className="text-xs text-[#115e59] mb-1">Wpłaty mieszkańców</p><p className="text-2xl font-bold text-teal-400">{pln(totalIncome)}</p></div>
+            <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-4 text-center"><p className="text-xs text-[#115e59] mb-1">Koszty wspólnoty</p><p className="text-2xl font-bold text-red-400">{pln(totalExpenses)}</p></div>
+            <div className={`rounded-xl p-4 text-center border ${totalIncome-totalExpenses>=0?'bg-teal-950/20 border-teal-800':'bg-red-950/20 border-red-900'}`}><p className="text-xs text-[#115e59] mb-1">Saldo</p><p className={`text-2xl font-bold ${totalIncome-totalExpenses>=0?'text-teal-400':'text-red-400'}`}>{pln(totalIncome-totalExpenses)}</p></div>
           </div>
-          <div className="bg-[#1e1409] border border-[#33200d] rounded-xl p-5">
-            <h3 className="text-sm font-semibold text-[#b45309] mb-4">Wpłaty vs Koszty — miesiącami</h3>
+          <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-5">
+            <h3 className="text-sm font-semibold text-[#0f766e] mb-4">Wpłaty vs Koszty — miesiącami</h3>
             <div className="flex items-end gap-1 h-32">
-              {MONTHS.map((name,idx)=>{const m=idx+1;const inc=monthlyIncome[m]??0;const exp=monthlyExpenses[m]??0;const hI=Math.max(2,Math.round((inc/maxBar)*120));const hE=Math.max(2,Math.round((exp/maxBar)*120));return(<div key={m} className="flex-1 flex flex-col items-center gap-0.5"><div className="flex items-end gap-0.5 w-full justify-center" style={{height:120}}><div title={`Wpłaty: ${pln(inc)}`} style={{height:hI}} className="flex-1 bg-amber-600/60 rounded-t-sm"/><div title={`Koszty: ${pln(exp)}`} style={{height:hE}} className="flex-1 bg-red-500/60 rounded-t-sm"/></div><span className="text-xs text-[#a16207]">{name}</span></div>)})}
+              {MONTHS.map((name,idx)=>{const m=idx+1;const inc=monthlyIncome[m]??0;const exp=monthlyExpenses[m]??0;const hI=Math.max(2,Math.round((inc/maxBar)*120));const hE=Math.max(2,Math.round((exp/maxBar)*120));return(<div key={m} className="flex-1 flex flex-col items-center gap-0.5"><div className="flex items-end gap-0.5 w-full justify-center" style={{height:120}}><div title={`Wpłaty: ${pln(inc)}`} style={{height:hI}} className="flex-1 bg-teal-600/60 rounded-t-sm"/><div title={`Koszty: ${pln(exp)}`} style={{height:hE}} className="flex-1 bg-red-500/60 rounded-t-sm"/></div><span className="text-xs text-[#115e59]">{name}</span></div>)})}
             </div>
           </div>
-          <div className="bg-[#1e1409] border border-[#33200d] rounded-xl p-5">
-            <h3 className="text-sm font-semibold text-[#b45309] mb-4">Koszty według kategorii</h3>
-            {Object.keys(byCat).length===0?<p className="text-sm text-[#b45309]">Brak kosztów.</p>:<div className="space-y-3">{Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([cat,amt])=>{const pct=totalExpenses>0?Math.round(amt/totalExpenses*100):0;return(<div key={cat} className="flex items-center gap-3"><span className={`text-xs px-2 py-0.5 rounded-full w-32 text-center flex-shrink-0 ${catColors[cat]??catColors.inne}`}>{catLabel(cat)}</span><div className="flex-1 bg-[#271a0c] rounded-full h-2"><div className="bg-green-500 h-2 rounded-full" style={{width:`${pct}%`}}/></div><span className="text-sm font-semibold text-[#fef3c7] w-28 text-right">{pln(amt)}</span><span className="text-xs text-[#a16207] w-10 text-right">{pct}%</span></div>)})}</div>}
+          <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-5">
+            <h3 className="text-sm font-semibold text-[#0f766e] mb-4">Koszty według kategorii</h3>
+            {Object.keys(byCat).length===0?<p className="text-sm text-[#0f766e]">Brak kosztów.</p>:<div className="space-y-3">{Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([cat,amt])=>{const pct=totalExpenses>0?Math.round(amt/totalExpenses*100):0;return(<div key={cat} className="flex items-center gap-3"><span className={`text-xs px-2 py-0.5 rounded-full w-32 text-center flex-shrink-0 ${catColors[cat]??catColors.inne}`}>{catLabel(cat)}</span><div className="flex-1 bg-[#0c2220] rounded-full h-2"><div className="bg-green-500 h-2 rounded-full" style={{width:`${pct}%`}}/></div><span className="text-sm font-semibold text-[#ccfbf1] w-28 text-right">{pln(amt)}</span><span className="text-xs text-[#115e59] w-10 text-right">{pct}%</span></div>)})}</div>}
           </div>
         </div>
       ):(
@@ -268,27 +268,27 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
           {/* Bulk action bar */}
           {filtered.length > 0 && (
             <div className="flex items-center gap-3 mb-3 flex-wrap">
-              <label className="flex items-center gap-2 text-xs text-[#b45309] cursor-pointer select-none">
+              <label className="flex items-center gap-2 text-xs text-[#0f766e] cursor-pointer select-none">
                 <input type="checkbox" className="w-3.5 h-3.5 accent-green-500" checked={selectedIds.size === filtered.length && filtered.length > 0} onChange={toggleAll} />
                 {selectedIds.size > 0 ? `Zaznaczono ${selectedIds.size} z ${filtered.length}` : `Zaznacz wszystkie (${filtered.length})`}
               </label>
               {selectedIds.size > 0 && (
                 <div className="flex items-center gap-2 ml-2 flex-wrap">
-                  <span className="text-xs text-[#b45309]">→ zmień kategorię na:</span>
+                  <span className="text-xs text-[#0f766e]">→ zmień kategorię na:</span>
                   <select className="input text-xs py-1" value={bulkCat} onChange={e => setBulkCat(e.target.value as ExpenseCategory)}>
                     {categories.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                   </select>
-                  <button onClick={handleBulkCategory} disabled={isPending} className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-50 transition">
+                  <button onClick={handleBulkCategory} disabled={isPending} className="bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-50 transition">
                     {isPending ? '...' : `Zastosuj (${selectedIds.size})`}
                   </button>
-                  <button onClick={() => setSelectedIds(new Set())} className="text-xs text-[#a16207] hover:text-[#fde68a]">Odznacz</button>
+                  <button onClick={() => setSelectedIds(new Set())} className="text-xs text-[#115e59] hover:text-[#99f6e4]">Odznacz</button>
                 </div>
               )}
-              {bulkResult && <span className={`text-xs ml-2 ${bulkResult.startsWith('✓') ? 'text-amber-400' : 'text-red-400'}`}>{bulkResult}</span>}
+              {bulkResult && <span className={`text-xs ml-2 ${bulkResult.startsWith('✓') ? 'text-teal-400' : 'text-red-400'}`}>{bulkResult}</span>}
             </div>
           )}
 
-          {filtered.length===0?<div className="text-center py-16 text-[#a16207]"><p className="text-3xl mb-3">💸</p><p>Brak kosztów.</p></div>:
+          {filtered.length===0?<div className="text-center py-16 text-[#115e59]"><p className="text-3xl mb-3">💸</p><p>Brak kosztów.</p></div>:
           (!filterComm && isSuperAdmin) ? (
             // Grupowanie po wspólnotach gdy super_admin i "Wszystkie"
             <div className="space-y-6">
@@ -299,17 +299,17 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
                 return (
                   <div key={comm.id}>
                     <div className="flex items-center gap-3 mb-3 px-1">
-                      <div className="flex-1 h-px bg-[#2a1b09]" />
+                      <div className="flex-1 h-px bg-[#0a1f1d]" />
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-[#fde68a] bg-[#271a0c] border border-[#33200d] px-3 py-1 rounded-full">{comm.name}</span>
+                        <span className="text-xs font-bold text-[#99f6e4] bg-[#0c2220] border border-[#0f2d2a] px-3 py-1 rounded-full">{comm.name}</span>
                         <span className="text-xs text-red-400 font-semibold">{pln(commTotal)}</span>
-                        <span className="text-xs text-[#a16207]">({commFiltered.length} wpisów)</span>
+                        <span className="text-xs text-[#115e59]">({commFiltered.length} wpisów)</span>
                       </div>
-                      <div className="flex-1 h-px bg-[#2a1b09]" />
+                      <div className="flex-1 h-px bg-[#0a1f1d]" />
                     </div>
                     <div className="space-y-2">
                       {commFiltered.map(e => editId===e.id?(
-                        <div key={e.id} className="bg-[#1e1409] border border-amber-700 rounded-xl p-4 space-y-3">
+                        <div key={e.id} className="bg-[#081918] border border-teal-700 rounded-xl p-4 space-y-3">
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             <select className="input text-sm" value={editForm.category} onChange={x=>setEditForm(p=>({...p,category:x.target.value as ExpenseCategory}))}>{categories.map(c=><option key={c.value} value={c.value}>{c.label}</option>)}</select>
                             <input className="input text-sm sm:col-span-2" value={editForm.description} onChange={x=>setEditForm(p=>({...p,description:x.target.value}))}/>
@@ -318,17 +318,17 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
                             <input className="input text-sm" placeholder="Nr faktury" value={editForm.invoice_number??''} onChange={x=>setEditForm(p=>({...p,invoice_number:x.target.value}))}/>
                           </div>
                           {editError&&<p className="text-xs text-red-400">{editError}</p>}
-                          <div className="flex gap-2"><button onClick={handleUpdate} disabled={isPending} className="bg-amber-600 text-white text-xs font-semibold px-4 py-1.5 rounded-lg disabled:opacity-50">{isPending?'Zapisuję...':'Zapisz'}</button><button onClick={()=>setEditId(null)} className="text-xs text-[#a16207] hover:text-[#fde68a]">Anuluj</button></div>
+                          <div className="flex gap-2"><button onClick={handleUpdate} disabled={isPending} className="bg-teal-600 text-white text-xs font-semibold px-4 py-1.5 rounded-lg disabled:opacity-50">{isPending?'Zapisuję...':'Zapisz'}</button><button onClick={()=>setEditId(null)} className="text-xs text-[#115e59] hover:text-[#99f6e4]">Anuluj</button></div>
                         </div>
                       ):(
-                        <div key={e.id} onClick={() => toggleSelect(e.id)} className={`bg-[#1e1409] border rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap cursor-pointer transition ${selectedIds.has(e.id) ? 'border-green-600 bg-amber-950/10' : 'border-[#33200d] hover:border-[#33200d]'}`}>
+                        <div key={e.id} onClick={() => toggleSelect(e.id)} className={`bg-[#081918] border rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap cursor-pointer transition ${selectedIds.has(e.id) ? 'border-green-600 bg-teal-950/10' : 'border-[#0f2d2a] hover:border-[#0f2d2a]'}`}>
                           <input type="checkbox" className="w-4 h-4 accent-green-500 flex-shrink-0" checked={selectedIds.has(e.id)} onChange={() => toggleSelect(e.id)} onClick={ev => ev.stopPropagation()} />
                           <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${catColors[e.category]??catColors.inne}`}>{catLabel(e.category)}</span>
-                          <div className="flex-1 min-w-0"><p className="text-sm font-medium text-[#fef3c7] truncate">{e.description}</p><p className="text-xs text-[#a16207] mt-0.5">{new Date(e.expense_date).toLocaleDateString('pl-PL')}{e.invoice_number&&` · ${e.invoice_number}`}</p></div>
+                          <div className="flex-1 min-w-0"><p className="text-sm font-medium text-[#ccfbf1] truncate">{e.description}</p><p className="text-xs text-[#115e59] mt-0.5">{new Date(e.expense_date).toLocaleDateString('pl-PL')}{e.invoice_number&&` · ${e.invoice_number}`}</p></div>
                           <p className="text-sm font-bold text-red-400 flex-shrink-0">{pln(e.amount)}</p>
                           <div className="flex items-center gap-2 flex-shrink-0" onClick={ev => ev.stopPropagation()}>
-                            <button onClick={()=>{setEditId(e.id);setEditForm({category:e.category as ExpenseCategory,description:e.description,amount:String(e.amount),expense_date:e.expense_date,invoice_number:e.invoice_number??''});setEditError(null)}} className="text-xs text-amber-500 hover:underline">Edytuj</button>
-                            <button onClick={()=>handleDelete(e.id)} className="text-[#a16207] hover:text-red-400 transition text-sm">✕</button>
+                            <button onClick={()=>{setEditId(e.id);setEditForm({category:e.category as ExpenseCategory,description:e.description,amount:String(e.amount),expense_date:e.expense_date,invoice_number:e.invoice_number??''});setEditError(null)}} className="text-xs text-teal-500 hover:underline">Edytuj</button>
+                            <button onClick={()=>handleDelete(e.id)} className="text-[#115e59] hover:text-red-400 transition text-sm">✕</button>
                           </div>
                         </div>
                       ))}
@@ -340,7 +340,7 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
           ) : (
           <div className="space-y-2">
             {paginatedList.map(e=>editId===e.id?(
-              <div key={e.id} className="bg-[#1e1409] border border-amber-700 rounded-xl p-4 space-y-3">
+              <div key={e.id} className="bg-[#081918] border border-teal-700 rounded-xl p-4 space-y-3">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <select className="input text-sm" value={editForm.category} onChange={x=>setEditForm(p=>({...p,category:x.target.value as ExpenseCategory}))}>{categories.map(c=><option key={c.value} value={c.value}>{c.label}</option>)}</select>
                   <input className="input text-sm sm:col-span-2" value={editForm.description} onChange={x=>setEditForm(p=>({...p,description:x.target.value}))}/>
@@ -349,22 +349,22 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
                   <input className="input text-sm" placeholder="Nr faktury" value={editForm.invoice_number??''} onChange={x=>setEditForm(p=>({...p,invoice_number:x.target.value}))}/>
                 </div>
                 {editError&&<p className="text-xs text-red-400">{editError}</p>}
-                <div className="flex gap-2"><button onClick={handleUpdate} disabled={isPending} className="bg-amber-600 text-white text-xs font-semibold px-4 py-1.5 rounded-lg disabled:opacity-50">{isPending?'Zapisuję...':'Zapisz'}</button><button onClick={()=>setEditId(null)} className="text-xs text-[#a16207] hover:text-[#fde68a]">Anuluj</button></div>
+                <div className="flex gap-2"><button onClick={handleUpdate} disabled={isPending} className="bg-teal-600 text-white text-xs font-semibold px-4 py-1.5 rounded-lg disabled:opacity-50">{isPending?'Zapisuję...':'Zapisz'}</button><button onClick={()=>setEditId(null)} className="text-xs text-[#115e59] hover:text-[#99f6e4]">Anuluj</button></div>
               </div>
             ):(
-              <div key={e.id} onClick={() => toggleSelect(e.id)} className={`bg-[#1e1409] border rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap cursor-pointer transition ${selectedIds.has(e.id) ? 'border-green-600 bg-amber-950/10' : 'border-[#33200d] hover:border-[#33200d]'}`}>
+              <div key={e.id} onClick={() => toggleSelect(e.id)} className={`bg-[#081918] border rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap cursor-pointer transition ${selectedIds.has(e.id) ? 'border-green-600 bg-teal-950/10' : 'border-[#0f2d2a] hover:border-[#0f2d2a]'}`}>
                 <input type="checkbox" className="w-4 h-4 accent-green-500 flex-shrink-0" checked={selectedIds.has(e.id)} onChange={() => toggleSelect(e.id)} onClick={ev => ev.stopPropagation()} />
                 <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${catColors[e.category]??catColors.inne}`}>{catLabel(e.category)}</span>
-                <div className="flex-1 min-w-0"><p className="text-sm font-medium text-[#fef3c7] truncate">{e.description}</p><p className="text-xs text-[#a16207] mt-0.5">{new Date(e.expense_date).toLocaleDateString('pl-PL')}{isSuperAdmin&&` · ${commMap[e.community_id]??'—'}`}{e.invoice_number&&` · ${e.invoice_number}`}</p></div>
+                <div className="flex-1 min-w-0"><p className="text-sm font-medium text-[#ccfbf1] truncate">{e.description}</p><p className="text-xs text-[#115e59] mt-0.5">{new Date(e.expense_date).toLocaleDateString('pl-PL')}{isSuperAdmin&&` · ${commMap[e.community_id]??'—'}`}{e.invoice_number&&` · ${e.invoice_number}`}</p></div>
                 <p className="text-sm font-bold text-red-400 flex-shrink-0">{pln(e.amount)}</p>
                 <div className="flex items-center gap-2 flex-shrink-0" onClick={ev => ev.stopPropagation()}>
-                  <button onClick={()=>{setEditId(e.id);setEditForm({category:e.category as ExpenseCategory,description:e.description,amount:String(e.amount),expense_date:e.expense_date,invoice_number:e.invoice_number??''});setEditError(null)}} className="text-xs text-amber-500 hover:underline">Edytuj</button>
-                  <button onClick={()=>handleDelete(e.id)} disabled={isPending} className="text-xs text-[#a16207] hover:text-red-400 transition">✕</button>
+                  <button onClick={()=>{setEditId(e.id);setEditForm({category:e.category as ExpenseCategory,description:e.description,amount:String(e.amount),expense_date:e.expense_date,invoice_number:e.invoice_number??''});setEditError(null)}} className="text-xs text-teal-500 hover:underline">Edytuj</button>
+                  <button onClick={()=>handleDelete(e.id)} disabled={isPending} className="text-xs text-[#115e59] hover:text-red-400 transition">✕</button>
                 </div>
               </div>
             ))}
             {listTotalPages > 1 && <Pagination page={listPage} totalPages={listTotalPages} onPageChange={p => { setListPage(p); setSelectedIds(new Set()) }} />}
-            <div className="mt-4 pt-4 border-t border-[#33200d] flex justify-between items-center"><p className="text-sm text-[#a16207]">{filtered.length} pozycji</p><p className="text-base font-bold text-red-400">Razem: {pln(totalExpenses)}</p></div>
+            <div className="mt-4 pt-4 border-t border-[#0f2d2a] flex justify-between items-center"><p className="text-sm text-[#115e59]">{filtered.length} pozycji</p><p className="text-base font-bold text-red-400">Razem: {pln(totalExpenses)}</p></div>
           </div>
           )}
         </div>

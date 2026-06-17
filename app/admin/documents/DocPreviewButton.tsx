@@ -16,7 +16,7 @@ export default function DocPreviewButton({ url, name }: Props) {
 
   if (!canPreview) {
     return (
-      <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm text-amber-400 hover:underline">
+      <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm text-teal-400 hover:underline">
         Pobierz
       </a>
     )
@@ -24,7 +24,7 @@ export default function DocPreviewButton({ url, name }: Props) {
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className="text-sm text-amber-400 hover:underline">
+      <button onClick={() => setOpen(true)} className="text-sm text-teal-400 hover:underline">
         Podgląd
       </button>
 
@@ -34,25 +34,25 @@ export default function DocPreviewButton({ url, name }: Props) {
           onClick={() => setOpen(false)}
         >
           <div
-            className="bg-[#1e1409] border border-[#33200d] rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col max-w-4xl w-full max-h-[92dvh] shadow-2xl"
+            className="bg-[#081918] border border-[#0f2d2a] rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col max-w-4xl w-full max-h-[92dvh] shadow-2xl"
             onClick={e => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[#33200d] flex-shrink-0">
-              <p className="text-sm font-medium text-[#fef9ee] truncate max-w-xs">{name}</p>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[#0f2d2a] flex-shrink-0">
+              <p className="text-sm font-medium text-[#f0fdfa] truncate max-w-xs">{name}</p>
               <div className="flex items-center gap-3">
                 <a
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-amber-400 hover:underline"
+                  className="text-xs text-teal-400 hover:underline"
                   download
                 >
                   ⬇ Pobierz
                 </a>
                 <button
                   onClick={() => setOpen(false)}
-                  className="text-[#b45309] hover:text-[#fef9ee] text-xl leading-none px-1"
+                  className="text-[#0f766e] hover:text-[#f0fdfa] text-xl leading-none px-1"
                 >
                   ✕
                 </button>
@@ -60,7 +60,7 @@ export default function DocPreviewButton({ url, name }: Props) {
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-auto bg-[#18110a]">
+            <div className="flex-1 overflow-auto bg-[#051210]">
               {isImage(name) ? (
                 <img
                   src={url}

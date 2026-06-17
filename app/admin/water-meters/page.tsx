@@ -38,7 +38,7 @@ export default async function WaterMetersPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-[#fef9ee]">Odczyty liczników wody</h2>
+      <h2 className="text-2xl font-bold text-[#f0fdfa]">Odczyty liczników wody</h2>
       <WaterMetersClient readings={readings} isSuperAdmin={isSuperAdmin} />
     </div>
   )

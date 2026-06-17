@@ -30,7 +30,7 @@ export default function AddCommunityPage() {
 
   return (
     <div className="max-w-xl space-y-6">
-      <h2 className="text-2xl font-bold text-[#fef9ee]">Dodaj wspólnotę</h2>
+      <h2 className="text-2xl font-bold text-[#f0fdfa]">Dodaj wspólnotę</h2>
 
       {error && (
         <div className="bg-red-950/30 border border-red-900 text-red-400 text-sm rounded-lg px-4 py-3">
@@ -38,9 +38,9 @@ export default function AddCommunityPage() {
         </div>
       )}
 
-      <div className="bg-[#1e1409] border border-[#33200d] rounded-xl p-6 space-y-4">
+      <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-6 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-[#fde68a] mb-1">Nazwa wspólnoty</label>
+          <label className="block text-sm font-medium text-[#99f6e4] mb-1">Nazwa wspólnoty</label>
           <input
             className="input"
             placeholder="np. Wspólnota Różana 12"
@@ -49,7 +49,7 @@ export default function AddCommunityPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-[#fde68a] mb-1">Adres</label>
+          <label className="block text-sm font-medium text-[#99f6e4] mb-1">Adres</label>
           <input
             className="input"
             placeholder="np. ul. Różana 12, Warszawa"
@@ -63,13 +63,13 @@ export default function AddCommunityPage() {
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
+          className="bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
         >
           {loading ? 'Zapisywanie...' : 'Zapisz wspólnotę'}
         </button>
         <button
           onClick={() => router.back()}
-          className="text-sm text-[#b45309] hover:text-[#fef9ee] px-5 py-2.5 rounded-lg border border-[#33200d] hover:bg-[#18110a] transition"
+          className="text-sm text-[#0f766e] hover:text-[#f0fdfa] px-5 py-2.5 rounded-lg border border-[#0f2d2a] hover:bg-[#051210] transition"
         >
           Anuluj
         </button>

@@ -35,7 +35,7 @@ export default function TicketEditForm({ ticketId, initialTitle, initialDescript
     return (
       <button
         onClick={() => setOpen(true)}
-        className="text-xs text-[#a16207] hover:text-[#fde68a] border border-[#33200d] px-3 py-1.5 rounded-lg transition"
+        className="text-xs text-[#115e59] hover:text-[#99f6e4] border border-[#0f2d2a] px-3 py-1.5 rounded-lg transition"
       >
         ✏️ Edytuj zgłoszenie
       </button>
@@ -43,8 +43,8 @@ export default function TicketEditForm({ ticketId, initialTitle, initialDescript
   }
 
   return (
-    <div className="space-y-3 pt-2 border-t border-[#33200d]">
-      <h4 className="text-sm font-medium text-[#fde68a]">Edytuj zgłoszenie</h4>
+    <div className="space-y-3 pt-2 border-t border-[#0f2d2a]">
+      <h4 className="text-sm font-medium text-[#99f6e4]">Edytuj zgłoszenie</h4>
       {error && <p className="text-sm text-red-400 bg-red-950/30 border border-red-900 rounded-lg px-3 py-2">{error}</p>}
       <input
         className="input w-full"
@@ -62,11 +62,11 @@ export default function TicketEditForm({ ticketId, initialTitle, initialDescript
         <button
           onClick={handleSave}
           disabled={isPending}
-          className="bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50 transition"
+          className="bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50 transition"
         >
           {isPending ? 'Zapisywanie...' : 'Zapisz'}
         </button>
-        <button onClick={() => { setOpen(false); setTitle(initialTitle); setDescription(initialDescription) }} className="text-sm text-[#a16207] hover:text-[#fde68a]">
+        <button onClick={() => { setOpen(false); setTitle(initialTitle); setDescription(initialDescription) }} className="text-sm text-[#115e59] hover:text-[#99f6e4]">
           Anuluj
         </button>
       </div>

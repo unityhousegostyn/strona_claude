@@ -55,27 +55,27 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-[#fef9ee]">Audit Log</h2>
-        <span className="text-sm text-[#a16207]">{count ?? 0} wpisów</span>
+        <h2 className="text-2xl font-bold text-[#f0fdfa]">Audit Log</h2>
+        <span className="text-sm text-[#115e59]">{count ?? 0} wpisów</span>
       </div>
 
-      <div className="bg-[#1e1409] border border-[#33200d] rounded-xl overflow-hidden">
+      <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl overflow-hidden">
         {!logs || logs.length === 0 ? (
-          <p className="text-sm text-[#b45309] text-center py-8">Brak wpisów.</p>
+          <p className="text-sm text-[#0f766e] text-center py-8">Brak wpisów.</p>
         ) : (
           <ul className="divide-y divide-gray-800">
             {logs.map((log: any) => (
-              <li key={log.id} className="flex items-center gap-4 px-4 py-3 hover:bg-[#18110a] transition">
+              <li key={log.id} className="flex items-center gap-4 px-4 py-3 hover:bg-[#051210] transition">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-[#fef9ee]">{ACTION_LABELS[log.action] ?? log.action}</p>
-                  <p className="text-xs text-[#b45309] mt-0.5">
+                  <p className="text-sm text-[#f0fdfa]">{ACTION_LABELS[log.action] ?? log.action}</p>
+                  <p className="text-xs text-[#0f766e] mt-0.5">
                     {log.actor?.full_name ?? log.actor?.email ?? 'system'}
                     {log.meta?.title ? ` — "${log.meta.title}"` : ''}
                     {log.meta?.name ? ` — "${log.meta.name}"` : ''}
                     {log.meta?.to ? ` → ${log.meta.to === 'open' ? 'Otwarte' : 'Zamknięte'}` : ''}
                   </p>
                 </div>
-                <span className="text-xs text-[#a16207] flex-shrink-0">
+                <span className="text-xs text-[#115e59] flex-shrink-0">
                   {new Date(log.created_at).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })}
                 </span>
               </li>
@@ -87,7 +87,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-1">
           {page > 1 && (
-            <Link href={`/admin/audit?page=${page - 1}`} className="px-3 py-1.5 rounded-lg text-sm text-[#b45309] hover:text-[#fef9ee] hover:bg-[#271a0c] transition">←</Link>
+            <Link href={`/admin/audit?page=${page - 1}`} className="px-3 py-1.5 rounded-lg text-sm text-[#0f766e] hover:text-[#f0fdfa] hover:bg-[#0c2220] transition">←</Link>
           )}
           {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
             const p = totalPages <= 7 ? i + 1 : page <= 4 ? i + 1 : page >= totalPages - 3 ? totalPages - 6 + i : page - 3 + i
@@ -96,7 +96,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
                 key={p}
                 href={`/admin/audit?page=${p}`}
                 className={`min-w-[36px] px-3 py-1.5 rounded-lg text-sm font-medium transition text-center ${
-                  p === page ? 'bg-amber-600 text-white' : 'text-[#b45309] hover:text-[#fef9ee] hover:bg-[#271a0c]'
+                  p === page ? 'bg-teal-600 text-white' : 'text-[#0f766e] hover:text-[#f0fdfa] hover:bg-[#0c2220]'
                 }`}
               >
                 {p}
@@ -104,7 +104,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
             )
           })}
           {page < totalPages && (
-            <Link href={`/admin/audit?page=${page + 1}`} className="px-3 py-1.5 rounded-lg text-sm text-[#b45309] hover:text-[#fef9ee] hover:bg-[#271a0c] transition">→</Link>
+            <Link href={`/admin/audit?page=${page + 1}`} className="px-3 py-1.5 rounded-lg text-sm text-[#0f766e] hover:text-[#f0fdfa] hover:bg-[#0c2220] transition">→</Link>
           )}
         </div>
       )}

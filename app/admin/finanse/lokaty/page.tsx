@@ -29,8 +29,8 @@ export default async function LokatyPage() {
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h2 className="text-2xl font-bold text-[#fef9ee]">Lokaty i konta oszczędnościowe</h2>
-        <p className="text-sm text-[#a16207] mt-1">Zarządzaj środkami ulokowanymi w bankach — lokaty terminowe i konta oszczędnościowe</p>
+        <h2 className="text-2xl font-bold text-[#f0fdfa]">Lokaty i konta oszczędnościowe</h2>
+        <p className="text-sm text-[#115e59] mt-1">Zarządzaj środkami ulokowanymi w bankach — lokaty terminowe i konta oszczędnościowe</p>
       </div>
       <LokatyClient
         communities={communities}

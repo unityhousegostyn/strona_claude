@@ -232,7 +232,7 @@ export default function InviteModal({ communities, isSuperAdmin, adminCommunityI
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 bg-amber-700 hover:bg-amber-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
+        className="flex items-center gap-2 bg-teal-700 hover:bg-teal-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
@@ -244,22 +244,22 @@ export default function InviteModal({ communities, isSuperAdmin, adminCommunityI
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={close}/>
 
-          <div className="relative w-full max-w-lg bg-[#1e1409] border border-[#33200d] rounded-t-2xl sm:rounded-2xl shadow-2xl shadow-black/60 overflow-hidden flex flex-col max-h-[92dvh]">
+          <div className="relative w-full max-w-lg bg-[#081918] border border-[#0f2d2a] rounded-t-2xl sm:rounded-2xl shadow-2xl shadow-black/60 overflow-hidden flex flex-col max-h-[92dvh]">
 
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#33200d] bg-[#18110a] flex-shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#0f2d2a] bg-[#051210] flex-shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-amber-700/30 border border-amber-700/50 rounded-lg flex items-center justify-center">
-                  <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-8 h-8 bg-teal-700/30 border border-teal-700/50 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold text-[#fef9ee]">Zaproś do wspólnoty</h2>
-                  <p className="text-xs text-[#a16207]">Wyślij link rejestracyjny</p>
+                  <h2 className="text-sm font-bold text-[#f0fdfa]">Zaproś do wspólnoty</h2>
+                  <p className="text-xs text-[#115e59]">Wyślij link rejestracyjny</p>
                 </div>
               </div>
-              <button onClick={close} className="text-[#a16207] hover:text-[#fef9ee] transition p-1">
+              <button onClick={close} className="text-[#115e59] hover:text-[#f0fdfa] transition p-1">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
                 </svg>
@@ -267,10 +267,10 @@ export default function InviteModal({ communities, isSuperAdmin, adminCommunityI
             </div>
 
             {/* Tabs */}
-            <div className="flex border-b border-[#33200d] bg-[#18110a] flex-shrink-0">
+            <div className="flex border-b border-[#0f2d2a] bg-[#051210] flex-shrink-0">
               {(['single','bulk'] as Tab[]).map(t => (
                 <button key={t} onClick={() => setTab(t)}
-                  className={`flex-1 text-xs font-semibold py-3 transition ${tab === t ? 'text-amber-400 border-b-2 border-amber-500' : 'text-[#a16207] hover:text-[#fde68a]'}`}>
+                  className={`flex-1 text-xs font-semibold py-3 transition ${tab === t ? 'text-teal-400 border-b-2 border-teal-500' : 'text-[#115e59] hover:text-[#99f6e4]'}`}>
                   {t === 'single' ? '✉️  Jedna osoba' : `📋  Wiele osób${contacts.length > 0 ? ` (${contacts.length})` : ''}`}
                 </button>
               ))}
@@ -283,16 +283,16 @@ export default function InviteModal({ communities, isSuperAdmin, adminCommunityI
                 <div className="px-6 py-5">
                   {singleResult?.success ? (
                     <div className="py-8 text-center space-y-4">
-                      <div className="w-14 h-14 bg-amber-950/40 border border-amber-700/50 rounded-full flex items-center justify-center mx-auto">
-                        <svg className="w-7 h-7 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-14 h-14 bg-teal-950/40 border border-teal-700/50 rounded-full flex items-center justify-center mx-auto">
+                        <svg className="w-7 h-7 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
                         </svg>
                       </div>
-                      <p className="text-base font-bold text-[#fef9ee]">Wysłano!</p>
-                      <p className="text-sm text-[#b45309]">Zaproszenie ważne przez 7 dni.</p>
+                      <p className="text-base font-bold text-[#f0fdfa]">Wysłano!</p>
+                      <p className="text-sm text-[#0f766e]">Zaproszenie ważne przez 7 dni.</p>
                       <div className="flex gap-3 justify-center">
-                        <button onClick={() => setSingleResult(null)} className="text-sm text-amber-400 hover:text-amber-300 transition">Zaproś kolejną</button>
-                        <button onClick={close} className="text-sm bg-[#271a0c] border border-[#33200d] text-[#fde68a] px-4 py-2 rounded-lg hover:border-[#3d2008] transition">Zamknij</button>
+                        <button onClick={() => setSingleResult(null)} className="text-sm text-teal-400 hover:text-teal-300 transition">Zaproś kolejną</button>
+                        <button onClick={close} className="text-sm bg-[#0c2220] border border-[#0f2d2a] text-[#99f6e4] px-4 py-2 rounded-lg hover:border-[#133835] transition">Zamknij</button>
                       </div>
                     </div>
                   ) : (
@@ -303,7 +303,7 @@ export default function InviteModal({ communities, isSuperAdmin, adminCommunityI
                         <Field label="Numer lokalu" name="apartment_number" placeholder="np. 12A" />
                         {isSuperAdmin && (
                           <div>
-                            <label className="block text-xs font-semibold text-[#fde68a] mb-1.5 uppercase tracking-wide">Wspólnota *</label>
+                            <label className="block text-xs font-semibold text-[#99f6e4] mb-1.5 uppercase tracking-wide">Wspólnota *</label>
                             <select name="community_id" required className="input w-full">
                               <option value="">Wybierz…</option>
                               {communities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -314,7 +314,7 @@ export default function InviteModal({ communities, isSuperAdmin, adminCommunityI
                       {singleResult?.error && <ErrorBox msg={singleResult.error}/>}
                       <FlowInfo invited />
                       <div className="flex gap-3 pt-1">
-                        <button type="button" onClick={close} className="flex-1 text-sm border border-[#33200d] text-[#b45309] px-4 py-2.5 rounded-lg hover:border-[#3d2008] transition">Anuluj</button>
+                        <button type="button" onClick={close} className="flex-1 text-sm border border-[#0f2d2a] text-[#0f766e] px-4 py-2.5 rounded-lg hover:border-[#133835] transition">Anuluj</button>
                         <SubmitBtn loading={singleLoading} label="Wyślij zaproszenie"/>
                       </div>
                     </form>
@@ -328,29 +328,29 @@ export default function InviteModal({ communities, isSuperAdmin, adminCommunityI
 
                   {/* Wynik bulk */}
                   {bulkResult && (
-                    <div className={`rounded-xl p-4 ${bulkResult.sent > 0 ? 'bg-amber-950/30 border border-amber-800/40' : 'bg-[#18110a] border border-[#33200d]'}`}>
-                      <p className="text-sm font-bold text-[#fef9ee] mb-1">
+                    <div className={`rounded-xl p-4 ${bulkResult.sent > 0 ? 'bg-teal-950/30 border border-teal-800/40' : 'bg-[#051210] border border-[#0f2d2a]'}`}>
+                      <p className="text-sm font-bold text-[#f0fdfa] mb-1">
                         {bulkResult.sent > 0 ? `✅ Wysłano ${bulkResult.sent} zaproszeń` : 'Nie wysłano żadnych zaproszeń'}
                       </p>
                       {bulkResult.skipped.length > 0 && (
                         <div className="mt-2 space-y-1 max-h-32 overflow-y-auto">
-                          <p className="text-xs text-[#b45309] font-semibold">Pominięto ({bulkResult.skipped.length}):</p>
+                          <p className="text-xs text-[#0f766e] font-semibold">Pominięto ({bulkResult.skipped.length}):</p>
                           {bulkResult.skipped.map((s, i) => (
-                            <p key={i} className="text-xs text-[#a16207]"><span className="text-[#fde68a]">{s.email}</span> — {s.reason}</p>
+                            <p key={i} className="text-xs text-[#115e59]"><span className="text-[#99f6e4]">{s.email}</span> — {s.reason}</p>
                           ))}
                         </div>
                       )}
-                      <button onClick={() => setBulkResult(null)} className="text-xs text-amber-500 hover:underline mt-2 block">Zaproś więcej</button>
+                      <button onClick={() => setBulkResult(null)} className="text-xs text-teal-500 hover:underline mt-2 block">Zaproś więcej</button>
                     </div>
                   )}
 
                   {!bulkResult && (
                     <>
                       {/* Import sub-tabs */}
-                      <div className="flex gap-1 bg-[#18110a] border border-[#271a0c] rounded-lg p-1">
+                      <div className="flex gap-1 bg-[#051210] border border-[#0c2220] rounded-lg p-1">
                         {(['paste','file'] as ImportTab[]).map(it => (
                           <button key={it} onClick={() => setImportTab(it)}
-                            className={`flex-1 text-xs font-semibold py-1.5 rounded-md transition ${importTab === it ? 'bg-[#271a0c] text-[#fef9ee]' : 'text-[#a16207] hover:text-[#fde68a]'}`}>
+                            className={`flex-1 text-xs font-semibold py-1.5 rounded-md transition ${importTab === it ? 'bg-[#0c2220] text-[#f0fdfa]' : 'text-[#115e59] hover:text-[#99f6e4]'}`}>
                             {it === 'paste' ? '📝 Wklej adresy' : '📂 Importuj plik'}
                           </button>
                         ))}
@@ -360,7 +360,7 @@ export default function InviteModal({ communities, isSuperAdmin, adminCommunityI
                       {importTab === 'paste' && (
                         <div className="space-y-3">
                           <div>
-                            <label className="block text-xs font-semibold text-[#fde68a] mb-1.5 uppercase tracking-wide">Adresy email</label>
+                            <label className="block text-xs font-semibold text-[#99f6e4] mb-1.5 uppercase tracking-wide">Adresy email</label>
                             <textarea
                               value={pasteText}
                               onChange={e => setPasteText(e.target.value)}
@@ -368,12 +368,12 @@ export default function InviteModal({ communities, isSuperAdmin, adminCommunityI
                               rows={4}
                               className="input w-full text-xs resize-none"
                             />
-                            <p className="text-xs text-[#3d2008] mt-1">Jeden per linię lub rozdzielone przecinkiem. Obsługuje format: <span className="text-[#a16207]">Imię Nazwisko &lt;email&gt;</span></p>
+                            <p className="text-xs text-[#133835] mt-1">Jeden per linię lub rozdzielone przecinkiem. Obsługuje format: <span className="text-[#115e59]">Imię Nazwisko &lt;email&gt;</span></p>
                           </div>
                           <button
                             onClick={handleParsePaste}
                             disabled={!pasteText.trim()}
-                            className="w-full text-sm bg-[#271a0c] border border-[#33200d] text-[#fde68a] px-4 py-2 rounded-lg hover:border-amber-700/50 hover:text-amber-400 transition disabled:opacity-40"
+                            className="w-full text-sm bg-[#0c2220] border border-[#0f2d2a] text-[#99f6e4] px-4 py-2 rounded-lg hover:border-teal-700/50 hover:text-teal-400 transition disabled:opacity-40"
                           >
                             Dodaj do listy →
                           </button>
@@ -388,11 +388,11 @@ export default function InviteModal({ communities, isSuperAdmin, adminCommunityI
                             onDragOver={e => { e.preventDefault(); setDragOver(true) }}
                             onDragLeave={() => setDragOver(false)}
                             onClick={() => fileRef.current?.click()}
-                            className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition ${dragOver ? 'border-amber-600 bg-amber-950/20' : 'border-[#33200d] hover:border-amber-700/50 hover:bg-amber-950/10'}`}
+                            className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition ${dragOver ? 'border-teal-600 bg-teal-950/20' : 'border-[#0f2d2a] hover:border-teal-700/50 hover:bg-teal-950/10'}`}
                           >
                             <div className="text-3xl mb-2">📂</div>
-                            <p className="text-sm font-semibold text-[#fde68a]">Przeciągnij plik lub kliknij</p>
-                            <p className="text-xs text-[#a16207] mt-1">CSV (Gmail, Outlook, Apple) · VCF (kontakty)</p>
+                            <p className="text-sm font-semibold text-[#99f6e4]">Przeciągnij plik lub kliknij</p>
+                            <p className="text-xs text-[#115e59] mt-1">CSV (Gmail, Outlook, Apple) · VCF (kontakty)</p>
                             <input
                               ref={fileRef}
                               type="file"
@@ -402,11 +402,11 @@ export default function InviteModal({ communities, isSuperAdmin, adminCommunityI
                             />
                           </div>
                           {/* Instrukcja eksportu */}
-                          <div className="bg-[#18110a] border border-[#271a0c] rounded-xl px-4 py-3 text-xs text-[#a16207] space-y-1">
-                            <p className="font-semibold text-[#b45309] mb-1.5">Jak wyeksportować kontakty:</p>
-                            <p><span className="text-[#fde68a]">Gmail:</span> contacts.google.com → Eksportuj → Google CSV</p>
-                            <p><span className="text-[#fde68a]">Outlook:</span> Kontakty → Eksportuj → CSV</p>
-                            <p><span className="text-[#fde68a]">Apple:</span> Kontakty → Plik → Eksportuj jako vCard</p>
+                          <div className="bg-[#051210] border border-[#0c2220] rounded-xl px-4 py-3 text-xs text-[#115e59] space-y-1">
+                            <p className="font-semibold text-[#0f766e] mb-1.5">Jak wyeksportować kontakty:</p>
+                            <p><span className="text-[#99f6e4]">Gmail:</span> contacts.google.com → Eksportuj → Google CSV</p>
+                            <p><span className="text-[#99f6e4]">Outlook:</span> Kontakty → Eksportuj → CSV</p>
+                            <p><span className="text-[#99f6e4]">Apple:</span> Kontakty → Plik → Eksportuj jako vCard</p>
                           </div>
                         </div>
                       )}
@@ -415,20 +415,20 @@ export default function InviteModal({ communities, isSuperAdmin, adminCommunityI
                       {contacts.length > 0 && (
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <p className="text-xs font-semibold text-[#fde68a] uppercase tracking-wide">Do wysłania ({contacts.length})</p>
-                            <button onClick={() => setContacts([])} className="text-xs text-[#a16207] hover:text-red-400 transition">Wyczyść</button>
+                            <p className="text-xs font-semibold text-[#99f6e4] uppercase tracking-wide">Do wysłania ({contacts.length})</p>
+                            <button onClick={() => setContacts([])} className="text-xs text-[#115e59] hover:text-red-400 transition">Wyczyść</button>
                           </div>
-                          <div className="max-h-44 overflow-y-auto space-y-1 border border-[#271a0c] rounded-xl p-2 bg-[#18110a]">
+                          <div className="max-h-44 overflow-y-auto space-y-1 border border-[#0c2220] rounded-xl p-2 bg-[#051210]">
                             {contacts.map((c, i) => (
-                              <div key={i} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-[#271a0c] group">
-                                <div className="w-6 h-6 rounded-full bg-amber-900/30 border border-amber-800/30 flex items-center justify-center flex-shrink-0">
-                                  <span className="text-xs font-bold text-amber-600">{(c.full_name?.[0] ?? c.email[0]).toUpperCase()}</span>
+                              <div key={i} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-[#0c2220] group">
+                                <div className="w-6 h-6 rounded-full bg-teal-900/30 border border-teal-800/30 flex items-center justify-center flex-shrink-0">
+                                  <span className="text-xs font-bold text-teal-600">{(c.full_name?.[0] ?? c.email[0]).toUpperCase()}</span>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  {c.full_name && <p className="text-xs font-medium text-[#fde68a] truncate">{c.full_name}</p>}
-                                  <p className="text-xs text-[#a16207] truncate">{c.email}</p>
+                                  {c.full_name && <p className="text-xs font-medium text-[#99f6e4] truncate">{c.full_name}</p>}
+                                  <p className="text-xs text-[#115e59] truncate">{c.email}</p>
                                 </div>
-                                <button onClick={() => removeContact(c.email)} className="text-[#33200d] hover:text-red-400 transition opacity-0 group-hover:opacity-100 flex-shrink-0">
+                                <button onClick={() => removeContact(c.email)} className="text-[#0f2d2a] hover:text-red-400 transition opacity-0 group-hover:opacity-100 flex-shrink-0">
                                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
                                   </svg>
@@ -442,7 +442,7 @@ export default function InviteModal({ communities, isSuperAdmin, adminCommunityI
                       {/* Wspólnota (tylko super_admin) */}
                       {isSuperAdmin && (
                         <div>
-                          <label className="block text-xs font-semibold text-[#fde68a] mb-1.5 uppercase tracking-wide">Wspólnota *</label>
+                          <label className="block text-xs font-semibold text-[#99f6e4] mb-1.5 uppercase tracking-wide">Wspólnota *</label>
                           <select value={bulkCommunityId} onChange={e => setBulkCommunityId(e.target.value)} className="input w-full">
                             <option value="">Wybierz…</option>
                             {communities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -454,11 +454,11 @@ export default function InviteModal({ communities, isSuperAdmin, adminCommunityI
 
                       {/* Wyślij */}
                       <div className="flex gap-3 pt-1">
-                        <button type="button" onClick={close} className="flex-1 text-sm border border-[#33200d] text-[#b45309] px-4 py-2.5 rounded-lg hover:border-[#3d2008] transition">Anuluj</button>
+                        <button type="button" onClick={close} className="flex-1 text-sm border border-[#0f2d2a] text-[#0f766e] px-4 py-2.5 rounded-lg hover:border-[#133835] transition">Anuluj</button>
                         <button
                           onClick={handleBulkSend}
                           disabled={contacts.length === 0 || bulkLoading || (isSuperAdmin && !bulkCommunityId)}
-                          className="flex-1 flex items-center justify-center gap-2 text-sm bg-amber-700 hover:bg-amber-600 text-white font-semibold px-4 py-2.5 rounded-lg transition disabled:opacity-40"
+                          className="flex-1 flex items-center justify-center gap-2 text-sm bg-teal-700 hover:bg-teal-600 text-white font-semibold px-4 py-2.5 rounded-lg transition disabled:opacity-40"
                         >
                           {bulkLoading
                             ? <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Wysyłam…</>
@@ -484,7 +484,7 @@ export default function InviteModal({ communities, isSuperAdmin, adminCommunityI
 function Field({ label, name, type = 'text', placeholder, required }: { label: string; name: string; type?: string; placeholder?: string; required?: boolean }) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-[#fde68a] mb-1.5 uppercase tracking-wide">{label}</label>
+      <label className="block text-xs font-semibold text-[#99f6e4] mb-1.5 uppercase tracking-wide">{label}</label>
       <input name={name} type={type} placeholder={placeholder} required={required} className="input w-full"/>
     </div>
   )
@@ -496,8 +496,8 @@ function ErrorBox({ msg }: { msg: string }) {
 
 function FlowInfo({ invited }: { invited?: boolean }) {
   return (
-    <div className="bg-[#18110a] border border-[#271a0c] rounded-xl px-4 py-3 text-xs text-[#a16207] space-y-0.5">
-      <p className="font-semibold text-[#b45309] mb-1">Jak to działa:</p>
+    <div className="bg-[#051210] border border-[#0c2220] rounded-xl px-4 py-3 text-xs text-[#115e59] space-y-0.5">
+      <p className="font-semibold text-[#0f766e] mb-1">Jak to działa:</p>
       <p>1. Mieszkaniec dostaje email z linkiem (ważny 7 dni)</p>
       <p>2. Klika → formularz rejestracji z pre-wypełnionym emailem</p>
       <p>3. Po rejestracji konto od razu aktywne ✓</p>
@@ -508,7 +508,7 @@ function FlowInfo({ invited }: { invited?: boolean }) {
 function SubmitBtn({ loading, label }: { loading: boolean; label: string }) {
   return (
     <button type="submit" disabled={loading}
-      className="flex-1 flex items-center justify-center gap-2 text-sm bg-amber-700 hover:bg-amber-600 text-white font-semibold px-4 py-2.5 rounded-lg transition disabled:opacity-50">
+      className="flex-1 flex items-center justify-center gap-2 text-sm bg-teal-700 hover:bg-teal-600 text-white font-semibold px-4 py-2.5 rounded-lg transition disabled:opacity-50">
       {loading
         ? <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Wysyłam…</>
         : <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>{label}</>

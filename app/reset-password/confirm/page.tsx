@@ -42,15 +42,15 @@ export default function ConfirmResetPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#18110a]">
-      <div className="bg-[#1e1409] shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm space-y-5">
+    <main className="min-h-screen flex items-center justify-center bg-[#051210]">
+      <div className="bg-[#081918] shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm space-y-5">
         <div>
-          <h1 className="text-2xl font-bold text-[#fef3c7]">Nowe hasło</h1>
-          <p className="text-sm text-[#a16207] mt-1">Ustaw nowe hasło do swojego konta.</p>
+          <h1 className="text-2xl font-bold text-[#ccfbf1]">Nowe hasło</h1>
+          <p className="text-sm text-[#115e59] mt-1">Ustaw nowe hasło do swojego konta.</p>
         </div>
 
         {!ready ? (
-          <p className="text-sm text-[#b45309]">Weryfikowanie linku…</p>
+          <p className="text-sm text-[#0f766e]">Weryfikowanie linku…</p>
         ) : (
           <>
             {error && (
@@ -60,7 +60,7 @@ export default function ConfirmResetPage() {
             )}
             <div className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-[#fde68a] mb-1">Nowe hasło</label>
+                <label className="block text-sm font-medium text-[#99f6e4] mb-1">Nowe hasło</label>
                 <input
                   type="password"
                   value={password}
@@ -70,7 +70,7 @@ export default function ConfirmResetPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#fde68a] mb-1">Powtórz hasło</label>
+                <label className="block text-sm font-medium text-[#99f6e4] mb-1">Powtórz hasło</label>
                 <input
                   type="password"
                   value={confirm}
@@ -84,7 +84,7 @@ export default function ConfirmResetPage() {
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg py-2.5 text-sm transition disabled:opacity-50"
+              className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg py-2.5 text-sm transition disabled:opacity-50"
             >
               {loading ? 'Zapisywanie...' : 'Zapisz nowe hasło'}
         </button>

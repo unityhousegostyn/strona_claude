@@ -120,7 +120,7 @@ export default function BoardClient({ initialPosts, currentUserId, currentRole, 
       {/* Filtr wspólnoty dla super_admin */}
       {isSuperAdmin && communities.length > 0 && (
         <div className="flex items-center gap-3">
-          <label className="text-sm font-medium text-[#b45309] whitespace-nowrap">Wspólnota:</label>
+          <label className="text-sm font-medium text-[#0f766e] whitespace-nowrap">Wspólnota:</label>
           <select
             value={filterCommunity}
             onChange={(e) => setFilterCommunity(e.target.value)}
@@ -135,7 +135,7 @@ export default function BoardClient({ initialPosts, currentUserId, currentRole, 
       )}
 
       {/* Formularz nowego posta */}
-      <div className="bg-[#1e1409] border border-[#33200d] rounded-xl p-4 space-y-3">
+      <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-4 space-y-3">
         <textarea
           className="input w-full min-h-[80px] resize-none"
           placeholder="Napisz wiadomość do sąsiadów..."
@@ -147,11 +147,11 @@ export default function BoardClient({ initialPosts, currentUserId, currentRole, 
           <p className="text-sm text-red-400">{error}</p>
         )}
         <div className="flex items-center justify-between">
-          <span className="text-xs text-[#b45309]">{newContent.length}/1000</span>
+          <span className="text-xs text-[#0f766e]">{newContent.length}/1000</span>
           <button
             onClick={handlePost}
             disabled={isPending || !newContent.trim()}
-            className="bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50 transition"
+            className="bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50 transition"
           >
             {isPending ? 'Wysyłanie...' : 'Opublikuj'}
           </button>
@@ -161,7 +161,7 @@ export default function BoardClient({ initialPosts, currentUserId, currentRole, 
       {/* Przypięte */}
       {pinned.length > 0 && (
         <div className="space-y-3">
-          <p className="text-xs font-semibold text-[#b45309] uppercase tracking-wider">📌 Przypięte</p>
+          <p className="text-xs font-semibold text-[#0f766e] uppercase tracking-wider">📌 Przypięte</p>
           {pinned.map((post) => (
             <PostCard
               key={post.id}
@@ -187,10 +187,10 @@ export default function BoardClient({ initialPosts, currentUserId, currentRole, 
       {/* Pozostałe */}
       <div className="space-y-3">
         {pinned.length > 0 && regular.length > 0 && (
-          <p className="text-xs font-semibold text-[#b45309] uppercase tracking-wider">Wiadomości</p>
+          <p className="text-xs font-semibold text-[#0f766e] uppercase tracking-wider">Wiadomości</p>
         )}
         {regular.length === 0 && pinned.length === 0 && (
-          <p className="text-sm text-[#b45309]">Tablica jest pusta. Napisz pierwszą wiadomość!</p>
+          <p className="text-sm text-[#0f766e]">Tablica jest pusta. Napisz pierwszą wiadomość!</p>
         )}
         {regular.map((post) => (
           <PostCard
@@ -240,19 +240,19 @@ function PostCard({
   const initials = authorName(post.author).charAt(0).toUpperCase()
 
   return (
-    <div className={`bg-[#1e1409] border rounded-xl p-4 space-y-3 ${post.pinned ? 'border-amber-700 bg-amber-950/40/30' : 'border-[#33200d]'}`}>
+    <div className={`bg-[#081918] border rounded-xl p-4 space-y-3 ${post.pinned ? 'border-teal-700 bg-teal-950/40/30' : 'border-[#0f2d2a]'}`}>
       {/* Nagłówek */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-amber-900/40 text-amber-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 rounded-full bg-teal-900/40 text-teal-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
             {initials}
           </div>
           <div>
-            <p className="text-sm font-semibold text-[#fef9ee]">{authorName(post.author)}</p>
-            <p className="text-xs text-[#b45309]">
+            <p className="text-sm font-semibold text-[#f0fdfa]">{authorName(post.author)}</p>
+            <p className="text-xs text-[#0f766e]">
               {new Date(post.created_at).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
               {post.communityName && (
-                <span className="ml-1.5 bg-[#1e1409] text-[#a16207] px-1.5 py-0.5 rounded-md font-medium">
+                <span className="ml-1.5 bg-[#081918] text-[#115e59] px-1.5 py-0.5 rounded-md font-medium">
                   {post.communityName}
                 </span>
               )}
@@ -267,8 +267,8 @@ function PostCard({
               title={post.pinned ? 'Odepnij' : 'Przypnij'}
               className={`text-xs px-2 py-1 rounded-lg transition disabled:opacity-50 ${
                 post.pinned
-                  ? 'bg-amber-900/40 text-amber-400 hover:bg-green-200'
-                  : 'text-[#b45309] hover:bg-[#1e1409]'
+                  ? 'bg-teal-900/40 text-teal-400 hover:bg-green-200'
+                  : 'text-[#0f766e] hover:bg-[#081918]'
               }`}
             >
               📌
@@ -287,13 +287,13 @@ function PostCard({
       </div>
 
       {/* Treść */}
-      <p className="text-sm text-[#fef3c7] whitespace-pre-wrap leading-relaxed">{post.content}</p>
+      <p className="text-sm text-[#ccfbf1] whitespace-pre-wrap leading-relaxed">{post.content}</p>
 
       {/* Odpowiedzi toggle */}
-      <div className="pt-1 border-t border-[#33200d]">
+      <div className="pt-1 border-t border-[#0f2d2a]">
         <button
           onClick={() => onToggleReplies(post.id)}
-          className="text-xs text-amber-500 hover:underline"
+          className="text-xs text-teal-500 hover:underline"
         >
           {expanded
             ? 'Ukryj odpowiedzi'
@@ -301,20 +301,20 @@ function PostCard({
         </button>
 
         {expanded && (
-          <div className="mt-3 space-y-3 pl-3 border-l-2 border-[#33200d]">
+          <div className="mt-3 space-y-3 pl-3 border-l-2 border-[#0f2d2a]">
             {post.replies.map((r) => (
               <div key={r.id} className="flex items-start gap-2">
-                <div className="w-6 h-6 rounded-full bg-[#1e1409] text-[#b45309] text-xs font-bold flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-6 rounded-full bg-[#081918] text-[#0f766e] text-xs font-bold flex items-center justify-center flex-shrink-0">
                   {authorName(r.author).charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-xs font-semibold text-[#fef9ee]">{authorName(r.author)}</span>
-                    <span className="text-xs text-[#b45309]">
+                    <span className="text-xs font-semibold text-[#f0fdfa]">{authorName(r.author)}</span>
+                    <span className="text-xs text-[#0f766e]">
                       {new Date(r.created_at).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
-                  <p className="text-sm text-[#fde68a] mt-0.5">{r.content}</p>
+                  <p className="text-sm text-[#99f6e4] mt-0.5">{r.content}</p>
                 </div>
                 {(r.author_id === currentUserId || isAdminOrAbove) && (
                   <button
@@ -341,7 +341,7 @@ function PostCard({
               <button
                 onClick={() => onReplySubmit(post.id)}
                 disabled={isPending || !replyText.trim()}
-                className="bg-amber-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-50 transition"
+                className="bg-teal-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-50 transition"
               >
                 Wyślij
               </button>

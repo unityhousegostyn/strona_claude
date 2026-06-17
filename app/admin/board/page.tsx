@@ -10,8 +10,8 @@ export default async function BoardPage() {
   if (!isSuperAdmin && !profile.community_id) {
     return (
       <div className="max-w-2xl">
-        <h2 className="text-2xl font-bold text-[#fef9ee] mb-4">Tablica</h2>
-        <p className="text-sm text-[#b45309]">Nie jesteś przypisany do żadnej wspólnoty.</p>
+        <h2 className="text-2xl font-bold text-[#f0fdfa] mb-4">Tablica</h2>
+        <p className="text-sm text-[#0f766e]">Nie jesteś przypisany do żadnej wspólnoty.</p>
       </div>
     )
   }
@@ -97,7 +97,7 @@ export default async function BoardPage() {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <h2 className="text-2xl font-bold text-[#fef9ee]">Tablica</h2>
+      <h2 className="text-2xl font-bold text-[#f0fdfa]">Tablica</h2>
       <BoardClient
         initialPosts={enrichedPosts}
         currentUserId={user.id}

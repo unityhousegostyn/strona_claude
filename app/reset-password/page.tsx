@@ -29,19 +29,19 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#18110a]">
-      <div className="bg-[#1e1409] shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm space-y-5">
+    <main className="min-h-screen flex items-center justify-center bg-[#051210]">
+      <div className="bg-[#081918] shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm space-y-5">
         <div>
-          <h1 className="text-2xl font-bold text-[#fef3c7]">Reset hasła</h1>
-          <p className="text-sm text-[#a16207] mt-1">Wyślemy Ci link do ustawienia nowego hasła.</p>
+          <h1 className="text-2xl font-bold text-[#ccfbf1]">Reset hasła</h1>
+          <p className="text-sm text-[#115e59] mt-1">Wyślemy Ci link do ustawienia nowego hasła.</p>
         </div>
 
         {sent ? (
           <div className="space-y-4">
-            <div className="bg-amber-950/30 border border-amber-800 text-amber-400 text-sm rounded-lg px-4 py-3">
+            <div className="bg-teal-950/30 border border-teal-800 text-teal-400 text-sm rounded-lg px-4 py-3">
               Link resetujący został wysłany na <strong>{email}</strong>. Sprawdź swoją skrzynkę.
             </div>
-            <Link href="/login" className="block text-center text-sm text-amber-500 hover:underline">
+            <Link href="/login" className="block text-center text-sm text-teal-500 hover:underline">
               Wróć do logowania
             </Link>
           </div>
@@ -53,7 +53,7 @@ export default function ResetPasswordPage() {
               </div>
             )}
             <div>
-              <label className="block text-sm font-medium text-[#fde68a] mb-1">Email</label>
+              <label className="block text-sm font-medium text-[#99f6e4] mb-1">Email</label>
               <input
                 type="email"
                 value={email}
@@ -66,12 +66,12 @@ export default function ResetPasswordPage() {
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg py-2.5 text-sm transition disabled:opacity-50"
+              className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg py-2.5 text-sm transition disabled:opacity-50"
             >
               {loading ? 'Wysyłanie...' : 'Wyślij link resetujący'}
             </button>
             <div className="text-center">
-              <Link href="/login" className="text-sm text-[#a16207] hover:underline">
+              <Link href="/login" className="text-sm text-[#115e59] hover:underline">
                 Wróć do logowania
               </Link>
             </div>

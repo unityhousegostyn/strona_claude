@@ -78,18 +78,18 @@ export default function MFAVerifyPage() {
 
   if (!ready) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-[#18110a]">
-        <div className="text-[#a16207] text-sm">Ładowanie...</div>
+      <main className="min-h-screen flex items-center justify-center bg-[#051210]">
+        <div className="text-[#115e59] text-sm">Ładowanie...</div>
       </main>
     )
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#18110a]">
-      <div className="bg-[#1e1409] shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm space-y-5">
+    <main className="min-h-screen flex items-center justify-center bg-[#051210]">
+      <div className="bg-[#081918] shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm space-y-5">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-[#fef3c7]">Weryfikacja 2FA</h1>
-          <p className="text-sm text-[#a16207]">Wpisz 6-cyfrowy kod z aplikacji authenticator</p>
+          <h1 className="text-2xl font-bold text-[#ccfbf1]">Weryfikacja 2FA</h1>
+          <p className="text-sm text-[#115e59]">Wpisz 6-cyfrowy kod z aplikacji authenticator</p>
         </div>
 
         {error && (
@@ -99,7 +99,7 @@ export default function MFAVerifyPage() {
         )}
 
         <div className="space-y-3">
-          <label className="block text-sm font-medium text-[#fde68a]">Kod weryfikacyjny</label>
+          <label className="block text-sm font-medium text-[#99f6e4]">Kod weryfikacyjny</label>
           <input
             type="text"
             inputMode="numeric"
@@ -116,7 +116,7 @@ export default function MFAVerifyPage() {
         <button
           onClick={handleVerify}
           disabled={loading || code.length !== 6}
-          className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg py-2.5 text-sm transition disabled:opacity-50"
+          className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg py-2.5 text-sm transition disabled:opacity-50"
         >
           {loading ? 'Weryfikacja...' : 'Zweryfikuj'}
         </button>
@@ -124,13 +124,13 @@ export default function MFAVerifyPage() {
         <div className="text-center">
           <button
             onClick={handleLogout}
-            className="text-sm text-[#a16207] hover:text-[#fde68a]"
+            className="text-sm text-[#115e59] hover:text-[#99f6e4]"
           >
             Wróć do logowania
           </button>
         </div>
 
-        <p className="text-xs text-[#a16207] text-center">
+        <p className="text-xs text-[#115e59] text-center">
           Otwórz Google Authenticator, Authy lub inną aplikację TOTP i wpisz wyświetlony kod.
         </p>
       </div>

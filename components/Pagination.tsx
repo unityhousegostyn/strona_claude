@@ -25,7 +25,7 @@ export default function Pagination({ page, totalPages, onPageChange }: Props) {
       <button
         onClick={() => onPageChange(page - 1)}
         disabled={page === 1}
-        className="px-3 py-1.5 rounded-lg text-sm text-[#6b9478] hover:text-[#ecfdf5] hover:bg-[#162418] disabled:opacity-30 disabled:cursor-not-allowed transition"
+        className="px-3 py-1.5 rounded-lg text-sm text-[#4d9e94] hover:text-[#f0fdfa] hover:bg-[#162418] disabled:opacity-30 disabled:cursor-not-allowed transition"
       >
         ←
       </button>
@@ -38,8 +38,8 @@ export default function Pagination({ page, totalPages, onPageChange }: Props) {
             onClick={() => onPageChange(p as number)}
             className={`min-w-[36px] px-3 py-1.5 rounded-lg text-sm font-medium transition ${
               p === page
-                ? 'bg-emerald-600 text-white'
-                : 'text-[#6b9478] hover:text-[#ecfdf5] hover:bg-[#162418]'
+                ? 'bg-teal-600 text-white'
+                : 'text-[#4d9e94] hover:text-[#f0fdfa] hover:bg-[#162418]'
             }`}
           >
             {p}
@@ -49,7 +49,7 @@ export default function Pagination({ page, totalPages, onPageChange }: Props) {
       <button
         onClick={() => onPageChange(page + 1)}
         disabled={page === totalPages}
-        className="px-3 py-1.5 rounded-lg text-sm text-[#6b9478] hover:text-[#ecfdf5] hover:bg-[#162418] disabled:opacity-30 disabled:cursor-not-allowed transition"
+        className="px-3 py-1.5 rounded-lg text-sm text-[#4d9e94] hover:text-[#f0fdfa] hover:bg-[#162418] disabled:opacity-30 disabled:cursor-not-allowed transition"
       >
         →
       </button>

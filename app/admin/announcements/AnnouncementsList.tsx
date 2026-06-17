@@ -69,8 +69,8 @@ export default function AnnouncementsList({ announcements, communityMap, junctio
   }
 
   const targetLabel = (a: Announcement) => {
-    if (a.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-amber-950/40 text-amber-400' }
-    if (a.target === 'one') return { text: communityMap[a.community_id!] ?? '—', cls: 'bg-[#1e1409] text-[#b45309]' }
+    if (a.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-teal-950/40 text-teal-400' }
+    if (a.target === 'one') return { text: communityMap[a.community_id!] ?? '—', cls: 'bg-[#081918] text-[#0f766e]' }
     const names = (junctionMap[a.id] ?? []).map((cid) => communityMap[cid] ?? cid)
     return { text: names.join(', ') || '—', cls: 'bg-purple-950/30 text-purple-400' }
   }
@@ -80,14 +80,14 @@ export default function AnnouncementsList({ announcements, communityMap, junctio
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-1 bg-[#1e1409] rounded-lg p-1 w-fit">
+      <div className="flex gap-1 bg-[#081918] rounded-lg p-1 w-fit">
         {(['active', 'archive'] as const).map(t => (
           <button key={t} onClick={() => handleTabChange(t)}
             className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${
-              tab === t ? 'bg-[#18110a] text-[#fef9ee] shadow-lg shadow-black/30' : 'text-[#a16207] hover:text-[#fde68a]'
+              tab === t ? 'bg-[#051210] text-[#f0fdfa] shadow-lg shadow-black/30' : 'text-[#115e59] hover:text-[#99f6e4]'
             }`}>
             {t === 'active' ? 'Aktywne' : 'Archiwum'}
-            <span className={`ml-1 text-xs font-semibold ${t === 'active' ? 'text-amber-500' : 'text-[#b45309]'}`}>
+            <span className={`ml-1 text-xs font-semibold ${t === 'active' ? 'text-teal-500' : 'text-[#0f766e]'}`}>
               {t === 'active' ? activeCount : archiveCount}
             </span>
           </button>
@@ -98,39 +98,39 @@ export default function AnnouncementsList({ announcements, communityMap, junctio
         value={search} onChange={(e) => handleSearch(e.target.value)} />
 
       {paged.length === 0 ? (
-        <p className="text-sm text-[#b45309]">{search ? 'Brak wyników.' : 'Brak ogłoszeń.'}</p>
+        <p className="text-sm text-[#0f766e]">{search ? 'Brak wyników.' : 'Brak ogłoszeń.'}</p>
       ) : (
         <div className="space-y-3">
           {paged.map((a) => {
             const { text, cls } = targetLabel(a)
             const pinned = isPinned(a)
             return (
-              <div key={a.id} className={`bg-[#1e1409] border rounded-xl p-4 transition ${
-                tab === 'archive' ? 'opacity-70 border-[#271a0c]' :
-                pinned ? 'border-amber-700/60 shadow-sm shadow-amber-900/20' : 'border-[#33200d]'
+              <div key={a.id} className={`bg-[#081918] border rounded-xl p-4 transition ${
+                tab === 'archive' ? 'opacity-70 border-[#0c2220]' :
+                pinned ? 'border-teal-700/60 shadow-sm shadow-teal-900/20' : 'border-[#0f2d2a]'
               }`}>
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-0.5">
                       {pinned && (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-500">
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-teal-500">
                           <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/>
                           </svg>
                           Przypięte
                         </span>
                       )}
-                      <p className="font-semibold text-[#fef9ee]">{a.title}</p>
+                      <p className="font-semibold text-[#f0fdfa]">{a.title}</p>
                     </div>
-                    <p className="text-sm text-[#a16207] mt-1 line-clamp-2">{a.content}</p>
+                    <p className="text-sm text-[#115e59] mt-1 line-clamp-2">{a.content}</p>
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${cls}`}>{text}</span>
                       {tab === 'archive' && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-[#1a1208] text-[#a16207]">Archiwalne</span>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-[#061918] text-[#115e59]">Archiwalne</span>
                       )}
-                      <span className="text-xs text-[#b45309]">{new Date(a.created_at).toLocaleDateString('pl-PL')}</span>
+                      <span className="text-xs text-[#0f766e]">{new Date(a.created_at).toLocaleDateString('pl-PL')}</span>
                       {a.end_date && (
-                        <span className="text-xs text-[#b45309]">do {new Date(a.end_date).toLocaleDateString('pl-PL')}</span>
+                        <span className="text-xs text-[#0f766e]">do {new Date(a.end_date).toLocaleDateString('pl-PL')}</span>
                       )}
                     </div>
                   </div>
@@ -141,8 +141,8 @@ export default function AnnouncementsList({ announcements, communityMap, junctio
                         title={pinned ? 'Odepnij' : 'Przypnij na górze'}
                         className={`p-1.5 rounded-lg border transition ${
                           pinned
-                            ? 'border-amber-700/60 text-amber-500 bg-amber-950/30 hover:bg-amber-950/50'
-                            : 'border-[#271a0c] text-[#3d2008] hover:border-amber-700/40 hover:text-amber-600'
+                            ? 'border-teal-700/60 text-teal-500 bg-teal-950/30 hover:bg-teal-950/50'
+                            : 'border-[#0c2220] text-[#133835] hover:border-teal-700/40 hover:text-teal-600'
                         }`}>
                         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
                           <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/>
@@ -150,7 +150,7 @@ export default function AnnouncementsList({ announcements, communityMap, junctio
                       </button>
                     )}
                     {canEdit && (
-                      <Link href={`/admin/announcements/${a.id}`} className="text-sm text-amber-500 hover:underline">
+                      <Link href={`/admin/announcements/${a.id}`} className="text-sm text-teal-500 hover:underline">
                         Edytuj
                       </Link>
                     )}
@@ -165,12 +165,12 @@ export default function AnnouncementsList({ announcements, communityMap, junctio
       {totalPages > 1 && (
         <div className="flex items-center gap-2 pt-2">
           <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-            className="px-3 py-1.5 text-sm border border-[#33200d] rounded-lg hover:bg-[#18110a] disabled:opacity-40 transition">
+            className="px-3 py-1.5 text-sm border border-[#0f2d2a] rounded-lg hover:bg-[#051210] disabled:opacity-40 transition">
             ← Poprzednia
           </button>
-          <span className="text-sm text-[#a16207]">{page} / {totalPages}</span>
+          <span className="text-sm text-[#115e59]">{page} / {totalPages}</span>
           <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-            className="px-3 py-1.5 text-sm border border-[#33200d] rounded-lg hover:bg-[#18110a] disabled:opacity-40 transition">
+            className="px-3 py-1.5 text-sm border border-[#0f2d2a] rounded-lg hover:bg-[#051210] disabled:opacity-40 transition">
             Następna →
           </button>
         </div>

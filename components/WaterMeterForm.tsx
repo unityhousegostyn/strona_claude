@@ -42,7 +42,7 @@ export default function WaterMeterForm({ apartmentId }: { apartmentId: string })
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-[#6b9478] mb-1 uppercase tracking-wide">Odczyt (m³) *</label>
+              <label className="block text-xs font-semibold text-[#4d9e94] mb-1 uppercase tracking-wide">Odczyt (m³) *</label>
               <input
                 type="number" step="0.001" min="0"
                 value={value} onChange={e => setValue(e.target.value)}
@@ -52,12 +52,12 @@ export default function WaterMeterForm({ apartmentId }: { apartmentId: string })
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[#6b9478] mb-1 uppercase tracking-wide">Data odczytu</label>
+              <label className="block text-xs font-semibold text-[#4d9e94] mb-1 uppercase tracking-wide">Data odczytu</label>
               <input type="date" value={date} onChange={e => setDate(e.target.value)} className="input w-full" required />
             </div>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-[#6b9478] mb-1 uppercase tracking-wide">Uwagi (opcjonalnie)</label>
+            <label className="block text-xs font-semibold text-[#4d9e94] mb-1 uppercase tracking-wide">Uwagi (opcjonalnie)</label>
             <input value={note} onChange={e => setNote(e.target.value)} placeholder="np. odczyt z wodomierza kuchennego" className="input w-full" />
           </div>
           {result?.error && <p className="text-sm text-red-400 bg-red-950/20 border border-red-900/40 rounded-lg px-3 py-2">{result.error}</p>}
