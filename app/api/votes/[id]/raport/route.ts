@@ -114,6 +114,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     : 'background:#fee2e2;color:#991b1b;border:1px solid #fca5a5'
   const verdictText = passed ? '✓ Uchwała PRZYJĘTA' : '✗ Uchwała ODRZUCONA'
 
+  // DEBUG — tymczasowe
+  const debugInfo = JSON.stringify({
+    voteId: vote.id,
+    communityId: vote.community_id,
+    apartmentsCount: apartments?.length ?? 0,
+    choicesCount: choices.length,
+    apartments: apartments?.slice(0, 3),
+  }, null, 2)
+
   const html = `<!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -197,6 +206,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     ${vote.status === 'closed' ? `<div><span class="verdict" style="${verdictStyle}">${verdictText}</span></div>` : ''}
 
+    <pre style="background:#f3f4f6;padding:8pt;font-size:8pt;border-radius:4pt;margin-bottom:10pt">${debugInfo}</pre>
     <h2>Szczegóły głosowania według lokali</h2>
     <table>
       <thead><tr><th>Lokal</th><th>Udział (%)</th><th>Głos</th><th>Data głosowania</th><th>Głosujący</th></tr></thead>
