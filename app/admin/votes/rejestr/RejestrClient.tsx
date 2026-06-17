@@ -175,7 +175,7 @@ export default function RejestrClient({ votes, communities, isSuperAdmin, aptCou
                     </td>
                     <td className="px-4 py-3 text-right">
                       <Link
-                        href={`/admin/votes/${vote.id}/raport`}
+                        href={`/api/votes/${vote.id}/raport`}
                         target="_blank"
                         className="text-xs text-emerald-400 hover:text-emerald-300 border border-emerald-800/60 px-2 py-1 rounded transition whitespace-nowrap"
                       >

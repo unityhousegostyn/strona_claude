@@ -323,7 +323,7 @@ export default function VotesClient({ votes, communities, userId, userApartmentI
                     )}
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <Link href={`/admin/votes/${vote.id}/raport`} target="_blank"
+                    <Link href={`/api/votes/${vote.id}/raport`} target="_blank"
                       className="text-xs text-[#6b9478] hover:text-emerald-400 border border-[#1e3324] px-2 py-1 rounded-lg transition">
                       📄 Raport
                     </Link>
