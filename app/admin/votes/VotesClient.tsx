@@ -2,8 +2,7 @@
 
 import { useState, useTransition, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { createVote, castVote, closeVote, deleteVote } from './actions'
-import { getSupabaseBrowserClient } from '@/lib/supabase/browser'
+import { createVote, castVote, closeVote, deleteVote, uploadVoteAttachment } from './actions'
 import Link from 'next/link'
 
 interface Choice { choice: string; share_value: number; user_id: string; apartment_id: string | null }
@@ -76,14 +75,11 @@ export default function VotesClient({ votes, communities, userId, userApartmentI
     if (attachmentFile) {
       setUploading(true)
       try {
-        const supabase = getSupabaseBrowserClient()
-        const safeName = attachmentFile.name.replace(/[^a-zA-Z0-9._-]/g, '_')
-        const path = `votes/${Date.now()}_${safeName}`
-        const { error: uploadError } = await supabase.storage
-          .from('documents')
-          .upload(path, attachmentFile, { upsert: false })
-        if (uploadError) {
-          setFormError('Błąd przesyłania pliku: ' + uploadError.message)
+        const fd = new FormData()
+        fd.append('file', attachmentFile)
+        const { error: uploadError, path } = await uploadVoteAttachment(fd)
+        if (uploadError || !path) {
+          setFormError('Błąd przesyłania pliku: ' + (uploadError ?? 'nieznany błąd'))
           setUploading(false)
           return
         }

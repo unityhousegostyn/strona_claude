@@ -12,6 +12,30 @@ async function getActor() {
   return { user: auth.user, profile: auth.profile }
 }
 
+// ── UPLOAD ZAŁĄCZNIKA (admin client omija RLS storage) ───────────────────────
+
+export async function uploadVoteAttachment(formData: FormData): Promise<{ error?: string; path?: string }> {
+  const { profile } = await getActor()
+  if (profile.role === 'user') return { error: 'Brak uprawnień' }
+
+  const file = formData.get('file') as File | null
+  if (!file) return { error: 'Brak pliku' }
+
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+  const path = `votes/${Date.now()}_${safeName}`
+
+  const arrayBuffer = await file.arrayBuffer()
+  const buffer = Buffer.from(arrayBuffer)
+
+  const admin = getSupabaseAdminClient()
+  const { error } = await admin.storage
+    .from('documents')
+    .upload(path, buffer, { contentType: file.type, upsert: false })
+
+  if (error) return { error: error.message }
+  return { path }
+}
+
 // ── TWORZENIE UCHWAŁY ────────────────────────────────────────────────────────
 
 export async function createVote(data: {
