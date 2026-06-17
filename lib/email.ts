@@ -543,6 +543,67 @@ export async function sendNewVoteEmail(params: {
   })
 }
 
+// ── ZAMKNIĘCIE GŁOSOWANIA ─────────────────────────────────────────────────────
+
+export async function sendVoteClosedEmail(params: {
+  to: string[]
+  voteTitle: string
+  communityName: string
+  voteId: string
+  resolutionNumber: string
+  yes: number
+  no: number
+  abstain: number
+  totalApts: number
+  votedApts: number
+  passed: boolean | null
+  byShare: boolean
+}) {
+  if (params.to.length === 0) return
+
+  const pct = (v: number) => {
+    const total = params.yes + params.no + params.abstain
+    return total > 0 ? (v / total * 100).toFixed(1) : '0.0'
+  }
+  const frekwencja = params.totalApts > 0
+    ? (params.votedApts / params.totalApts * 100).toFixed(0)
+    : '0'
+  const verdictColor = params.passed === true ? '#16a34a' : params.passed === false ? '#dc2626' : '#d97706'
+  const verdictText  = params.passed === true ? '✅ Uchwała PRZYJĘTA' : params.passed === false ? '❌ Uchwała ODRZUCONA' : '⏳ Głosowanie zamknięte'
+  const methodLabel  = params.byShare ? 'według udziałów' : '1 lokal = 1 głos'
+
+  await sendMail({
+    to: params.to,
+    subject: `Zakończono głosowanie: ${params.voteTitle}`,
+    html: layout(`
+      <p style="margin:0 0 4px;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#64748b;">WYNIKI GŁOSOWANIA</p>
+      <h1 style="margin:0 0 4px;font-size:22px;font-weight:700;color:#d97706;">${params.voteTitle}</h1>
+      <p style="margin:0 0 24px;font-size:13px;color:#64748b;">${params.communityName}${params.resolutionNumber !== '—' ? ` &nbsp;·&nbsp; Uchwała nr ${params.resolutionNumber}` : ''}</p>
+
+      <!-- Werdykt -->
+      <div style="background:#f8fafc;border-left:4px solid ${verdictColor};border-radius:0 8px 8px 0;padding:14px 20px;margin:0 0 24px;">
+        <p style="margin:0;font-size:16px;font-weight:700;color:${verdictColor};">${verdictText}</p>
+        <p style="margin:4px 0 0;font-size:13px;color:#64748b;">Metoda: ${methodLabel}</p>
+      </div>
+
+      <!-- Tabela wyników -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+        ${infoBox('ZA', `${pct(params.yes)}%${params.byShare ? ` &nbsp;<span style="color:#94a3b8;font-size:11px;">(udział: ${(params.yes * 100).toFixed(2)}%)</span>` : ''}`)}
+        ${infoBox('PRZECIW', `${pct(params.no)}%${params.byShare ? ` &nbsp;<span style="color:#94a3b8;font-size:11px;">(udział: ${(params.no * 100).toFixed(2)}%)</span>` : ''}`)}
+        ${infoBox('WSTRZYMAŁO SIĘ', `${pct(params.abstain)}%`)}
+        ${infoBox('Frekwencja', `${params.votedApts} z ${params.totalApts} lokali (${frekwencja}%)`)}
+      </table>
+
+      <div style="text-align:center;margin:32px 0 16px;">
+        ${btn(`${APP_URL}/api/votes/${params.voteId}/raport`, '📄 Pobierz raport PDF')}
+      </div>
+      <p style="text-align:center;font-size:12px;color:#94a3b8;margin:0;">
+        Link otwiera protokół głosowania — możesz go wydrukować lub zapisać jako PDF.
+      </p>
+    `),
+  })
+}
+
 // ── Kafelek funkcji (używany w zaproszeniu) ───────────────────────────────────
 
 function featureTile(icon: string, title: string, desc: string) {
