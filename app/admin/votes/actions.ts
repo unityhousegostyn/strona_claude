@@ -90,18 +90,35 @@ export async function createVote(data: {
   if (error) return { error: error.message }
   revalidatePath('/admin/votes')
 
-  // Wyślij emaile do aktywnych mieszkańców wspólnoty
+  // Wyślij emaile do mieszkańców wspólnoty
   try {
     const [usersRes, communityRes] = await Promise.all([
       admin.from('profiles')
-        .select('email')
+        .select('id, email')
         .eq('community_id', data.community_id)
         .eq('role', 'user')
-        .eq('status', 'active')
-        .not('email', 'is', null),
+        .in('status', ['active', 'pending']),  // uwzględnij też pending
       admin.from('communities').select('name').eq('id', data.community_id).single(),
     ])
-    const emails = (usersRes.data ?? []).map(u => u.email).filter(Boolean) as string[]
+
+    const profileUsers = usersRes.data ?? []
+
+    // Dla profili bez emaila pobierz email z auth.users
+    const missingEmailIds = profileUsers.filter(u => !u.email).map(u => u.id)
+    let authEmailMap: Record<string, string> = {}
+    if (missingEmailIds.length > 0) {
+      const { data: authList } = await admin.auth.admin.listUsers({ perPage: 1000 })
+      for (const u of authList?.users ?? []) {
+        if (missingEmailIds.includes(u.id) && u.email) {
+          authEmailMap[u.id] = u.email
+        }
+      }
+    }
+
+    const emails = profileUsers
+      .map(u => u.email || authEmailMap[u.id] || null)
+      .filter(Boolean) as string[]
+
     if (emails.length > 0) {
       await sendNewVoteEmail({
         to: emails,
