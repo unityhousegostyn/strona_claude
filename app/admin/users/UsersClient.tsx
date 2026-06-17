@@ -24,8 +24,8 @@ const roleLabel: Record<string, string> = {
 
 const roleBadge: Record<string, string> = {
   super_admin: 'bg-purple-100 text-purple-400',
-  admin: 'bg-emerald-900/40 text-emerald-400',
-  user: 'bg-[#121c15] text-[#6b9478]',
+  admin: 'bg-amber-900/40 text-amber-400',
+  user: 'bg-[#1e1409] text-[#b45309]',
 }
 
 export default function UsersClient({ users, isSuperAdmin }: Props) {
@@ -45,7 +45,7 @@ export default function UsersClient({ users, isSuperAdmin }: Props) {
     <div className="space-y-3">
       {/* Wyszukiwarka */}
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4d7a5f] text-sm">🔍</span>
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a16207] text-sm">🔍</span>
         <input
           className="input w-full pl-8 text-sm"
           placeholder="Szukaj po nazwie, wspólnocie lub roli..."
@@ -53,40 +53,40 @@ export default function UsersClient({ users, isSuperAdmin }: Props) {
           onChange={e => setSearch(e.target.value)}
         />
         {search && (
-          <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#4d7a5f] hover:text-[#a7f3d0] text-xs">✕</button>
+          <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a16207] hover:text-[#fde68a] text-xs">✕</button>
         )}
       </div>
 
       {/* Tabela */}
-      <div className="bg-[#121c15] border border-[#1e3324] rounded-xl overflow-hidden overflow-x-auto">
+      <div className="bg-[#1e1409] border border-[#33200d] rounded-xl overflow-hidden overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-[#0d1410] border-b border-[#1e3324]">
+          <thead className="bg-[#18110a] border-b border-[#33200d]">
             <tr>
-              <th className="text-left px-4 py-3 font-medium text-[#6b9478]">Imię i nazwisko</th>
-              <th className="text-left px-4 py-3 font-medium text-[#6b9478]">Rola</th>
-              <th className="text-left px-4 py-3 font-medium text-[#6b9478]">Wspólnota</th>
-              <th className="text-left px-4 py-3 font-medium text-[#6b9478]">Dołączył</th>
+              <th className="text-left px-4 py-3 font-medium text-[#b45309]">Imię i nazwisko</th>
+              <th className="text-left px-4 py-3 font-medium text-[#b45309]">Rola</th>
+              <th className="text-left px-4 py-3 font-medium text-[#b45309]">Wspólnota</th>
+              <th className="text-left px-4 py-3 font-medium text-[#b45309]">Dołączył</th>
               {isSuperAdmin && <th className="px-4 py-3" />}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-800">
             {filtered.map(u => (
-              <tr key={u.id} className="hover:bg-[#0d1410] transition">
-                <td className="px-4 py-3 font-medium text-[#ecfdf5]">
-                  {u.full_name ?? <span className="text-[#6b9478] italic">Brak nazwy</span>}
+              <tr key={u.id} className="hover:bg-[#18110a] transition">
+                <td className="px-4 py-3 font-medium text-[#fef9ee]">
+                  {u.full_name ?? <span className="text-[#b45309] italic">Brak nazwy</span>}
                 </td>
                 <td className="px-4 py-3">
                   <span className={`text-xs font-medium px-2 py-1 rounded-full ${roleBadge[u.role] ?? roleBadge.user}`}>
                     {roleLabel[u.role] ?? u.role}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-[#a7f3d0]">{u.community?.name ?? '—'}</td>
-                <td className="px-4 py-3 text-[#6b9478]">
+                <td className="px-4 py-3 text-[#fde68a]">{u.community?.name ?? '—'}</td>
+                <td className="px-4 py-3 text-[#b45309]">
                   {new Date(u.created_at).toLocaleDateString('pl-PL')}
                 </td>
                 {isSuperAdmin && (
                   <td className="px-4 py-3 text-right">
-                    <Link href={`/admin/users/${u.id}`} className="text-sm text-emerald-500 hover:underline">
+                    <Link href={`/admin/users/${u.id}`} className="text-sm text-amber-500 hover:underline">
                       Edytuj
                     </Link>
                   </td>
@@ -96,12 +96,12 @@ export default function UsersClient({ users, isSuperAdmin }: Props) {
           </tbody>
         </table>
         {filtered.length === 0 && (
-          <p className="text-center text-sm text-[#6b9478] py-8">
+          <p className="text-center text-sm text-[#b45309] py-8">
             {search ? `Brak wyników dla "${search}".` : 'Brak aktywnych użytkowników.'}
           </p>
         )}
         {filtered.length > 0 && search && (
-          <p className="text-xs text-[#4d7a5f] px-4 py-2 border-t border-[#1e3324]">
+          <p className="text-xs text-[#a16207] px-4 py-2 border-t border-[#33200d]">
             {filtered.length} z {users.length} użytkowników
           </p>
         )}

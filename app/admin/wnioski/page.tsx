@@ -53,8 +53,8 @@ export default async function WnioskiPage() {
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
-        <h2 className="text-2xl font-bold text-[#ecfdf5]">Wnioski do administracji</h2>
-        <p className="text-sm text-[#4d7a5f] mt-1">
+        <h2 className="text-2xl font-bold text-[#fef9ee]">Wnioski do administracji</h2>
+        <p className="text-sm text-[#a16207] mt-1">
           {isUser
             ? 'Złóż wniosek o zaświadczenie, naprawę lub udostępnienie dokumentów.'
             : 'Przeglądaj i obsługuj wnioski mieszkańców.'}

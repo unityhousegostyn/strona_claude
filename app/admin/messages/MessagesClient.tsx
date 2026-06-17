@@ -90,8 +90,8 @@ export default function MessagesClient({
 
       {/* Wspólnota (super_admin) */}
       {isSuperAdmin && communities.length > 1 && (
-        <div className="bg-[#121c15] border border-[#1e3324] rounded-xl p-4">
-          <label className="block text-xs font-semibold text-[#6b9478] mb-2 uppercase tracking-wide">Wspólnota</label>
+        <div className="bg-[#1e1409] border border-[#33200d] rounded-xl p-4">
+          <label className="block text-xs font-semibold text-[#b45309] mb-2 uppercase tracking-wide">Wspólnota</label>
           <select
             value={communityId}
             onChange={e => handleCommunityChange(e.target.value)}
@@ -103,11 +103,11 @@ export default function MessagesClient({
       )}
 
       {/* Odbiorcy */}
-      <div className="bg-[#121c15] border border-[#1e3324] rounded-xl overflow-hidden">
-        <div className="flex border-b border-[#1e3324]">
+      <div className="bg-[#1e1409] border border-[#33200d] rounded-xl overflow-hidden">
+        <div className="flex border-b border-[#33200d]">
           {(['all', 'selected'] as const).map(m => (
             <button key={m} onClick={() => setMode(m)}
-              className={`flex-1 py-3 text-sm font-semibold transition ${mode === m ? 'bg-[#0d1410] text-[#ecfdf5]' : 'text-[#4d7a5f] hover:text-[#a7f3d0]'}`}>
+              className={`flex-1 py-3 text-sm font-semibold transition ${mode === m ? 'bg-[#18110a] text-[#fef9ee]' : 'text-[#a16207] hover:text-[#fde68a]'}`}>
               {m === 'all'
                 ? `Wszyscy mieszkańcy ${residents.length > 0 ? `(${residents.length})` : ''}`
                 : `Wybrani ${selected.size > 0 ? `(${selected.size})` : ''}`}
@@ -123,31 +123,31 @@ export default function MessagesClient({
               className="input w-full text-sm"
             />
             {loadingResidents ? (
-              <p className="text-sm text-[#4d7a5f] py-2">Ładowanie…</p>
+              <p className="text-sm text-[#a16207] py-2">Ładowanie…</p>
             ) : filtered.length === 0 ? (
-              <p className="text-sm text-[#4d7a5f] py-2">Brak mieszkańców</p>
+              <p className="text-sm text-[#a16207] py-2">Brak mieszkańców</p>
             ) : (
               <div className="space-y-1 max-h-64 overflow-y-auto pr-1">
                 {/* Zaznacz wszystkich */}
-                <label className="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-[#0d1410] cursor-pointer">
+                <label className="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-[#18110a] cursor-pointer">
                   <input type="checkbox"
                     checked={filtered.length > 0 && filtered.every(r => selected.has(r.id))}
                     onChange={toggleAll}
-                    className="w-4 h-4 rounded accent-emerald-600"
+                    className="w-4 h-4 rounded accent-amber-600"
                   />
-                  <span className="text-xs font-semibold text-[#6b9478] uppercase tracking-wide">Zaznacz wszystkich</span>
+                  <span className="text-xs font-semibold text-[#b45309] uppercase tracking-wide">Zaznacz wszystkich</span>
                 </label>
-                <div className="border-t border-[#162418] my-1"/>
+                <div className="border-t border-[#271a0c] my-1"/>
                 {filtered.map(r => (
-                  <label key={r.id} className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-[#0d1410] cursor-pointer">
+                  <label key={r.id} className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-[#18110a] cursor-pointer">
                     <input type="checkbox"
                       checked={selected.has(r.id)}
                       onChange={() => toggleSelect(r.id)}
-                      className="w-4 h-4 rounded accent-emerald-600 flex-shrink-0"
+                      className="w-4 h-4 rounded accent-amber-600 flex-shrink-0"
                     />
                     <div className="min-w-0">
-                      <p className="text-sm text-[#ecfdf5] font-medium truncate">{r.full_name ?? '—'}</p>
-                      <p className="text-xs text-[#4d7a5f] truncate">{r.email}</p>
+                      <p className="text-sm text-[#fef9ee] font-medium truncate">{r.full_name ?? '—'}</p>
+                      <p className="text-xs text-[#a16207] truncate">{r.email}</p>
                     </div>
                   </label>
                 ))}
@@ -157,16 +157,16 @@ export default function MessagesClient({
         )}
 
         {mode === 'all' && (
-          <div className="px-4 py-3 text-sm text-[#6b9478]">
-            Wiadomość zostanie wysłana do <span className="font-semibold text-[#a7f3d0]">{residents.length}</span> aktywnych mieszkańców.
+          <div className="px-4 py-3 text-sm text-[#b45309]">
+            Wiadomość zostanie wysłana do <span className="font-semibold text-[#fde68a]">{residents.length}</span> aktywnych mieszkańców.
           </div>
         )}
       </div>
 
       {/* Treść */}
-      <div className="bg-[#121c15] border border-[#1e3324] rounded-xl p-4 space-y-4">
+      <div className="bg-[#1e1409] border border-[#33200d] rounded-xl p-4 space-y-4">
         <div>
-          <label className="block text-xs font-semibold text-[#6b9478] mb-2 uppercase tracking-wide">Temat *</label>
+          <label className="block text-xs font-semibold text-[#b45309] mb-2 uppercase tracking-wide">Temat *</label>
           <input
             value={subject} onChange={e => setSubject(e.target.value)}
             placeholder="np. Zebranie mieszkańców — 15 marca"
@@ -175,14 +175,14 @@ export default function MessagesClient({
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-[#6b9478] mb-2 uppercase tracking-wide">Treść wiadomości *</label>
+          <label className="block text-xs font-semibold text-[#b45309] mb-2 uppercase tracking-wide">Treść wiadomości *</label>
           <textarea
             value={body} onChange={e => setBody(e.target.value)}
             placeholder="Szanowni Mieszkańcy,&#10;&#10;informujemy, że…"
             rows={8}
             className="input w-full resize-none text-sm leading-relaxed"
           />
-          <p className="text-xs text-[#2a4a2a] mt-1 text-right">{body.length} znaków</p>
+          <p className="text-xs text-[#3d2008] mt-1 text-right">{body.length} znaków</p>
         </div>
       </div>
 
@@ -201,15 +201,15 @@ export default function MessagesClient({
 
       {/* Wyślij */}
       <div className="flex items-center justify-between">
-        <p className="text-xs text-[#2a4a2a]">
+        <p className="text-xs text-[#3d2008]">
           {recipientCount > 0
-            ? <>Odbiorcy: <span className="text-[#6b9478] font-semibold">{recipientCount} {recipientCount === 1 ? 'osoba' : 'osób'}</span></>
-            : <span className="text-[#1e3324]">Brak wybranych odbiorców</span>}
+            ? <>Odbiorcy: <span className="text-[#b45309] font-semibold">{recipientCount} {recipientCount === 1 ? 'osoba' : 'osób'}</span></>
+            : <span className="text-[#33200d]">Brak wybranych odbiorców</span>}
         </p>
         <button
           onClick={handleSend}
           disabled={sending || recipientCount === 0}
-          className="flex items-center gap-2 bg-emerald-700 hover:bg-emerald-600 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition disabled:opacity-40"
+          className="flex items-center gap-2 bg-amber-700 hover:bg-amber-600 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition disabled:opacity-40"
         >
           {sending ? (
             <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Wysyłam…</>

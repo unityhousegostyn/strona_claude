@@ -27,8 +27,8 @@ export default async function SettlementsPage({
     return (
       <div className="flex flex-col items-center justify-center h-64 text-center gap-3">
         <p className="text-4xl">🏠</p>
-        <p className="text-[#a7f3d0] font-medium">Brak przypisanego mieszkania</p>
-        <p className="text-[#4d7a5f] text-sm">
+        <p className="text-[#fde68a] font-medium">Brak przypisanego mieszkania</p>
+        <p className="text-[#a16207] text-sm">
           Skontaktuj się z administratorem, aby przypisać Twoje konto do lokalu.
         </p>
       </div>
@@ -43,8 +43,8 @@ export default async function SettlementsPage({
       return (
         <div className="flex flex-col items-center justify-center h-64 text-center gap-3">
           <p className="text-4xl">⚠️</p>
-          <p className="text-[#a7f3d0] font-medium">Brak przypisanej wspólnoty</p>
-          <p className="text-[#4d7a5f] text-sm">Skontaktuj się z super administratorem.</p>
+          <p className="text-[#fde68a] font-medium">Brak przypisanej wspólnoty</p>
+          <p className="text-[#a16207] text-sm">Skontaktuj się z super administratorem.</p>
         </div>
       )
     }

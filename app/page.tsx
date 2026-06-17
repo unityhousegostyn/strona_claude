@@ -11,18 +11,18 @@ export default function LandingPage() {
       <style>{`
         .lp *, .lp *::before, .lp *::after { box-sizing: border-box; margin: 0; padding: 0; }
         .lp {
-          --bg:      #0d1410;
-          --bg2:     #162418;
-          --card:    #121c15;
-          --border:  #1e3324;
-          --border2: #2a4a2a;
-          --green:   #0d1410;
+          --bg:      #18110a;
+          --bg2:     #271a0c;
+          --card:    #1e1409;
+          --border:  #33200d;
+          --border2: #3d2008;
+          --green:   #18110a;
           --green2:  #0a100d;
           --gold:    #059669;
           --gold2:   #047857;
-          --text:    #ecfdf5;
-          --text2:   #6b9478;
-          --text3:   #6b9478;
+          --text:    #fef9ee;
+          --text2:   #b45309;
+          --text3:   #b45309;
           background: var(--bg);
           color: var(--text);
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;

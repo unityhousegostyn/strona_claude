@@ -61,12 +61,12 @@ function LoginForm() {
   }
 
   return (
-    <div className="bg-[#121c15] shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm space-y-5">
-      <h1 className="text-2xl font-bold text-[#d1fae5]">Logowanie</h1>
-      <p className="text-sm text-[#4d7a5f]">Panel zarządzania wspólnotą</p>
+    <div className="bg-[#1e1409] shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm space-y-5">
+      <h1 className="text-2xl font-bold text-[#fef3c7]">Logowanie</h1>
+      <p className="text-sm text-[#a16207]">Panel zarządzania wspólnotą</p>
 
       {success && (
-        <div className="bg-emerald-950/30 border border-emerald-800 text-emerald-400 text-sm rounded-lg px-4 py-3">
+        <div className="bg-amber-950/30 border border-amber-800 text-amber-400 text-sm rounded-lg px-4 py-3">
           {success}
         </div>
       )}
@@ -78,7 +78,7 @@ function LoginForm() {
 
       <div className="space-y-3">
         <div>
-          <label className="block text-sm font-medium text-[#a7f3d0] mb-1">Email</label>
+          <label className="block text-sm font-medium text-[#fde68a] mb-1">Email</label>
           <input
             type="email"
             value={email}
@@ -89,7 +89,7 @@ function LoginForm() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-[#a7f3d0] mb-1">Hasło</label>
+          <label className="block text-sm font-medium text-[#fde68a] mb-1">Hasło</label>
           <input
             type="password"
             value={password}
@@ -104,27 +104,27 @@ function LoginForm() {
       <button
         onClick={handleLogin}
         disabled={loading}
-        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg py-2.5 text-sm transition disabled:opacity-50"
+        className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg py-2.5 text-sm transition disabled:opacity-50"
       >
         {loading ? 'Logowanie...' : 'Zaloguj się'}
       </button>
 
       <div className="flex flex-col items-center gap-2 pt-2">
-        <Link href="/reset-password" className="text-sm text-[#4d7a5f] hover:text-[#a7f3d0] hover:underline">
+        <Link href="/reset-password" className="text-sm text-[#a16207] hover:text-[#fde68a] hover:underline">
           Zapomniałeś hasła?
         </Link>
-        <Link href="/register" className="text-sm text-emerald-500 hover:underline">
+        <Link href="/register" className="text-sm text-amber-500 hover:underline">
           Nie masz konta? Zarejestruj się
         </Link>
       </div>
 
-      <div className="border-t border-[#1e3324] pt-4">
-        <p className="text-xs text-[#6b9478] text-center leading-relaxed">
+      <div className="border-t border-[#33200d] pt-4">
+        <p className="text-xs text-[#b45309] text-center leading-relaxed">
           Administratorem danych osobowych jest zarządca wspólnoty mieszkaniowej.
           Dane przetwarzane są w celu obsługi panelu mieszkańca na podstawie art. 6 ust. 1 lit. b RODO.
           Przysługuje Ci prawo dostępu, sprostowania, usunięcia danych oraz wniesienia skargi do UODO.
           Szczegóły w{' '}
-          <Link href="/privacy" className="underline hover:text-[#6b9478]">
+          <Link href="/privacy" className="underline hover:text-[#b45309]">
             Polityce Prywatności
           </Link>
           .
@@ -136,8 +136,8 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#0d1410]">
-      <Suspense fallback={<div className="bg-[#121c15] shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm" />}>
+    <main className="min-h-screen flex items-center justify-center bg-[#18110a]">
+      <Suspense fallback={<div className="bg-[#1e1409] shadow-2xl shadow-black/40 rounded-xl p-8 w-full max-w-sm" />}>
         <LoginForm />
       </Suspense>
     </main>

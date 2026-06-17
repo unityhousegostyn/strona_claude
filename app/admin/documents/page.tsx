@@ -59,8 +59,8 @@ export default async function DocumentsPage() {
   }
 
   const targetLabel = (d: any) => {
-    if (d.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-emerald-950/40 text-emerald-400' }
-    if (d.target === 'one') return { text: communityMap[d.community_id] ?? '—', cls: 'bg-[#121c15] text-[#6b9478]' }
+    if (d.target === 'all') return { text: 'Wszystkie wspólnoty', cls: 'bg-amber-950/40 text-amber-400' }
+    if (d.target === 'one') return { text: communityMap[d.community_id] ?? '—', cls: 'bg-[#1e1409] text-[#b45309]' }
     const names = (junctionMap[d.id] ?? []).map((cid) => communityMap[cid] ?? cid)
     return { text: names.join(', ') || '—', cls: 'bg-purple-950/30 text-purple-400' }
   }
@@ -76,7 +76,7 @@ export default async function DocumentsPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-[#ecfdf5]">Dokumenty</h2>
+      <h2 className="text-2xl font-bold text-[#fef9ee]">Dokumenty</h2>
 
       {canUpload && (
         <DocumentUpload
@@ -86,24 +86,24 @@ export default async function DocumentsPage() {
         />
       )}
 
-      <div className="bg-[#121c15] border border-[#1e3324] rounded-xl overflow-hidden overflow-x-auto">
+      <div className="bg-[#1e1409] border border-[#33200d] rounded-xl overflow-hidden overflow-x-auto">
         {documents.length === 0 ? (
-          <p className="text-center text-sm text-[#6b9478] py-8">Brak dokumentów.</p>
+          <p className="text-center text-sm text-[#b45309] py-8">Brak dokumentów.</p>
         ) : (
           <ul className="divide-y divide-gray-100">
             {documents.map((d: any) => {
               const { text, cls } = targetLabel(d)
               return (
-                <li key={d.id} className="flex items-center justify-between px-4 py-3 hover:bg-[#0d1410] transition gap-4">
+                <li key={d.id} className="flex items-center justify-between px-4 py-3 hover:bg-[#18110a] transition gap-4">
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="text-xl flex-shrink-0">{fileIcon(d.name)}</span>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-[#d1fae5] truncate">{d.name}</p>
+                      <p className="text-sm font-medium text-[#fef3c7] truncate">{d.name}</p>
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${cls}`}>
                           {text}
                         </span>
-                        <span className="text-xs text-[#6b9478]">
+                        <span className="text-xs text-[#b45309]">
                           {new Date(d.created_at).toLocaleDateString('pl-PL')}
                         </span>
                       </div>

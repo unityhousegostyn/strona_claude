@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser'
 import { Profile } from '@/types'
 import { useI18n } from '@/lib/i18n'
+import ThemeToggle from './ThemeToggle'
 
 type NavItem = { href: string; label: string; icon: string }
 type NavGroup = { group: string; icon: string; subItems: NavItem[] }
@@ -188,6 +189,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
             <p className="text-xs text-[#6b9478]">{roleLabel[profile.role]}</p>
           </div>
         </Link>
+        <ThemeToggle />
         <button
           onClick={handleLogout}
           className="w-full text-left text-sm text-red-400 hover:text-red-400 font-medium px-3 py-2 rounded-lg hover:bg-red-950/30 transition"
@@ -277,18 +279,19 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto pb-safe">
           {navItems.map(entry => renderEntry(entry, () => setDrawerOpen(false)))}
         </nav>
-        <div className="p-4 border-t border-[#1e3324] flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-emerald-900/40 text-emerald-400 text-xs font-bold flex items-center justify-center">
+        <div className="p-4 border-t border-[#1e3324] space-y-1">
+          <div className="flex items-center gap-2 px-3 py-2">
+            <div className="w-7 h-7 rounded-full bg-amber-900/40 text-amber-400 text-xs font-bold flex items-center justify-center">
               {(profile.full_name ?? userEmail).charAt(0).toUpperCase()}
             </div>
             <div>
-              <p className="text-xs font-medium text-[#ecfdf5] truncate max-w-[180px]">{profile.full_name ?? userEmail}</p>
-              <p className="text-xs text-[#6b9478]">{roleLabel[profile.role]}</p>
+              <p className="text-xs font-medium text-[#fef9ee] truncate max-w-[180px]">{profile.full_name ?? userEmail}</p>
+              <p className="text-xs text-[#b45309]">{roleLabel[profile.role]}</p>
             </div>
           </div>
-          <button onClick={handleLogout} className="text-sm text-red-400 font-medium px-3 py-1.5 rounded-lg hover:bg-red-950/30 transition">
-            Wyloguj
+          <ThemeToggle />
+          <button onClick={handleLogout} className="w-full text-left text-sm text-red-400 font-medium px-3 py-2 rounded-lg hover:bg-red-950/30 transition">
+            Wyloguj się
           </button>
         </div>
       </div>

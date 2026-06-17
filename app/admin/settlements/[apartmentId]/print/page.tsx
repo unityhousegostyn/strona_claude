@@ -79,37 +79,37 @@ export default async function PrintPage({
         <PrintClient />
 
         {/* Nagłówek dokumentu */}
-        <div className="mb-6 border-b-2 border-[#1e3324] print:border-[#2a4a2a] pb-4">
+        <div className="mb-6 border-b-2 border-[#33200d] print:border-[#3d2008] pb-4">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-[#ecfdf5] print:text-black">
+              <h1 className="text-2xl font-bold text-[#fef9ee] print:text-black">
                 Rozliczenie lokalu — {year}
               </h1>
-              <p className="text-[#6b9478] print:text-[#4d7a5f] mt-1">{communityName}</p>
+              <p className="text-[#b45309] print:text-[#a16207] mt-1">{communityName}</p>
             </div>
-            <div className="text-right text-xs text-[#4d7a5f] print:text-[#4d7a5f]">
+            <div className="text-right text-xs text-[#a16207] print:text-[#a16207]">
               <p>Wygenerowano: {generatedAt}</p>
             </div>
           </div>
         </div>
 
         {/* Dane lokalu */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 p-4 bg-[#121c15] print:bg-gray-50 rounded-xl border border-[#1e3324] print:border-gray-200">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 p-4 bg-[#1e1409] print:bg-gray-50 rounded-xl border border-[#33200d] print:border-gray-200">
           <div>
-            <p className="text-xs text-[#4d7a5f] print:text-[#4d7a5f] uppercase tracking-wide">Lokal</p>
-            <p className="font-bold text-[#ecfdf5] print:text-black text-lg mt-0.5">{apartment.number}</p>
+            <p className="text-xs text-[#a16207] print:text-[#a16207] uppercase tracking-wide">Lokal</p>
+            <p className="font-bold text-[#fef9ee] print:text-black text-lg mt-0.5">{apartment.number}</p>
           </div>
           <div>
-            <p className="text-xs text-[#4d7a5f] print:text-[#4d7a5f] uppercase tracking-wide">Właściciel</p>
-            <p className="font-semibold text-[#d1fae5] print:text-black mt-0.5">{apartment.owner_name}</p>
+            <p className="text-xs text-[#a16207] print:text-[#a16207] uppercase tracking-wide">Właściciel</p>
+            <p className="font-semibold text-[#fef3c7] print:text-black mt-0.5">{apartment.owner_name}</p>
           </div>
           <div>
-            <p className="text-xs text-[#4d7a5f] print:text-[#4d7a5f] uppercase tracking-wide">Powierzchnia</p>
-            <p className="font-semibold text-[#d1fae5] print:text-black mt-0.5">{Number(apartment.area_m2).toFixed(4)} m²</p>
+            <p className="text-xs text-[#a16207] print:text-[#a16207] uppercase tracking-wide">Powierzchnia</p>
+            <p className="font-semibold text-[#fef3c7] print:text-black mt-0.5">{Number(apartment.area_m2).toFixed(4)} m²</p>
           </div>
           <div>
-            <p className="text-xs text-[#4d7a5f] print:text-[#4d7a5f] uppercase tracking-wide">Udział / Osoby</p>
-            <p className="font-semibold text-[#d1fae5] print:text-black mt-0.5">
+            <p className="text-xs text-[#a16207] print:text-[#a16207] uppercase tracking-wide">Udział / Osoby</p>
+            <p className="font-semibold text-[#fef3c7] print:text-black mt-0.5">
               {shareStr(apartment as SettlementApartment)} / {apartment.persons_count} os.
             </p>
           </div>
@@ -119,9 +119,9 @@ export default async function PrintPage({
         <div className="overflow-x-auto mb-6">
           <table className="w-full text-xs border-collapse">
             <thead>
-              <tr className="bg-[#162418] print:bg-gray-100">
+              <tr className="bg-[#271a0c] print:bg-gray-100">
                 {['Miesiąc','Saldo pocz.','Wpłacono','Fund. rem.','Fund. ekspl.','Zarządca','Ryczałt wody','Śmieci','Korekta','Razem','Saldo końc.'].map(h => (
-                  <th key={h} className="px-2 py-2 text-right first:text-left text-[#a7f3d0] print:text-stone-300 font-semibold border border-[#1e3324] print:border-[#2a4a2a] whitespace-nowrap">
+                  <th key={h} className="px-2 py-2 text-right first:text-left text-[#fde68a] print:text-stone-300 font-semibold border border-[#33200d] print:border-[#3d2008] whitespace-nowrap">
                     {h}
                   </th>
                 ))}
@@ -129,58 +129,58 @@ export default async function PrintPage({
             </thead>
             <tbody>
               {rows.map((row, i) => (
-                <tr key={row.month} className={i % 2 === 0 ? 'bg-[#121c15] print:bg-[#121c15]' : 'bg-[#121c15]/50 print:bg-gray-50'}>
-                  <td className="px-2 py-1.5 font-medium text-[#d1fae5] print:text-black border border-[#1e3324] print:border-gray-200">{row.monthName}</td>
-                  <td className={`px-2 py-1.5 text-right border border-[#1e3324] print:border-gray-200 ${row.balance_start >= 0 ? 'text-emerald-400 print:text-green-700' : 'text-red-400 print:text-red-600'}`}>{pln(row.balance_start)}</td>
-                  <td className="px-2 py-1.5 text-right text-emerald-300 print:text-green-700 border border-[#1e3324] print:border-gray-200 font-medium">{pln(row.paid)}</td>
-                  <td className="px-2 py-1.5 text-right text-[#a7f3d0] print:text-stone-300 border border-[#1e3324] print:border-gray-200">{row.hasRates ? pln(row.renovation) : '—'}</td>
-                  <td className="px-2 py-1.5 text-right text-[#a7f3d0] print:text-stone-300 border border-[#1e3324] print:border-gray-200">{row.hasRates ? pln(row.operating) : '—'}</td>
-                  <td className="px-2 py-1.5 text-right text-[#a7f3d0] print:text-stone-300 border border-[#1e3324] print:border-gray-200">{row.hasRates ? pln(row.manager) : '—'}</td>
-                  <td className="px-2 py-1.5 text-right text-[#a7f3d0] print:text-stone-300 border border-[#1e3324] print:border-gray-200">{row.hasRates ? pln(row.water) : '—'}</td>
-                  <td className="px-2 py-1.5 text-right text-[#a7f3d0] print:text-stone-300 border border-[#1e3324] print:border-gray-200">{row.hasRates ? pln(row.garbage) : '—'}</td>
-                  <td className={`px-2 py-1.5 text-right border border-[#1e3324] print:border-gray-200 ${row.correction !== 0 ? 'text-yellow-400 print:text-yellow-700' : 'text-[#4d7a5f]'}`}>{row.correction !== 0 ? pln(row.correction) : '—'}</td>
-                  <td className="px-2 py-1.5 text-right font-semibold text-[#ecfdf5] print:text-black border border-[#1e3324] print:border-gray-200">{row.hasRates ? pln(row.total_due) : '—'}</td>
-                  <td className={`px-2 py-1.5 text-right font-bold border border-[#1e3324] print:border-gray-200 ${row.balance_end >= 0 ? 'text-emerald-400 print:text-green-700' : 'text-red-400 print:text-red-600'}`}>{pln(row.balance_end)}</td>
+                <tr key={row.month} className={i % 2 === 0 ? 'bg-[#1e1409] print:bg-[#1e1409]' : 'bg-[#1e1409]/50 print:bg-gray-50'}>
+                  <td className="px-2 py-1.5 font-medium text-[#fef3c7] print:text-black border border-[#33200d] print:border-gray-200">{row.monthName}</td>
+                  <td className={`px-2 py-1.5 text-right border border-[#33200d] print:border-gray-200 ${row.balance_start >= 0 ? 'text-amber-400 print:text-green-700' : 'text-red-400 print:text-red-600'}`}>{pln(row.balance_start)}</td>
+                  <td className="px-2 py-1.5 text-right text-amber-300 print:text-green-700 border border-[#33200d] print:border-gray-200 font-medium">{pln(row.paid)}</td>
+                  <td className="px-2 py-1.5 text-right text-[#fde68a] print:text-stone-300 border border-[#33200d] print:border-gray-200">{row.hasRates ? pln(row.renovation) : '—'}</td>
+                  <td className="px-2 py-1.5 text-right text-[#fde68a] print:text-stone-300 border border-[#33200d] print:border-gray-200">{row.hasRates ? pln(row.operating) : '—'}</td>
+                  <td className="px-2 py-1.5 text-right text-[#fde68a] print:text-stone-300 border border-[#33200d] print:border-gray-200">{row.hasRates ? pln(row.manager) : '—'}</td>
+                  <td className="px-2 py-1.5 text-right text-[#fde68a] print:text-stone-300 border border-[#33200d] print:border-gray-200">{row.hasRates ? pln(row.water) : '—'}</td>
+                  <td className="px-2 py-1.5 text-right text-[#fde68a] print:text-stone-300 border border-[#33200d] print:border-gray-200">{row.hasRates ? pln(row.garbage) : '—'}</td>
+                  <td className={`px-2 py-1.5 text-right border border-[#33200d] print:border-gray-200 ${row.correction !== 0 ? 'text-yellow-400 print:text-yellow-700' : 'text-[#a16207]'}`}>{row.correction !== 0 ? pln(row.correction) : '—'}</td>
+                  <td className="px-2 py-1.5 text-right font-semibold text-[#fef9ee] print:text-black border border-[#33200d] print:border-gray-200">{row.hasRates ? pln(row.total_due) : '—'}</td>
+                  <td className={`px-2 py-1.5 text-right font-bold border border-[#33200d] print:border-gray-200 ${row.balance_end >= 0 ? 'text-amber-400 print:text-green-700' : 'text-red-400 print:text-red-600'}`}>{pln(row.balance_end)}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
-              <tr className="bg-[#162418] print:bg-[#162418] font-bold">
-                <td className="px-2 py-2 text-[#d1fae5] print:text-black border border-[#1e3324] print:border-stone-400">RAZEM {year}</td>
-                <td className="px-2 py-2 text-right text-[#4d7a5f] border border-[#1e3324] print:border-stone-400">—</td>
-                <td className="px-2 py-2 text-right text-emerald-300 print:text-green-700 border border-[#1e3324] print:border-stone-400">{pln(totalPaid)}</td>
-                <td className="px-2 py-2 text-right text-[#d1fae5] print:text-black border border-[#1e3324] print:border-stone-400">{pln(totalRenovation)}</td>
-                <td className="px-2 py-2 text-right text-[#d1fae5] print:text-black border border-[#1e3324] print:border-stone-400">{pln(totalOperating)}</td>
-                <td className="px-2 py-2 text-right text-[#d1fae5] print:text-black border border-[#1e3324] print:border-stone-400">{pln(totalManager)}</td>
-                <td className="px-2 py-2 text-right text-[#d1fae5] print:text-black border border-[#1e3324] print:border-stone-400">{pln(totalWater)}</td>
-                <td className="px-2 py-2 text-right text-[#d1fae5] print:text-black border border-[#1e3324] print:border-stone-400">{pln(totalGarbage)}</td>
-                <td className="px-2 py-2 text-right text-yellow-400 print:text-yellow-700 border border-[#1e3324] print:border-stone-400">{totalCorrection !== 0 ? pln(totalCorrection) : '—'}</td>
-                <td className="px-2 py-2 text-right text-[#ecfdf5] print:text-black border border-[#1e3324] print:border-stone-400">{pln(totalDue)}</td>
-                <td className={`px-2 py-2 text-right border border-[#1e3324] print:border-stone-400 ${finalBalance >= 0 ? 'text-emerald-400 print:text-green-700' : 'text-red-400 print:text-red-600'}`}>{pln(finalBalance)}</td>
+              <tr className="bg-[#271a0c] print:bg-[#271a0c] font-bold">
+                <td className="px-2 py-2 text-[#fef3c7] print:text-black border border-[#33200d] print:border-stone-400">RAZEM {year}</td>
+                <td className="px-2 py-2 text-right text-[#a16207] border border-[#33200d] print:border-stone-400">—</td>
+                <td className="px-2 py-2 text-right text-amber-300 print:text-green-700 border border-[#33200d] print:border-stone-400">{pln(totalPaid)}</td>
+                <td className="px-2 py-2 text-right text-[#fef3c7] print:text-black border border-[#33200d] print:border-stone-400">{pln(totalRenovation)}</td>
+                <td className="px-2 py-2 text-right text-[#fef3c7] print:text-black border border-[#33200d] print:border-stone-400">{pln(totalOperating)}</td>
+                <td className="px-2 py-2 text-right text-[#fef3c7] print:text-black border border-[#33200d] print:border-stone-400">{pln(totalManager)}</td>
+                <td className="px-2 py-2 text-right text-[#fef3c7] print:text-black border border-[#33200d] print:border-stone-400">{pln(totalWater)}</td>
+                <td className="px-2 py-2 text-right text-[#fef3c7] print:text-black border border-[#33200d] print:border-stone-400">{pln(totalGarbage)}</td>
+                <td className="px-2 py-2 text-right text-yellow-400 print:text-yellow-700 border border-[#33200d] print:border-stone-400">{totalCorrection !== 0 ? pln(totalCorrection) : '—'}</td>
+                <td className="px-2 py-2 text-right text-[#fef9ee] print:text-black border border-[#33200d] print:border-stone-400">{pln(totalDue)}</td>
+                <td className={`px-2 py-2 text-right border border-[#33200d] print:border-stone-400 ${finalBalance >= 0 ? 'text-amber-400 print:text-green-700' : 'text-red-400 print:text-red-600'}`}>{pln(finalBalance)}</td>
               </tr>
             </tfoot>
           </table>
         </div>
 
         {/* Podsumowanie końcowe */}
-        <div className="grid grid-cols-3 gap-4 p-4 bg-[#121c15] print:bg-gray-50 rounded-xl border border-[#1e3324] print:border-gray-200">
+        <div className="grid grid-cols-3 gap-4 p-4 bg-[#1e1409] print:bg-gray-50 rounded-xl border border-[#33200d] print:border-gray-200">
           <div>
-            <p className="text-xs text-[#4d7a5f] print:text-[#4d7a5f]">Łącznie naliczono</p>
-            <p className="text-lg font-bold text-[#ecfdf5] print:text-black mt-0.5">{pln(totalDue)}</p>
+            <p className="text-xs text-[#a16207] print:text-[#a16207]">Łącznie naliczono</p>
+            <p className="text-lg font-bold text-[#fef9ee] print:text-black mt-0.5">{pln(totalDue)}</p>
           </div>
           <div>
-            <p className="text-xs text-[#4d7a5f] print:text-[#4d7a5f]">Łącznie wpłacono</p>
-            <p className="text-lg font-bold text-emerald-400 print:text-green-700 mt-0.5">{pln(totalPaid)}</p>
+            <p className="text-xs text-[#a16207] print:text-[#a16207]">Łącznie wpłacono</p>
+            <p className="text-lg font-bold text-amber-400 print:text-green-700 mt-0.5">{pln(totalPaid)}</p>
           </div>
           <div>
-            <p className="text-xs text-[#4d7a5f] print:text-[#4d7a5f]">{finalBalance >= 0 ? 'Nadpłata' : 'Niedopłata'}</p>
-            <p className={`text-lg font-bold mt-0.5 ${finalBalance >= 0 ? 'text-emerald-400 print:text-green-700' : 'text-red-400 print:text-red-600'}`}>
+            <p className="text-xs text-[#a16207] print:text-[#a16207]">{finalBalance >= 0 ? 'Nadpłata' : 'Niedopłata'}</p>
+            <p className={`text-lg font-bold mt-0.5 ${finalBalance >= 0 ? 'text-amber-400 print:text-green-700' : 'text-red-400 print:text-red-600'}`}>
               {pln(Math.abs(finalBalance))}
             </p>
           </div>
         </div>
 
-        <p className="text-xs text-[#4d7a5f] print:text-[#6b9478] mt-6 text-center print:text-center">
+        <p className="text-xs text-[#a16207] print:text-[#b45309] mt-6 text-center print:text-center">
           Dokument wygenerowany automatycznie przez system Panel Wspólnoty · {generatedAt}
         </p>
       </div>

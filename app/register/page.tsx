@@ -63,13 +63,13 @@ function RegisterForm() {
   // ── Ładowanie tokenu ──────────────────────────────────────────────────────
   if (checkingToken) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-[#0d1410]">
+      <main className="min-h-screen flex items-center justify-center bg-[#18110a]">
         <div className="flex flex-col items-center gap-3">
-          <svg className="w-8 h-8 text-emerald-500 animate-spin" fill="none" viewBox="0 0 24 24">
+          <svg className="w-8 h-8 text-amber-500 animate-spin" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
           </svg>
-          <p className="text-sm text-[#4d7a5f]">Weryfikuję zaproszenie…</p>
+          <p className="text-sm text-[#a16207]">Weryfikuję zaproszenie…</p>
         </div>
       </main>
     )
@@ -78,18 +78,18 @@ function RegisterForm() {
   // ── Token wygasły / nieprawidłowy ─────────────────────────────────────────
   if (tokenError) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-[#0d1410] p-4">
-        <div className="bg-[#121c15] border border-[#1e3324] rounded-2xl p-8 w-full max-w-sm text-center space-y-4">
+      <main className="min-h-screen flex items-center justify-center bg-[#18110a] p-4">
+        <div className="bg-[#1e1409] border border-[#33200d] rounded-2xl p-8 w-full max-w-sm text-center space-y-4">
           <div className="w-14 h-14 bg-red-950/40 border border-red-900/50 rounded-full flex items-center justify-center mx-auto">
             <svg className="w-7 h-7 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
             </svg>
           </div>
-          <h1 className="text-lg font-bold text-[#ecfdf5]">Link wygasł</h1>
-          <p className="text-sm text-[#6b9478] leading-relaxed">
+          <h1 className="text-lg font-bold text-[#fef9ee]">Link wygasł</h1>
+          <p className="text-sm text-[#b45309] leading-relaxed">
             Ten link zaproszenia wygasł lub został już użyty. Skontaktuj się z zarządem wspólnoty, aby otrzymać nowe zaproszenie.
           </p>
-          <Link href="/login" className="inline-block text-sm text-emerald-500 hover:underline">
+          <Link href="/login" className="inline-block text-sm text-amber-500 hover:underline">
             ← Wróć do logowania
           </Link>
         </div>
@@ -100,20 +100,20 @@ function RegisterForm() {
   // ── Sukces rejestracji ────────────────────────────────────────────────────
   if (result?.success) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-[#0d1410] p-4">
-        <div className="bg-[#121c15] border border-[#1e3324] rounded-2xl p-8 w-full max-w-sm text-center space-y-5">
-          <div className="w-16 h-16 bg-emerald-950/40 border border-emerald-700/50 rounded-full flex items-center justify-center mx-auto">
-            <svg className="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <main className="min-h-screen flex items-center justify-center bg-[#18110a] p-4">
+        <div className="bg-[#1e1409] border border-[#33200d] rounded-2xl p-8 w-full max-w-sm text-center space-y-5">
+          <div className="w-16 h-16 bg-amber-950/40 border border-amber-700/50 rounded-full flex items-center justify-center mx-auto">
+            <svg className="w-8 h-8 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8"/>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
             </svg>
           </div>
-          <h1 className="text-xl font-bold text-[#ecfdf5]">Sprawdź skrzynkę!</h1>
-          <p className="text-sm text-[#6b9478] leading-relaxed">
+          <h1 className="text-xl font-bold text-[#fef9ee]">Sprawdź skrzynkę!</h1>
+          <p className="text-sm text-[#b45309] leading-relaxed">
             Wysłaliśmy link aktywacyjny na Twój adres email. Kliknij go, aby aktywować konto.
           </p>
-          <div className="bg-[#0d1410] border border-[#162418] rounded-xl px-4 py-3 text-xs text-[#4d7a5f] text-left space-y-1.5">
-            <p className="font-semibold text-[#6b9478] mb-1">Co dalej?</p>
+          <div className="bg-[#18110a] border border-[#271a0c] rounded-xl px-4 py-3 text-xs text-[#a16207] text-left space-y-1.5">
+            <p className="font-semibold text-[#b45309] mb-1">Co dalej?</p>
             {invite ? (
               <>
                 <p>1. Kliknij link w emailu (ważny 24h)</p>
@@ -128,7 +128,7 @@ function RegisterForm() {
               </>
             )}
           </div>
-          <Link href="/login" className="inline-block text-sm text-emerald-500 hover:underline">
+          <Link href="/login" className="inline-block text-sm text-amber-500 hover:underline">
             Wróć do logowania
           </Link>
         </div>
@@ -138,18 +138,18 @@ function RegisterForm() {
 
   // ── Formularz ─────────────────────────────────────────────────────────────
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#0d1410] p-4">
+    <main className="min-h-screen flex items-center justify-center bg-[#18110a] p-4">
       <div className="w-full max-w-sm">
 
         {/* Baner zaproszenia personalnego */}
         {invite && (
-          <div className="bg-emerald-950/30 border border-emerald-700/40 rounded-xl px-4 py-3 mb-4 flex items-center gap-3">
+          <div className="bg-amber-950/30 border border-amber-700/40 rounded-xl px-4 py-3 mb-4 flex items-center gap-3">
             <span className="text-2xl flex-shrink-0">🏠</span>
             <div>
-              <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wide">Zaproszenie od zarządu</p>
-              <p className="text-sm text-[#ecfdf5] font-medium">{invite.community_name}</p>
+              <p className="text-xs font-semibold text-amber-400 uppercase tracking-wide">Zaproszenie od zarządu</p>
+              <p className="text-sm text-[#fef9ee] font-medium">{invite.community_name}</p>
               {invite.apartment_number && (
-                <p className="text-xs text-[#6b9478]">Lokal {invite.apartment_number}</p>
+                <p className="text-xs text-[#b45309]">Lokal {invite.apartment_number}</p>
               )}
             </div>
           </div>
@@ -157,29 +157,29 @@ function RegisterForm() {
 
         {/* Baner rejestracji przez link wspólnoty */}
         {communityData && !invite && (
-          <div className="bg-emerald-950/30 border border-emerald-700/40 rounded-xl px-4 py-3 mb-4 flex items-center gap-3">
+          <div className="bg-amber-950/30 border border-amber-700/40 rounded-xl px-4 py-3 mb-4 flex items-center gap-3">
             <span className="text-2xl flex-shrink-0">🏢</span>
             <div>
-              <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wide">Rejestracja do wspólnoty</p>
-              <p className="text-sm text-[#ecfdf5] font-medium">{communityData.community_name}</p>
-              <p className="text-xs text-[#6b9478]">Konto zostanie aktywowane po weryfikacji przez administratora</p>
+              <p className="text-xs font-semibold text-amber-400 uppercase tracking-wide">Rejestracja do wspólnoty</p>
+              <p className="text-sm text-[#fef9ee] font-medium">{communityData.community_name}</p>
+              <p className="text-xs text-[#b45309]">Konto zostanie aktywowane po weryfikacji przez administratora</p>
             </div>
           </div>
         )}
 
-        <div className="bg-[#121c15] border border-[#1e3324] rounded-2xl shadow-2xl shadow-black/40 p-8 space-y-5">
+        <div className="bg-[#1e1409] border border-[#33200d] rounded-2xl shadow-2xl shadow-black/40 p-8 space-y-5">
           <div>
-            <h1 className="text-2xl font-bold text-[#ecfdf5]">
+            <h1 className="text-2xl font-bold text-[#fef9ee]">
               {invite || communityData ? 'Utwórz konto' : 'Rejestracja'}
             </h1>
-            <p className="text-sm text-[#4d7a5f] mt-1">
+            <p className="text-sm text-[#a16207] mt-1">
               {invite ? 'Już prawie gotowe — ustaw hasło do konta' : 'Utwórz konto w panelu wspólnoty'}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-              <label className="block text-xs font-semibold text-[#a7f3d0] mb-1.5 uppercase tracking-wide">Email</label>
+              <label className="block text-xs font-semibold text-[#fde68a] mb-1.5 uppercase tracking-wide">Email</label>
               <input
                 name="email"
                 type="email"
@@ -189,12 +189,12 @@ function RegisterForm() {
                 required
               />
               {invite?.email && (
-                <p className="text-xs text-[#2a4a2a] mt-1">Zaproszenie zostało wysłane na <span className="text-[#6b9478]">{invite.email}</span> — możesz wpisać inny adres.</p>
+                <p className="text-xs text-[#3d2008] mt-1">Zaproszenie zostało wysłane na <span className="text-[#b45309]">{invite.email}</span> — możesz wpisać inny adres.</p>
               )}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#a7f3d0] mb-1.5 uppercase tracking-wide">Hasło</label>
+              <label className="block text-xs font-semibold text-[#fde68a] mb-1.5 uppercase tracking-wide">Hasło</label>
               <input
                 name="password"
                 type="password"
@@ -206,7 +206,7 @@ function RegisterForm() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#a7f3d0] mb-1.5 uppercase tracking-wide">Imię i nazwisko</label>
+              <label className="block text-xs font-semibold text-[#fde68a] mb-1.5 uppercase tracking-wide">Imię i nazwisko</label>
               <input
                 name="full_name"
                 type="text"
@@ -220,7 +220,7 @@ function RegisterForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-600 text-white font-semibold rounded-lg py-2.5 text-sm transition disabled:opacity-50 mt-2"
+              className="w-full flex items-center justify-center gap-2 bg-amber-700 hover:bg-amber-600 text-white font-semibold rounded-lg py-2.5 text-sm transition disabled:opacity-50 mt-2"
             >
               {loading ? (
                 <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Rejestruję…</>
@@ -237,7 +237,7 @@ function RegisterForm() {
           )}
 
           <div className="text-center pt-1">
-            <Link href="/login" className="text-sm text-emerald-500 hover:underline">
+            <Link href="/login" className="text-sm text-amber-500 hover:underline">
               Masz już konto? Zaloguj się
             </Link>
           </div>
@@ -250,8 +250,8 @@ function RegisterForm() {
 export default function RegisterPage() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen flex items-center justify-center bg-[#0d1410]">
-        <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"/>
+      <main className="min-h-screen flex items-center justify-center bg-[#18110a]">
+        <div className="w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full animate-spin"/>
       </main>
     }>
       <RegisterForm />

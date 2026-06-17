@@ -58,43 +58,43 @@ export default async function ApartmentSettlementPage({
   return (
     <div className="space-y-6 max-w-6xl">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-[#4d7a5f]">
+      <div className="flex items-center gap-2 text-sm text-[#a16207]">
         {profile.role !== 'user' && (
           <>
-            <Link href="/admin/settlements" className="hover:text-[#a7f3d0] transition">Rozliczenia</Link>
+            <Link href="/admin/settlements" className="hover:text-[#fde68a] transition">Rozliczenia</Link>
             <span>›</span>
           </>
         )}
-        <span className="text-[#a7f3d0]">Lokal {apartment.number}</span>
+        <span className="text-[#fde68a]">Lokal {apartment.number}</span>
       </div>
 
       {/* Header lokalu */}
-      <div className="bg-[#121c15] border border-[#1e3324] rounded-xl p-5">
+      <div className="bg-[#1e1409] border border-[#33200d] rounded-xl p-5">
         <div className="flex items-start justify-between flex-wrap gap-4">
           <div>
-            <h2 className="text-xl font-bold text-[#ecfdf5]">Lokal nr {apartment.number}</h2>
-            <p className="text-sm text-[#6b9478] mt-1">{apartment.owner_name}</p>
+            <h2 className="text-xl font-bold text-[#fef9ee]">Lokal nr {apartment.number}</h2>
+            <p className="text-sm text-[#b45309] mt-1">{apartment.owner_name}</p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
             <div>
-              <p className="text-xs text-[#4d7a5f]">Powierzchnia</p>
-              <p className="font-semibold text-[#d1fae5] mt-0.5">{Number(apartment.area_m2).toFixed(4)} m²</p>
+              <p className="text-xs text-[#a16207]">Powierzchnia</p>
+              <p className="font-semibold text-[#fef3c7] mt-0.5">{Number(apartment.area_m2).toFixed(4)} m²</p>
             </div>
             <div>
-              <p className="text-xs text-[#4d7a5f]">Udział KW</p>
-              <p className="font-semibold text-[#d1fae5] mt-0.5">
+              <p className="text-xs text-[#a16207]">Udział KW</p>
+              <p className="font-semibold text-[#fef3c7] mt-0.5">
                 {apartment.share_numerator && apartment.share_denominator
                   ? `${apartment.share_numerator}/${apartment.share_denominator}`
                   : '—'}
               </p>
             </div>
             <div>
-              <p className="text-xs text-[#4d7a5f]">Osoby</p>
-              <p className="font-semibold text-[#d1fae5] mt-0.5">{apartment.persons_count}</p>
+              <p className="text-xs text-[#a16207]">Osoby</p>
+              <p className="font-semibold text-[#fef3c7] mt-0.5">{apartment.persons_count}</p>
             </div>
             <div>
-              <p className="text-xs text-[#4d7a5f]">Wodomierz</p>
-              <p className="font-semibold text-[#d1fae5] mt-0.5">{apartment.has_meter ? '✓ Tak' : '✗ Nie'}</p>
+              <p className="text-xs text-[#a16207]">Wodomierz</p>
+              <p className="font-semibold text-[#fef3c7] mt-0.5">{apartment.has_meter ? '✓ Tak' : '✗ Nie'}</p>
             </div>
           </div>
         </div>
@@ -105,7 +105,7 @@ export default async function ApartmentSettlementPage({
         <Link
           href={`/admin/settlements/${apartmentId}/print?year=${year}`}
           target="_blank"
-          className="text-xs bg-[#162418] hover:bg-[#1c2e1e] text-[#a7f3d0] hover:text-white border border-[#1e3324] px-3 py-1.5 rounded-lg transition font-medium"
+          className="text-xs bg-[#271a0c] hover:bg-[#2a1b09] text-[#fde68a] hover:text-white border border-[#33200d] px-3 py-1.5 rounded-lg transition font-medium"
         >
           🖨️ Pobierz PDF
         </Link>
@@ -113,14 +113,14 @@ export default async function ApartmentSettlementPage({
 
       {/* Rok */}
       <div className="flex items-center gap-3">
-        <label className="text-sm text-[#6b9478]">Rok obrachunkowy:</label>
+        <label className="text-sm text-[#b45309]">Rok obrachunkowy:</label>
         <div className="flex gap-1">
           {[year - 1, year, year + 1].map(y => (
             <Link key={y} href={`/admin/settlements/${apartmentId}?year=${y}`}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
                 y === year
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-[#121c15] text-[#6b9478] hover:text-[#d1fae5] border border-[#1e3324]'
+                  ? 'bg-amber-600 text-white'
+                  : 'bg-[#1e1409] text-[#b45309] hover:text-[#fef3c7] border border-[#33200d]'
               }`}>
               {y}
             </Link>

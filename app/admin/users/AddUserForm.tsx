@@ -47,27 +47,27 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
     <>
       <button
         onClick={() => setOpen(true)}
-        className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition flex items-center gap-2"
+        className="bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition flex items-center gap-2"
       >
         + Dodaj użytkownika
       </button>
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
-          <div className="bg-[#0d1410] border border-[#1e3324] rounded-t-2xl sm:rounded-2xl w-full max-w-md shadow-2xl max-h-[92dvh] flex flex-col">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#1e3324]">
-              <h3 className="text-base font-semibold text-[#ecfdf5]">Dodaj użytkownika</h3>
-              <button onClick={() => setOpen(false)} className="text-[#4d7a5f] hover:text-[#a7f3d0] text-xl leading-none">×</button>
+          <div className="bg-[#18110a] border border-[#33200d] rounded-t-2xl sm:rounded-2xl w-full max-w-md shadow-2xl max-h-[92dvh] flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#33200d]">
+              <h3 className="text-base font-semibold text-[#fef9ee]">Dodaj użytkownika</h3>
+              <button onClick={() => setOpen(false)} className="text-[#a16207] hover:text-[#fde68a] text-xl leading-none">×</button>
             </div>
 
             {success ? (
               <div className="px-6 py-10 text-center">
-                <p className="text-emerald-400 text-lg font-semibold">✓ Użytkownik dodany</p>
+                <p className="text-amber-400 text-lg font-semibold">✓ Użytkownik dodany</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4 overflow-y-auto flex-1">
                 <div>
-                  <label className="block text-xs text-[#6b9478] mb-1">Imię i nazwisko</label>
+                  <label className="block text-xs text-[#b45309] mb-1">Imię i nazwisko</label>
                   <input
                     type="text"
                     required
@@ -78,7 +78,7 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-[#6b9478] mb-1">Adres e-mail</label>
+                  <label className="block text-xs text-[#b45309] mb-1">Adres e-mail</label>
                   <input
                     type="email"
                     required
@@ -89,7 +89,7 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-[#6b9478] mb-1">Hasło tymczasowe</label>
+                  <label className="block text-xs text-[#b45309] mb-1">Hasło tymczasowe</label>
                   <input
                     type="password"
                     required
@@ -102,7 +102,7 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs text-[#6b9478] mb-1">Rola</label>
+                    <label className="block text-xs text-[#b45309] mb-1">Rola</label>
                     <select
                       className="input w-full"
                       value={form.role}
@@ -114,7 +114,7 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs text-[#6b9478] mb-1">Wspólnota</label>
+                    <label className="block text-xs text-[#b45309] mb-1">Wspólnota</label>
                     {isSuperAdmin ? (
                       <select
                         className="input w-full"
@@ -127,7 +127,7 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
                         ))}
                       </select>
                     ) : (
-                      <p className="input w-full text-[#6b9478] text-sm py-2">
+                      <p className="input w-full text-[#b45309] text-sm py-2">
                         {communities.find((c) => c.id === adminCommunityId)?.name ?? '—'}
                       </p>
                     )}
@@ -136,7 +136,7 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
 
                 {form.role === 'user' && (
                   <div>
-                    <label className="block text-xs text-[#6b9478] mb-1">Lokal (opcjonalnie)</label>
+                    <label className="block text-xs text-[#b45309] mb-1">Lokal (opcjonalnie)</label>
                     <select
                       className="input w-full"
                       value={form.apartment_id}
@@ -158,14 +158,14 @@ export default function AddUserForm({ communities, isSuperAdmin, adminCommunityI
                   <button
                     type="button"
                     onClick={() => setOpen(false)}
-                    className="text-sm text-[#6b9478] hover:text-[#d1fae5] transition px-3 py-2"
+                    className="text-sm text-[#b45309] hover:text-[#fef3c7] transition px-3 py-2"
                   >
                     Anuluj
                   </button>
                   <button
                     type="submit"
                     disabled={isPending}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-5 py-2 rounded-lg transition disabled:opacity-50"
+                    className="bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-5 py-2 rounded-lg transition disabled:opacity-50"
                   >
                     {isPending ? 'Tworzenie...' : 'Utwórz konto'}
                   </button>

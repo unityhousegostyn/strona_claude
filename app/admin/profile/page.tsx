@@ -27,20 +27,20 @@ export default async function ProfilePage() {
 
   return (
     <div className="max-w-xl space-y-6">
-      <h2 className="text-2xl font-bold text-[#ecfdf5]">Mój profil</h2>
+      <h2 className="text-2xl font-bold text-[#fef9ee]">Mój profil</h2>
 
       {/* Informacje o koncie */}
-      <div className="bg-[#121c15] border border-[#1e3324] rounded-xl p-6 space-y-3">
-        <h3 className="text-sm font-semibold text-[#4d7a5f] uppercase tracking-wide">Informacje o koncie</h3>
+      <div className="bg-[#1e1409] border border-[#33200d] rounded-xl p-6 space-y-3">
+        <h3 className="text-sm font-semibold text-[#a16207] uppercase tracking-wide">Informacje o koncie</h3>
         <div className="grid grid-cols-2 gap-y-3 text-sm">
-          <span className="text-[#4d7a5f]">Email</span>
-          <span className="text-[#ecfdf5] font-medium">{user.email}</span>
-          <span className="text-[#4d7a5f]">Rola</span>
-          <span className="text-[#ecfdf5] font-medium">{roleLabel[profile.role] ?? profile.role}</span>
-          <span className="text-[#4d7a5f]">Wspólnota</span>
-          <span className="text-[#ecfdf5] font-medium">{(profile.community as any)?.name ?? '—'}</span>
-          <span className="text-[#4d7a5f]">Status</span>
-          <span className={`font-medium ${profile.status === 'active' ? 'text-emerald-500' : 'text-yellow-400'}`}>
+          <span className="text-[#a16207]">Email</span>
+          <span className="text-[#fef9ee] font-medium">{user.email}</span>
+          <span className="text-[#a16207]">Rola</span>
+          <span className="text-[#fef9ee] font-medium">{roleLabel[profile.role] ?? profile.role}</span>
+          <span className="text-[#a16207]">Wspólnota</span>
+          <span className="text-[#fef9ee] font-medium">{(profile.community as any)?.name ?? '—'}</span>
+          <span className="text-[#a16207]">Status</span>
+          <span className={`font-medium ${profile.status === 'active' ? 'text-amber-500' : 'text-yellow-400'}`}>
             {profile.status === 'active' ? 'Aktywny' : 'Oczekujący'}
           </span>
         </div>
@@ -53,9 +53,9 @@ export default async function ProfilePage() {
       <PushSubscribe />
 
       {/* Język interfejsu */}
-      <div className="bg-[#121c15] border border-[#1e3324] rounded-xl p-6 space-y-4">
-        <h3 className="text-sm font-semibold text-[#4d7a5f] uppercase tracking-wide">Język interfejsu</h3>
-        <p className="text-xs text-[#4d7a5f]">Wybierz język wyświetlania panelu. Ustawienie jest zapisywane w przeglądarce.</p>
+      <div className="bg-[#1e1409] border border-[#33200d] rounded-xl p-6 space-y-4">
+        <h3 className="text-sm font-semibold text-[#a16207] uppercase tracking-wide">Język interfejsu</h3>
+        <p className="text-xs text-[#a16207]">Wybierz język wyświetlania panelu. Ustawienie jest zapisywane w przeglądarce.</p>
         <LanguageSwitcher />
       </div>
     </div>

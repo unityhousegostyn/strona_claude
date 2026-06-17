@@ -65,7 +65,7 @@ export default function EditCommunityPage() {
 
   return (
     <div className="max-w-xl space-y-6">
-      <h2 className="text-2xl font-bold text-[#ecfdf5]">Edytuj wspólnotę</h2>
+      <h2 className="text-2xl font-bold text-[#fef9ee]">Edytuj wspólnotę</h2>
 
       {error && (
         <div className="bg-red-950/30 border border-red-900 text-red-400 text-sm rounded-lg px-4 py-3">
@@ -73,9 +73,9 @@ export default function EditCommunityPage() {
         </div>
       )}
 
-      <div className="bg-[#121c15] border border-[#1e3324] rounded-xl p-6 space-y-4">
+      <div className="bg-[#1e1409] border border-[#33200d] rounded-xl p-6 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-[#a7f3d0] mb-1">Nazwa wspólnoty</label>
+          <label className="block text-sm font-medium text-[#fde68a] mb-1">Nazwa wspólnoty</label>
           <input
             className="input"
             value={name}
@@ -83,7 +83,7 @@ export default function EditCommunityPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-[#a7f3d0] mb-1">Adres</label>
+          <label className="block text-sm font-medium text-[#fde68a] mb-1">Adres</label>
           <input
             className="input"
             value={address}
@@ -92,13 +92,13 @@ export default function EditCommunityPage() {
         </div>
         <div className="flex items-center justify-between py-2">
           <div>
-            <p className="text-sm font-medium text-[#a7f3d0]">Moduł liczników wody</p>
-            <p className="text-xs text-[#4d7a5f] mt-0.5">Mieszkańcy tej wspólnoty mogą zgłaszać odczyty wodomierzy</p>
+            <p className="text-sm font-medium text-[#fde68a]">Moduł liczników wody</p>
+            <p className="text-xs text-[#a16207] mt-0.5">Mieszkańcy tej wspólnoty mogą zgłaszać odczyty wodomierzy</p>
           </div>
           <button
             type="button"
             onClick={() => setWaterMeterEnabled(v => !v)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${waterMeterEnabled ? 'bg-blue-600' : 'bg-[#1e3324]'}`}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${waterMeterEnabled ? 'bg-blue-600' : 'bg-[#33200d]'}`}
           >
             <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${waterMeterEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
           </button>
@@ -110,13 +110,13 @@ export default function EditCommunityPage() {
           <button
             onClick={handleUpdate}
             disabled={loading}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
+            className="bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50"
           >
             {loading ? 'Zapisywanie...' : 'Zapisz zmiany'}
           </button>
           <button
             onClick={() => router.back()}
-            className="text-sm text-[#6b9478] hover:text-[#ecfdf5] px-5 py-2.5 rounded-lg border border-[#1e3324] hover:bg-[#0d1410] transition"
+            className="text-sm text-[#b45309] hover:text-[#fef9ee] px-5 py-2.5 rounded-lg border border-[#33200d] hover:bg-[#18110a] transition"
           >
             Anuluj
           </button>

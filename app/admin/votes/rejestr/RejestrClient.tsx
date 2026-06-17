@@ -66,11 +66,11 @@ export default function RejestrClient({ votes, communities, isSuperAdmin, aptCou
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-[#ecfdf5]">📋 Rejestr uchwał</h2>
-          <p className="text-sm text-[#4d7a5f] mt-0.5">Pełna historia głosowań i uchwał wspólnoty</p>
+          <h2 className="text-2xl font-bold text-[#fef9ee]">📋 Rejestr uchwał</h2>
+          <p className="text-sm text-[#a16207] mt-0.5">Pełna historia głosowań i uchwał wspólnoty</p>
         </div>
         <Link href="/admin/votes"
-          className="text-sm text-[#6b9478] hover:text-[#a7f3d0] border border-[#1e3324] px-3 py-1.5 rounded-lg transition">
+          className="text-sm text-[#b45309] hover:text-[#fde68a] border border-[#33200d] px-3 py-1.5 rounded-lg transition">
           ← Głosowania
         </Link>
       </div>
@@ -92,35 +92,35 @@ export default function RejestrClient({ votes, communities, isSuperAdmin, aptCou
           <option value="all">Wszystkie lata</option>
           {years.map(y => <option key={y} value={String(y)}>{y}</option>)}
         </select>
-        <span className="text-xs text-[#4d7a5f] self-center ml-auto">
+        <span className="text-xs text-[#a16207] self-center ml-auto">
           {filtered.length} {filtered.length === 1 ? 'uchwała' : filtered.length < 5 ? 'uchwały' : 'uchwał'}
         </span>
       </div>
 
       {/* Tabela */}
       {filtered.length === 0 ? (
-        <div className="text-center py-16 text-[#4d7a5f]">
+        <div className="text-center py-16 text-[#a16207]">
           <p className="text-4xl mb-3">📋</p>
           <p>Brak uchwał spełniających kryteria.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-[#1e3324]">
+        <div className="overflow-x-auto rounded-xl border border-[#33200d]">
           <table className="w-full min-w-[700px] text-sm">
             <thead>
-              <tr className="border-b border-[#1e3324] bg-[#121c15]">
-                <th className="text-left px-4 py-3 text-xs font-semibold text-[#4d7a5f] uppercase tracking-wider w-20">Nr</th>
+              <tr className="border-b border-[#33200d] bg-[#1e1409]">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#a16207] uppercase tracking-wider w-20">Nr</th>
                 {isSuperAdmin && (
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#4d7a5f] uppercase tracking-wider">Wspólnota</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-[#a16207] uppercase tracking-wider">Wspólnota</th>
                 )}
-                <th className="text-left px-4 py-3 text-xs font-semibold text-[#4d7a5f] uppercase tracking-wider">Tytuł uchwały</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-[#4d7a5f] uppercase tracking-wider w-24">Data</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-[#4d7a5f] uppercase tracking-wider w-20">Status</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-[#4d7a5f] uppercase tracking-wider w-32">Wynik ZA</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-[#4d7a5f] uppercase tracking-wider w-24">Frekwencja</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#a16207] uppercase tracking-wider">Tytuł uchwały</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#a16207] uppercase tracking-wider w-24">Data</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#a16207] uppercase tracking-wider w-20">Status</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#a16207] uppercase tracking-wider w-32">Wynik ZA</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#a16207] uppercase tracking-wider w-24">Frekwencja</th>
                 <th className="px-4 py-3 w-20"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1e3324]">
+            <tbody className="divide-y divide-[#33200d]">
               {filtered.map(vote => {
                 const res = calcResults(vote)
                 const totalApts = aptCountByCommunity[vote.community_id] ?? 0
@@ -128,56 +128,56 @@ export default function RejestrClient({ votes, communities, isSuperAdmin, aptCou
                 const frekwencja = totalApts > 0 ? Math.round(voterApts / totalApts * 100) : 0
 
                 return (
-                  <tr key={vote.id} className="bg-[#0d1410] hover:bg-[#121c15] transition">
-                    <td className="px-4 py-3 font-mono text-sm font-semibold text-emerald-400">
+                  <tr key={vote.id} className="bg-[#18110a] hover:bg-[#1e1409] transition">
+                    <td className="px-4 py-3 font-mono text-sm font-semibold text-amber-400">
                       {resolutionLabel(vote)}
                     </td>
                     {isSuperAdmin && (
-                      <td className="px-4 py-3 text-[#6b9478] text-xs">{vote.community?.name ?? '—'}</td>
+                      <td className="px-4 py-3 text-[#b45309] text-xs">{vote.community?.name ?? '—'}</td>
                     )}
                     <td className="px-4 py-3">
-                      <p className="text-[#ecfdf5] font-medium leading-snug">{vote.title}</p>
-                      <p className="text-xs text-[#4d7a5f] mt-0.5">
+                      <p className="text-[#fef9ee] font-medium leading-snug">{vote.title}</p>
+                      <p className="text-xs text-[#a16207] mt-0.5">
                         {vote.voting_method === 'by_share' ? 'wg udziałów' : '1 lokal = 1 głos'}
                       </p>
                     </td>
-                    <td className="px-4 py-3 text-xs text-[#6b9478] whitespace-nowrap">{fmtDate(vote.created_at)}</td>
+                    <td className="px-4 py-3 text-xs text-[#b45309] whitespace-nowrap">{fmtDate(vote.created_at)}</td>
                     <td className="px-4 py-3">
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                        vote.status === 'open' ? 'bg-emerald-900/30 text-emerald-400' : 'bg-[#162418] text-[#4d7a5f]'
+                        vote.status === 'open' ? 'bg-amber-900/30 text-amber-400' : 'bg-[#271a0c] text-[#a16207]'
                       }`}>
                         {vote.status === 'open' ? '● Otwarte' : '✓ Zamknięte'}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-[#162418] rounded-full h-1.5 w-16">
+                        <div className="flex-1 bg-[#271a0c] rounded-full h-1.5 w-16">
                           <div
-                            className={`h-1.5 rounded-full ${res.pct(res.yes) > 50 ? 'bg-emerald-500' : 'bg-red-500'}`}
+                            className={`h-1.5 rounded-full ${res.pct(res.yes) > 50 ? 'bg-amber-500' : 'bg-red-500'}`}
                             style={{ width: `${res.pct(res.yes)}%` }}
                           />
                         </div>
-                        <span className={`text-xs font-semibold ${res.pct(res.yes) > 50 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        <span className={`text-xs font-semibold ${res.pct(res.yes) > 50 ? 'text-amber-400' : 'text-red-400'}`}>
                           {res.pct(res.yes)}%
                         </span>
                       </div>
                       {vote.status === 'closed' && (
-                        <p className={`text-xs mt-0.5 ${res.pct(res.yes) > 50 ? 'text-emerald-500' : 'text-red-500'}`}>
+                        <p className={`text-xs mt-0.5 ${res.pct(res.yes) > 50 ? 'text-amber-500' : 'text-red-500'}`}>
                           {res.pct(res.yes) > 50 ? '✓ Przyjęta' : '✗ Odrzucona'}
                         </p>
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-xs text-[#6b9478]">{voterApts}/{totalApts || '?'}</span>
+                      <span className="text-xs text-[#b45309]">{voterApts}/{totalApts || '?'}</span>
                       {totalApts > 0 && (
-                        <p className="text-xs text-[#4d7a5f]">{frekwencja}%</p>
+                        <p className="text-xs text-[#a16207]">{frekwencja}%</p>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <Link
                         href={`/api/votes/${vote.id}/raport`}
                         target="_blank"
-                        className="text-xs text-emerald-400 hover:text-emerald-300 border border-emerald-800/60 px-2 py-1 rounded transition whitespace-nowrap"
+                        className="text-xs text-amber-400 hover:text-amber-300 border border-amber-800/60 px-2 py-1 rounded transition whitespace-nowrap"
                       >
                         📄 Raport
                       </Link>
@@ -194,18 +194,18 @@ export default function RejestrClient({ votes, communities, isSuperAdmin, aptCou
       {filtered.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { label: 'Łącznie', value: filtered.length, color: 'text-[#ecfdf5]' },
-            { label: 'Otwartych', value: filtered.filter(v => v.status === 'open').length, color: 'text-emerald-400' },
-            { label: 'Zamkniętych', value: filtered.filter(v => v.status === 'closed').length, color: 'text-[#6b9478]' },
+            { label: 'Łącznie', value: filtered.length, color: 'text-[#fef9ee]' },
+            { label: 'Otwartych', value: filtered.filter(v => v.status === 'open').length, color: 'text-amber-400' },
+            { label: 'Zamkniętych', value: filtered.filter(v => v.status === 'closed').length, color: 'text-[#b45309]' },
             {
               label: 'Przyjętych',
               value: filtered.filter(v => v.status === 'closed' && calcResults(v).pct(calcResults(v).yes) > 50).length,
-              color: 'text-emerald-400',
+              color: 'text-amber-400',
             },
           ].map(s => (
-            <div key={s.label} className="bg-[#121c15] border border-[#1e3324] rounded-xl p-4 text-center">
+            <div key={s.label} className="bg-[#1e1409] border border-[#33200d] rounded-xl p-4 text-center">
               <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-              <p className="text-xs text-[#4d7a5f] mt-0.5">{s.label}</p>
+              <p className="text-xs text-[#a16207] mt-0.5">{s.label}</p>
             </div>
           ))}
         </div>

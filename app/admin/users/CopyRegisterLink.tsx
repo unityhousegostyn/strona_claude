@@ -34,7 +34,7 @@ export default function CopyRegisterLink({ communityId, communities }: Props) {
         <select
           value={selectedId}
           onChange={e => { setSelectedId(e.target.value); setCopied(false) }}
-          className="text-sm border border-[#1e3324] bg-[#0d1410] text-[#a7f3d0] rounded-lg px-2 py-2 focus:outline-none focus:ring-1 focus:ring-emerald-700 max-w-[200px]"
+          className="text-sm border border-[#33200d] bg-[#18110a] text-[#fde68a] rounded-lg px-2 py-2 focus:outline-none focus:ring-1 focus:ring-amber-700 max-w-[200px]"
         >
           <option value="">Wybierz wspólnotę…</option>
           {communities!.map(c => (
@@ -48,8 +48,8 @@ export default function CopyRegisterLink({ communityId, communities }: Props) {
         title="Link rejestracyjny dla mieszkańców"
         className={`flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg border transition disabled:opacity-40 ${
           copied
-            ? 'bg-emerald-950/40 border-emerald-700/60 text-emerald-400'
-            : 'border-[#1e3324] text-[#6b9478] hover:text-[#ecfdf5] hover:border-[#2a4a2a] hover:bg-[#0d1410]'
+            ? 'bg-amber-950/40 border-amber-700/60 text-amber-400'
+            : 'border-[#33200d] text-[#b45309] hover:text-[#fef9ee] hover:border-[#3d2008] hover:bg-[#18110a]'
         }`}
       >
         {copied ? (
