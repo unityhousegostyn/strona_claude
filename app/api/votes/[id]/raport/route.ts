@@ -22,21 +22,32 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const admin = getSupabaseAdminClient()
 
-  const { data: vote } = await admin
+  const { data: vote, error: voteErr } = await admin
     .from('votes')
     .select(`
       id, title, description, status, voting_method, created_at, closed_at, deadline,
       resolution_number, community_id,
       community:communities(name, address),
-      choices:vote_choices(id, choice, share_value, created_at, apartment_id, user_id,
-        profile:profiles(full_name, email))
+      choices:vote_choices(id, choice, share_value, created_at, apartment_id, user_id)
     `)
     .eq('id', id)
     .single()
 
-  if (!vote) return new NextResponse('Nie znaleziono uchwały', { status: 404 })
+  if (!vote) return new NextResponse(`Nie znaleziono uchwały (${voteErr?.message ?? ''})`, { status: 404 })
   if (profile.role === 'admin' && profile.community_id !== vote.community_id)
     return new NextResponse('Brak uprawnień', { status: 403 })
+
+  // Pobierz profile głosujących osobno (embedded join profile:profiles psuje zapytanie)
+  const choices = (vote.choices ?? []) as any[]
+  const voterIds = [...new Set(choices.map((c: any) => c.user_id).filter(Boolean))]
+  let profileMap: Record<string, { full_name: string | null; email: string | null }> = {}
+  if (voterIds.length > 0) {
+    const { data: profilesData } = await admin
+      .from('profiles')
+      .select('id, full_name, email')
+      .in('id', voterIds)
+    for (const p of profilesData ?? []) { profileMap[p.id] = p }
+  }
 
   const { data: apartments } = await admin
     .from('settlement_apartments')
@@ -62,7 +73,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const passed = yes > total / 2
 
   const choiceByApt: Record<string, any> = {}
-  for (const c of choices) { if (c.apartment_id) choiceByApt[c.apartment_id] = c }
+  for (const c of choices) {
+    if (c.apartment_id) choiceByApt[c.apartment_id] = c
+  }
 
   const totalApts = apartments?.length ?? 0
   const votedApts = new Set(choices.map((c: any) => c.apartment_id).filter(Boolean)).size
@@ -74,7 +87,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const share = apt.share_numerator && apt.share_denominator
       ? `${(apt.share_numerator / apt.share_denominator * 100).toFixed(4)}%`
       : '—'
-    const voterName = c?.profile?.full_name ?? c?.profile?.email ?? '—'
+    const p = c ? profileMap[c.user_id] : null
+    const voterName = p?.full_name ?? p?.email ?? '—'
     const badgeStyle = c
       ? c.choice === 'yes'
         ? 'background:#dcfce7;color:#166534;font-weight:bold;padding:1pt 5pt;border-radius:3pt'
