@@ -64,7 +64,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const resolutionNumber = vote.resolution_number ? `${vote.resolution_number}/${year}` : '—'
 
   const byShare = vote.voting_method === 'by_share'
-  const choices = (vote.choices ?? []) as any[]
   const yes = choices.filter(c => c.choice === 'yes').reduce((s: number, c: any) => s + (byShare ? c.share_value : 1), 0)
   const no  = choices.filter(c => c.choice === 'no').reduce((s: number, c: any) => s + (byShare ? c.share_value : 1), 0)
   const ab  = choices.filter(c => c.choice === 'abstain').reduce((s: number, c: any) => s + (byShare ? c.share_value : 1), 0)
