@@ -604,6 +604,58 @@ export async function sendVoteClosedEmail(params: {
   })
 }
 
+// ── PRZYPOMNIENIE O GŁOSOWANIU (24h) ─────────────────────────────────────────
+
+export async function sendVoteReminderEmail(params: {
+  to: string[]
+  voteTitle: string
+  communityName: string
+  voteId: string
+  deadline?: string | null
+  resolutionNumber?: string | null
+}) {
+  if (params.to.length === 0) return
+
+  const deadlineStr = params.deadline
+    ? new Date(params.deadline).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    : null
+
+  const resNum = params.resolutionNumber ? ` (Uchwała nr ${params.resolutionNumber})` : ''
+
+  await sendMail({
+    to: params.to,
+    subject: `⏰ Przypomnienie: trwa głosowanie — ${params.voteTitle}`,
+    html: layout(`
+      <p style="margin:0 0 4px;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#64748b;">PRZYPOMNIENIE O GŁOSOWANIU</p>
+      <h1 style="margin:0 0 4px;font-size:22px;font-weight:700;color:#0d9488;">${params.voteTitle}${resNum}</h1>
+      <p style="margin:0 0 28px;font-size:13px;color:#64748b;">${params.communityName}</p>
+
+      <div style="background:#f0fdfa;border-left:4px solid #0d9488;border-radius:0 8px 8px 0;padding:16px 20px;margin:0 0 24px;">
+        <p style="margin:0;font-size:15px;color:#134e4a;line-height:1.7;">
+          Trwa głosowanie nad uchwałą, w którym jeszcze <strong>nie oddali Państwo głosu</strong>.<br>
+          Przypominamy, że każdy głos jest ważny dla wspólnoty.
+        </p>
+      </div>
+
+      ${deadlineStr
+        ? `<table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
+            ${infoBox('Termin głosowania', `<strong style="color:#0d9488;">${deadlineStr}</strong>`)}
+           </table>`
+        : ''}
+
+      <p style="font-size:14px;color:#334155;line-height:1.7;margin:0 0 32px;">
+        Zaloguj się do panelu i oddaj swój głos — zajmie to tylko chwilę.
+      </p>
+
+      <div style="text-align:center;margin:8px 0 16px;">
+        <a href="${APP_URL}/admin/votes" style="display:inline-block;background:#0d9488;color:#ffffff;font-size:14px;font-weight:600;padding:14px 32px;border-radius:8px;text-decoration:none;letter-spacing:0.3px;">
+          Przejdź do głosowania →
+        </a>
+      </div>
+    `),
+  })
+}
+
 // ── Kafelek funkcji (używany w zaproszeniu) ───────────────────────────────────
 
 function featureTile(icon: string, title: string, desc: string) {

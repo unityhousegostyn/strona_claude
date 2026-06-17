@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/mature-deposits",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/vote-reminders",
+      "schedule": "0 * * * *"
     }
   ]
 }
