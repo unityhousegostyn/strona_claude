@@ -51,9 +51,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const { data: apartments } = await admin
     .from('settlement_apartments')
-    .select('id, apartment_number, share_numerator, share_denominator')
+    .select('id, apartment_number, share_numerator, share_denominator, active')
     .eq('community_id', vote.community_id)
-    .eq('active', true)
     .order('apartment_number')
 
   const communityRaw = vote.community as any
@@ -96,8 +95,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         : 'background:#f3f4f6;color:#6b7280;font-weight:bold;padding:1pt 5pt;border-radius:3pt'
       : ''
     const badgeText = c ? choiceLabel[c.choice] : '<span style="color:#9ca3af;font-style:italic">brak głosu</span>'
-    return `<tr>
-      <td><strong>${apt.apartment_number}</strong></td>
+    const inactive = !(apt as any).active
+    return `<tr style="${inactive ? 'opacity:0.5' : ''}">
+      <td><strong>${apt.apartment_number}</strong>${inactive ? ' <span style="font-size:8pt;color:#9ca3af">(nieaktywny)</span>' : ''}</td>
       <td style="font-family:monospace">${share}</td>
       <td>${c ? `<span style="${badgeStyle}">${choiceLabel[c.choice]}</span>` : '<span style="color:#9ca3af;font-style:italic">brak głosu</span>'}</td>
       <td style="font-size:8.5pt;color:#6b7280">—</td>
