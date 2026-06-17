@@ -172,15 +172,27 @@ export async function castVote(data: {
   if (existingVote && existingVote.user_id !== user.id)
     return { error: 'Ten lokal już oddał głos w tej uchwale.' }
 
-  const { error } = await admin.from('vote_choices').upsert({
-    vote_id: data.vote_id,
-    user_id: user.id,
-    apartment_id: apartment.id,
-    choice: data.choice,
-    share_value: shareValue,
-  }, { onConflict: 'vote_id,apartment_id' })
+  let voteError: { message: string } | null = null
 
-  if (error) return { error: error.message }
+  if (existingVote) {
+    // Ten sam użytkownik zmienia głos — UPDATE
+    const { error } = await admin.from('vote_choices')
+      .update({ choice: data.choice, share_value: shareValue, user_id: user.id })
+      .eq('id', existingVote.id)
+    voteError = error
+  } else {
+    // Pierwszy głos z tego lokalu — INSERT
+    const { error } = await admin.from('vote_choices').insert({
+      vote_id: data.vote_id,
+      user_id: user.id,
+      apartment_id: apartment.id,
+      choice: data.choice,
+      share_value: shareValue,
+    })
+    voteError = error
+  }
+
+  if (voteError) return { error: voteError.message }
   revalidatePath(`/admin/votes/${data.vote_id}`)
   revalidatePath('/admin/votes')
   return {}
