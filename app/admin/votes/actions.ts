@@ -61,6 +61,19 @@ export async function createVote(data: {
   }
 
   const admin = getSupabaseAdminClient()
+
+  // Przypisz kolejny numer uchwały per wspólnota i rok
+  const currentYear = new Date().getFullYear()
+  const { data: lastNum } = await admin
+    .from('votes')
+    .select('resolution_number')
+    .eq('community_id', data.community_id)
+    .gte('created_at', `${currentYear}-01-01`)
+    .order('resolution_number', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  const nextNumber = ((lastNum as any)?.resolution_number ?? 0) + 1
+
   const { data: vote, error } = await admin.from('votes').insert({
     community_id: data.community_id,
     created_by: user.id,
@@ -71,6 +84,7 @@ export async function createVote(data: {
     status: 'open',
     link_url: data.link_url || null,
     attachment_path: data.attachment_path || null,
+    resolution_number: nextNumber,
   }).select('id').single()
 
   if (error) return { error: error.message }

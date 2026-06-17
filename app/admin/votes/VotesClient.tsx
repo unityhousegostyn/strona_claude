@@ -146,12 +146,16 @@ export default function VotesClient({ votes, communities, userId, userApartmentI
           <h2 className="text-2xl font-bold text-[#ecfdf5]">🗳️ Głosowania</h2>
           <p className="text-sm text-[#4d7a5f] mt-0.5">Uchwały wspólnoty mieszkaniowej</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {!hasPin && (
             <Link href="/admin/profile" className="text-xs text-orange-400 border border-orange-800 bg-orange-900/20 px-3 py-1.5 rounded-lg">
               ⚠ Ustaw PIN aby głosować
             </Link>
           )}
+          <Link href="/admin/votes/rejestr"
+            className="text-xs text-[#6b9478] hover:text-[#a7f3d0] border border-[#1e3324] px-3 py-1.5 rounded-lg transition">
+            📋 Rejestr uchwał
+          </Link>
           {isAdmin && (
             <button onClick={() => setShowForm(!showForm)}
               className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
@@ -318,18 +322,22 @@ export default function VotesClient({ votes, communities, userId, userApartmentI
                       </div>
                     )}
                   </div>
-                  {isAdmin && (
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {vote.status === 'open' && (
-                        <button onClick={() => handleClose(vote.id)} disabled={isPending}
-                          className="text-xs text-yellow-400 hover:text-yellow-300 border border-yellow-800 px-2 py-1 rounded-lg transition">
-                          Zamknij
-                        </button>
-                      )}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <Link href={`/admin/votes/${vote.id}/raport`} target="_blank"
+                      className="text-xs text-[#6b9478] hover:text-emerald-400 border border-[#1e3324] px-2 py-1 rounded-lg transition">
+                      📄 Raport
+                    </Link>
+                    {isAdmin && vote.status === 'open' && (
+                      <button onClick={() => handleClose(vote.id)} disabled={isPending}
+                        className="text-xs text-yellow-400 hover:text-yellow-300 border border-yellow-800 px-2 py-1 rounded-lg transition">
+                        Zamknij
+                      </button>
+                    )}
+                    {isAdmin && (
                       <button onClick={() => handleDelete(vote.id)} disabled={isPending}
                         className="text-xs text-[#4d7a5f] hover:text-red-400 transition">✕</button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
 
                 {/* Wyniki */}
