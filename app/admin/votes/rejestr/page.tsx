@@ -46,9 +46,15 @@ export default async function RejestrPage() {
     aptCountByCommunity[a.community_id] = (aptCountByCommunity[a.community_id] ?? 0) + 1
   }
 
+  // Supabase zwraca relację community jako tablicę — normalizuj do obiektu
+  const normalizedVotes = (votes ?? []).map(v => ({
+    ...v,
+    community: Array.isArray(v.community) ? (v.community[0] ?? null) : v.community,
+  }))
+
   return (
     <RejestrClient
-      votes={votes ?? []}
+      votes={normalizedVotes as any}
       communities={communities}
       isSuperAdmin={isSuperAdmin}
       aptCountByCommunity={aptCountByCommunity}
