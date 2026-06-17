@@ -52,18 +52,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   // Pobierz lokale — najpierw przez community_id, fallback przez IDs z głosów
   let { data: apartments, error: aptErr } = await admin
     .from('settlement_apartments')
-    .select('id, apartment_number, share_numerator, share_denominator, active')
+    .select('id, number, share_numerator, share_denominator, active')
     .eq('community_id', vote.community_id)
-    .order('apartment_number')
+    .order('number')
 
   // Fallback: jeśli brak lokali per community, pobierz przez apartment_id z głosów
   const aptIdsFromChoices = [...new Set(choices.map((c: any) => c.apartment_id).filter(Boolean))] as string[]
   if ((!apartments || apartments.length === 0) && aptIdsFromChoices.length > 0) {
     const { data: aptByIds } = await admin
       .from('settlement_apartments')
-      .select('id, apartment_number, share_numerator, share_denominator, active, community_id')
+      .select('id, number, share_numerator, share_denominator, active, community_id')
       .in('id', aptIdsFromChoices)
-      .order('apartment_number')
+      .order('number')
     apartments = aptByIds
   }
 
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const badgeText = c ? choiceLabel[c.choice] : '<span style="color:#9ca3af;font-style:italic">brak głosu</span>'
     const inactive = !(apt as any).active
     return `<tr style="${inactive ? 'opacity:0.5' : ''}">
-      <td><strong>${apt.apartment_number}</strong>${inactive ? ' <span style="font-size:8pt;color:#9ca3af">(nieaktywny)</span>' : ''}</td>
+      <td><strong>${apt.number}</strong>${inactive ? ' <span style="font-size:8pt;color:#9ca3af">(nieaktywny)</span>' : ''}</td>
       <td style="font-family:monospace">${share}</td>
       <td>${c ? `<span style="${badgeStyle}">${choiceLabel[c.choice]}</span>` : '<span style="color:#9ca3af;font-style:italic">brak głosu</span>'}</td>
       <td style="font-size:8.5pt;color:#6b7280">—</td>
