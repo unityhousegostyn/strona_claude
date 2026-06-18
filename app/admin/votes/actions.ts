@@ -335,6 +335,39 @@ export async function closeVote(voteId: string): Promise<{ error?: string }> {
   return {}
 }
 
+// ── EDYCJA UCHWAŁY ────────────────────────────────────────────────────────────
+
+export async function updateVote(voteId: string, data: {
+  title: string
+  description?: string | null
+  deadline?: string | null
+  link_url?: string | null
+}): Promise<{ error?: string }> {
+  const { profile } = await getActor()
+  if (profile.role === 'user') return { error: 'Brak uprawnień' }
+
+  if (!data.title.trim()) return { error: 'Tytuł jest wymagany' }
+
+  if (data.link_url) {
+    try { new URL(data.link_url) } catch {
+      return { error: 'Nieprawidłowy adres URL linku' }
+    }
+  }
+
+  const admin = getSupabaseAdminClient()
+  const { error } = await admin.from('votes').update({
+    title: data.title.trim(),
+    description: data.description?.trim() || null,
+    deadline: data.deadline || null,
+    link_url: data.link_url?.trim() || null,
+  }).eq('id', voteId)
+
+  if (error) return { error: error.message }
+  revalidatePath('/admin/votes')
+  revalidatePath('/admin/votes/rejestr')
+  return {}
+}
+
 export async function deleteVote(voteId: string): Promise<{ error?: string }> {
   const { profile } = await getActor()
   if (profile.role === 'user') return { error: 'Brak uprawnień' }

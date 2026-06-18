@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { createVote, castVote, closeVote, deleteVote, uploadVoteAttachment, updateResolutionNumber } from './actions'
+import { createVote, castVote, closeVote, deleteVote, uploadVoteAttachment, updateResolutionNumber, updateVote } from './actions'
 import Link from 'next/link'
 import BackButton from '@/components/BackButton'
 
@@ -71,6 +71,38 @@ export default function VotesClient({ votes, communities, userId, userApartmentI
   // Inline edit numeru uchwały
   const [editingResNum, setEditingResNum] = useState<string | null>(null) // voteId
   const [editResNumValue, setEditResNumValue] = useState<number>(1)
+
+  // Modal edycji uchwały
+  const [editModal, setEditModal] = useState<Vote | null>(null)
+  const [editForm, setEditForm] = useState({ title: '', description: '', deadline: '', link_url: '' })
+  const [editError, setEditError] = useState<string | null>(null)
+
+  const openEditModal = (vote: Vote) => {
+    setEditForm({
+      title: vote.title,
+      description: vote.description ?? '',
+      deadline: vote.deadline ? vote.deadline.slice(0, 16) : '',
+      link_url: vote.link_url ?? '',
+    })
+    setEditError(null)
+    setEditModal(vote)
+  }
+
+  const handleSaveEdit = () => {
+    if (!editModal) return
+    setEditError(null)
+    startTransition(async () => {
+      const res = await updateVote(editModal.id, {
+        title: editForm.title,
+        description: editForm.description || null,
+        deadline: editForm.deadline || null,
+        link_url: editForm.link_url || null,
+      })
+      if (res.error) { setEditError(res.error); return }
+      setEditModal(null)
+      router.refresh()
+    })
+  }
 
   // PIN modal
   const [pinModal, setPinModal] = useState<{ voteId: string; choice: 'yes' | 'no' | 'abstain' } | null>(null)
@@ -388,6 +420,12 @@ export default function VotesClient({ votes, communities, userId, userApartmentI
                       className="text-xs text-[#0f766e] hover:text-teal-400 border border-[#0f2d2a] px-2 py-1 rounded-lg transition">
                       📄 Raport
                     </Link>
+                    {isAdmin && (
+                      <button onClick={() => openEditModal(vote)} disabled={isPending}
+                        className="text-xs text-[#0f766e] hover:text-[#99f6e4] border border-[#0f2d2a] px-2 py-1 rounded-lg transition">
+                        ✏ Edytuj
+                      </button>
+                    )}
                     {isAdmin && vote.status === 'open' && (
                       <button onClick={() => handleClose(vote.id)} disabled={isPending}
                         className="text-xs text-yellow-400 hover:text-yellow-300 border border-yellow-800 px-2 py-1 rounded-lg transition">
@@ -485,6 +523,58 @@ export default function VotesClient({ votes, communities, userId, userApartmentI
               <button onClick={handleConfirmVote} disabled={isPending || pin.length !== 4}
                 className="bg-teal-600 hover:bg-teal-500 text-white text-sm font-semibold px-6 py-2 rounded-lg transition disabled:opacity-50">
                 {isPending ? 'Wysyłanie...' : 'Potwierdź'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal edycji uchwały */}
+      {editModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4">
+          <div className="bg-[#051210] border border-[#0f2d2a] rounded-t-2xl sm:rounded-2xl w-full max-w-lg shadow-2xl p-6 space-y-4 overflow-y-auto max-h-[92dvh]">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-semibold text-[#f0fdfa]">✏ Edytuj uchwałę</h3>
+              <button onClick={() => setEditModal(null)} className="text-[#115e59] hover:text-[#99f6e4] text-xl leading-none">✕</button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs text-[#0f766e] mb-1">Tytuł *</label>
+                <input className="input w-full" value={editForm.title}
+                  onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-xs text-[#0f766e] mb-1">Opis / treść uchwały</label>
+                <textarea className="input w-full h-28 resize-none" value={editForm.description}
+                  onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-xs text-[#0f766e] mb-1">Termin głosowania</label>
+                <input type="datetime-local" className="input w-full" value={editForm.deadline}
+                  onChange={e => setEditForm(f => ({ ...f, deadline: e.target.value }))} />
+                {editForm.deadline && (
+                  <button onClick={() => setEditForm(f => ({ ...f, deadline: '' }))}
+                    className="text-xs text-[#115e59] hover:text-red-400 mt-1">
+                    ✕ Usuń termin (bezterminowe)
+                  </button>
+                )}
+              </div>
+              <div>
+                <label className="block text-xs text-[#0f766e] mb-1">Link do dokumentu (opcjonalny)</label>
+                <input className="input w-full" placeholder="https://..." value={editForm.link_url}
+                  onChange={e => setEditForm(f => ({ ...f, link_url: e.target.value }))} />
+              </div>
+            </div>
+
+            {editError && <p className="text-sm text-red-400">{editError}</p>}
+
+            <div className="flex gap-3 justify-end pt-1">
+              <button onClick={() => setEditModal(null)}
+                className="text-sm text-[#115e59] hover:text-[#99f6e4] px-4 py-2">Anuluj</button>
+              <button onClick={handleSaveEdit} disabled={isPending || !editForm.title.trim()}
+                className="bg-teal-600 hover:bg-teal-500 text-white text-sm font-semibold px-6 py-2 rounded-lg transition disabled:opacity-50">
+                {isPending ? 'Zapisywanie...' : 'Zapisz zmiany'}
               </button>
             </div>
           </div>
