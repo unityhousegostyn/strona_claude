@@ -171,7 +171,18 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
   }
 
   const catLabel = (cat: string) => categories.find(c => c.value === cat)?.label ?? cat
-  const catColors: Record<string, string> = { zarząd:'bg-teal-950/40 text-teal-400', woda:'bg-cyan-950/40 text-cyan-400', śmieci:'bg-teal-950/40 text-teal-400', remonty:'bg-orange-950/40 text-orange-400', ubezpieczenie:'bg-purple-950/40 text-purple-400', energia:'bg-yellow-950/40 text-yellow-400', fundusz_remontowy:'bg-red-950/40 text-red-400', inne:'bg-[#0c2220] text-[#0f766e]' }
+  const catColors: Record<string, string> = {
+    fundusz_remontowy:      'bg-orange-950/40 text-orange-400',
+    fundusz_eksploatacyjny: 'bg-teal-950/40 text-teal-400',
+    wynagrodzenie_zarządcy: 'bg-purple-950/40 text-purple-400',
+    woda:                   'bg-cyan-950/40 text-cyan-400',
+    śmieci:                 'bg-lime-950/40 text-lime-400',
+    remonty:                'bg-red-950/40 text-red-400',
+    ubezpieczenie:          'bg-indigo-950/40 text-indigo-400',
+    energia:                'bg-yellow-950/40 text-yellow-400',
+    zarząd:                 'bg-teal-950/40 text-teal-300',
+    inne:                   'bg-[#0c2220] text-[#0f766e]',
+  }
   const maxBar = Math.max(...Object.values(monthlyExpenses), ...Object.values(monthlyIncome), 1)
 
   return (

@@ -30,6 +30,12 @@ interface CommunityIncome {
   community_id: string; category: string; description: string
   amount: number; income_date: string; year: number; month: number
 }
+interface Deposit {
+  community_id: string; type: 'lokata' | 'konto_oszczednosciowe'
+  bank_name: string | null; description: string | null
+  amount: number; interest_rate: number | null
+  start_date: string; end_date: string | null; status: 'active' | 'closed'
+}
 interface Props {
   communities: { id: string; name: string }[]
   apartments: Apartment[]
@@ -37,6 +43,7 @@ interface Props {
   entries: Entry[]
   expenses: Expense[]
   communityIncome: CommunityIncome[]
+  deposits: Deposit[]
   isSuperAdmin: boolean
   defaultCommunityId: string
   currentYear: number
@@ -48,9 +55,16 @@ const pln = (v: number) => new Intl.NumberFormat('pl-PL', { style: 'currency', c
 const MONTHS_FULL = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień']
 const MONTHS_SHORT = ['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru']
 const EXP_CAT_LABELS: Record<string, string> = {
-  zarząd:'Zarządzanie', woda:'Woda/kanalizacja', śmieci:'Odpady/śmieci',
-  remonty:'Remonty/naprawy', ubezpieczenie:'Ubezpieczenie',
-  energia:'Energia/gaz', fundusz_remontowy:'Fundusz remontowy', inne:'Inne',
+  fundusz_remontowy:      'Fundusz remontowy',
+  fundusz_eksploatacyjny: 'Fundusz eksploatacyjny',
+  wynagrodzenie_zarządcy: 'Wynagrodzenie zarządcy',
+  woda:                   'Woda / kanalizacja',
+  śmieci:                 'Odpady / śmieci',
+  remonty:                'Remonty / naprawy',
+  ubezpieczenie:          'Ubezpieczenie',
+  energia:                'Energia / gaz',
+  zarząd:                 'Zarządzanie (inne)',
+  inne:                   'Inne',
 }
 
 function getActiveRate(rates: Rate[], communityId: string, year: number, month: number): Rate | null {
@@ -89,7 +103,7 @@ const REPORTS: { type: ReportType; icon: string; title: string; subtitle: string
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function RaportyClient({
-  communities, apartments, rates, entries, expenses, communityIncome,
+  communities, apartments, rates, entries, expenses, communityIncome, deposits,
   isSuperAdmin, defaultCommunityId, currentYear,
 }: Props) {
   const [filterComm, setFilterComm] = useState(defaultCommunityId || communities[0]?.id || '')
@@ -102,6 +116,9 @@ export default function RaportyClient({
   const commEntries = entries.filter(e => e.community_id === filterComm && e.year === filterYear)
   const commExpenses = expenses.filter(e => e.community_id === filterComm && e.year === filterYear)
   const commIncome = communityIncome.filter(i => i.community_id === filterComm && i.year === filterYear)
+  const commDeposits = deposits.filter(d => d.community_id === filterComm)
+  const activeDeposits = commDeposits.filter(d => d.status === 'active')
+  const totalActiveDeposits = activeDeposits.reduce((s, d) => s + d.amount, 0)
   const commName = communities.find(c => c.id === filterComm)?.name ?? '—'
 
   // ── Monthly aggregates ───────────────────────────────────────────────────
@@ -118,6 +135,26 @@ export default function RaportyClient({
   const totalOtherIncome = Object.values(monthlyOtherIncome).reduce((s, v) => s + v, 0)
   const totalIncome = totalPaid + totalOtherIncome
   const totalBalance = totalIncome - totalExpenses
+
+  // ── Naliczone składniki zaliczek (suma po wszystkich lokalach i miesiącach) ─
+  const chargeBreakdown = { renovation: 0, operating: 0, manager: 0, water: 0, garbage: 0 }
+  for (const apt of commApts) {
+    for (let m = 1; m <= 12; m++) {
+      const rate = getActiveRate(rates, filterComm, filterYear, m)
+      if (!rate) continue
+      const water = rate.water_billing_type === 'ryczalt'
+        ? rate.water_ryczalt_m3 * rate.water_price_m3
+        : 0
+      chargeBreakdown.renovation += rate.renovation_rate_m2 * apt.area_m2
+      chargeBreakdown.operating  += rate.operating_rate_m2  * apt.area_m2
+      chargeBreakdown.manager    += rate.manager_fee_type === 'per_m2'
+        ? rate.manager_fee_value * apt.area_m2
+        : rate.manager_fee_value
+      chargeBreakdown.water   += water
+      chargeBreakdown.garbage += rate.garbage_per_person * apt.persons_count
+    }
+  }
+  const totalChargeBD = Object.values(chargeBreakdown).reduce((s, v) => s + v, 0)
 
   // ── Per-apartment reconciliation ─────────────────────────────────────────
   const aptReconciliation = commApts.map(apt => {
@@ -193,7 +230,19 @@ export default function RaportyClient({
         'Koszty': monthlyExpenses[m] ?? 0,
         'Saldo': (monthlyPaid[m] + monthlyOtherIncome[m]) - monthlyExpenses[m],
       }))
-      exportToExcel(rows, fname, 'Sprawozdanie')
+      const depositRows = commDeposits.map(d => ({
+        'Bank / opis': d.bank_name ?? d.description ?? '—',
+        'Typ': d.type === 'lokata' ? 'Lokata' : 'Konto oszczędnościowe',
+        'Kwota (zł)': d.amount,
+        'Oprocentowanie (%)': d.interest_rate ?? '',
+        'Założona': d.start_date,
+        'Koniec': d.end_date ?? 'bezterminowa',
+        'Status': d.status === 'active' ? 'Aktywna' : 'Zakończona',
+      }))
+      exportMultiSheet([
+        { data: rows, name: 'Sprawozdanie' },
+        ...(depositRows.length ? [{ data: depositRows, name: 'Lokaty' }] : []),
+      ], fname)
     } else if (activeReport === 'rozliczenie') {
       const rows = aptReconciliation.map(r => ({
         'Lokal': r.apt.number,
@@ -328,6 +377,50 @@ export default function RaportyClient({
                   <KpiCard label="Saldo roku" value={pln(totalBalance)} color={totalBalance >= 0 ? 'green' : 'red'} note={totalBalance >= 0 ? 'Nadwyżka' : 'Niedobór'} />
                 </div>
 
+                {/* Naliczone składniki zaliczek */}
+                {totalChargeBD > 0 && (
+                  <ReportSection title="Naliczone składniki zaliczek (wg stawek)">
+                    <p className="text-xs text-[#115e59] mb-3">
+                      Suma naliczonych zaliczek per składnik dla wszystkich lokali aktywnych w roku {filterYear}.
+                    </p>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-[#0f2d2a]">
+                            <th className="text-left py-2 pr-4 text-[#0f766e] font-medium">Składnik</th>
+                            <th className="text-right py-2 px-3 text-[#0f766e] font-medium">Kwota naliczona</th>
+                            <th className="text-right py-2 pl-3 text-[#0f766e] font-medium">% sumy</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {([
+                            ['Fundusz remontowy',      chargeBreakdown.renovation],
+                            ['Fundusz eksploatacyjny', chargeBreakdown.operating],
+                            ['Wynagrodzenie zarządcy', chargeBreakdown.manager],
+                            ['Woda / kanalizacja',     chargeBreakdown.water],
+                            ['Odpady / śmieci',        chargeBreakdown.garbage],
+                          ] as [string, number][]).map(([label, amt]) => (
+                            <tr key={label} className="border-b border-[#0f2d2a]/50">
+                              <td className="py-2 pr-4 text-[#99f6e4]">{label}</td>
+                              <td className="text-right py-2 px-3 text-[#ccfbf1]">{pln(Math.round(amt * 100) / 100)}</td>
+                              <td className="text-right py-2 pl-3 text-[#0f766e]">
+                                {totalChargeBD > 0 ? Math.round(amt / totalChargeBD * 100) : 0}%
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot>
+                          <tr className="border-t border-[#133835]">
+                            <td className="py-3 pr-4 font-bold text-[#f0fdfa]">Razem naliczono</td>
+                            <td className="text-right py-3 px-3 font-bold text-teal-400">{pln(Math.round(totalChargeBD * 100) / 100)}</td>
+                            <td className="text-right py-3 pl-3 text-[#115e59]">100%</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </ReportSection>
+                )}
+
                 {/* Tabela miesięczna */}
                 <ReportSection title="Zestawienie miesięczne">
                   <div className="overflow-x-auto">
@@ -395,6 +488,61 @@ export default function RaportyClient({
                     )
                   })()}
                 </ReportSection>
+
+                {/* Lokaty bankowe */}
+                {commDeposits.length > 0 && (
+                  <ReportSection title="Lokaty bankowe i konta oszczędnościowe">
+                    <p className="text-xs text-[#115e59] mb-3">
+                      Kapitał lokat nie jest przychodem wspólnoty — to majątek zainwestowany na rachunku bankowym.
+                      Odsetki z zamkniętych lokat są ujęte w pozycji &quot;Inne przychody&quot; powyżej.
+                    </p>
+                    {activeDeposits.length > 0 && (
+                      <div className="mb-3 p-3 bg-teal-950/30 border border-teal-800/40 rounded-lg flex items-center justify-between">
+                        <span className="text-sm text-[#99f6e4]">💰 Środki na aktywnych lokatach (poza rachunkiem bieżącym)</span>
+                        <span className="font-bold text-teal-400 text-sm">{pln(totalActiveDeposits)}</span>
+                      </div>
+                    )}
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-[#0f2d2a]">
+                            <th className="text-left py-2 pr-3 text-[#0f766e] font-medium">Bank / opis</th>
+                            <th className="text-left py-2 pr-3 text-[#0f766e] font-medium">Typ</th>
+                            <th className="text-right py-2 px-2 text-[#0f766e] font-medium">Kwota</th>
+                            <th className="text-right py-2 px-2 text-[#0f766e] font-medium">Oprocentowanie</th>
+                            <th className="text-right py-2 px-2 text-[#0f766e] font-medium">Założona</th>
+                            <th className="text-right py-2 pl-2 text-[#0f766e] font-medium">Koniec / Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {commDeposits.map((d, i) => (
+                            <tr key={i} className="border-b border-[#0f2d2a]/50">
+                              <td className="py-2 pr-3 text-[#ccfbf1]">{d.bank_name ?? d.description ?? '—'}</td>
+                              <td className="py-2 pr-3 text-[#0f766e] text-xs">{d.type === 'lokata' ? 'Lokata' : 'Konto oszczędnościowe'}</td>
+                              <td className="text-right py-2 px-2 text-[#99f6e4] font-medium">{pln(d.amount)}</td>
+                              <td className="text-right py-2 px-2 text-[#0f766e]">{d.interest_rate != null ? `${d.interest_rate}%` : '—'}</td>
+                              <td className="text-right py-2 px-2 text-[#0f766e] text-xs">{d.start_date}</td>
+                              <td className="text-right py-2 pl-2 text-xs">
+                                {d.status === 'active'
+                                  ? <span className="text-teal-400">{d.end_date ?? 'bezterminowa'}</span>
+                                  : <span className="text-[#115e59]">Zakończona</span>}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        {commDeposits.length > 1 && (
+                          <tfoot>
+                            <tr className="border-t border-[#133835]">
+                              <td colSpan={2} className="py-2 font-bold text-[#f0fdfa]">Razem aktywne lokaty</td>
+                              <td className="text-right py-2 font-bold text-teal-400">{pln(totalActiveDeposits)}</td>
+                              <td colSpan={3} />
+                            </tr>
+                          </tfoot>
+                        )}
+                      </table>
+                    </div>
+                  </ReportSection>
+                )}
 
                 <LegalFooter text="Sprawozdanie sporządzone na podstawie art. 29 ust. 1 ustawy z dnia 24 czerwca 1994 r. o własności lokali (t.j. Dz.U. 2021 poz. 1048). Zarząd prowadzi ewidencję pozaksięgową kosztów zarządu nieruchomością wspólną oraz zaliczek uiszczanych na pokrycie tych kosztów." />
               </div>

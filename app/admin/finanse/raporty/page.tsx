@@ -29,6 +29,7 @@ export default async function RaportyPage() {
     { data: entries },
     { data: expenses },
     { data: communityIncome },
+    { data: deposits },
   ] = await Promise.all([
     admin.from('settlement_apartments')
       .select('id, number, owner_name, area_m2, persons_count, has_meter, community_id, active')
@@ -48,6 +49,10 @@ export default async function RaportyPage() {
     admin.from('community_income')
       .select('community_id, category, description, amount, income_date, year, month')
       .in('community_id', safeIds),
+    admin.from('community_deposits')
+      .select('community_id, type, bank_name, description, amount, interest_rate, start_date, end_date, status')
+      .in('community_id', safeIds)
+      .order('start_date', { ascending: false }),
   ])
 
   return (
@@ -58,6 +63,7 @@ export default async function RaportyPage() {
       entries={entries ?? []}
       expenses={expenses ?? []}
       communityIncome={communityIncome ?? []}
+      deposits={deposits ?? []}
       isSuperAdmin={isSuperAdmin}
       defaultCommunityId={profile.community_id ?? communities[0]?.id ?? ''}
       currentYear={currentYear}
