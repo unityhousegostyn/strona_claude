@@ -513,6 +513,86 @@ export default function RaportyClient({
                   })()}
                 </ReportSection>
 
+                {/* Szczegółowy rejestr kosztów — miesiąc po miesiącu */}
+                {commExpenses.length > 0 && (
+                  <ReportSection title="Szczegółowy rejestr kosztów">
+                    {(() => {
+                      const months: number[] = []
+                      for (let m = 1; m <= 12; m++) {
+                        if (commExpenses.some(e => e.month === m)) months.push(m)
+                      }
+                      // podsumowania kategoryczne
+                      const catTotals: Record<string, number> = {}
+                      for (const e of commExpenses) {
+                        catTotals[e.category] = (catTotals[e.category] ?? 0) + e.amount
+                      }
+                      return (
+                        <div>
+                          {months.map(m => {
+                            const rows = commExpenses
+                              .filter(e => e.month === m)
+                              .sort((a, b) => a.expense_date.localeCompare(b.expense_date))
+                            const monthTotal = rows.reduce((s, e) => s + e.amount, 0)
+                            return (
+                              <div key={m} className="mb-4">
+                                <p className="text-xs font-semibold text-[#0f766e] uppercase tracking-wide mb-1">{MONTHS_FULL[m - 1]}</p>
+                                <table className="w-full text-sm">
+                                  <thead>
+                                    <tr className="border-b border-[#0f2d2a]">
+                                      <th className="text-left py-1 pr-3 text-[#0f766e] font-medium w-24">Data</th>
+                                      <th className="text-left py-1 pr-3 text-[#0f766e] font-medium">Odbiorca / opis</th>
+                                      <th className="text-left py-1 pr-3 text-[#0f766e] font-medium w-36 hidden sm:table-cell">Kategoria</th>
+                                      <th className="text-right py-1 text-[#0f766e] font-medium w-28">Kwota</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {rows.map((e, i) => (
+                                      <tr key={i} className="border-b border-[#0f2d2a]/40">
+                                        <td className="py-1.5 pr-3 text-[#0f766e] text-xs">{e.expense_date}</td>
+                                        <td className="py-1.5 pr-3 text-[#ccfbf1]">{e.description}</td>
+                                        <td className="py-1.5 pr-3 text-[#0f766e] text-xs hidden sm:table-cell">{EXP_CAT_LABELS[e.category] ?? e.category}</td>
+                                        <td className="text-right py-1.5 text-[#99f6e4] font-medium">{pln(e.amount)}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                  <tfoot>
+                                    <tr className="border-t border-[#133835]">
+                                      <td colSpan={2} className="py-1.5 font-bold text-[#f0fdfa]">Suma {MONTHS_FULL[m - 1]}</td>
+                                      <td className="hidden sm:table-cell" />
+                                      <td className="text-right py-1.5 font-bold text-red-400">{pln(monthTotal)}</td>
+                                    </tr>
+                                  </tfoot>
+                                </table>
+                              </div>
+                            )
+                          })}
+                          {/* Podsumowanie roczne */}
+                          <div className="mt-4 pt-3 border-t border-[#133835]">
+                            <p className="text-xs font-semibold text-[#0f766e] uppercase tracking-wide mb-2">Podsumowanie roczne</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 text-sm">
+                              <div>
+                                {Object.entries(catTotals)
+                                  .filter(([, v]) => v > 0)
+                                  .sort((a, b) => b[1] - a[1])
+                                  .map(([cat, amt]) => (
+                                    <div key={cat} className="flex justify-between py-0.5 border-b border-[#0f2d2a]/30">
+                                      <span className="text-[#99f6e4]">{EXP_CAT_LABELS[cat] ?? cat}</span>
+                                      <span className="text-[#ccfbf1] font-medium ml-4">{pln(amt)}</span>
+                                    </div>
+                                  ))}
+                              </div>
+                            </div>
+                            <div className="flex justify-between mt-2 pt-1 border-t border-[#133835] font-bold">
+                              <span className="text-[#f0fdfa]">Suma końcowa</span>
+                              <span className="text-red-400">{pln(totalExpenses)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })()}
+                  </ReportSection>
+                )}
+
                 {/* Lokaty bankowe */}
                 {commDeposits.length > 0 && (
                   <ReportSection title="Lokaty bankowe i konta oszczędnościowe">
@@ -893,6 +973,9 @@ export default function RaportyClient({
 
         @media print {
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+          /* ── Białe tło strony — kluczowe! body i html nie są objęte "body *" ── */
+          html, body { background-color: #ffffff !important; background: #ffffff !important; }
 
           /* ── Ukryj wszystko, pokaż tylko print-area ── */
           body * { visibility: hidden !important; }
