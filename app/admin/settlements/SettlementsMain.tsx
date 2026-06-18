@@ -202,6 +202,19 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
 
   return (
     <div className="space-y-6 max-w-5xl">
+
+      {/* Baner: moduł w budowie */}
+      <div className="flex items-start gap-3 bg-amber-950/30 border border-amber-700/50 rounded-xl px-4 py-3">
+        <span className="text-xl mt-0.5">🚧</span>
+        <div>
+          <p className="text-sm font-semibold text-amber-300">Moduł w budowie</p>
+          <p className="text-xs text-amber-400/80 mt-0.5">
+            Dane rozliczeń są w trakcie weryfikacji i mogą być nieprawidłowe.
+            Nie traktuj ich jako dokumentów księgowych.
+          </p>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
