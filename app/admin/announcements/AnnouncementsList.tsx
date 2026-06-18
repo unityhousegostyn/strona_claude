@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { togglePin } from './actions'
+import BackButton from '@/components/BackButton'
 
 interface Announcement {
   id: string
@@ -80,6 +81,7 @@ export default function AnnouncementsList({ announcements, communityMap, junctio
 
   return (
     <div className="space-y-4">
+      <BackButton />
       <div className="flex gap-1 bg-[#081918] rounded-lg p-1 w-fit">
         {(['active', 'archive'] as const).map(t => (
           <button key={t} onClick={() => handleTabChange(t)}

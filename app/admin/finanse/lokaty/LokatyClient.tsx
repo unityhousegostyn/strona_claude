@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { addDeposit, matureDeposit, deleteDeposit } from './actions'
+import BackButton from '@/components/BackButton'
 
 type Deposit = {
   id: string
@@ -140,6 +141,7 @@ export default function LokatyClient({
 
   return (
     <div className="space-y-6">
+      <BackButton />
 
       {/* Podsumowanie */}
       {active.length > 0 && (

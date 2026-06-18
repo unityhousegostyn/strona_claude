@@ -1,4 +1,5 @@
 'use client'
+import BackButton from '@/components/BackButton'
 
 import { useState, useRef } from 'react'
 import { exportToExcel, exportMultiSheet } from '@/lib/exportExcel'
@@ -245,6 +246,7 @@ export default function RaportyClient({
 
   return (
     <div className="space-y-6 max-w-5xl">
+      <BackButton />
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3 print:hidden">
         <div>

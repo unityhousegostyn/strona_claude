@@ -1,4 +1,5 @@
 'use client'
+import BackButton from '@/components/BackButton'
 
 import { useState, useTransition, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
@@ -175,6 +176,7 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
 
   return (
     <div className="space-y-6 max-w-5xl">
+      <BackButton />
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h2 className="text-2xl font-bold text-[#f0fdfa]">💸 Koszty wspólnoty</h2>

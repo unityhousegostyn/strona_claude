@@ -58,6 +58,7 @@ export default function WaterMetersClient({ readings, isSuperAdmin }: { readings
 
   return (
     <div className="space-y-4">
+      <BackButton />
       {/* Filtry */}
       <div className="flex gap-1 bg-[#081918] rounded-lg p-1 w-fit flex-wrap">
         {(['pending','confirmed','rejected','all'] as const).map(f => (

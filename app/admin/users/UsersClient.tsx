@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import BackButton from '@/components/BackButton'
 
 interface User {
   id: string
@@ -43,6 +44,7 @@ export default function UsersClient({ users, isSuperAdmin }: Props) {
 
   return (
     <div className="space-y-3">
+      <BackButton />
       {/* Wyszukiwarka */}
       <div className="relative">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#115e59] text-sm">🔍</span>

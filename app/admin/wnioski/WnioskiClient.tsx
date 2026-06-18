@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { submitRequest, updateRequestStatus, deleteRequest } from './actions'
+import BackButton from '@/components/BackButton'
 import type { RequestType, RequestStatus } from './actions'
 
 const TEMPLATE_FILES: Record<RequestType, string> = {
@@ -354,6 +355,7 @@ export default function WnioskiClient({ requests: initial, isAdmin, isSuperAdmin
 
   return (
     <div className="space-y-6">
+      <BackButton />
       {/* Formularz — tylko mieszkaniec */}
       {!isAdmin && !isSuperAdmin && (
         <NewRequestForm onSubmitted={handleRefresh} />

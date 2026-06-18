@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { createContact, deleteContact } from './actions'
+import BackButton from '@/components/BackButton'
 
 interface Contact {
   id: string
@@ -100,6 +101,7 @@ export default function ContactsClient({ contacts, canEdit, isSuperAdmin, defaul
 
   return (
     <div className="space-y-6">
+      <BackButton />
       {/* Nagłówek */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-[#f0fdfa]">Kontakty</h2>

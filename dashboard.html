@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard &mdash; Andrzej Mikulski</title>
+<style>
+:root {
+  --bg:#f7f6f2; --card:#fff; --border:#e4e3de; --text:#1a1a18; --muted:#6b6b68;
+  --accent:#c85a2a; --accent-light:#faece7;
+  --green:#1D9E75; --green-light:#E1F5EE;
+  --amber:#BA7517; --amber-light:#FAEEDA;
+  --blue:#185FA5; --blue-light:#E6F1FB;
+  --red:#C0392B; --red-light:#FDECEA;
+  --gray:#F1EFE8; --radius:12px; --radius-sm:8px;
+}
+[data-theme="dark"] {
+  --bg:#141413; --card:#1e1e1c; --border:#2e2e2b; --text:#f0efe9; --muted:#8a8a86;
+  --gray:#242421; --accent-light:#3a1e13; --green-light:#0d3326; --amber-light:#3a2a06;
+  --blue-light:#0d2440; --red-light:#3a100a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:24px;font-size:14px;line-height:1.5;transition:background .2s,color .2s;}
+header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border);}
+.header-left h1{font-size:22px;font-weight:600;}
+.header-left p{color:var(--muted);font-size:13px;margin-top:2px;}
+#clock{font-size:28px;font-weight:300;letter-spacing:-.5px;}
+#date-display{font-size:13px;color:var(--muted);margin-top:2px;text-align:right;}
+.theme-btn{background:none;border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;cursor:pointer;color:var(--muted);font-size:13px;margin-left:12px;background:var(--gray);}
+.theme-btn:hover{color:var(--text);}
+.section-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:24px 0 12px;}
+.grid{display:grid;gap:16px;}
+.grid-2{grid-template-columns:repeat(2,1fr);}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+.card{background:var(--card);border:.5px solid var(--border);border-radius:var(--radius);padding:16px 20px;}
+.card-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:14px;}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:500;}
+.badge-waiting{background:var(--amber-light);color:var(--amber);}
+.badge-sent{background:var(--blue-light);color:var(--blue);}
+.badge-done{background:var(--green-light);color:var(--green);}
+.badge-alert{background:var(--red-light);color:var(--red);}
+.badge-active{background:var(--accent-light);color:var(--accent);}
+
+/* Countdown */
+.countdown-card{background:var(--amber-light);border:.5px solid #e8c678;border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.countdown-num{font-size:42px;font-weight:200;color:var(--amber);line-height:1;}
+.countdown-label{font-size:13px;color:var(--amber);font-weight:500;margin-top:2px;}
+.countdown-sub{font-size:12px;color:var(--amber);opacity:.8;margin-top:4px;}
+.stat-card{background:var(--gray);border-radius:var(--radius-sm);padding:14px;text-align:center;}
+.stat-num{font-size:26px;font-weight:300;}
+.stat-label{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* Recruitment */
+.progress-bar-wrap{height:4px;background:var(--bg);border-radius:2px;margin:10px 0 4px;overflow:hidden;}
+.progress-bar{height:100%;border-radius:2px;}
+.progress-label{font-size:11px;color:var(--muted);display:flex;justify-content:space-between;}
+.recruit-meta-row{font-size:12px;color:var(--muted);margin-bottom:3px;}
+.recruit-meta-row span{color:var(--text);}
+.recruit-footer{margin-top:12px;padding-top:12px;border-top:.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
+
+/* Timeline */
+.timeline{position:relative;padding-left:20px;}
+.timeline::before{content:'';position:absolute;left:6px;top:4px;bottom:4px;width:2px;background:var(--border);}
+.tl-item{position:relative;margin-bottom:12px;}
+.tl-item:last-child{margin-bottom:0;}
+.tl-dot{position:absolute;left:-20px;top:3px;width:12px;height:12px;border-radius:50%;border:2px solid var(--border);background:var(--card);}
+.tl-dot.done{background:var(--green);border-color:var(--green);}
+.tl-dot.active{background:var(--amber);border-color:var(--amber);}
+.tl-dot.pending{background:var(--card);border-color:var(--border);}
+.tl-date{font-size:11px;color:var(--muted);}
+.tl-label{font-size:13px;}
+
+/* Tasks */
+.task-item{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:.5px solid var(--border);}
+.task-item:last-child{border-bottom:none;padding-bottom:0;}
+.task-item:first-child{padding-top:0;}
+.task-check{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--border);flex-shrink:0;margin-top:1px;}
+.task-check.done{background:var(--green);border-color:var(--green);}
+.task-check.inprogress{background:var(--accent-light);border-color:var(--accent);}
+.task-text{font-size:13px;flex:1;}
+.task-text.done-text{color:var(--muted);text-decoration:line-through;}
+.task-meta{font-size:11px;color:var(--muted);margin-top:1px;}
+
+/* Gmail */
+.mail-item{padding:8px 0;border-bottom:.5px solid var(--border);}
+.mail-item:last-child{border-bottom:none;padding-bottom:0;}
+.mail-item:first-child{padding-top:0;}
+.mail-sender{font-size:12px;font-weight:500;}
+.mail-subject{font-size:13px;margin:1px 0;}
+.mail-snippet{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mail-item.important .mail-subject{color:var(--accent);font-weight:500;}
+
+/* Weather */
+.weather-main{display:flex;align-items:center;gap:16px;}
+.weather-icon{font-size:48px;line-height:1;}
+.weather-temp{font-size:36px;font-weight:200;}
+.weather-desc{font-size:13px;color:var(--muted);}
+.weather-details{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;}
+.weather-detail{font-size:12px;color:var(--muted);}
+.weather-detail span{color:var(--text);font-weight:500;}
+.weather-forecast{display:flex;gap:8px;margin-top:12px;overflow-x:auto;}
+.forecast-day{background:var(--gray);border-radius:var(--radius-sm);padding:8px 12px;text-align:center;flex-shrink:0;min-width:70px;}
+.forecast-day .fd-day{font-size:11px;color:var(--muted);}
+.forecast-day .fd-icon{font-size:20px;margin:4px 0;}
+.forecast-day .fd-temp{font-size:13px;font-weight:500;}
+
+/* Unity House */
+.unity-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.uh-card{background:var(--gray);border-radius:var(--radius-sm);padding:14px 16px;border:.5px solid var(--border);}
+.uh-name{font-size:15px;font-weight:600;margin-bottom:8px;}
+.uh-row{font-size:12px;color:var(--muted);margin-bottom:4px;}
+.uh-row span{color:var(--text);}
+.uh-notes{width:100%;margin-top:10px;border:.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;font-size:12px;font-family:inherit;color:var(--text);background:var(--card);resize:vertical;min-height:60px;outline:none;}
+.uh-notes:focus{border-color:var(--accent);}
+
+/* Correspondence Tracker */
+.corr-table{width:100%;border-collapse:collapse;}
+.corr-table th{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:6px 10px;text-align:left;border-bottom:.5px solid var(--border);}
+.corr-table td{font-size:12px;padding:8px 10px;border-bottom:.5px solid var(--border);vertical-align:top;}
+.corr-table tr:last-child td{border-bottom:none;}
+.corr-table tr:hover td{background:var(--gray);}
+.corr-add{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.corr-input{flex:1;min-width:120px;border:.5px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;font-size:12px;font-family:inherit;color:var(--text);background:var(--card);outline:none;}
+.corr-input:focus{border-color:var(--accent);}
+.corr-btn{padding:7px 14px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:12px;white-space:nowrap;}
+.corr-select{border:.5px solid var(--border);border-radius:var(--radius-sm);padding:7px 8px;font-size:12px;font-family:inherit;color:var(--text);background:var(--card);outline:none;}
+
+/* OEE */
+.oee-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;}
+.oee-label{font-size:11px;color:var(--muted);font-weight:500;margin-bottom:4px;}
+.oee-input{border:.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 6px;font-size:16px;font-family:inherit;color:var(--text);background:var(--card);outline:none;width:100%;text-align:center;}
+.oee-input:focus{border-color:var(--accent);}
+.oee-result{text-align:center;padding:12px;background:var(--gray);border-radius:var(--radius-sm);}
+.oee-result-num{font-size:36px;font-weight:200;}
+.oee-scale{display:flex;gap:6px;margin-top:8px;font-size:11px;justify-content:center;flex-wrap:wrap;}
+.oee-scale span{padding:2px 8px;border-radius:100px;}
+
+/* Contacts */
+.contact-item{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:.5px solid var(--border);}
+.contact-item:last-child{border-bottom:none;}
+.contact-item:first-child{padding-top:0;}
+.contact-avatar{width:32px;height:32px;border-radius:50%;background:var(--gray);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--muted);flex-shrink:0;border:.5px solid var(--border);}
+.contact-name{font-size:13px;font-weight:500;}
+.contact-detail{font-size:12px;color:var(--muted);}
+
+/* Quick answers */
+.qa-section .qa-item{margin-bottom:10px;border-bottom:.5px solid var(--border);padding-bottom:10px;}
+.qa-section .qa-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.qa-q{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:3px;}
+.qa-a{font-size:13px;color:var(--text);}
+
+/* Files */
+.file-btn{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--gray);border:.5px solid var(--border);border-radius:var(--radius-sm);text-decoration:none;color:var(--text);font-size:13px;margin-bottom:7px;}
+.file-btn:last-child{margin-bottom:0;}
+.file-icon{width:26px;height:26px;border-radius:6px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:13px;border:.5px solid var(--border);flex-shrink:0;}
+
+/* Notes */
+.main-notes{width:100%;border:.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;font-family:inherit;color:var(--text);background:var(--card);resize:vertical;min-height:90px;outline:none;}
+.main-notes:focus{border-color:var(--accent);}
+
+/* Notify btn */
+.notify-btn{padding:6px 14px;background:var(--blue-light);color:var(--blue);border:.5px solid var(--blue);border-radius:var(--radius-sm);cursor:pointer;font-size:12px;}
+
+@media(max-width:900px){.grid-3,.grid-4{grid-template-columns:1fr 1fr;}.oee-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:600px){body{padding:14px;}.grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}.unity-grid{grid-template-columns:1fr;}header{flex-direction:column;align-items:flex-start;gap:8px;}#date-display{text-align:left;}.oee-grid{grid-template-columns:repeat(3,1fr);}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Dzie&#x144; dobry, Andrzej</h1>
+    <p id="greeting-sub">Ladowanie...</p>
+  </div>
+  <div style="display:flex;align-items:flex-end;gap:8px;">
+    <div style="text-align:right;">
+      <div id="clock">--:--</div>
+      <div id="date-display">--</div>
+    </div>
+    <button class="theme-btn" onclick="toggleTheme()" title="Tryb ciemny">&#x263D;</button>
+  </div>
+</header>
+
+<!-- TOP STATS -->
+<div class="grid grid-4">
+  <div class="countdown-card">
+    <div>
+      <div class="countdown-num" id="days-to-june">--</div>
+      <div class="countdown-label">dni do ko&#x144;ca czerwca</div>
+      <div class="countdown-sub">Deadline Polmlek</div>
+    </div>
+    <div style="font-size:28px;">&#x23F3;</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" id="week-num">--</div>
+    <div class="stat-label">Tydzie&#x144; roku</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num">2</div>
+    <div class="stat-label">Wsp&#xF3;lnoty</div>
+  </div>
+  <div class="stat-card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+    <button class="notify-btn" id="notify-btn" onclick="requestNotify()">&#x1F514; Powi&#x105;d. 30.06</button>
+    <div style="font-size:11px;color:var(--muted);" id="notify-status">Kliknij aby w&#x142;&#x105;czy&#x107;</div>
+  </div>
+</div>
+
+<!-- REKRUTACJA + TIMELINE -->
+<p class="section-label">Rekrutacja</p>
+<div class="grid grid-2">
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+      <div>
+        <div style="font-size:15px;font-weight:600;">Polmlek &mdash; Wolsztyn</div>
+        <div style="font-size:12px;color:var(--muted);">Dyrektor Zak&#x142;adu Produkcyjnego</div>
+      </div>
+      <span class="badge badge-waiting">Czeka na odpowied&#x17A;</span>
+    </div>
+    <div class="progress-bar-wrap"><div class="progress-bar" style="width:66%;background:var(--amber);"></div></div>
+    <div class="progress-label"><span>Etap 2/3</span><span>Rozmowa &#x2713; &rarr; Decyzja</span></div>
+    <div style="margin-top:10px;">
+      <div class="recruit-meta-row">Rozmowa: <span>15.06.2026 &bull; Pu&#x142;tusk HQ</span></div>
+      <div class="recruit-meta-row">HR: <span>Barbara Hassine &bull; 536 153 571</span></div>
+      <div class="recruit-meta-row">Zak&#x142;ad: <span>Wolsztyn (~80 km od Gostynia)</span></div>
+    </div>
+    <div class="recruit-footer">
+      <div style="font-size:11px;color:var(--muted);">Mail wys&#x142;any 16.06 &#x2713;</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;">
+        <span class="badge badge-done">Plan 100 dni &#x2713;</span>
+        <span class="badge badge-done">CV &#x2713;</span>
+      </div>
+    </div>
+    <!-- Timeline -->
+    <div style="margin-top:14px;padding-top:14px;border-top:.5px solid var(--border);">
+      <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Obie&#x15F; czasu</div>
+      <div class="timeline">
+        <div class="tl-item"><div class="tl-dot done"></div><div class="tl-date">03.06</div><div class="tl-label">Aplikacja wys&#x142;ana</div></div>
+        <div class="tl-item"><div class="tl-dot done"></div><div class="tl-date">13.06</div><div class="tl-label">Zaproszenie na rozmow&#x119;</div></div>
+        <div class="tl-item"><div class="tl-dot done"></div><div class="tl-date">15.06</div><div class="tl-label">Rozmowa w Pu&#x142;tusku (1h)</div></div>
+        <div class="tl-item"><div class="tl-dot done"></div><div class="tl-date">16.06</div><div class="tl-label">Mail podzi&#x119;kowanie</div></div>
+        <div class="tl-item"><div class="tl-dot active"></div><div class="tl-date">do 30.06</div><div class="tl-label" style="font-weight:500;color:var(--amber);">Oczekiwana decyzja &#x23F3;</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+      <div>
+        <div style="font-size:15px;font-weight:600;">OSM &#x15A;rem</div>
+        <div style="font-size:12px;color:var(--muted);">Otwarta rekrutacja &mdash; stanowisko mened&#x17C;erskie</div>
+      </div>
+      <span class="badge badge-sent">Aplikacja wys&#x142;ana</span>
+    </div>
+    <div class="progress-bar-wrap"><div class="progress-bar" style="width:20%;background:var(--blue);"></div></div>
+    <div class="progress-label"><span>Etap 1/3</span><span>CV &rarr; Rozmowa &rarr; Decyzja</span></div>
+    <div style="margin-top:10px;">
+      <div class="recruit-meta-row">Wys&#x142;ano: <span>16.06.2026</span></div>
+      <div class="recruit-meta-row">Lokalizacja: <span>&#x15A;rem (~30 km od Gostynia)</span></div>
+      <div class="recruit-meta-row">Kontakt: <span>rekrutacja.osm.srem@interia.pl</span></div>
+    </div>
+    <div class="recruit-footer">
+      <span class="badge badge-done">CV &#x2713;</span>
+    </div>
+    <!-- Timeline -->
+    <div style="margin-top:14px;padding-top:14px;border-top:.5px solid var(--border);">
+      <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Obie&#x15F; czasu</div>
+      <div class="timeline">
+        <div class="tl-item"><div class="tl-dot done"></div><div class="tl-date">16.06</div><div class="tl-label">Aplikacja wys&#x142;ana</div></div>
+        <div class="tl-item"><div class="tl-dot active"></div><div class="tl-date">oczekuj&#x119;</div><div class="tl-label" style="font-weight:500;color:var(--blue);">Zaproszenie na rozmow&#x119;</div></div>
+        <div class="tl-item"><div class="tl-dot pending"></div><div class="tl-date">&mdash;</div><div class="tl-label" style="color:var(--muted);">Rozmowa</div></div>
+        <div class="tl-item"><div class="tl-dot pending"></div><div class="tl-date">&mdash;</div><div class="tl-label" style="color:var(--muted);">Decyzja</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- TASKS + GMAIL -->
+<p class="section-label">Zadania &amp; Skrzynka</p>
+<div class="grid grid-2">
+  <div class="card">
+    <div class="card-title">Zadania</div>
+    <div class="task-item">
+      <div class="task-check inprogress"></div>
+      <div style="flex:1;"><div class="task-text">Czekam na odpowied&#x17A; Polmlek</div><div class="task-meta">do 30.06 &bull; barbara.hassine@grupapolmlek.com</div></div>
+    </div>
+    <div class="task-item">
+      <div class="task-check inprogress"></div>
+      <div style="flex:1;"><div class="task-text">Czekam na odpowied&#x17A; OSM &#x15A;rem</div><div class="task-meta">aplikacja wys&#x142;ana 16.06</div></div>
+    </div>
+    <div class="task-item">
+      <div class="task-check"></div>
+      <div style="flex:1;"><div class="task-text">Odpowied&#x17A; na pismo UM Gostynia</div><div class="task-meta">RE: dotacja na piwnic&#x119; &bull; Wojciechowski, 12.06</div></div>
+    </div>
+    <div class="task-item">
+      <div class="task-check"></div>
+      <div style="flex:1;"><div class="task-text">Sprawd&#x17A; adresy mail: dariusz.zaworski &amp; goja757</div><div class="task-meta">Odrzucone przez serwer 14.06</div></div>
+    </div>
+    <div class="task-item">
+      <div class="task-check"></div>
+      <div style="flex:1;"><div class="task-text">Synchronizacja Apple Calendar &#x2194; Google Calendar</div><div class="task-meta">iPhone</div></div>
+    </div>
+    <div style="margin-top:12px;padding-top:12px;border-top:.5px solid var(--border);">
+      <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Ostatnio zrobione</div>
+      <div class="task-item"><div class="task-check done"></div><div class="task-text done-text">Rozmowa rekrutacyjna Polmlek (15.06)</div></div>
+      <div class="task-item"><div class="task-check done"></div><div class="task-text done-text">Mail podzi&#x119;kowanie do B. Hassine (16.06)</div></div>
+      <div class="task-item"><div class="task-check done"></div><div class="task-text done-text">Aplikacja OSM &#x15A;rem (16.06)</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Skrzynka &mdash; ostatnie</div>
+    <div class="mail-item important">
+      <div style="display:flex;justify-content:space-between;"><div class="mail-sender">dwojciechowski@um.gostyn.pl</div><div style="font-size:11px;color:var(--muted);">12.06</div></div>
+      <div class="mail-subject">&#x26A0; RE: Dotacja &mdash; piwnica Urz&#x119;dnik</div>
+      <div class="mail-snippet">Miejsca dora&#x17A;nego schronienia to najni&#x17C;sza kategoria obiekt&#xF3;w...</div>
+    </div>
+    <div class="mail-item">
+      <div style="display:flex;justify-content:space-between;"><div class="mail-sender">mailer-daemon@googlemail.com</div><div style="font-size:11px;color:var(--muted);">14.06</div></div>
+      <div class="mail-subject" style="color:var(--red);">Delivery Failure &#x2715;</div>
+      <div class="mail-snippet">zaworski@interia.pl &amp; goja757@wp.pl &mdash; sprawd&#x17A; adresy</div>
+    </div>
+    <div class="mail-item">
+      <div style="display:flex;justify-content:space-between;"><div class="mail-sender">kontakt@ogrodosfera.pl</div><div style="font-size:11px;color:var(--muted);">12.06</div></div>
+      <div class="mail-subject">Odbierz 100 z&#x142; za opini&#x119;</div>
+      <div class="mail-snippet">Mamy nadziej&#x119;, i&#x17C; zakupiony produkt spe&#x142;nia...</div>
+    </div>
+    <div style="margin-top:14px;padding-top:14px;border-top:.5px solid var(--border);">
+      <div class="card-title" style="margin-bottom:10px;">Nast&#x119;pne odpisanie</div>
+      <div style="font-size:13px;color:var(--text);">Odpowied&#x17A; do Wojciechowskiego (UM) w sprawie warunk&#xF3;w adaptacji piwnicy jako miejsca schronienia dla wsp&#xF3;lnoty Urz&#x119;dnik.</div>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted);">dwojciechowski@um.gostyn.pl &bull; cc: zperczak@um.gostyn.pl</div>
+    </div>
+  </div>
+</div>
+
+<!-- WEATHER + CALENDAR -->
+<p class="section-label">Pogoda &amp; Kalendarz</p>
+<div class="grid grid-2">
+  <div class="card" id="weather-card">
+    <div class="card-title">Pogoda &mdash; Gosty&#x144;</div>
+    <div id="weather-loading" style="color:var(--muted);font-size:13px;">Ladowanie...</div>
+    <div id="weather-content" style="display:none;">
+      <div class="weather-main">
+        <div class="weather-icon" id="w-icon">&#x2600;</div>
+        <div>
+          <div class="weather-temp"><span id="w-temp">--</span>&#xB0;C</div>
+          <div class="weather-desc" id="w-desc">--</div>
+        </div>
+      </div>
+      <div class="weather-details">
+        <div class="weather-detail">Odczuwalna: <span id="w-feels">--</span>&#xB0;C</div>
+        <div class="weather-detail">Wilgotno&#x15B;&#x107;: <span id="w-humidity">--</span>%</div>
+        <div class="weather-detail">Wiatr: <span id="w-wind">--</span> km/h</div>
+        <div class="weather-detail">Opady: <span id="w-rain">--</span> mm</div>
+      </div>
+      <div class="weather-forecast" id="w-forecast"></div>
+    </div>
+    <div id="weather-error" style="display:none;color:var(--muted);font-size:13px;">Brak danych &mdash; sprawdz po&#x142;&#x105;czenie z internetem.</div>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden;display:flex;flex-direction:column;">
+    <div class="card-title" style="padding:16px 20px 12px;border-bottom:.5px solid var(--border);margin-bottom:0;">
+      Kalendarz Google
+      <a href="https://calendar.google.com" target="_blank" style="float:right;font-size:11px;color:var(--accent);text-decoration:none;font-weight:400;margin-left:8px;">Otwórz →</a>
+    </div>
+    <iframe
+      src="https://calendar.google.com/calendar/embed?src=unity.housegostyn%40gmail.com&ctz=Europe%2FWarsaw&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0&mode=AGENDA"
+      style="border:0;width:100%;min-height:380px;flex:1;"
+      frameborder="0"
+      scrolling="no"
+      title="Kalendarz Google"
+    ></iframe>
+  </div>
+</div>
+
+<!-- UNITY HOUSE -->
+<p class="section-label">Unity House Gosty&#x144; &mdash; wsp&#xF3;lnoty</p>
+<div class="unity-grid">
+  <div class="uh-card">
+    <div class="uh-name">Urz&#x119;dnik</div>
+    <div class="uh-row">Status: <span><span class="badge badge-done">aktywna</span></span></div>
+    <div style="margin-top:6px;font-size:12px;color:var(--red);">&#x26A0;&#xFE0F; Pismo z UM &mdash; wymaga odpowiedzi (dotacja piwnica)</div>
+    <textarea class="uh-notes" id="notes-urzednik" placeholder="Notatki: zebrania, uchwa&#x142;y, pilne sprawy..."></textarea>
+  </div>
+  <div class="uh-card">
+    <div class="uh-name">Pod Klonami</div>
+    <div class="uh-row">Status: <span><span class="badge badge-done">aktywna</span></span></div>
+    <div style="margin-top:6px;height:18px;"></div>
+    <textarea class="uh-notes" id="notes-podklonami" placeholder="Notatki: zebrania, uchwa&#x142;y, pilne sprawy..."></textarea>
+  </div>
+</div>
+
+<!-- CORRESPONDENCE TRACKER -->
+<p class="section-label">Tracker korespondencji</p>
+<div class="card">
+  <table class="corr-table" id="corr-table">
+    <thead><tr>
+      <th>Data</th><th>Do kogo</th><th>Temat</th><th>Wsp&#xF3;lnota</th><th>Status</th>
+    </tr></thead>
+    <tbody id="corr-tbody"></tbody>
+  </table>
+  <div class="corr-add">
+    <input class="corr-input" id="ci-date" type="date">
+    <input class="corr-input" id="ci-to" placeholder="Do kogo / adres">
+    <input class="corr-input" id="ci-subject" placeholder="Temat">
+    <select class="corr-select" id="ci-wspolnota">
+      <option value="Urz&#x119;dnik">Urz&#x119;dnik</option>
+      <option value="Pod Klonami">Pod Klonami</option>
+      <option value="Inne">Inne</option>
+    </select>
+    <select class="corr-select" id="ci-status">
+      <option value="Wys&#x142;ane">Wys&#x142;ane</option>
+      <option value="Odpowied&#x17A; otrzymana">Odpowied&#x17A; otrzymana</option>
+      <option value="Zamkni&#x119;te">Zamkni&#x119;te</option>
+      <option value="Oczekuj&#x119;">Oczekuj&#x119;</option>
+    </select>
+    <button class="corr-btn" onclick="addCorr()">+ Dodaj</button>
+  </div>
+</div>
+
+<!-- OEE + CONTACTS + FILES -->
+<p class="section-label">Narz&#x119;dzia &amp; Kontakty</p>
+<div class="grid grid-3">
+
+  <div class="card">
+    <div class="card-title">Kalkulator OEE</div>
+    <div class="oee-grid">
+      <div><div class="oee-label">Dost&#x119;p. %</div><input class="oee-input" id="oee-a" type="number" min="0" max="100" value="90" oninput="calcOEE()"></div>
+      <div><div class="oee-label">Wydajn. %</div><input class="oee-input" id="oee-p" type="number" min="0" max="100" value="85" oninput="calcOEE()"></div>
+      <div><div class="oee-label">Jako&#x15B;&#x107; %</div><input class="oee-input" id="oee-q" type="number" min="0" max="100" value="97" oninput="calcOEE()"></div>
+    </div>
+    <div class="oee-result">
+      <div class="oee-result-num" id="oee-result">--</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;">OEE = D &times; W &times; J</div>
+    </div>
+    <div class="oee-scale">
+      <span style="background:var(--red-light);color:var(--red);">&lt;50% s&#x142;abo</span>
+      <span style="background:var(--amber-light);color:var(--amber);">50-65% &#x15B;rednio</span>
+      <span style="background:var(--green-light);color:var(--green);">&gt;65% dobrze</span>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted);text-align:center;">SM Gosty&#x144;: 52% &rarr; 74% w 2 lata</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Kontakty</div>
+    <div class="contact-item">
+      <div class="contact-avatar">BH</div>
+      <div style="flex:1;min-width:0;"><div class="contact-name">Barbara Hassine</div><div class="contact-detail">Polmlek HR &bull; 536 153 571</div><div class="contact-detail">barbara.hassine@grupapolmlek.com</div></div>
+    </div>
+    <div class="contact-item">
+      <div class="contact-avatar">OS</div>
+      <div style="flex:1;min-width:0;"><div class="contact-name">OSM &#x15A;rem &mdash; rekrutacja</div><div class="contact-detail">rekrutacja.osm.srem@interia.pl</div></div>
+    </div>
+    <div class="contact-item">
+      <div class="contact-avatar">DW</div>
+      <div style="flex:1;min-width:0;"><div class="contact-name">Wojciechowski (UM Gosty&#x144;)</div><div class="contact-detail">dwojciechowski@um.gostyn.pl</div><div class="contact-detail" style="color:var(--red);">&#x26A0; czeka na odpowied&#x17A;</div></div>
+    </div>
+    <div class="contact-item">
+      <div class="contact-avatar">AT</div>
+      <div style="flex:1;min-width:0;"><div class="contact-name">Abrys-Technika</div><div class="contact-detail">handel@abrys-technika.pl</div><div class="contact-detail">Pojemnik dzwon na szk&#x142;o</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Pliki</div>
+    <a class="file-btn" href="Andrzej_Mikulski_CV_POPRAWIONE.docx"><div class="file-icon">&#x1F4C4;</div>CV poprawione</a>
+    <a class="file-btn" href="Plan_100_Dni_Polmlek.docx"><div class="file-icon">&#x1F4CB;</div>Plan 100 dni &mdash; Polmlek</a>
+    <a class="file-btn" href="polmlek-brief-v2.md"><div class="file-icon">&#x1F5D2;</div>Brif rekrutacyjny</a>
+    <a class="file-btn" href="SCIAGA_POLMLEK.md"><div class="file-icon">&#x1F4F1;</div>&#x15A;ci&#x105;ga mobilna</a>
+    <a class="file-btn" href="Polmlek_Rozmowa_Transkrypcja.md"><div class="file-icon">&#x1F399;</div>Transkrypcja 15.06</a>
+  </div>
+
+</div>
+
+<!-- QUICK INTERVIEW ANSWERS -->
+<p class="section-label">Szybkie odpowiedzi &mdash; rozmowa kwalifikacyjna</p>
+<div class="grid grid-2">
+  <div class="card qa-section">
+    <div class="card-title">Moje odpowiedzi</div>
+    <div class="qa-item"><div class="qa-q">Opowiedz o sobie</div><div class="qa-a">14 lat SM Gosty&#x144;, OEE 52&#x2192;74%, BRC/IFS, zesp&#xF3;&#x142; 300+. Chc&#x119; tu, bo laktoferyna i strategia "skok do przodu".</div></div>
+    <div class="qa-item"><div class="qa-q">Dlaczego Polmlek?</div><div class="qa-a">Projekt laktoferyny 99,2% + rynek pharma + Chiny &mdash; to nie jest typowe mleczarstwo. Chc&#x119; by&#x107; cz&#x119;&#x15B;ci&#x105; czego&#x15B; wi&#x119;kszego.</div></div>
+    <div class="qa-item"><div class="qa-q">Nie by&#x142; Pan Dyrektorem?</div><div class="qa-a">Functionally tak. Zak&#x142;ad 300 os&#xF3;b, wyniki, BRC, inwestycje &mdash; to nie teoria. Dlatego mam Plan 100 dni.</div></div>
+    <div class="qa-item"><div class="qa-q">Najtrudniejsza sytuacja?</div><div class="qa-a">Produkcja nie wyrabia 22:00 &mdash; dzwoni&#x119;, nie czekam. Sprawdzam dane, jad&#x119; lub decyduj&#x119; zdalnie.</div></div>
+  </div>
+  <div class="card qa-section">
+    <div class="card-title">Moje liczby &mdash; do zapami&#x119;tania</div>
+    <div class="qa-item"><div class="qa-q">OEE</div><div class="qa-a">52% &#x2192; 74% w 2 lata &bull; Dost&#x119;pno&#x15B;&#x107; &times; Wydajno&#x15B;&#x107; &times; Jako&#x15B;&#x107;</div></div>
+    <div class="qa-item"><div class="qa-q">Zesp&#xF3;&#x142;</div><div class="qa-a">300+ os&#xF3;b, 3 zmiany (180 &#x2192; 130 na produkcji przy zachowaniu jako&#x15B;ci)</div></div>
+    <div class="qa-item"><div class="qa-q">Transport</div><div class="qa-a">4 km/1000L &#x2192; 3 km/1000L &mdash; optymalizacja tras, PM, cisterna</div></div>
+    <div class="qa-item"><div class="qa-q">Systemy</div><div class="qa-a">ERP IMPULS EVO &bull; CMMS Plan 2000 &bull; BRC &bull; IFS &bull; HACCP &bull; TACCP</div></div>
+    <div class="qa-item"><div class="qa-q">Laktoferyna</div><div class="qa-a">99,2% czysto&#x15B;ci (rynek: 95%). Chromatografia jonowymiennicza &#x2192; UF &#x2192; suszenie rozpy&#x142;owe.</div></div>
+  </div>
+</div>
+
+<!-- NOTES -->
+<p class="section-label">Notatki og&#xF3;lne</p>
+<div class="card">
+  <textarea class="main-notes" id="main-notes" placeholder="Zapisz tu cokolwiek &mdash; pomys&#x142;y, numery, sprawy do za&#x142;atwienia..."></textarea>
+  <div style="margin-top:6px;font-size:11px;color:var(--muted);">Automatyczny zapis w przegl&#x105;darce.</div>
+</div>
+
+<div style="margin-top:24px;padding-top:16px;border-top:.5px solid var(--border);font-size:12px;color:var(--muted);text-align:center;">
+  Unity House Gosty&#x144; &bull; Dashboard &bull; v3.0 &bull; 17.06.2026
+</div>
+
+<script>
+/* ===== Clock ===== */
+function pad(n){return String(n).padStart(2,'0');}
+function getWeek(d){var dt=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));var day=dt.getUTCDay()||7;dt.setUTCDate(dt.getUTCDate()+4-day);var y=new Date(Date.UTC(dt.getUTCFullYear(),0,1));return Math.ceil((((dt-y)/86400000)+1)/7);}
+function updateClock(){
+  var now=new Date();
+  document.getElementById('clock').textContent=pad(now.getHours())+':'+pad(now.getMinutes());
+  var days=['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
+  var months=['stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','paźziernika','listopada','grudnia'];
+  document.getElementById('date-display').textContent=days[now.getDay()]+', '+now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
+  var h=now.getHours();
+  document.getElementById('greeting-sub').textContent=h<6?'Dobrej nocy!':h<12?'Dobrego poranka!':h<17?'Miłego popołudnia!':'Dobrego wieczoru!';
+  var endJune=new Date(now.getFullYear(),5,30,23,59,59);
+  var diff=Math.ceil((endJune-now)/86400000);
+  document.getElementById('days-to-june').textContent=diff>0?diff:0;
+  document.getElementById('week-num').textContent=getWeek(now);
+}
+updateClock();
+setInterval(updateClock,30000);
+
+/* ===== Dark mode ===== */
+function toggleTheme(){
+  var html=document.documentElement;
+  var isDark=html.getAttribute('data-theme')==='dark';
+  html.setAttribute('data-theme',isDark?'light':'dark');
+  document.querySelector('.theme-btn').textContent=isDark?'☽':'☀';
+  try{localStorage.setItem('dash-theme',isDark?'light':'dark');}catch(e){}
+}
+try{var t=localStorage.getItem('dash-theme');if(t){document.documentElement.setAttribute('data-theme',t);document.querySelector('.theme-btn').textContent=t==='dark'?'☀':'☽';}}catch(e){}
+
+/* ===== OEE ===== */
+function calcOEE(){
+  var a=parseFloat(document.getElementById('oee-a').value)||0;
+  var p=parseFloat(document.getElementById('oee-p').value)||0;
+  var q=parseFloat(document.getElementById('oee-q').value)||0;
+  var oee=(a/100)*(p/100)*(q/100)*100;
+  var el=document.getElementById('oee-result');
+  el.textContent=oee.toFixed(1)+'%';
+  el.style.color=oee>=65?'var(--green)':oee>=50?'var(--amber)':'var(--red)';
+}
+calcOEE();
+
+/* ===== Notes ===== */
+[['main-notes','dash-main'],['notes-urzednik','dash-urzednik'],['notes-podklonami','dash-podklonami']].forEach(function(p){
+  var el=document.getElementById(p[0]);
+  try{var v=localStorage.getItem(p[1]);if(v)el.value=v;el.addEventListener('input',function(){try{localStorage.setItem(p[1],el.value);}catch(e){}});}catch(e){}
+});
+
+/* ===== Correspondence tracker ===== */
+var corrData=[];
+try{var s=localStorage.getItem('dash-corr');if(s)corrData=JSON.parse(s);}catch(e){}
+if(corrData.length===0){
+  corrData=[
+    {date:'2026-06-08',to:'dwojciechowski@um.gostyn.pl',subject:'Dotacja — adaptacja piwnicy jako miejsce schronienia',wspolnota:'Urzędnik',status:'Odpowiedź otrzymana'},
+    {date:'2026-06-16',to:'barbara.hassine@grupapolmlek.com',subject:'Podziękowanie po rozmowie',wspolnota:'Inne',status:'Wysłane'},
+    {date:'2026-06-16',to:'rekrutacja.osm.srem@interia.pl',subject:'Aplikacja — stanowisko menedżerskie',wspolnota:'Inne',status:'Wysłane'},
+    {date:'2026-06-16',to:'handel@abrys-technika.pl',subject:'Zapytanie o cenę — pojemnik dzwon na szkło',wspolnota:'Inne',status:'Oczekuję'},
+  ];
+  try{localStorage.setItem('dash-corr',JSON.stringify(corrData));}catch(e){}
+}
+var statusColors={'Wysłane':'badge-sent','Odpowiedź otrzymana':'badge-done','Zamknięte':'badge-done','Oczekuję':'badge-waiting'};
+function renderCorr(){
+  var tbody=document.getElementById('corr-tbody');
+  tbody.innerHTML='';
+  corrData.forEach(function(r,i){
+    var tr=document.createElement('tr');
+    var sc=statusColors[r.status]||'badge-sent';
+    tr.innerHTML='<td>'+r.date+'</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+r.to+'</td><td>'+r.subject+'</td><td>'+r.wspolnota+'</td><td><span class="badge '+sc+'">'+r.status+'</span></td>';
+    tbody.appendChild(tr);
+  });
+}
+function addCorr(){
+  var d=document.getElementById('ci-date').value;
+  var to=document.getElementById('ci-to').value.trim();
+  var subj=document.getElementById('ci-subject').value.trim();
+  var wsp=document.getElementById('ci-wspolnota').value;
+  var st=document.getElementById('ci-status').value;
+  if(!to||!subj)return;
+  corrData.unshift({date:d||new Date().toISOString().slice(0,10),to:to,subject:subj,wspolnota:wsp,status:st});
+  try{localStorage.setItem('dash-corr',JSON.stringify(corrData));}catch(e){}
+  document.getElementById('ci-to').value='';
+  document.getElementById('ci-subject').value='';
+  renderCorr();
+}
+renderCorr();
+
+/* ===== Notifications ===== */
+function requestNotify(){
+  if(!('Notification' in window)){document.getElementById('notify-status').textContent='Przeglądarka nie obsługuje powiadomień.';return;}
+  Notification.requestPermission().then(function(p){
+    if(p==='granted'){
+      document.getElementById('notify-status').textContent='Włączone ✓';
+      document.getElementById('notify-btn').style.background='var(--green-light)';
+      document.getElementById('notify-btn').style.color='var(--green)';
+      document.getElementById('notify-btn').style.borderColor='var(--green)';
+      scheduleJuneNotify();
+    }else{
+      document.getElementById('notify-status').textContent='Zablokowane w przeglądarce.';
+    }
+  });
+}
+function scheduleJuneNotify(){
+  var now=new Date();
+  var june30=new Date(now.getFullYear(),5,30,9,0,0);
+  var ms=june30-now;
+  if(ms>0&&ms<86400000*1){
+    setTimeout(function(){
+      new Notification('Polmlek — deadline!',{body:'Koniec czerwca — jeśli brak odpowiedzi, zadzwoń do Barbary Hassine: 536 153 571',icon:''});
+    },ms);
+  }
+}
+try{if(Notification.permission==='granted'){document.getElementById('notify-status').textContent='Włączone ✓';scheduleJuneNotify();}}catch(e){}
+
+/* ===== Weather ===== */
+function weatherIcon(code){
+  if(code<=3)return'☀️';
+  if(code<=48)return'☁️';
+  if(code<=67)return'🌧️';
+  if(code<=77)return'❄️';
+  if(code<=82)return'🌦️';
+  return'⚡';
+}
+function weatherDesc(code){
+  if(code===0)return'Słonecznie';
+  if(code<=2)return'Częściowe zachmurzenie';
+  if(code<=3)return'Zachmurzenie';
+  if(code<=48)return'Mgła';
+  if(code<=55)return'Mgiełka';
+  if(code<=65)return'Deszcz';
+  if(code<=77)return'Śnieg';
+  if(code<=82)return'Przelotne opady';
+  return'Burze';
+}
+var dayNames=['Niedz','Pon','Wt','Śr','Czw','Pt','Sob'];
+fetch('https://api.open-meteo.com/v1/forecast?latitude=51.88&longitude=17.01&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,precipitation,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=Europe/Warsaw&forecast_days=5')
+.then(function(r){return r.json();})
+.then(function(d){
+  var c=d.current;
+  document.getElementById('w-temp').textContent=Math.round(c.temperature_2m);
+  document.getElementById('w-feels').textContent=Math.round(c.apparent_temperature);
+  document.getElementById('w-humidity').textContent=c.relative_humidity_2m;
+  document.getElementById('w-wind').textContent=Math.round(c.wind_speed_10m);
+  document.getElementById('w-rain').textContent=c.precipitation;
+  document.getElementById('w-icon').textContent=weatherIcon(c.weather_code);
+  document.getElementById('w-desc').textContent=weatherDesc(c.weather_code);
+  var fc=document.getElementById('w-forecast');
+  d.daily.time.forEach(function(dt,i){
+    if(i===0)return;
+    var day=new Date(dt);
+    var div=document.createElement('div');
+    div.className='forecast-day';
+    div.innerHTML='<div class="fd-day">'+dayNames[day.getDay()]+'</div><div class="fd-icon">'+weatherIcon(d.daily.weather_code[i])+'</div><div class="fd-temp">'+Math.round(d.daily.temperature_2m_max[i])+'&deg;/'+Math.round(d.daily.temperature_2m_min[i])+'&deg;</div>';
+    fc.appendChild(div);
+  });
+  document.getElementById('weather-loading').style.display='none';
+  document.getElementById('weather-content').style.display='block';
+}).catch(function(){
+  document.getElementById('weather-loading').style.display='none';
+  document.getElementById('weather-error').style.display='block';
+});
+
+/* ===== Date init ===== */
+document.getElementById('ci-date').value=new Date().toISOString().slice(0,10);
+</script>
+</body>
+</html>

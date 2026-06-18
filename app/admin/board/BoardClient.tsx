@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { createPost, deletePost, togglePin, createReply, deleteReply } from './actions'
+import BackButton from '@/components/BackButton'
 
 interface Reply {
   id: string
@@ -117,6 +118,7 @@ export default function BoardClient({ initialPosts, currentUserId, currentRole, 
 
   return (
     <div className="space-y-6">
+      <BackButton />
       {/* Filtr wspólnoty dla super_admin */}
       {isSuperAdmin && communities.length > 0 && (
         <div className="flex items-center gap-3">

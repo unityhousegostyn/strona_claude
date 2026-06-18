@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { sendMessageToResidents, getResidentsForMessage } from './actions'
+import BackButton from '@/components/BackButton'
 
 type Resident = { id: string; full_name: string | null; email: string }
 type Community = { id: string; name: string }
@@ -87,6 +88,7 @@ export default function MessagesClient({
 
   return (
     <div className="space-y-5">
+      <BackButton />
 
       {/* Wspólnota (super_admin) */}
       {isSuperAdmin && communities.length > 1 && (

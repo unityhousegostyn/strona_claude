@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toggleTicketStatus, createTicket } from './actions'
 import Pagination from '@/components/Pagination'
+import BackButton from '@/components/BackButton'
 
 type Tab = 'open' | 'closed'
 
@@ -94,6 +95,7 @@ export default function TicketsClient({ tickets: initial, communities, userId, c
 
   return (
     <div className="space-y-6">
+      <BackButton />
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-[#f0fdfa]">Zgłoszenia</h2>
         <button
