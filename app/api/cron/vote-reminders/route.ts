@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import { sendVoteReminderEmail } from '@/lib/email'
 
 export const runtime = 'nodejs'
@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const admin = createAdminClient()
+  const admin = getSupabaseAdminClient()
   const now = new Date()
 
   // Find open votes where:
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
 
   const { data: votes, error } = await admin
     .from('votes')
-    .select('id, title, description, deadline, resolution_number, community_id')
+    .select('id, title, description, deadline, resolution_number, community_id, created_at')
     .eq('status', 'open')
     .lte('created_at', cutoff)
     .is('reminder_sent_at', null)
@@ -84,7 +84,7 @@ export async function GET(request: Request) {
 
       const emails = profileIds
         .map((id: string) => emailMap.get(id))
-        .filter((e): e is string => !!e)
+        .filter((e: string | undefined): e is string => !!e)
 
       if (emails.length > 0) {
         await sendVoteReminderEmail({
