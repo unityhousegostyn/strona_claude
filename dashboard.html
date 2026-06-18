@@ -377,12 +377,6 @@ header{display:flex;justify-content:space-between;align-items:flex-end;margin-bo
 <p class="section-label">Unity House Gosty&#x144; &mdash; wsp&#xF3;lnoty</p>
 <div class="unity-grid">
   <div class="uh-card">
-    <div class="uh-name">Urz&#x119;dnik</div>
-    <div class="uh-row">Status: <span><span class="badge badge-done">aktywna</span></span></div>
-    <div style="margin-top:6px;font-size:12px;color:var(--red);">&#x26A0;&#xFE0F; Pismo z UM &mdash; wymaga odpowiedzi (dotacja piwnica)</div>
-    <textarea class="uh-notes" id="notes-urzednik" placeholder="Notatki: zebrania, uchwa&#x142;y, pilne sprawy..."></textarea>
-  </div>
-  <div class="uh-card">
     <div class="uh-name">Pod Klonami</div>
     <div class="uh-row">Status: <span><span class="badge badge-done">aktywna</span></span></div>
     <div style="margin-top:6px;height:18px;"></div>
@@ -404,7 +398,6 @@ header{display:flex;justify-content:space-between;align-items:flex-end;margin-bo
     <input class="corr-input" id="ci-to" placeholder="Do kogo / adres">
     <input class="corr-input" id="ci-subject" placeholder="Temat">
     <select class="corr-select" id="ci-wspolnota">
-      <option value="Urz&#x119;dnik">Urz&#x119;dnik</option>
       <option value="Pod Klonami">Pod Klonami</option>
       <option value="Inne">Inne</option>
     </select>
@@ -546,7 +539,7 @@ function calcOEE(){
 calcOEE();
 
 /* ===== Notes ===== */
-[['main-notes','dash-main'],['notes-urzednik','dash-urzednik'],['notes-podklonami','dash-podklonami']].forEach(function(p){
+[['main-notes','dash-main'],['notes-podklonami','dash-podklonami']].forEach(function(p){
   var el=document.getElementById(p[0]);
   try{var v=localStorage.getItem(p[1]);if(v)el.value=v;el.addEventListener('input',function(){try{localStorage.setItem(p[1],el.value);}catch(e){}});}catch(e){}
 });
@@ -556,7 +549,6 @@ var corrData=[];
 try{var s=localStorage.getItem('dash-corr');if(s)corrData=JSON.parse(s);}catch(e){}
 if(corrData.length===0){
   corrData=[
-    {date:'2026-06-08',to:'dwojciechowski@um.gostyn.pl',subject:'Dotacja — adaptacja piwnicy jako miejsce schronienia',wspolnota:'Urzędnik',status:'Odpowiedź otrzymana'},
     {date:'2026-06-16',to:'barbara.hassine@grupapolmlek.com',subject:'Podziękowanie po rozmowie',wspolnota:'Inne',status:'Wysłane'},
     {date:'2026-06-16',to:'rekrutacja.osm.srem@interia.pl',subject:'Aplikacja — stanowisko menedżerskie',wspolnota:'Inne',status:'Wysłane'},
     {date:'2026-06-16',to:'handel@abrys-technika.pl',subject:'Zapytanie o cenę — pojemnik dzwon na szkło',wspolnota:'Inne',status:'Oczekuję'},
