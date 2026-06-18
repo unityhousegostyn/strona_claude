@@ -42,6 +42,7 @@ export interface SettlementEntry {
   water_correction: number
   water_m3: number   // zużycie wody w m³ (dla billing_type='meter')
   notes: string | null
+  persons_count: number | null  // nadpisanie liczby osób (śmieci); NULL = domyślna z lokalu
 }
 
 export interface MonthlyRow {
@@ -59,6 +60,7 @@ export interface MonthlyRow {
   total_due: number
   balance_end: number
   entry: SettlementEntry | null
+  persons_used: number  // faktyczna liczba osób użyta do naliczenia śmieci
 }
 
 const MONTH_NAMES = [
@@ -114,7 +116,8 @@ export function calcMonthCharges(
   const water      = rates.water_billing_type === 'meter'
     ? r((entry?.water_m3 ?? 0) * rates.water_price_m3)
     : r(rates.water_ryczalt_m3 * rates.water_price_m3)
-  const garbage    = r(apt.persons_count * rates.garbage_per_person)
+  const persons    = entry?.persons_count ?? apt.persons_count
+  const garbage    = r(persons * rates.garbage_per_person)
   const correction = r(entry?.water_correction ?? 0)
   const paid       = r(entry?.paid ?? 0)
 
@@ -153,6 +156,7 @@ export function buildYearlyTable(
         water: 0, garbage: 0, correction: 0, total_due: 0,
         balance_end: balance,
         entry: null,
+        persons_used: apt.persons_count,
       })
       continue
     }
@@ -173,6 +177,7 @@ export function buildYearlyTable(
         water: 0, garbage: 0, correction: 0, total_due: 0,
         balance_end,
         entry,
+        persons_used: entry?.persons_count ?? apt.persons_count,
       })
       balance = balance_end
       continue
@@ -188,6 +193,7 @@ export function buildYearlyTable(
       balance_start,
       balance_end,
       entry,
+      persons_used: entry?.persons_count ?? apt.persons_count,
       ...charges,
     })
 

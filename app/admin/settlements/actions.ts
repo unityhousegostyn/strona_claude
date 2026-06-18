@@ -202,6 +202,7 @@ export async function upsertEntry(data: {
   water_correction: number
   water_m3?: number
   notes?: string | null
+  persons_count?: number | null
 }): Promise<{ error?: string }> {
   const auth = await requireAdminOrAbove()
   if (auth.error !== null) return { error: auth.error }
@@ -221,6 +222,7 @@ export async function upsertEntry(data: {
     water_correction: data.water_correction,
     water_m3: data.water_m3 ?? 0,
     notes: data.notes ?? null,
+    persons_count: data.persons_count ?? null,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'apartment_id,year,month' })
 

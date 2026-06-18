@@ -39,6 +39,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
   const [editCorrection, setEditCorrection] = useState('')
   const [editWaterM3, setEditWaterM3] = useState('')
   const [editNotes, setEditNotes] = useState('')
+  const [editPersons, setEditPersons] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [initialBalance, setInitialBalance] = useState(savedOpeningBalance)
@@ -75,6 +76,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
     setEditCorrection(row.entry?.water_correction != null ? String(row.entry.water_correction) : '')
     setEditWaterM3(row.entry?.water_m3 != null ? String(row.entry.water_m3) : '')
     setEditNotes(row.entry?.notes ?? '')
+    setEditPersons(row.entry?.persons_count != null ? String(row.entry.persons_count) : '')
     setSaveError(null)
   }
 
@@ -96,6 +98,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
       water_correction: parseFloat(editCorrection || '0'),
       water_m3: parseFloat(editWaterM3 || '0'),
       notes: editNotes || null,
+      persons_count: editPersons.trim() !== '' ? parseInt(editPersons, 10) : null,
     })
     setSaving(false)
     if (res.error) {
@@ -229,7 +232,16 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                       <td className={colClass + ' text-[#99f6e4]'}>{row.hasRates ? pln(row.operating) : '—'}</td>
                       <td className={colClass + ' text-[#99f6e4]'}>{row.hasRates ? pln(row.manager) : '—'}</td>
                       <td className={colClass + ' text-[#99f6e4]'}>{row.hasRates ? pln(row.water) : '—'}</td>
-                      <td className={colClass + ' text-[#99f6e4]'}>{row.hasRates ? pln(row.garbage) : '—'}</td>
+                      <td className={colClass + ' text-[#99f6e4]'}>
+                        {row.hasRates ? (
+                          <span className="inline-flex items-center gap-1">
+                            {pln(row.garbage)}
+                            {row.entry?.persons_count != null && (
+                              <span title={`Nadpisano: ${row.persons_used} os.`} className="text-amber-400 text-[10px]">👤{row.persons_used}</span>
+                            )}
+                          </span>
+                        ) : '—'}
+                      </td>
                       <td className={colClass + ' ' + (row.correction !== 0 ? 'text-yellow-400' : 'text-[#115e59]')}>
                         {row.correction !== 0 ? pln(row.correction) : '—'}
                       </td>
@@ -298,6 +310,21 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                                 />
                               </div>
                             )}
+                            <div>
+                              <label className="text-xs text-[#0f766e] block mb-1">
+                                Liczba osób (śmieci)
+                                <span className="text-[#115e59] ml-1">domyślnie: {apartment.persons_count}</span>
+                              </label>
+                              <input
+                                type="number"
+                                min="1"
+                                step="1"
+                                value={editPersons}
+                                onChange={e => setEditPersons(e.target.value)}
+                                placeholder={String(apartment.persons_count)}
+                                className="w-24 bg-[#0c2220] border border-[#0f2d2a] rounded-lg px-3 py-1.5 text-sm text-[#f0fdfa] focus:outline-none focus:border-amber-500"
+                              />
+                            </div>
                             <div className="flex-1 min-w-40">
                               <label className="text-xs text-[#0f766e] block mb-1">Uwagi</label>
                               <input
