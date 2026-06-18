@@ -21,12 +21,14 @@ const roleLabel: Record<string, string> = {
   super_admin: 'Super Admin',
   admin: 'Administrator',
   user: 'Mieszkaniec',
+  najemca: 'Najemca',
 }
 
 const roleBadge: Record<string, string> = {
   super_admin: 'bg-purple-100 text-purple-400',
   admin: 'bg-teal-900/40 text-teal-400',
   user: 'bg-[#081918] text-[#0f766e]',
+  najemca: 'bg-blue-950/40 text-blue-400',
 }
 
 export default function UsersClient({ users, isSuperAdmin }: Props) {

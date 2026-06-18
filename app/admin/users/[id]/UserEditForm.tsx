@@ -114,6 +114,7 @@ export default function UserEditForm({
             disabled={isSelf}
           >
             <option value="user">Mieszkaniec</option>
+            <option value="najemca">Najemca</option>
             <option value="admin">Administrator</option>
             <option value="super_admin">Super Admin</option>
           </select>
