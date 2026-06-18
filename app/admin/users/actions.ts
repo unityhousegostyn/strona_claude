@@ -62,7 +62,7 @@ export async function addUser(data: {
   email: string
   full_name: string
   password: string
-  role: 'user' | 'admin' | 'super_admin'
+  role: 'user' | 'najemca' | 'admin' | 'super_admin'
   community_id: string
   apartment_id?: string | null
 }): Promise<{ error?: string }> {
