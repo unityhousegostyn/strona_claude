@@ -5,6 +5,7 @@ import WnioskiClient from './WnioskiClient'
 
 export default async function WnioskiPage() {
   const { user, profile } = await getAuthProfile()
+  if (profile.role === 'najemca') redirect('/admin/dashboard')
   const admin = getSupabaseAdminClient()
 
   const isAdmin = profile.role === 'admin'

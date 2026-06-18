@@ -6,6 +6,7 @@ import VotesClient from './VotesClient'
 
 export default async function VotesPage() {
   const { user, profile } = await getAuthProfile()
+  if (profile.role === 'najemca') redirect('/admin/dashboard')
   const admin = getSupabaseAdminClient()
 
   const communityId = profile.community_id

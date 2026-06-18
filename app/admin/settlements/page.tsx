@@ -10,6 +10,8 @@ export default async function SettlementsPage({
 }) {
   const { user, profile } = await getAuthProfile()
 
+  if (profile.role === 'najemca') redirect('/admin/dashboard')
+
   const admin = getSupabaseAdminClient()
 
   // ── USER: przekieruj bezpośrednio do swojego mieszkania ──────────────────

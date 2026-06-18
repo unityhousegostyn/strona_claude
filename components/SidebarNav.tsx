@@ -19,19 +19,23 @@ function isGroup(entry: NavEntry): entry is NavGroup {
 function useNavEntries(role: string): NavEntry[] {
   const { t } = useI18n()
 
+  const isNajemca = role === 'najemca'
+
   const entries: NavEntry[] = [
     { href: '/admin/dashboard', label: t('nav.home'), icon: '🏠' },
     { href: '/admin/announcements', label: t('nav.announcements'), icon: '📢' },
     { href: '/admin/tickets', label: t('nav.tickets'), icon: '🎫' },
     { href: '/admin/board', label: t('nav.board'), icon: '💬' },
     { href: '/admin/contacts', label: t('nav.contacts'), icon: '📞' },
-    { href: '/admin/documents', label: t('nav.documents'), icon: '📁' },
-    { href: '/admin/votes', label: t('nav.votes'), icon: '🗳️' },
-    { href: '/admin/settlements', label: t('nav.settlements'), icon: '🧾' },
-    { href: '/admin/wnioski', label: t('nav.wnioski'), icon: '📝' },
+    ...(!isNajemca ? [
+      { href: '/admin/documents', label: t('nav.documents'), icon: '📁' },
+      { href: '/admin/votes', label: t('nav.votes'), icon: '🗳️' },
+      { href: '/admin/settlements', label: t('nav.settlements'), icon: '🧾' },
+      { href: '/admin/wnioski', label: t('nav.wnioski'), icon: '📝' },
+    ] : []),
   ]
 
-  if (role === 'super_admin' || role === 'admin') {
+  if (!isNajemca && (role === 'super_admin' || role === 'admin')) {
     entries.push({
       group: t('nav.finanse'),
       icon: '💳',
@@ -82,6 +86,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
     super_admin: 'Super Admin',
     admin: 'Administrator',
     user: 'Mieszkaniec',
+    najemca: 'Najemca',
   }
 
   const getBadge = (href: string) => {

@@ -1,4 +1,4 @@
-export type Role = 'super_admin' | 'admin' | 'user'
+export type Role = 'super_admin' | 'admin' | 'user' | 'najemca'
 
 export interface Community {
   id: string

@@ -11,7 +11,7 @@ export default async function TicketsPage() {
     .select('*, community:communities(name)')
     .order('created_at', { ascending: false })
 
-  if (profile.role === 'user' || profile.role === 'admin') {
+  if (profile.role === 'user' || profile.role === 'admin' || profile.role === 'najemca') {
     query = query.eq('community_id', profile.community_id) as any
   }
 

@@ -8,6 +8,8 @@ import { deleteDocument } from './actions'
 export default async function DocumentsPage() {
   const { user, profile } = await getAuthProfile()
 
+  if (profile.role === 'najemca') redirect('/admin/dashboard')
+
   const admin = getSupabaseAdminClient()
   const isSuperAdmin = profile.role === 'super_admin'
   const canUpload = isSuperAdmin || profile.role === 'admin'

@@ -12,7 +12,7 @@
 import { redirect } from 'next/navigation'
 import { getSupabaseServerClient } from './supabase/server'
 
-export type UserRole = 'super_admin' | 'admin' | 'user'
+export type UserRole = 'super_admin' | 'admin' | 'user' | 'najemca'
 
 export interface AuthProfile {
   id: string
@@ -73,7 +73,7 @@ export async function getAuthProfileAction(): Promise<ActionAuth> {
 
 /** Rzuca redirect jeśli rola jest niższa niż wymagana */
 export function requireRole(profile: AuthProfile, minRole: UserRole, redirectTo = '/admin/dashboard') {
-  const order: UserRole[] = ['user', 'admin', 'super_admin']
+  const order: UserRole[] = ['najemca', 'user', 'admin', 'super_admin']
   if (order.indexOf(profile.role) < order.indexOf(minRole)) redirect(redirectTo)
 }
 

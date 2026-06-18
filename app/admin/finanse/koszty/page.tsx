@@ -6,7 +6,7 @@ import { EXPENSE_CATEGORIES } from './categories'
 
 export default async function KosztyPage() {
   const { profile } = await getAuthProfile()
-  if (profile.role === 'user') redirect('/admin/dashboard')
+  if (profile.role === 'user' || profile.role === 'najemca') redirect('/admin/dashboard')
 
   const admin = getSupabaseAdminClient()
   const isSuperAdmin = profile.role === 'super_admin'
