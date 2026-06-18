@@ -6,6 +6,7 @@ import { ToastProvider } from '@/components/ToastContext'
 import AutoRefresh from '@/components/AutoRefresh'
 import ChatWidget from '@/components/ChatWidget'
 import InactivityLogout from '@/components/InactivityLogout'
+import SuperAdminRefreshTimer from '@/components/SuperAdminRefreshTimer'
 import { I18nProvider } from '@/lib/i18n'
 
 export default async function AdminLayout({
@@ -118,13 +119,17 @@ export default async function AdminLayout({
           pendingUsers={pendingUsersCount}
           newRequests={newRequestsCount}
         />
-        {(profile.role === 'super_admin' || profile.role === 'admin') && (
+        {profile.role === 'admin' && (
           <><AutoRefresh intervalMs={60000} /><InactivityLogout /></>
+        )}
+        {profile.role === 'super_admin' && (
+          <AutoRefresh intervalMs={60000} />
         )}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Topbar z dzwonkiem */}
           <div className="lg:hidden fixed top-0 left-0 right-0 z-20 pointer-events-none" />
-          <div className="hidden lg:flex items-center justify-end px-6 pt-4 pb-0">
+          <div className="hidden lg:flex items-center justify-end gap-3 px-6 pt-4 pb-0">
+            {profile.role === 'super_admin' && <SuperAdminRefreshTimer />}
             <NotificationBell initialUnread={unreadNotifications} />
           </div>
           <main className="flex-1 p-4 lg:p-6 overflow-auto pt-[72px] pb-20 lg:pt-3 lg:pb-6">
