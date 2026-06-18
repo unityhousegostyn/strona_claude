@@ -137,11 +137,25 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
 
     const active = pathname.startsWith(entry.href)
     const badge = getBadge(entry.href)
+    const tourIdMap: Record<string, string> = {
+      '/admin/dashboard': 'nav-dashboard',
+      '/admin/announcements': 'nav-announcements',
+      '/admin/tickets': 'nav-tickets',
+      '/admin/board': 'nav-board',
+      '/admin/contacts': 'nav-contacts',
+      '/admin/documents': 'nav-documents',
+      '/admin/votes': 'nav-votes',
+      '/admin/settlements': 'nav-settlements',
+      '/admin/wnioski': 'nav-wnioski',
+      '/admin/users': 'nav-users',
+      '/admin/messages': 'nav-messages',
+    }
     return (
       <Link
         key={entry.href}
         href={entry.href}
         onClick={closeMobile}
+        data-tour={tourIdMap[entry.href]}
         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
           active ? 'bg-teal-950/40 text-teal-400' : 'text-[#4d9e94] hover:bg-[#081918] hover:text-[#f0fdfa]'
         }`}

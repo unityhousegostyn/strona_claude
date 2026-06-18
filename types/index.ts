@@ -14,6 +14,7 @@ export interface Profile {
   full_name: string | null
   community_id: string | null
   created_at: string
+  onboarded?: boolean
   community?: Community
 }
 

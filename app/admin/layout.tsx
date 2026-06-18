@@ -7,6 +7,7 @@ import AutoRefresh from '@/components/AutoRefresh'
 import ChatWidget from '@/components/ChatWidget'
 import InactivityLogout from '@/components/InactivityLogout'
 import SuperAdminRefreshTimer from '@/components/SuperAdminRefreshTimer'
+import OnboardingTour from '@/components/OnboardingTour'
 import { I18nProvider } from '@/lib/i18n'
 
 export default async function AdminLayout({
@@ -137,6 +138,7 @@ export default async function AdminLayout({
           </main>
         </div>
         {/* <ChatWidget /> */}{/* AI chatbot — aktywuj po dodaniu ANTHROPIC_API_KEY */}
+        {!profile.onboarded && <OnboardingTour role={profile.role} />}
       </div>
     </ToastProvider>
     </I18nProvider>
