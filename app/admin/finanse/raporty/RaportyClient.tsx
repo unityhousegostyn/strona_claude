@@ -892,112 +892,94 @@ export default function RaportyClient({
         .print-doc-header { display: none; }
 
         @media print {
-          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; }
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 
-          /* ── Technika visibility: ukryj wszystko, pokaż tylko print-area ── */
+          /* ── Ukryj wszystko, pokaż tylko print-area ── */
           body * { visibility: hidden !important; }
-          .print-area, .print-area * { visibility: visible !important; }
+          .print-area, .print-area *,
           .print-doc-header, .print-doc-header * { visibility: visible !important; }
 
-          /* Ustaw print-area na górze strony */
+          /* Pozycja print-area */
           .print-area {
-            position: absolute !important;
-            top: 0 !important; left: 0 !important;
-            width: 100% !important;
-            background: #ffffff !important;
-            color: #111111 !important;
-            font-family: 'Segoe UI', Arial, sans-serif !important;
+            position: absolute !important; top: 0 !important; left: 0 !important;
+            width: 100% !important; font-family: 'Segoe UI', Arial, sans-serif !important;
             font-size: 10pt !important;
-            padding: 0 !important;
-            margin: 0 !important;
+          }
+
+          /* ── RESET KOLORÓW — najważniejsze ── */
+          .print-area *,
+          .print-area div, .print-area p, .print-area span,
+          .print-area li, .print-area label, .print-area section {
+            background-color: #ffffff !important;
+            color: #111111 !important;
+            border-color: #cccccc !important;
           }
 
           /* ── Nagłówek dokumentu ── */
           .print-doc-header {
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: flex-start !important;
-            border-bottom: 2px solid #0f766e !important;
-            padding-bottom: 8pt !important;
-            margin-bottom: 14pt !important;
-            background: #fff !important;
+            display: flex !important; justify-content: space-between !important;
+            align-items: flex-start !important; padding-bottom: 8pt !important;
+            margin-bottom: 14pt !important; border-bottom: 2pt solid #0f766e !important;
           }
           .print-doc-header-left h1 { font-size: 14pt !important; font-weight: 700 !important; color: #0f766e !important; margin: 0 0 2pt !important; }
-          .print-doc-header-left p  { font-size: 8pt !important; color: #555 !important; margin: 0 !important; }
-          .print-doc-header-right   { text-align: right !important; font-size: 8.5pt !important; color: #333 !important; line-height: 1.5 !important; }
+          .print-doc-header-left p  { font-size: 8pt !important; color: #666 !important; margin: 0 !important; }
+          .print-doc-header-right   { text-align: right !important; font-size: 8.5pt !important; color: #333 !important; }
 
-          /* ── Wszystkie tła → białe ── */
-          .print-area div, .print-area section, .print-area header,
-          .print-area span:not(.kpi-val), .print-area p { background: transparent !important; color: #111 !important; }
-
-          /* ── Nagłówek raportu (tytuł + art.) ── */
+          /* ── Nagłówki ── */
           .print-area h3 { font-size: 13pt !important; font-weight: 700 !important; color: #111 !important; margin: 0 0 4pt !important; }
-          .print-area h4 { font-size: 9pt !important; font-weight: 700 !important; color: #0a6c62 !important;
+          .print-area h4 { font-size: 8.5pt !important; font-weight: 700 !important; color: #0a6c62 !important;
             text-transform: uppercase !important; letter-spacing: 0.04em !important;
-            border-bottom: 0.5pt solid #ccc !important; padding-bottom: 4pt !important; margin-bottom: 6pt !important; }
+            border-bottom: 0.75pt solid #ccc !important; padding-bottom: 4pt !important; margin-bottom: 6pt !important; }
 
-          /* ── KPI karty w druku ── */
+          /* ── KPI karty ── */
           .print-kpi-row {
-            display: flex !important; flex-wrap: nowrap !important; gap: 0 !important;
-            border: 1pt solid #ccc !important; margin-bottom: 12pt !important;
-            break-inside: avoid !important; background: #fff !important;
+            display: flex !important; gap: 0 !important;
+            border: 1pt solid #ccc !important; margin-bottom: 11pt !important; break-inside: avoid !important;
           }
           .print-kpi-row > div {
-            flex: 1 !important; border-right: 1pt solid #ccc !important;
-            padding: 7pt 9pt !important; background: #fff !important;
-            text-align: left !important; border-radius: 0 !important;
+            flex: 1 !important; padding: 7pt 9pt !important; border-right: 1pt solid #ccc !important; border-radius: 0 !important;
           }
           .print-kpi-row > div:last-child { border-right: none !important; }
-          .print-kpi-row > div > p:first-child {
-            font-size: 7pt !important; color: #666 !important; margin: 0 0 2pt !important;
-            text-transform: uppercase !important; letter-spacing: 0.03em !important;
-          }
-          .kpi-val        { font-size: 12pt !important; font-weight: 700 !important; color: #111 !important; display: block !important; }
-          .kpi-val.green  { color: #0a6c62 !important; }
-          .kpi-val.red    { color: #b91c1c !important; }
-          .kpi-formula    { font-size: 6.5pt !important; color: #888 !important;
-            border-top: 0.5pt solid #e5e5e5 !important; padding-top: 3pt !important; margin-top: 3pt !important;
-            display: block !important; }
+          .print-kpi-row > div > p:first-child { font-size: 6.5pt !important; color: #666 !important; text-transform: uppercase !important; margin-bottom: 2pt !important; }
+          .kpi-val       { font-size: 12pt !important; font-weight: 700 !important; color: #111 !important; }
+          .kpi-val.green { color: #0a6c62 !important; }
+          .kpi-val.red   { color: #b91c1c !important; }
+          .kpi-formula   { font-size: 6.5pt !important; color: #777 !important; border-top: 0.5pt solid #e0e0e0 !important; padding-top: 3pt !important; margin-top: 3pt !important; }
 
-          /* ── Sekcje ── */
-          .print-area .bg-\\[\\#081918\\], .print-area [class^="bg-"] {
-            background: #fff !important; border: 0.75pt solid #ccc !important;
-            border-radius: 0 !important; padding: 8pt 10pt !important;
-            margin-bottom: 9pt !important; break-inside: avoid !important;
-          }
+          /* ── Sekcje raportu — każdy kontener ── */
+          .print-area > div > div,
+          .print-area .space-y-6 > div { border: 0.75pt solid #ccc !important; padding: 8pt 10pt !important; margin-bottom: 8pt !important; break-inside: avoid !important; }
 
           /* ── Tabele ── */
-          .print-area table  { border-collapse: collapse !important; width: 100% !important; font-size: 8.5pt !important; }
-          .print-area thead  { background: #f0fdf9 !important; }
-          .print-area th     { background: #f0fdf9 !important; color: #0a6c62 !important; font-weight: 600 !important;
-                               padding: 4pt 5pt !important; border: 0.5pt solid #bbb !important; font-size: 8pt !important; }
-          .print-area td     { padding: 3.5pt 5pt !important; border: 0.5pt solid #ddd !important; color: #111 !important; }
-          .print-area tbody tr:nth-child(even) td { background: #f7fffe !important; }
-          .print-area tfoot td { font-weight: 700 !important; background: #e6faf5 !important;
-                                 border-top: 1pt solid #0f766e !important; color: #111 !important; }
+          .print-area table { border-collapse: collapse !important; width: 100% !important; font-size: 8.5pt !important; }
+          .print-area th {
+            background-color: #f0fdf9 !important; color: #0a6c62 !important;
+            font-weight: 600 !important; font-size: 7.5pt !important;
+            padding: 4pt 5pt !important; border: 0.5pt solid #bbb !important;
+          }
+          .print-area td { padding: 3.5pt 5pt !important; border: 0.5pt solid #ddd !important; }
+          .print-area tbody tr:nth-child(even) td { background-color: #f7fffe !important; }
+          .print-area tfoot td { background-color: #e6faf5 !important; font-weight: 700 !important; border-top: 1pt solid #0f766e !important; }
 
-          /* Wyrównanie do prawej */
-          .print-area .text-right, .print-area [class*="text-right"] { text-align: right !important; }
+          /* Wyrównanie */
+          .print-area [class*="text-right"] { text-align: right !important; }
+          .print-area [class*="text-left"]  { text-align: left !important; }
 
-          /* Kolory kwot w tabelach */
-          .print-area td.text-teal-400, .print-area td[class*="text-teal"] { color: #0a6c62 !important; }
-          .print-area td.text-red-400,  .print-area td[class*="text-red"]  { color: #b91c1c !important; }
+          /* Kolory semantyczne — kwoty */
+          .print-area [class*="text-teal"]  { color: #0a6c62 !important; }
+          .print-area [class*="text-red"]   { color: #b91c1c !important; }
+          .print-area [class*="text-cyan"]  { color: #0e7490 !important; }
+          .print-area [class*="text-amber"] { color: #b45309 !important; }
+          .print-area [class*="opacity-40"] { opacity: 0.35 !important; }
 
-          /* ── Stopka prawna ── */
+          /* Ukryj przyciski */
+          .print-area button, .print-area svg { display: none !important; visibility: hidden !important; }
+
+          /* Stopka prawna */
           .print-area em { font-size: 7pt !important; color: #777 !important; }
 
-          /* ── Grand total ── */
-          .print-area [class*="bg-\\[\\#0c2220\\]"] {
-            background: #e6faf5 !important; border: 1pt solid #0f766e !important;
-            padding: 5pt 8pt !important; border-radius: 0 !important;
-          }
-
-          /* ── Ukryj przyciski i nieistotne elementy ── */
-          .print-area button { display: none !important; visibility: hidden !important; }
-          .print\\:hidden, [class*="print:hidden"] { visibility: hidden !important; }
-
-          /* ── Łamania stron ── */
-          .print-area .space-y-6 > * { break-inside: avoid !important; }
+          /* Łamania stron */
+          .print-area .space-y-6 > * + * { break-inside: avoid !important; }
         }
       `}</style>
     </div>
