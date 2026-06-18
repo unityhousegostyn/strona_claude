@@ -137,9 +137,13 @@ export default function RaportyClient({
   const totalBalance = totalIncome - totalExpenses
 
   // ── Naliczone składniki zaliczek (suma po wszystkich lokalach i miesiącach) ─
+  // Dla bieżącego roku liczymy tylko do bieżącego miesiąca włącznie,
+  // żeby nie podwajać z przyszłymi miesiącami bez danych.
   const chargeBreakdown = { renovation: 0, operating: 0, manager: 0, water: 0, garbage: 0 }
+  const nowDate   = new Date()
+  const maxMonth  = filterYear < currentYear ? 12 : nowDate.getMonth() + 1  // bieżący miesiąc włącznie
   for (const apt of commApts) {
-    for (let m = 1; m <= 12; m++) {
+    for (let m = 1; m <= maxMonth; m++) {
       const rate = getActiveRate(rates, filterComm, filterYear, m)
       if (!rate) continue
       const water = rate.water_billing_type === 'ryczalt'
@@ -381,7 +385,10 @@ export default function RaportyClient({
                 {totalChargeBD > 0 && (
                   <ReportSection title="Naliczone składniki zaliczek (wg stawek)">
                     <p className="text-xs text-[#115e59] mb-3">
-                      Suma naliczonych zaliczek per składnik dla wszystkich lokali aktywnych w roku {filterYear}.
+                      Suma naliczonych zaliczek per składnik dla wszystkich lokali aktywnych
+                      {filterYear < currentYear
+                        ? ` za cały rok ${filterYear}.`
+                        : ` za styczeń–${['','Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'][maxMonth]} ${filterYear} (miesiące z danymi).`}
                     </p>
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
