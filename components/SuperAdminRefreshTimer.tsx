@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 
-const REFRESH_MS = 5 * 60_000 // 5 minut
+const REFRESH_MS = 5 * 60_000 // 5 minut inaktywności → odświeżenie
 
 const EVENTS = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'] as const
 
