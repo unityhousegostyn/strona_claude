@@ -4,6 +4,7 @@ import { useState, useTransition, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createVote, castVote, closeVote, deleteVote, uploadVoteAttachment, updateResolutionNumber } from './actions'
 import Link from 'next/link'
+import BackButton from '@/components/BackButton'
 
 interface Choice { choice: string; share_value: number; user_id: string; apartment_id: string | null }
 interface Vote {
