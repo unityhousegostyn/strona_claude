@@ -364,6 +364,18 @@ export default function RaportyClient({
           </div>
 
           <div ref={reportRef} className="print-area">
+            {/* Nagłówek widoczny tylko w druku */}
+            <header className="print-doc-header">
+              <div className="print-doc-header-left">
+                <h1>Panel Wspólnoty</h1>
+                <p>Zarządzanie nieruchomościami wspólnymi</p>
+              </div>
+              <div className="print-doc-header-right">
+                <p><strong>{commName}</strong></p>
+                <p>Rok: {filterYear}</p>
+                <p>Wygenerowano: {new Date().toLocaleDateString('pl-PL')}</p>
+              </div>
+            </header>
 
             {/* ── 1. SPRAWOZDANIE FINANSOWE ── */}
             {activeReport === 'sprawozdanie' && (
@@ -375,7 +387,7 @@ export default function RaportyClient({
                 />
 
                 {/* KPIs */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 print-kpi-row">
                   <KpiCard label="Łączne przychody" value={pln(totalIncome)} color="green"
                     note={`wpłaty: ${pln(totalPaid)}, inne: ${pln(totalOtherIncome)}`}
                     formula="wpłaty mieszkańców (Rozliczenia) + inne przychody (moduł Przychody)" />
@@ -874,15 +886,109 @@ export default function RaportyClient({
 
       {/* Print styles */}
       <style>{`
-        @media print {
-          body { background: white !important; color: black !important; }
-          .print\\:hidden { display: none !important; }
-          .print-area { color: black !important; }
-          .print-area * { color: black !important; border-color: #ccc !important; background: white !important; }
-          .print-area table { border-collapse: collapse; width: 100%; }
-          .print-area th, .print-area td { border: 1px solid #ddd; padding: 6px 8px; }
-          .print-area th { background: #f5f5f5 !important; }
+        @page {
+          size: A4 portrait;
+          margin: 18mm 16mm 22mm 16mm;
+          @bottom-center {
+            content: "Strona " counter(page) " z " counter(pages);
+            font-size: 8pt;
+            color: #666;
+          }
         }
+
+        @media print {
+          /* ── Zerowanie aplikacji ── */
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          html, body { background: #fff !important; color: #111 !important; font-family: 'Segoe UI', Arial, sans-serif !important; font-size: 10pt !important; }
+
+          /* Ukryj całą aplikację poza obszarem druku */
+          body > * { display: none !important; }
+          body > div:has(.print-area) { display: block !important; }
+          nav, aside, header:not(.print-doc-header), footer:not(.print-doc-footer),
+          [data-radix-popper-content-wrapper], .print\\:hidden { display: none !important; }
+
+          /* ── Nagłówek dokumentu (widoczny tylko w druku) ── */
+          .print-doc-header { display: flex !important; align-items: flex-start; justify-content: space-between;
+            border-bottom: 2px solid #0f766e; padding-bottom: 8pt; margin-bottom: 14pt; }
+          .print-doc-header-left h1 { font-size: 15pt; font-weight: 700; color: #0f766e !important; margin: 0 0 2pt; }
+          .print-doc-header-left p  { font-size: 8pt; color: #555 !important; margin: 0; }
+          .print-doc-header-right   { text-align: right; font-size: 8pt; color: #555 !important; }
+
+          /* ── Obszar raportu ── */
+          .print-area { display: block !important; padding: 0 !important; margin: 0 !important; }
+          .print-area > div { break-inside: avoid-page; }
+
+          /* ── Nagłówek raportu (art. / tytuł) ── */
+          .print-area [class*="border-b"] { border-bottom: 1px solid #ccc !important; padding-bottom: 8pt !important; margin-bottom: 10pt !important; }
+          .print-area h3 { font-size: 13pt !important; font-weight: 700 !important; color: #111 !important; margin: 0 0 3pt !important; }
+          .print-area p  { color: #333 !important; }
+
+          /* ── KPI karty — poziomo w druku ── */
+          .print-kpi-row { display: flex !important; gap: 0 !important; border: 1pt solid #ccc !important;
+            border-radius: 0 !important; margin-bottom: 12pt !important; break-inside: avoid; }
+          .print-kpi-row > div { flex: 1; border-right: 1pt solid #ccc !important; padding: 8pt 10pt !important;
+            background: #fff !important; text-align: left !important; border-radius: 0 !important; }
+          .print-kpi-row > div:last-child { border-right: none !important; }
+          .print-kpi-row p:first-child { font-size: 7pt !important; color: #666 !important; margin-bottom: 2pt !important; text-transform: uppercase; letter-spacing: 0.03em; }
+          .print-kpi-row p.kpi-val      { font-size: 13pt !important; font-weight: 700 !important; color: #111 !important; }
+          .print-kpi-row p.kpi-val.green { color: #0a6c62 !important; }
+          .print-kpi-row p.kpi-val.red   { color: #b91c1c !important; }
+          .print-kpi-row p.kpi-formula   { font-size: 6.5pt !important; color: #888 !important; border-top: 0.5pt solid #eee !important; padding-top: 3pt !important; margin-top: 3pt !important; }
+
+          /* ── Sekcje (ReportSection) ── */
+          .print-area [class*="bg-\\[\\#081918\\]"] {
+            background: #fff !important; border: 1pt solid #ccc !important;
+            border-radius: 0 !important; padding: 8pt 10pt !important; margin-bottom: 10pt !important;
+            break-inside: avoid;
+          }
+          .print-area h4 { font-size: 9pt !important; font-weight: 700 !important; color: #0f766e !important;
+            text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 0.5pt solid #ccc !important;
+            padding-bottom: 4pt !important; margin-bottom: 6pt !important; }
+
+          /* ── Tabele ── */
+          .print-area table { border-collapse: collapse !important; width: 100% !important; font-size: 9pt !important; margin: 0 !important; }
+          .print-area thead tr { background: #f0fdf9 !important; }
+          .print-area th { background: #f0fdf9 !important; color: #0a6c62 !important; font-weight: 600 !important;
+            padding: 5pt 6pt !important; border: 0.5pt solid #ccc !important; text-align: left; font-size: 8pt !important; }
+          .print-area th[class*="text-right"], .print-area td[class*="text-right"] { text-align: right !important; }
+          .print-area td { padding: 4pt 6pt !important; border: 0.5pt solid #ddd !important; color: #111 !important; vertical-align: top; }
+          .print-area tbody tr:nth-child(even) td { background: #f8fffe !important; }
+          .print-area tfoot td { font-weight: 700 !important; background: #e6faf5 !important; border-top: 1pt solid #0f766e !important; }
+
+          /* Kolory tekstu w tabelach */
+          .print-area td[class*="text-teal"]  { color: #0a6c62 !important; }
+          .print-area td[class*="text-red"]   { color: #b91c1c !important; }
+          .print-area td[class*="text-amber"] { color: #92400e !important; }
+          .print-area td[class*="opacity-40"] { opacity: 0.4 !important; }
+
+          /* ── Stopka prawna ── */
+          .print-area [class*="border-t border-\\[\\#0f2d2a\\]"] {
+            border-top: 0.5pt solid #ccc !important; padding-top: 8pt !important; margin-top: 8pt !important;
+          }
+          .print-area [class*="border-t border-\\[\\#0f2d2a\\]"] p { font-size: 7pt !important; color: #777 !important; font-style: italic; }
+
+          /* ── Łamania stron ── */
+          .print-section-break { break-before: page; }
+          .print-area .space-y-6 > div + div { break-inside: avoid; }
+
+          /* ── Grand total w fakturach ── */
+          .print-area [class*="bg-\\[\\#0c2220\\]"] {
+            background: #e6faf5 !important; border: 1pt solid #0f766e !important;
+            border-radius: 0 !important; padding: 6pt 10pt !important;
+          }
+          .print-area [class*="bg-\\[\\#0c2220\\]"] span { color: #111 !important; }
+          .print-area [class*="bg-\\[\\#0c2220\\]"] span[class*="text-red"] { color: #b91c1c !important; }
+
+          /* Ukryj badge kolory (tylko tekst) */
+          .print-area [class*="rounded-full"] { background: transparent !important; color: #555 !important; padding: 0 !important; }
+
+          /* Ukryj elementy nieistotne w druku */
+          .print-area button, .print-area [role="button"] { display: none !important; }
+          .print-area [class*="print:hidden"] { display: none !important; }
+        }
+
+        /* ── Nagłówek dokumentu — ukryty na ekranie, widoczny w druku ── */
+        .print-doc-header { display: none; }
       `}</style>
     </div>
   )
@@ -906,10 +1012,10 @@ function KpiCard({ label, value, color, note, formula }: { label: string; value:
   return (
     <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-4 text-center">
       <p className="text-xs text-[#115e59] mb-1">{label}</p>
-      <p className={`text-xl font-bold ${colors[color]}`}>{value}</p>
+      <p className={`kpi-val ${color} text-xl font-bold ${colors[color]}`}>{value}</p>
       {note && <p className="text-xs text-[#115e59] mt-0.5">{note}</p>}
       {formula && (
-        <p className="text-[10px] text-[#0f766e]/70 mt-1.5 leading-tight border-t border-[#0f2d2a] pt-1.5">
+        <p className="kpi-formula text-[10px] text-[#0f766e]/70 mt-1.5 leading-tight border-t border-[#0f2d2a] pt-1.5">
           <span className="opacity-60">= </span>{formula}
         </p>
       )}
