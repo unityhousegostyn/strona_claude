@@ -376,9 +376,14 @@ export default function RaportyClient({
 
                 {/* KPIs */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <KpiCard label="Łączne przychody" value={pln(totalIncome)} color="green" note={`w tym wpłaty: ${pln(totalPaid)}, inne: ${pln(totalOtherIncome)}`} />
-                  <KpiCard label="Łączne koszty zarządu" value={pln(totalExpenses)} color="red" />
-                  <KpiCard label="Saldo roku" value={pln(totalBalance)} color={totalBalance >= 0 ? 'green' : 'red'} note={totalBalance >= 0 ? 'Nadwyżka' : 'Niedobór'} />
+                  <KpiCard label="Łączne przychody" value={pln(totalIncome)} color="green"
+                    note={`wpłaty: ${pln(totalPaid)}, inne: ${pln(totalOtherIncome)}`}
+                    formula="wpłaty mieszkańców (Rozliczenia) + inne przychody (moduł Przychody)" />
+                  <KpiCard label="Łączne koszty zarządu" value={pln(totalExpenses)} color="red"
+                    formula="suma wszystkich wpisów z modułu Koszty" />
+                  <KpiCard label="Saldo roku" value={pln(totalBalance)} color={totalBalance >= 0 ? 'green' : 'red'}
+                    note={totalBalance >= 0 ? 'Nadwyżka' : 'Niedobór'}
+                    formula="Łączne przychody − Łączne koszty zarządu" />
                 </div>
 
                 {/* Naliczone składniki zaliczek */}
@@ -565,9 +570,12 @@ export default function RaportyClient({
                 />
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <KpiCard label="Suma naliczonych zaliczek" value={pln(totalCharged)} color="blue" />
-                  <KpiCard label="Suma wpłat" value={pln(totalAptPaid)} color="green" />
-                  <KpiCard label={totalAptPaid - totalCharged >= 0 ? 'Łączna nadpłata' : 'Łączne zaległości'} value={pln(Math.abs(totalAptPaid - totalCharged))} color={totalAptPaid - totalCharged >= 0 ? 'green' : 'red'} />
+                  <KpiCard label="Suma naliczonych zaliczek" value={pln(totalCharged)} color="blue"
+                    formula="stawki × m² × 12 mies. dla każdego lokalu" />
+                  <KpiCard label="Suma wpłat" value={pln(totalAptPaid)} color="green"
+                    formula="suma pola 'Wpłata' z kart rozliczeniowych wszystkich lokali" />
+                  <KpiCard label={totalAptPaid - totalCharged >= 0 ? 'Łączna nadpłata' : 'Łączne zaległości'} value={pln(Math.abs(totalAptPaid - totalCharged))} color={totalAptPaid - totalCharged >= 0 ? 'green' : 'red'}
+                    formula="Suma wpłat − Suma naliczonych zaliczek" />
                 </div>
 
                 <ReportSection title={`Rozliczenie per lokal (${commApts.length} lokali)`}>
@@ -625,9 +633,13 @@ export default function RaportyClient({
                 />
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <KpiCard label="Lokale z zaległościami" value={String(debtors.length)} color="red" note={`z ${commApts.length} łącznie`} />
-                  <KpiCard label="Łączna kwota zaległości" value={pln(totalDebt)} color="red" />
-                  <KpiCard label="Lokale bez zaległości" value={String(commApts.length - debtors.length)} color="green" />
+                  <KpiCard label="Lokale z zaległościami" value={String(debtors.length)} color="red"
+                    note={`z ${commApts.length} łącznie`}
+                    formula="lokale gdzie wpłaty < naliczone zaliczki" />
+                  <KpiCard label="Łączna kwota zaległości" value={pln(totalDebt)} color="red"
+                    formula="suma różnic (naliczone − wpłacone) dla zadłużonych lokali" />
+                  <KpiCard label="Lokale bez zaległości" value={String(commApts.length - debtors.length)} color="green"
+                    formula="wszystkie lokale − lokale z zaległościami" />
                 </div>
 
                 {debtors.length === 0
@@ -682,9 +694,14 @@ export default function RaportyClient({
                   ? <div className="text-center py-12 text-[#115e59]"><p className="text-3xl mb-3">⚙️</p><p>Brak zdefiniowanych stawek dla tej wspólnoty.</p></div>
                   : <>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <KpiCard label="Plan roczny" value={pln(Object.values(planByCategory).reduce((s, v) => s + v, 0))} color="blue" note={`stawki z ${latestRate.effective_from}`} />
-                      <KpiCard label="Wykonanie" value={pln(totalExpenses)} color="red" />
-                      <KpiCard label="Odchylenie" value={pln(totalExpenses - Object.values(planByCategory).reduce((s, v) => s + v, 0))} color={totalExpenses <= Object.values(planByCategory).reduce((s, v) => s + v, 0) ? 'green' : 'red'} note={totalExpenses <= Object.values(planByCategory).reduce((s, v) => s + v, 0) ? 'W planie' : 'Przekroczenie'} />
+                      <KpiCard label="Plan roczny" value={pln(Object.values(planByCategory).reduce((s, v) => s + v, 0))} color="blue"
+                        note={`stawki z ${latestRate.effective_from}`}
+                        formula="stawki × m² (lub os.) × 12 mies. × liczba lokali" />
+                      <KpiCard label="Wykonanie" value={pln(totalExpenses)} color="red"
+                        formula="suma wpisów z modułu Koszty w roku" />
+                      <KpiCard label="Odchylenie" value={pln(totalExpenses - Object.values(planByCategory).reduce((s, v) => s + v, 0))} color={totalExpenses <= Object.values(planByCategory).reduce((s, v) => s + v, 0) ? 'green' : 'red'}
+                        note={totalExpenses <= Object.values(planByCategory).reduce((s, v) => s + v, 0) ? 'W planie' : 'Przekroczenie'}
+                        formula="Wykonanie − Plan roczny (ujemne = oszczędność)" />
                     </div>
 
                     <ReportSection title="Porównanie per kategoria">
@@ -730,9 +747,12 @@ export default function RaportyClient({
                 />
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <KpiCard label="Łączne naliczenia" value={pln(renovFundCumulative.reduce((s, r) => s + r.naliczenia, 0))} color="blue" />
-                  <KpiCard label="Łączne wydatki na remonty" value={pln(renovFundCumulative.reduce((s, r) => s + r.wydatki, 0))} color="red" />
-                  <KpiCard label="Saldo skumulowane" value={pln(renovFundCumulative[renovFundCumulative.length - 1]?.cumulative ?? 0)} color={renovFundCumulative[renovFundCumulative.length - 1]?.cumulative >= 0 ? 'green' : 'red'} />
+                  <KpiCard label="Łączne naliczenia" value={pln(renovFundCumulative.reduce((s, r) => s + r.naliczenia, 0))} color="blue"
+                    formula="stawka funduszu rem. × m² × 12 mies. × lokale (wszystkie lata)" />
+                  <KpiCard label="Łączne wydatki na remonty" value={pln(renovFundCumulative.reduce((s, r) => s + r.wydatki, 0))} color="red"
+                    formula="koszty z kategorią 'Remonty / naprawy' (wszystkie lata)" />
+                  <KpiCard label="Saldo skumulowane" value={pln(renovFundCumulative[renovFundCumulative.length - 1]?.cumulative ?? 0)} color={renovFundCumulative[renovFundCumulative.length - 1]?.cumulative >= 0 ? 'green' : 'red'}
+                    formula="suma (naliczenia − wydatki) od początku historii" />
                 </div>
 
                 <ReportSection title="Historia funduszu remontowego">
@@ -881,13 +901,18 @@ function ReportHeader({ title, subtitle, art }: { title: string; subtitle: strin
   )
 }
 
-function KpiCard({ label, value, color, note }: { label: string; value: string; color: 'green' | 'red' | 'blue'; note?: string }) {
+function KpiCard({ label, value, color, note, formula }: { label: string; value: string; color: 'green' | 'red' | 'blue'; note?: string; formula?: string }) {
   const colors = { green: 'text-teal-400', red: 'text-red-400', blue: 'text-teal-400' }
   return (
     <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-4 text-center">
       <p className="text-xs text-[#115e59] mb-1">{label}</p>
       <p className={`text-xl font-bold ${colors[color]}`}>{value}</p>
       {note && <p className="text-xs text-[#115e59] mt-0.5">{note}</p>}
+      {formula && (
+        <p className="text-[10px] text-[#0f766e]/70 mt-1.5 leading-tight border-t border-[#0f2d2a] pt-1.5">
+          <span className="opacity-60">= </span>{formula}
+        </p>
+      )}
     </div>
   )
 }
