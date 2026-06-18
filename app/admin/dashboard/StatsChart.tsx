@@ -23,8 +23,8 @@ export default function StatsChart({ data, title }: Props) {
             cursor={{ fill: '#0f2d2a' }}
           />
           <Legend wrapperStyle={{ fontSize: 12, color: '#0f766e' }} />
-          <Bar dataKey="otwarte" fill="#059669" radius={[4, 4, 0, 0]} name="Otwarte" />
-          <Bar dataKey="zamknięte" fill="#34d399" radius={[4, 4, 0, 0]} name="Zamknięte" />
+          <Bar dataKey="otwarte" fill="#0d9488" radius={[4, 4, 0, 0]} name="Otwarte" />
+          <Bar dataKey="zamknięte" fill="#2dd4bf" radius={[4, 4, 0, 0]} name="Zamknięte" />
         </BarChart>
       </ResponsiveContainer>
     </div>
