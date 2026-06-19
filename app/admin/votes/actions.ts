@@ -256,6 +256,16 @@ export async function closeVote(voteId: string): Promise<{ error?: string }> {
   const { profile } = await getActor()
   if (profile.role === 'user') return { error: 'Brak uprawnień' }
 
+  return closeVoteAndNotify(voteId)
+}
+
+/**
+ * Właściwa logika zamknięcia głosowania (zapis statusu + e-mail z wynikami),
+ * bez sprawdzania uprawnień zalogowanego użytkownika — używana przez:
+ *  - closeVote() (akcja z panelu, sprawdza rolę przed wywołaniem),
+ *  - cron /api/cron/close-votes (autoryzacja przez CRON_SECRET, brak sesji usera).
+ */
+export async function closeVoteAndNotify(voteId: string): Promise<{ error?: string }> {
   const admin = getSupabaseAdminClient()
   const { error } = await admin.from('votes')
     .update({ status: 'closed', closed_at: new Date().toISOString() })
