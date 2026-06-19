@@ -20,6 +20,7 @@ export async function addExpense(data: {
   amount: number
   expense_date: string
   invoice_number?: string
+  is_renovation_fund?: boolean
 }): Promise<{ error?: string; id?: string }> {
   const { user, profile } = await getActor()
   if (profile.role === 'user') return { error: 'Brak uprawnień' }
@@ -37,6 +38,7 @@ export async function addExpense(data: {
     amount: data.amount,
     expense_date: data.expense_date,
     invoice_number: data.invoice_number?.trim() || null,
+    is_renovation_fund: data.is_renovation_fund ?? (data.category === 'fundusz_remontowy'),
     created_by: user.id,
   }).select('id').single()
 
@@ -53,6 +55,7 @@ export async function updateExpense(id: string, data: {
   amount: number
   expense_date: string
   invoice_number?: string
+  is_renovation_fund?: boolean
 }): Promise<{ error?: string }> {
   const { profile } = await getActor()
   if (profile.role === 'user') return { error: 'Brak uprawnień' }
@@ -64,6 +67,7 @@ export async function updateExpense(id: string, data: {
     amount: data.amount,
     expense_date: data.expense_date,
     invoice_number: data.invoice_number?.trim() || null,
+    is_renovation_fund: data.is_renovation_fund ?? (data.category === 'fundusz_remontowy'),
   }).eq('id', id)
 
   if (error) return { error: error.message }

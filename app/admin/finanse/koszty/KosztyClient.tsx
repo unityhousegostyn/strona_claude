@@ -40,10 +40,10 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
   const [tab, setTab] = useState<'list' | 'summary'>('list')
 
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ community_id: isSuperAdmin ? '' : defaultCommunityId, category: 'inne' as ExpenseCategory, description: '', amount: '', expense_date: new Date().toISOString().slice(0,10), invoice_number: '' })
+  const [form, setForm] = useState({ community_id: isSuperAdmin ? '' : defaultCommunityId, category: 'inne' as ExpenseCategory, description: '', amount: '', expense_date: new Date().toISOString().slice(0,10), invoice_number: '', is_renovation_fund: false })
   const [formError, setFormError] = useState<string | null>(null)
   const [editId, setEditId] = useState<string | null>(null)
-  const [editForm, setEditForm] = useState<Partial<typeof form>>({})
+  const [editForm, setEditForm] = useState<{ category: ExpenseCategory; description: string; amount: string; expense_date: string; invoice_number: string; is_renovation_fund: boolean }>({ category: 'inne', description: '', amount: '', expense_date: '', invoice_number: '', is_renovation_fund: false })
   const [editError, setEditError] = useState<string | null>(null)
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -139,16 +139,16 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
   const handleAdd = () => {
     setFormError(null)
     startTransition(async () => {
-      const res = await addExpense({ ...form, amount: parseFloat(form.amount.replace(',', '.')) })
+      const res = await addExpense({ ...form, amount: parseFloat(form.amount.replace(',', '.')), is_renovation_fund: form.is_renovation_fund || form.category === 'fundusz_remontowy' })
       if (res.error) { setFormError(res.error); return }
-      setShowForm(false); setForm(p => ({ ...p, description: '', amount: '', invoice_number: '' })); router.refresh()
+      setShowForm(false); setForm(p => ({ ...p, description: '', amount: '', invoice_number: '', is_renovation_fund: false })); router.refresh()
     })
   }
   const handleUpdate = () => {
     if (!editId || !editForm.description || !editForm.amount || !editForm.expense_date) return
     setEditError(null)
     startTransition(async () => {
-      const res = await updateExpense(editId, { category: editForm.category as ExpenseCategory, description: editForm.description!, amount: parseFloat(String(editForm.amount).replace(',', '.')), expense_date: editForm.expense_date!, invoice_number: editForm.invoice_number })
+      const res = await updateExpense(editId, { category: editForm.category, description: editForm.description!, amount: parseFloat(String(editForm.amount).replace(',', '.')), expense_date: editForm.expense_date!, invoice_number: editForm.invoice_number, is_renovation_fund: editForm.is_renovation_fund || editForm.category === 'fundusz_remontowy' })
       if (res.error) { setEditError(res.error); return }
       setEditId(null); router.refresh()
     })
@@ -212,6 +212,10 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
             <div><label className="text-xs text-[#0f766e] block mb-1">Kwota (zł) *</label><input className="input w-full" type="number" step="0.01" min="0" value={form.amount} onChange={e => setForm(p => ({...p, amount: e.target.value}))} /></div>
             <div><label className="text-xs text-[#0f766e] block mb-1">Data *</label><input className="input w-full" type="date" value={form.expense_date} onChange={e => setForm(p => ({...p, expense_date: e.target.value}))} /></div>
             <div><label className="text-xs text-[#0f766e] block mb-1">Nr faktury</label><input className="input w-full" placeholder="FV/123/2026" value={form.invoice_number} onChange={e => setForm(p => ({...p, invoice_number: e.target.value}))} /></div>
+            <div className="sm:col-span-2 flex items-center gap-2 pt-1">
+              <input type="checkbox" id="form-renov" className="w-4 h-4 accent-orange-500" checked={form.is_renovation_fund || form.category === 'fundusz_remontowy'} onChange={e => setForm(p => ({...p, is_renovation_fund: e.target.checked}))} />
+              <label htmlFor="form-renov" className="text-sm text-orange-400 cursor-pointer select-none">🔨 Wydatek z funduszu remontowego (wyłączony z planu gospodarczego)</label>
+            </div>
           </div>
           {formError && <p className="text-sm text-red-400">{formError}</p>}
           <div className="flex gap-3">
@@ -333,6 +337,7 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
                             <input className="input text-sm" type="date" value={editForm.expense_date} onChange={x=>setEditForm(p=>({...p,expense_date:x.target.value}))}/>
                             <input className="input text-sm" placeholder="Nr faktury" value={editForm.invoice_number??''} onChange={x=>setEditForm(p=>({...p,invoice_number:x.target.value}))}/>
                           </div>
+                          <label className="flex items-center gap-2 text-xs text-orange-400 cursor-pointer select-none"><input type="checkbox" className="w-3.5 h-3.5 accent-orange-500" checked={editForm.is_renovation_fund||editForm.category==='fundusz_remontowy'} onChange={x=>setEditForm(p=>({...p,is_renovation_fund:x.target.checked}))} />🔨 Z funduszu remontowego</label>
                           {editError&&<p className="text-xs text-red-400">{editError}</p>}
                           <div className="flex gap-2"><button onClick={handleUpdate} disabled={isPending} className="bg-teal-600 text-white text-xs font-semibold px-4 py-1.5 rounded-lg disabled:opacity-50">{isPending?'Zapisuję...':'Zapisz'}</button><button onClick={()=>setEditId(null)} className="text-xs text-[#115e59] hover:text-[#99f6e4]">Anuluj</button></div>
                         </div>
@@ -340,10 +345,11 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
                         <div key={e.id} onClick={() => toggleSelect(e.id)} className={`bg-[#081918] border rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap cursor-pointer transition ${selectedIds.has(e.id) ? 'border-green-600 bg-teal-950/10' : 'border-[#0f2d2a] hover:border-[#0f2d2a]'}`}>
                           <input type="checkbox" className="w-4 h-4 accent-green-500 flex-shrink-0" checked={selectedIds.has(e.id)} onChange={() => toggleSelect(e.id)} onClick={ev => ev.stopPropagation()} />
                           <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${catColors[e.category]??catColors.inne}`}>{catLabel(e.category)}</span>
+                          {e.is_renovation_fund && <span className="text-xs px-1.5 py-0.5 rounded-full bg-orange-950/40 text-orange-400 flex-shrink-0" title="Fundusz remontowy">🔨</span>}
                           <div className="flex-1 min-w-0"><p className="text-sm font-medium text-[#ccfbf1] truncate">{e.description}</p><p className="text-xs text-[#115e59] mt-0.5">{new Date(e.expense_date).toLocaleDateString('pl-PL')}{e.invoice_number&&` · ${e.invoice_number}`}</p></div>
                           <p className="text-sm font-bold text-red-400 flex-shrink-0">{pln(e.amount)}</p>
                           <div className="flex items-center gap-2 flex-shrink-0" onClick={ev => ev.stopPropagation()}>
-                            <button onClick={()=>{setEditId(e.id);setEditForm({category:e.category as ExpenseCategory,description:e.description,amount:String(e.amount),expense_date:e.expense_date,invoice_number:e.invoice_number??''});setEditError(null)}} className="text-xs text-teal-500 hover:underline">Edytuj</button>
+                            <button onClick={()=>{setEditId(e.id);setEditForm({category:e.category as ExpenseCategory,description:e.description,amount:String(e.amount),expense_date:e.expense_date,invoice_number:e.invoice_number??'',is_renovation_fund:e.is_renovation_fund??false});setEditError(null)}} className="text-xs text-teal-500 hover:underline">Edytuj</button>
                             <button onClick={()=>handleDelete(e.id)} className="text-[#115e59] hover:text-red-400 transition text-sm">✕</button>
                           </div>
                         </div>
@@ -364,6 +370,7 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
                   <input className="input text-sm" type="date" value={editForm.expense_date} onChange={x=>setEditForm(p=>({...p,expense_date:x.target.value}))}/>
                   <input className="input text-sm" placeholder="Nr faktury" value={editForm.invoice_number??''} onChange={x=>setEditForm(p=>({...p,invoice_number:x.target.value}))}/>
                 </div>
+                <label className="flex items-center gap-2 text-xs text-orange-400 cursor-pointer select-none"><input type="checkbox" className="w-3.5 h-3.5 accent-orange-500" checked={editForm.is_renovation_fund||editForm.category==='fundusz_remontowy'} onChange={x=>setEditForm(p=>({...p,is_renovation_fund:x.target.checked}))} />🔨 Z funduszu remontowego</label>
                 {editError&&<p className="text-xs text-red-400">{editError}</p>}
                 <div className="flex gap-2"><button onClick={handleUpdate} disabled={isPending} className="bg-teal-600 text-white text-xs font-semibold px-4 py-1.5 rounded-lg disabled:opacity-50">{isPending?'Zapisuję...':'Zapisz'}</button><button onClick={()=>setEditId(null)} className="text-xs text-[#115e59] hover:text-[#99f6e4]">Anuluj</button></div>
               </div>
@@ -371,10 +378,11 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
               <div key={e.id} onClick={() => toggleSelect(e.id)} className={`bg-[#081918] border rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap cursor-pointer transition ${selectedIds.has(e.id) ? 'border-green-600 bg-teal-950/10' : 'border-[#0f2d2a] hover:border-[#0f2d2a]'}`}>
                 <input type="checkbox" className="w-4 h-4 accent-green-500 flex-shrink-0" checked={selectedIds.has(e.id)} onChange={() => toggleSelect(e.id)} onClick={ev => ev.stopPropagation()} />
                 <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${catColors[e.category]??catColors.inne}`}>{catLabel(e.category)}</span>
+                {e.is_renovation_fund && <span className="text-xs px-1.5 py-0.5 rounded-full bg-orange-950/40 text-orange-400 flex-shrink-0" title="Fundusz remontowy">🔨</span>}
                 <div className="flex-1 min-w-0"><p className="text-sm font-medium text-[#ccfbf1] truncate">{e.description}</p><p className="text-xs text-[#115e59] mt-0.5">{new Date(e.expense_date).toLocaleDateString('pl-PL')}{isSuperAdmin&&` · ${commMap[e.community_id]??'—'}`}{e.invoice_number&&` · ${e.invoice_number}`}</p></div>
                 <p className="text-sm font-bold text-red-400 flex-shrink-0">{pln(e.amount)}</p>
                 <div className="flex items-center gap-2 flex-shrink-0" onClick={ev => ev.stopPropagation()}>
-                  <button onClick={()=>{setEditId(e.id);setEditForm({category:e.category as ExpenseCategory,description:e.description,amount:String(e.amount),expense_date:e.expense_date,invoice_number:e.invoice_number??''});setEditError(null)}} className="text-xs text-teal-500 hover:underline">Edytuj</button>
+                  <button onClick={()=>{setEditId(e.id);setEditForm({category:e.category as ExpenseCategory,description:e.description,amount:String(e.amount),expense_date:e.expense_date,invoice_number:e.invoice_number??'',is_renovation_fund:e.is_renovation_fund??false});setEditError(null)}} className="text-xs text-teal-500 hover:underline">Edytuj</button>
                   <button onClick={()=>handleDelete(e.id)} disabled={isPending} className="text-xs text-[#115e59] hover:text-red-400 transition">✕</button>
                 </div>
               </div>
