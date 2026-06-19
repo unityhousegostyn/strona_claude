@@ -19,7 +19,7 @@ interface DocumentHeaderProps {
  */
 export default function DocumentHeader({ title, communityName, communityAddress, meta = [], tag }: DocumentHeaderProps) {
   return (
-    <header className="mb-6">
+    <header className="mb-6 print:mb-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <span className="text-base leading-none">{DOC_BRAND.wordmarkIcon}</span>
@@ -32,12 +32,12 @@ export default function DocumentHeader({ title, communityName, communityAddress,
         </span>
       </div>
 
-      <div className="mt-2 h-[3px] w-full rounded-full bg-gradient-to-r from-[#0f766e] via-[#14b8a6] to-transparent" />
+      <div className="mt-2 print:mt-1.5 h-[3px] w-full rounded-full bg-gradient-to-r from-[#0f766e] via-[#14b8a6] to-transparent" />
 
-      <div className="mt-4 flex items-start justify-between gap-6 flex-wrap">
+      <div className="mt-4 print:mt-2 flex items-start justify-between gap-6 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-[#111827] leading-tight">{title}</h1>
-          <p className="text-sm text-[#6b7280] mt-1">
+          <h1 className="text-2xl print:text-xl font-bold text-[#111827] leading-tight">{title}</h1>
+          <p className="text-sm text-[#6b7280] mt-1 print:mt-0.5">
             {communityName}{communityAddress ? ` · ${communityAddress}` : ''}
           </p>
         </div>

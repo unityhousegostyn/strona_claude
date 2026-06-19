@@ -6,7 +6,7 @@ interface DocumentPaperProps {
 
 const PAGE_RULE: Record<NonNullable<DocumentPaperProps['size']>, string> = {
   'a4-portrait': '@page { size: A4 portrait; margin: 18mm 16mm; }',
-  'a4-landscape': '@page { size: A4 landscape; margin: 15mm; }',
+  'a4-landscape': '@page { size: A4 landscape; margin: 10mm; }',
 }
 
 /**

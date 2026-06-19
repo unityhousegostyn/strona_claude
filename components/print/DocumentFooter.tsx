@@ -8,7 +8,7 @@ interface DocumentFooterProps {
 /** Wspólna stopka dokumentu — pojawia się identycznie na wszystkich wydrukach. */
 export default function DocumentFooter({ generatedAt, note }: DocumentFooterProps) {
   return (
-    <footer className="mt-8 pt-3 border-t border-[#e5e7eb] text-center">
+    <footer className="mt-8 print:mt-3 pt-3 print:pt-1.5 border-t border-[#e5e7eb] text-center">
       <p className="text-[10px] text-[#9ca3af]">
         {DOC_BRAND.wordmarkIcon} {DOC_BRAND.tagline} · {note ?? 'Dokument wygenerowany automatycznie'} · {generatedAt ?? formatDocDate()}
       </p>
