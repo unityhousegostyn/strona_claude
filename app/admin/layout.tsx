@@ -112,7 +112,7 @@ export default async function AdminLayout({
   return (
     <I18nProvider>
     <ToastProvider>
-      <div className="flex min-h-screen bg-[#051210]">
+      <div className="print:block flex min-h-screen bg-[#051210] print:bg-white print:min-h-0">
         <SidebarNav
           profile={profileWithCommunity}
           userEmail={user.email ?? ''}
@@ -126,14 +126,14 @@ export default async function AdminLayout({
         {profile.role === 'super_admin' && (
           <AutoRefresh intervalMs={60000} />
         )}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="print:block flex-1 flex flex-col min-w-0">
           {/* Topbar z dzwonkiem */}
-          <div className="lg:hidden fixed top-0 left-0 right-0 z-20 pointer-events-none" />
-          <div className="hidden lg:flex items-center justify-end gap-3 px-6 pt-4 pb-0">
+          <div className="print:hidden lg:hidden fixed top-0 left-0 right-0 z-20 pointer-events-none" />
+          <div className="print:hidden hidden lg:flex items-center justify-end gap-3 px-6 pt-4 pb-0">
             {profile.role === 'super_admin' && <SuperAdminRefreshTimer />}
             <NotificationBell initialUnread={unreadNotifications} />
           </div>
-          <main className="flex-1 p-4 lg:p-6 overflow-auto pt-[72px] pb-20 lg:pt-3 lg:pb-6">
+          <main className="print:p-0 print:overflow-visible flex-1 p-4 lg:p-6 overflow-auto pt-[72px] pb-20 lg:pt-3 lg:pb-6">
             {children}
           </main>
         </div>

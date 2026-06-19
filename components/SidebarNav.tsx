@@ -244,7 +244,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
       {/* ── MOBILE ── */}
 
       {/* Top bar — uproszczony, bez hamburgera */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-[#051210] border-b border-[#0f2d2a] flex items-center justify-between px-4 h-14">
+      <div className="print:hidden lg:hidden fixed top-0 left-0 right-0 z-30 bg-[#051210] border-b border-[#0f2d2a] flex items-center justify-between px-4 h-14">
         <h1 className="text-base font-bold text-[#f0fdfa]">🏢 Wspólnoty</h1>
         <Link href="/admin/profile" className="w-8 h-8 rounded-full bg-teal-900/40 text-teal-400 text-sm font-bold flex items-center justify-center">
           {(profile.full_name ?? userEmail).charAt(0).toUpperCase()}
@@ -252,7 +252,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
       </div>
 
       {/* Bottom navigation bar */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#051210] border-t border-[#0f2d2a] flex items-stretch h-16 safe-area-bottom">
+      <nav className="print:hidden lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#051210] border-t border-[#0f2d2a] flex items-stretch h-16 safe-area-bottom">
         {bottomNavItems.map(item => {
           const active = pathname.startsWith(item.href)
           const badge = getBadge(item.href)
@@ -296,14 +296,14 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
       {/* Drawer overlay */}
       {drawerOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-40 bg-black/50"
+          className="print:hidden lg:hidden fixed inset-0 z-40 bg-black/50"
           onClick={() => setDrawerOpen(false)}
         />
       )}
 
       {/* Drawer — pełne menu z dołu */}
       <div className={`
-        lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#051210] rounded-t-2xl shadow-2xl
+        print:hidden lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#051210] rounded-t-2xl shadow-2xl
         transition-transform duration-300 max-h-[85vh] flex flex-col
         ${drawerOpen ? 'translate-y-0' : 'translate-y-full'}
       `}>
@@ -336,7 +336,7 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
       </div>
 
       {/* ── DESKTOP sidebar ── */}
-      <aside className="hidden lg:flex w-64 bg-[#051210] border-r border-[#0f2d2a] flex-col shrink-0">
+      <aside className="print:hidden hidden lg:flex w-64 bg-[#051210] border-r border-[#0f2d2a] flex-col shrink-0">
         <NavContent />
       </aside>
     </>
