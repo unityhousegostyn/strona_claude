@@ -164,11 +164,13 @@ export default function RaportyClient({
   const totalChargeBD = Object.values(chargeBreakdown).reduce((s, v) => s + v, 0)
 
   // ── Per-apartment reconciliation ─────────────────────────────────────────
+  // Naliczone liczymy tylko do maxMonth (= bieżący miesiąc dla roku bieżącego,
+  // = 12 dla lat poprzednich) — żeby nie wyprzedzać faktycznych wpłat.
   const aptReconciliation = commApts.map(apt => {
     const aptEntries = commEntries.filter(e => e.apartment_id === apt.id)
     const paid = aptEntries.reduce((s, e) => s + (e.paid ?? 0), 0)
     let charged = 0
-    for (let m = 1; m <= 12; m++) {
+    for (let m = 1; m <= maxMonth; m++) {
       const rate = getActiveRate(rates, filterComm, filterYear, m)
       if (rate) charged += calcMonthlyCharge(apt, rate)
     }
@@ -720,7 +722,7 @@ export default function RaportyClient({
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <KpiCard label="Suma naliczonych zaliczek" value={pln(totalCharged)} color="blue"
-                    formula="stawki × m² × 12 mies. dla każdego lokalu" />
+                    formula={`stawki × m² × ${maxMonth} mies. dla każdego lokalu (styczeń–${['','Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'][maxMonth]} ${filterYear})`} />
                   <KpiCard label="Suma wpłat" value={pln(totalAptPaid)} color="green"
                     formula="suma pola 'Wpłata' z kart rozliczeniowych wszystkich lokali" />
                   <KpiCard label={totalAptPaid - totalCharged >= 0 ? 'Łączna nadpłata' : 'Łączne zaległości'} value={pln(Math.abs(totalAptPaid - totalCharged))} color={totalAptPaid - totalCharged >= 0 ? 'green' : 'red'}
