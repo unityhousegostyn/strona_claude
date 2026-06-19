@@ -30,7 +30,9 @@ export interface SettlementRate {
   operating_rate_m2: number
   manager_fee_type: 'per_m2' | 'fixed'
   manager_fee_value: number
-  water_billing_type: 'ryczalt' | 'meter'  // 'ryczalt' = stała m³/mies, 'meter' = odczyt licznika
+  // 'ryczalt' = stała m³/mies, 'meter' = odczyt licznika,
+  // 'zaliczka' = woda wyliczana z wpłaty mieszkańca (wpłacono − pozostałe opłaty = kwota za wodę)
+  water_billing_type: 'ryczalt' | 'meter' | 'zaliczka'
 }
 
 export interface SettlementEntry {
@@ -113,13 +115,19 @@ export function calcMonthCharges(
   const manager    = rates.manager_fee_type === 'per_m2'
     ? r(rates.manager_fee_value * apt.area_m2)
     : r(rates.manager_fee_value)                   // stała kwota
-  const water      = rates.water_billing_type === 'meter'
-    ? r((entry?.water_m3 ?? 0) * rates.water_price_m3)
-    : r(rates.water_ryczalt_m3 * rates.water_price_m3)
   const persons    = entry?.persons_count ?? apt.persons_count
   const garbage    = r(persons * rates.garbage_per_person)
   const correction = r(entry?.water_correction ?? 0)
   const paid       = r(entry?.paid ?? 0)
+
+  // 'zaliczka': woda to różnica między wpłatą a pozostałymi opłatami (samonaliczenie
+  // mieszkańca) — liczona tylko wtedy, gdy mamy faktyczny wpis (wpłatę) za miesiąc;
+  // bez wpisu (np. podgląd stawek w zawiadomieniu) woda = 0, tak jak przy 'meter'.
+  const water = rates.water_billing_type === 'meter'
+    ? r((entry?.water_m3 ?? 0) * rates.water_price_m3)
+    : rates.water_billing_type === 'zaliczka'
+      ? (entry ? r(paid - (renovation + operating + manager + garbage + correction)) : 0)
+      : r(rates.water_ryczalt_m3 * rates.water_price_m3)
 
   const total_due = r(renovation + operating + manager + water + garbage + correction)
 

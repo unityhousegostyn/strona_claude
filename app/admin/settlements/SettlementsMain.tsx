@@ -27,7 +27,7 @@ const EMPTY_RATES = {
   effective_from: '', water_price_m3: '', water_ryczalt_m3: '',
   garbage_per_person: '', renovation_rate_m2: '', operating_rate_m2: '',
   manager_fee_type: 'per_m2' as 'per_m2' | 'fixed', manager_fee_value: '',
-  water_billing_type: 'ryczalt' as 'ryczalt' | 'meter',
+  water_billing_type: 'ryczalt' as 'ryczalt' | 'meter' | 'zaliczka',
 }
 
 export default function SettlementsMain({ communities, selectedCommunityId, apartments, rates, entries = [], isAdmin = false }: Props) {
@@ -437,9 +437,10 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                     <div className="sm:col-span-2 lg:col-span-3">
                       <label className="block text-xs text-[#0f766e] mb-1">Model rozliczania wody</label>
                       <select className="input w-full max-w-xs" value={ratesForm.water_billing_type}
-                        onChange={e => setRatesForm(p => ({ ...p, water_billing_type: e.target.value as 'ryczalt' | 'meter' }))}>
+                        onChange={e => setRatesForm(p => ({ ...p, water_billing_type: e.target.value as 'ryczalt' | 'meter' | 'zaliczka' }))}>
                         <option value="ryczalt">Ryczałt (stała m³/miesiąc)</option>
                         <option value="meter">Licznik (odczyt co miesiąc)</option>
+                        <option value="zaliczka">Zaliczka mieszkańca (woda = wpłata − pozostałe opłaty)</option>
                       </select>
                     </div>
                     {[
@@ -525,9 +526,10 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                             <div className="sm:col-span-2 lg:col-span-3">
                               <label className="block text-xs text-[#0f766e] mb-1">Model rozliczania wody</label>
                               <select className="input w-full max-w-xs" value={editRateForm.water_billing_type}
-                                onChange={e => setEditRateForm(p => ({ ...p, water_billing_type: e.target.value as 'ryczalt' | 'meter' }))}>
+                                onChange={e => setEditRateForm(p => ({ ...p, water_billing_type: e.target.value as 'ryczalt' | 'meter' | 'zaliczka' }))}>
                                 <option value="ryczalt">Ryczałt (stała m³/miesiąc)</option>
                                 <option value="meter">Licznik (odczyt co miesiąc)</option>
+                                <option value="zaliczka">Zaliczka mieszkańca (woda = wpłata − pozostałe opłaty)</option>
                               </select>
                             </div>
                             {[
@@ -573,7 +575,10 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                           {[
                             { label: 'Cena wody', value: `${r.water_price_m3} zł/m³` },
-                            { label: 'Woda — model', value: (r.water_billing_type ?? 'ryczalt') === 'meter' ? `Licznik m³` : `Ryczałt ${r.water_ryczalt_m3} m³/mies.` },
+                            { label: 'Woda — model', value:
+                              (r.water_billing_type ?? 'ryczalt') === 'meter' ? `Licznik m³`
+                              : (r.water_billing_type ?? 'ryczalt') === 'zaliczka' ? `Zaliczka mieszkańca`
+                              : `Ryczałt ${r.water_ryczalt_m3} m³/mies.` },
                             { label: 'Śmieci', value: `${r.garbage_per_person} zł/os.` },
                             { label: 'Fund. remontowy', value: `${r.renovation_rate_m2} zł/m²` },
                             { label: 'Fund. eksploat.', value: `${r.operating_rate_m2} zł/m²` },

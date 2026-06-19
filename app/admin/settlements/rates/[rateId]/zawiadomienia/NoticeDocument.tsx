@@ -31,6 +31,8 @@ interface NoticeDocumentProps {
 export default function NoticeDocument({ apartment, community, rate, generatedAt, pageBreakAfter = false }: NoticeDocumentProps) {
   const charges = calcMonthCharges(apartment, rate, null)
   const isMeter = rate.water_billing_type === 'meter'
+  const isZaliczka = rate.water_billing_type === 'zaliczka'
+  const waterVariable = isMeter || isZaliczka
   const city = extractCity(community.address)
   const legalBasis = community.legal_basis?.trim()
     || 'ustawy o własności lokali z dnia 24 czerwca 1994 r.'
@@ -107,7 +109,7 @@ export default function NoticeDocument({ apartment, community, rate, generatedAt
             <td className="px-2 py-1.5 border border-[#e5e7eb] text-[#374151]">a.</td>
             <td className="px-2 py-1.5 border border-[#e5e7eb] text-[#374151]">zimna woda oraz ścieki</td>
             <td className="px-2 py-1.5 text-right border border-[#e5e7eb] text-[#374151]">{fmtNum(rate.water_price_m3)} zł/m³</td>
-            <td className="px-2 py-1.5 text-right border border-[#e5e7eb] text-[#111827]">{isMeter ? 'x' : pln(charges.water)}</td>
+            <td className="px-2 py-1.5 text-right border border-[#e5e7eb] text-[#111827]">{isMeter ? 'x' : isZaliczka ? 'wg wpłaty' : pln(charges.water)}</td>
           </tr>
           <tr>
             <td className="px-2 py-1.5 border border-[#e5e7eb] text-[#374151]">b.</td>
@@ -119,13 +121,20 @@ export default function NoticeDocument({ apartment, community, rate, generatedAt
       </table>
 
       <p className="font-bold mb-4 text-[#111827]">
-        Razem do zapłaty: <span className="text-teal-700">{pln(charges.total_due)}{isMeter ? ' + woda' : ''}</span>
+        Razem do zapłaty: <span className="text-teal-700">{pln(charges.total_due)}{waterVariable ? ' + woda' : ''}</span>
       </p>
 
       {community.bank_account && (
         <p className="leading-relaxed text-[#374151]">
           Prosimy o dokonywanie wpłat na konto: <strong className="text-[#111827]">{community.bank_account}</strong> do 10 dnia
           każdego miesiąca{isMeter ? ', podając w tytule przelewu zużycie wody w m3' : ''}.
+        </p>
+      )}
+
+      {isZaliczka && (
+        <p className="leading-relaxed text-[#374151] mt-2">
+          Opłata za wodę nie jest stawką stałą — mieszkaniec samodzielnie wylicza wysokość zaliczki na wodę
+          ponad pozostałe opłaty wymienione powyżej i uwzględnia ją w łącznej wpłacie.
         </p>
       )}
 

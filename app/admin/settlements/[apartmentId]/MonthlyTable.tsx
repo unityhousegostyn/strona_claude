@@ -68,7 +68,22 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
 
   // Aktualny model wody i stawki
   const latestRates = rates[0] ?? null
-  const isMeterBilling = (latestRates?.water_billing_type ?? 'ryczalt') === 'meter'
+  const billingType = latestRates?.water_billing_type ?? 'ryczalt'
+  const isMeterBilling = billingType === 'meter'
+  const isZaliczkaBilling = billingType === 'zaliczka'
+
+  // Stałe opłaty (bez wody) dla aktualnie edytowanego miesiąca — do podglądu
+  // wyliczonej wody w modelu "zaliczka mieszkańca" (woda = wpłata − to poniżej)
+  function fixedChargesExceptWater(persons: number): number {
+    if (!latestRates) return 0
+    const renovation = latestRates.renovation_rate_m2 * apartment.area_m2
+    const operating = latestRates.operating_rate_m2 * apartment.area_m2
+    const manager = latestRates.manager_fee_type === 'per_m2'
+      ? latestRates.manager_fee_value * apartment.area_m2
+      : latestRates.manager_fee_value
+    const garbage = persons * latestRates.garbage_per_person
+    return renovation + operating + manager + garbage
+  }
 
   function openEdit(row: MonthlyRow) {
     setEditMonth(row.month)
@@ -204,7 +219,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                 <th className={headerClass}>Fund. rem.</th>
                 <th className={headerClass}>Fund. ekspl.</th>
                 <th className={headerClass}>Zarządca</th>
-                <th className={headerClass}>{isMeterBilling ? 'Woda (m³)' : 'Ryczałt wody'}</th>
+                <th className={headerClass}>{isMeterBilling ? 'Woda (m³)' : isZaliczkaBilling ? 'Woda (z zaliczki)' : 'Ryczałt wody'}</th>
                 <th className={headerClass}>Śmieci</th>
                 <th className={headerClass}>Korekta</th>
                 <th className={headerClass + ' font-bold text-[#99f6e4]'}>Razem</th>
@@ -296,6 +311,22 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                                     = {(parseFloat(editWaterM3 || '0') * latestRates.water_price_m3).toFixed(2)} zł
                                   </p>
                                 )}
+                              </div>
+                            ) : isZaliczkaBilling ? (
+                              <div>
+                                <label className="text-xs text-[#0f766e] block mb-1">Woda (wyliczana automatycznie)</label>
+                                {(() => {
+                                  const persons = editPersons.trim() !== '' ? parseInt(editPersons, 10) : apartment.persons_count
+                                  const waterZl = parseFloat(editPaid || '0') - fixedChargesExceptWater(persons)
+                                  const waterM3 = latestRates && latestRates.water_price_m3 > 0 ? waterZl / latestRates.water_price_m3 : 0
+                                  return (
+                                    <p className="w-40 text-sm text-[#99f6e4] py-1.5">
+                                      {waterZl.toFixed(2)} zł
+                                      <span className="text-[#115e59] text-xs ml-1">≈ {waterM3.toFixed(2)} m³</span>
+                                    </p>
+                                  )
+                                })()}
+                                <p className="text-[10px] text-[#115e59] mt-0.5">= wpłacono − pozostałe opłaty</p>
                               </div>
                             ) : (
                               <div>
@@ -398,7 +429,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
       </div>
 
       {/* Rozliczenie kwartalne wody — tylko dla modelu ryczałtowego */}
-      {apartment.has_meter && !isMeterBilling && (
+      {apartment.has_meter && billingType === 'ryczalt' && (
         <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl overflow-hidden">
           <div className="px-4 py-3 border-b border-[#0f2d2a]">
             <h3 className="text-sm font-semibold text-[#ccfbf1]">💧 Rozliczenie kwartalne wody</h3>

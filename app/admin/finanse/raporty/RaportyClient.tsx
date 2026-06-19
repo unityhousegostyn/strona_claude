@@ -17,7 +17,7 @@ interface Rate {
   water_price_m3: number; water_ryczalt_m3: number; garbage_per_person: number
   renovation_rate_m2: number; operating_rate_m2: number
   manager_fee_type: 'per_m2' | 'fixed'; manager_fee_value: number
-  water_billing_type: 'ryczalt' | 'meter'
+  water_billing_type: 'ryczalt' | 'meter' | 'zaliczka'
 }
 interface Entry {
   apartment_id: string; community_id: string; year: number; month: number
