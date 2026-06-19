@@ -58,6 +58,7 @@ const EXP_CAT_LABELS: Record<string, string> = {
   fundusz_remontowy:      'Fundusz remontowy',
   fundusz_eksploatacyjny: 'Fundusz eksploatacyjny',
   wynagrodzenie_zarządcy: 'Wynagrodzenie zarządcy',
+  koszty_administracji:   'Koszty administracji',
   woda:                   'Woda / kanalizacja',
   śmieci:                 'Odpady / śmieci',
   remonty:                'Remonty / naprawy',
@@ -592,6 +593,60 @@ export default function RaportyClient({
                     })()}
                   </ReportSection>
                 )}
+
+                {/* ── Oddzielne tabele dla wybranych kategorii ── */}
+                {(['śmieci', 'woda', 'koszty_administracji'] as const).map(cat => {
+                  const catExp = commExpenses.filter(e => e.category === cat)
+                  if (catExp.length === 0) return null
+                  const catTotal = catExp.reduce((s, e) => s + e.amount, 0)
+                  const months: number[] = []
+                  for (let m = 1; m <= 12; m++) {
+                    if (catExp.some(e => e.month === m)) months.push(m)
+                  }
+                  return (
+                    <ReportSection key={cat} title={EXP_CAT_LABELS[cat]}>
+                      {months.map(m => {
+                        const rows = catExp
+                          .filter(e => e.month === m)
+                          .sort((a, b) => a.expense_date.localeCompare(b.expense_date))
+                        const monthTotal = rows.reduce((s, e) => s + e.amount, 0)
+                        return (
+                          <div key={m} className="mb-4">
+                            <p className="text-xs font-semibold text-[#0f766e] uppercase tracking-wide mb-1">{MONTHS_FULL[m - 1]}</p>
+                            <table className="w-full text-sm">
+                              <thead>
+                                <tr className="border-b border-[#0f2d2a]">
+                                  <th className="text-left py-1 pr-3 text-[#0f766e] font-medium w-24">Data</th>
+                                  <th className="text-left py-1 pr-3 text-[#0f766e] font-medium">Odbiorca / opis</th>
+                                  <th className="text-right py-1 text-[#0f766e] font-medium w-28">Kwota</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {rows.map((e, i) => (
+                                  <tr key={i} className="border-b border-[#0f2d2a]/40">
+                                    <td className="py-1.5 pr-3 text-[#0f766e] text-xs">{e.expense_date}</td>
+                                    <td className="py-1.5 pr-3 text-[#ccfbf1]">{e.description}</td>
+                                    <td className="text-right py-1.5 text-[#99f6e4] font-medium">{pln(e.amount)}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                              <tfoot>
+                                <tr className="border-t border-[#133835]">
+                                  <td colSpan={2} className="py-1.5 font-bold text-[#f0fdfa]">Suma {MONTHS_FULL[m - 1]}</td>
+                                  <td className="text-right py-1.5 font-bold text-red-400">{pln(monthTotal)}</td>
+                                </tr>
+                              </tfoot>
+                            </table>
+                          </div>
+                        )
+                      })}
+                      <div className="flex justify-between mt-2 pt-2 border-t border-[#133835] font-bold text-sm">
+                        <span className="text-[#f0fdfa]">Łącznie {EXP_CAT_LABELS[cat]}</span>
+                        <span className="text-red-400">{pln(catTotal)}</span>
+                      </div>
+                    </ReportSection>
+                  )
+                })}
 
                 {/* Lokaty bankowe */}
                 {commDeposits.length > 0 && (
