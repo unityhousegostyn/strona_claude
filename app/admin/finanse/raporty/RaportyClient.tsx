@@ -195,20 +195,24 @@ export default function RaportyClient({
   const totalDebt = debtors.reduce((s, r) => s + Math.abs(r.balance), 0)
 
   // ── Plan vs execution ────────────────────────────────────────────────────
-  // Plan gospodarczy posługuje się WYŁĄCZNIE kategorią "fundusz_eksploatacyjny"
-  // (nie sumą wszystkich kategorii kosztowych poza remontowym) — zgodnie z wymogiem:
-  // "w planie gospodarczym posługujemy się tylko wpłatami z funduszu eksploatacyjnego".
-  // Plan = faktyczne wykonanie roku poprzedniego dla kategorii fundusz_eksploatacyjny
-  const prevYearExpenses = expenses.filter(e => e.community_id === filterComm && e.year === filterYear - 1 && e.category === 'fundusz_eksploatacyjny')
+  // Fundusz eksploatacyjny = WSZYSTKIE kategorie kosztowe OPRÓCZ funduszu remontowego
+  // (woda, śmieci, sprzątanie, energia, zarząd, koszty administracji, opłaty bankowe, itd.
+  // — to są wszystko wydatki z funduszu eksploatacyjnego; fundusz remontowy jest wyłączony
+  // przez flagę is_renovation_fund LUB kategorię 'fundusz_remontowy').
+  const isExploitation = (e: { is_renovation_fund?: boolean | null; category: string }) =>
+    !(e.is_renovation_fund || e.category === 'fundusz_remontowy')
+
+  // Plan = faktyczne wykonanie roku poprzedniego — tylko fundusz eksploatacyjny
+  const prevYearExpenses = expenses.filter(e => e.community_id === filterComm && e.year === filterYear - 1 && isExploitation(e))
   const planByCategory: Record<string, number> = {}
   for (const e of prevYearExpenses) {
     planByCategory[e.category] = (planByCategory[e.category] ?? 0) + e.amount
   }
-  const hasPrevYearData = expenses.some(e => e.community_id === filterComm && e.year === filterYear - 1 && e.category === 'fundusz_eksploatacyjny')
+  const hasPrevYearData = expenses.some(e => e.community_id === filterComm && e.year === filterYear - 1 && isExploitation(e))
 
-  // Wykonanie = kategoria fundusz_eksploatacyjny bieżącego roku do maxMonth włącznie
+  // Wykonanie = fundusz eksploatacyjny bieżącego roku do maxMonth włącznie
   const executionByCategory: Record<string, number> = {}
-  for (const e of commExpenses.filter(e => e.month <= maxMonth && e.category === 'fundusz_eksploatacyjny')) {
+  for (const e of commExpenses.filter(e => e.month <= maxMonth && isExploitation(e))) {
     executionByCategory[e.category] = (executionByCategory[e.category] ?? 0) + e.amount
   }
   const totalExecutionToDate = Object.values(executionByCategory).reduce((s, v) => s + v, 0)
