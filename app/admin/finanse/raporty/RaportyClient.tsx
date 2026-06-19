@@ -3,6 +3,7 @@ import BackButton from '@/components/BackButton'
 
 import { useState, useRef } from 'react'
 import { exportToExcel, exportMultiSheet } from '@/lib/exportExcel'
+import { NON_INCOME_CATEGORIES } from '../przychody/income-categories'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -128,14 +129,22 @@ export default function RaportyClient({
   const monthlyPaid: Record<number, number> = {}
   const monthlyExpenses: Record<number, number> = {}
   const monthlyOtherIncome: Record<number, number> = {}
+  const monthlyDepositTransfers: Record<number, number> = {}
   for (let m = 1; m <= 12; m++) {
     monthlyPaid[m] = commEntries.filter(e => e.month === m).reduce((s, e) => s + (e.paid ?? 0), 0)
     monthlyExpenses[m] = commExpenses.filter(e => e.month === m).reduce((s, e) => s + e.amount, 0)
-    monthlyOtherIncome[m] = commIncome.filter(i => i.month === m).reduce((s, i) => s + i.amount, 0)
+    // Przelewy na lokaty (kategoria 'lokata') to nie przychód — liczymy osobno
+    monthlyOtherIncome[m] = commIncome
+      .filter(i => i.month === m && !NON_INCOME_CATEGORIES.includes(i.category as any))
+      .reduce((s, i) => s + i.amount, 0)
+    monthlyDepositTransfers[m] = commIncome
+      .filter(i => i.month === m && i.category === 'lokata')
+      .reduce((s, i) => s + i.amount, 0)
   }
   const totalPaid = Object.values(monthlyPaid).reduce((s, v) => s + v, 0)
   const totalExpenses = Object.values(monthlyExpenses).reduce((s, v) => s + v, 0)
   const totalOtherIncome = Object.values(monthlyOtherIncome).reduce((s, v) => s + v, 0)
+  const totalDepositTransfers = Object.values(monthlyDepositTransfers).reduce((s, v) => s + v, 0)
   const totalIncome = totalPaid + totalOtherIncome
   const totalBalance = totalIncome - totalExpenses
 
@@ -394,14 +403,21 @@ export default function RaportyClient({
                 {/* KPIs */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 print-kpi-row">
                   <KpiCard label="Łączne przychody" value={pln(totalIncome)} color="green"
-                    note={`wpłaty: ${pln(totalPaid)}, inne: ${pln(totalOtherIncome)}`}
-                    formula="wpłaty mieszkańców (Rozliczenia) + inne przychody (moduł Przychody)" />
+                    note={`wpłaty: ${pln(totalPaid)}, inne: ${pln(totalOtherIncome)}${totalDepositTransfers > 0 ? ` · ⚠ przelew na lokatę ${pln(totalDepositTransfers)} (wyłączony z sumy)` : ''}`}
+                    formula="wpłaty mieszkańców (Rozliczenia) + inne przychody (moduł Przychody, bez przelewów na lokaty)" />
                   <KpiCard label="Łączne koszty zarządu" value={pln(totalExpenses)} color="red"
                     formula="suma wszystkich wpisów z modułu Koszty" />
                   <KpiCard label="Saldo roku" value={pln(totalBalance)} color={totalBalance >= 0 ? 'green' : 'red'}
                     note={totalBalance >= 0 ? 'Nadwyżka' : 'Niedobór'}
                     formula="Łączne przychody − Łączne koszty zarządu" />
                 </div>
+
+                {/* Nota o przelewach na lokaty */}
+                {totalDepositTransfers > 0 && (
+                  <div className="p-3 bg-slate-950/40 border border-slate-700/40 rounded-lg text-xs text-slate-400">
+                    ℹ️ W module Przychody zaewidencjonowano <strong>{pln(totalDepositTransfers)}</strong> jako „Przelew na lokatę (kapitał)" — kwota ta <strong>nie jest przychodem operacyjnym</strong> i została wyłączona z sumy łącznych przychodów. Odsetki z lokaty (jeśli ujęte jako „Odsetki od lokat") są w przychodach.
+                  </div>
+                )}
 
                 {/* Naliczone składniki zaliczek */}
                 {totalChargeBD > 0 && (

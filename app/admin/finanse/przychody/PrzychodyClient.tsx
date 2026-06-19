@@ -113,7 +113,7 @@ export default function PrzychodyClient({ incomeEntries, settlementsMap, communi
   const paginatedList = filtered.slice((listPage - 1) * LIST_PAGE_SIZE, listPage * LIST_PAGE_SIZE)
 
   const catLabel = (cat: string) => categories.find(c => c.value === cat)?.label ?? cat
-  const catColors: Record<string, string> = { odsetki:'bg-yellow-950/40 text-yellow-400', zwrot:'bg-teal-950/40 text-teal-400', dotacja:'bg-teal-950/40 text-teal-400', inne:'bg-[#0c2220] text-[#0f766e]' }
+  const catColors: Record<string, string> = { odsetki:'bg-yellow-950/40 text-yellow-400', zwrot:'bg-teal-950/40 text-teal-400', dotacja:'bg-teal-950/40 text-teal-400', lokata:'bg-slate-950/40 text-slate-400', inne:'bg-[#0c2220] text-[#0f766e]' }
 
   const handleExportExcel = () => {
     const rows = filtered.map(e => ({
