@@ -61,6 +61,7 @@ const EXP_CAT_LABELS: Record<string, string> = {
   koszty_administracji:   'Koszty administracji',
   woda:                   'Woda / kanalizacja',
   śmieci:                 'Odpady / śmieci',
+  sprzątanie:             'Sprzątanie',
   remonty:                'Remonty / naprawy',
   ubezpieczenie:          'Ubezpieczenie',
   energia:                'Energia / gaz',

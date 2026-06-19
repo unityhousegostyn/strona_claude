@@ -2,8 +2,10 @@ export type ExpenseCategory =
   | 'fundusz_remontowy'
   | 'fundusz_eksploatacyjny'
   | 'wynagrodzenie_zarządcy'
+  | 'koszty_administracji'
   | 'woda'
   | 'śmieci'
+  | 'sprzątanie'
   | 'remonty'
   | 'ubezpieczenie'
   | 'energia'
@@ -14,8 +16,10 @@ export const EXPENSE_CATEGORIES: { value: ExpenseCategory; label: string }[] = [
   { value: 'fundusz_remontowy',      label: 'Fundusz remontowy' },
   { value: 'fundusz_eksploatacyjny', label: 'Fundusz eksploatacyjny' },
   { value: 'wynagrodzenie_zarządcy', label: 'Wynagrodzenie zarządcy' },
+  { value: 'koszty_administracji',   label: 'Koszty administracji' },
   { value: 'woda',                   label: 'Woda / kanalizacja' },
   { value: 'śmieci',                 label: 'Odpady / śmieci' },
+  { value: 'sprzątanie',             label: 'Sprzątanie' },
   { value: 'remonty',                label: 'Remonty / naprawy' },
   { value: 'ubezpieczenie',          label: 'Ubezpieczenie' },
   { value: 'energia',                label: 'Energia / gaz' },
