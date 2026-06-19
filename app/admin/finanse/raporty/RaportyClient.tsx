@@ -194,23 +194,20 @@ export default function RaportyClient({
   const totalDebt = debtors.reduce((s, r) => s + Math.abs(r.balance), 0)
 
   // ── Plan vs execution ────────────────────────────────────────────────────
-  const totalArea = commApts.reduce((s, a) => s + a.area_m2, 0)
-  const totalPersons = commApts.reduce((s, a) => s + a.persons_count, 0)
-  const latestRate = rates.filter(r => r.community_id === filterComm).sort((a, b) => b.effective_from.localeCompare(a.effective_from))[0]
+  // Plan = faktyczne wykonanie roku poprzedniego per kategoria
+  const prevYearExpenses = expenses.filter(e => e.community_id === filterComm && e.year === filterYear - 1)
   const planByCategory: Record<string, number> = {}
-  if (latestRate) {
-    planByCategory['woda'] = latestRate.water_ryczalt_m3 * latestRate.water_price_m3 * commApts.length * 12
-    planByCategory['śmieci'] = latestRate.garbage_per_person * totalPersons * 12
-    planByCategory['fundusz_remontowy'] = latestRate.renovation_rate_m2 * totalArea * 12
-    planByCategory['zarząd'] = latestRate.manager_fee_type === 'per_m2'
-      ? latestRate.manager_fee_value * totalArea * 12
-      : latestRate.manager_fee_value * 12
-    planByCategory['inne'] = latestRate.operating_rate_m2 * totalArea * 12
+  for (const e of prevYearExpenses) {
+    planByCategory[e.category] = (planByCategory[e.category] ?? 0) + e.amount
   }
+  const hasPrevYearData = prevYearExpenses.length > 0
+
+  // Wykonanie = koszty bieżącego roku do maxMonth włącznie
   const executionByCategory: Record<string, number> = {}
-  for (const e of commExpenses) {
+  for (const e of commExpenses.filter(e => e.month <= maxMonth)) {
     executionByCategory[e.category] = (executionByCategory[e.category] ?? 0) + e.amount
   }
+  const totalExecutionToDate = Object.values(executionByCategory).reduce((s, v) => s + v, 0)
 
   // ── Renovation fund ──────────────────────────────────────────────────────
   const allYears = [...new Set([...entries.filter(e => e.community_id === filterComm).map(e => e.year), ...expenses.filter(e => e.community_id === filterComm).map(e => e.year)])].sort()
@@ -857,48 +854,62 @@ export default function RaportyClient({
                   art="Art. 22 ust. 3 pkt 1 UoWL — plan gospodarczy uchwalany przez zebranie właścicieli"
                 />
 
-                {!latestRate
-                  ? <div className="text-center py-12 text-[#115e59]"><p className="text-3xl mb-3">⚙️</p><p>Brak zdefiniowanych stawek dla tej wspólnoty.</p></div>
-                  : <>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <KpiCard label="Plan roczny" value={pln(Object.values(planByCategory).reduce((s, v) => s + v, 0))} color="blue"
-                        note={`stawki z ${latestRate.effective_from}`}
-                        formula="stawki × m² (lub os.) × 12 mies. × liczba lokali" />
-                      <KpiCard label="Wykonanie" value={pln(totalExpenses)} color="red"
-                        formula="suma wpisów z modułu Koszty w roku" />
-                      <KpiCard label="Odchylenie" value={pln(totalExpenses - Object.values(planByCategory).reduce((s, v) => s + v, 0))} color={totalExpenses <= Object.values(planByCategory).reduce((s, v) => s + v, 0) ? 'green' : 'red'}
-                        note={totalExpenses <= Object.values(planByCategory).reduce((s, v) => s + v, 0) ? 'W planie' : 'Przekroczenie'}
-                        formula="Wykonanie − Plan roczny (ujemne = oszczędność)" />
-                    </div>
+                {!hasPrevYearData
+                  ? <div className="text-center py-12 text-[#115e59]"><p className="text-3xl mb-3">📂</p><p>Brak danych kosztowych za rok {filterYear - 1} — plan nie może być wyznaczony.</p></div>
+                  : (() => {
+                    const totalPlan = Object.values(planByCategory).reduce((s, v) => s + v, 0)
+                    const diff = totalExecutionToDate - totalPlan
+                    return (
+                      <>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <KpiCard label={`Plan ${filterYear}`} value={pln(totalPlan)} color="blue"
+                            note={`wykonanie ${filterYear - 1}`}
+                            formula={`faktyczne koszty roku ${filterYear - 1} per kategoria (podstawa planu)`} />
+                          <KpiCard label={`Wykonanie do ${['','Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'][maxMonth]}`} value={pln(totalExecutionToDate)} color="red"
+                            formula={`suma kosztów ${filterYear} od stycznia do ${['','Stycznia','Lutego','Marca','Kwietnia','Maja','Czerwca','Lipca','Sierpnia','Września','Października','Listopada','Grudnia'][maxMonth]}`} />
+                          <KpiCard label="Odchylenie" value={pln(Math.abs(diff))} color={diff <= 0 ? 'green' : 'red'}
+                            note={diff <= 0 ? 'W planie / oszczędność' : 'Przekroczenie planu'}
+                            formula="Wykonanie − Plan (ujemne = oszczędność)" />
+                        </div>
 
-                    <ReportSection title="Porównanie per kategoria">
-                      <div className="overflow-x-auto"><table className="w-full text-sm min-w-[400px]">
-                        <thead><tr className="border-b border-[#0f2d2a]">
-                          <th className="text-left py-2 pr-4 text-[#0f766e] font-medium">Kategoria</th>
-                          <th className="text-right py-2 px-3 text-[#0f766e] font-medium">Plan</th>
-                          <th className="text-right py-2 px-3 text-[#0f766e] font-medium">Wykonanie</th>
-                          <th className="text-right py-2 pl-3 text-[#0f766e] font-medium">Różnica</th>
-                        </tr></thead>
-                        <tbody>
-                          {Object.keys({ ...planByCategory, ...executionByCategory }).sort().map(cat => {
-                            const plan = planByCategory[cat] ?? 0
-                            const exec = executionByCategory[cat] ?? 0
-                            const diff = exec - plan
-                            return (
-                              <tr key={cat} className="border-b border-[#0f2d2a]/50">
-                                <td className="py-2 pr-4 text-[#99f6e4]">{EXP_CAT_LABELS[cat] ?? cat}</td>
-                                <td className="text-right py-2 px-3 text-[#99f6e4]">{plan > 0 ? pln(plan) : '—'}</td>
-                                <td className="text-right py-2 px-3 text-[#99f6e4]">{exec > 0 ? pln(exec) : '—'}</td>
-                                <td className={`text-right py-2 pl-3 font-medium ${diff > 0 ? 'text-red-400' : diff < 0 ? 'text-teal-400' : 'text-[#115e59]'}`}>
-                                  {plan > 0 || exec > 0 ? (diff > 0 ? '+' : '') + pln(diff) : '—'}
-                                </td>
+                        <ReportSection title={`Porównanie per kategoria (plan ${filterYear - 1} vs wykonanie ${filterYear} do ${['','Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'][maxMonth]})`}>
+                          <div className="overflow-x-auto"><table className="w-full text-sm min-w-[400px]">
+                            <thead><tr className="border-b border-[#0f2d2a]">
+                              <th className="text-left py-2 pr-4 text-[#0f766e] font-medium">Kategoria</th>
+                              <th className="text-right py-2 px-3 text-[#0f766e] font-medium">Plan ({filterYear - 1})</th>
+                              <th className="text-right py-2 px-3 text-[#0f766e] font-medium">Wykonanie ({filterYear})</th>
+                              <th className="text-right py-2 pl-3 text-[#0f766e] font-medium">Różnica</th>
+                            </tr></thead>
+                            <tbody>
+                              {Object.keys({ ...planByCategory, ...executionByCategory }).sort().map(cat => {
+                                const plan = planByCategory[cat] ?? 0
+                                const exec = executionByCategory[cat] ?? 0
+                                const d = exec - plan
+                                return (
+                                  <tr key={cat} className="border-b border-[#0f2d2a]/50">
+                                    <td className="py-2 pr-4 text-[#99f6e4]">{EXP_CAT_LABELS[cat] ?? cat}</td>
+                                    <td className="text-right py-2 px-3 text-[#99f6e4]">{plan > 0 ? pln(plan) : '—'}</td>
+                                    <td className="text-right py-2 px-3 text-[#99f6e4]">{exec > 0 ? pln(exec) : '—'}</td>
+                                    <td className={`text-right py-2 pl-3 font-medium ${d > 0 ? 'text-red-400' : d < 0 ? 'text-teal-400' : 'text-[#115e59]'}`}>
+                                      {plan > 0 || exec > 0 ? (d > 0 ? '+' : '') + pln(d) : '—'}
+                                    </td>
+                                  </tr>
+                                )
+                              })}
+                            </tbody>
+                            <tfoot>
+                              <tr className="border-t border-[#133835]">
+                                <td className="py-2 font-bold text-[#f0fdfa]">Razem</td>
+                                <td className="text-right py-2 font-bold text-[#99f6e4]">{pln(totalPlan)}</td>
+                                <td className="text-right py-2 font-bold text-red-400">{pln(totalExecutionToDate)}</td>
+                                <td className={`text-right py-2 font-bold ${diff > 0 ? 'text-red-400' : 'text-teal-400'}`}>{(diff > 0 ? '+' : '') + pln(diff)}</td>
                               </tr>
-                            )
-                          })}
-                        </tbody>
-                      </table></div>
-                    </ReportSection>
-                  </>}
+                            </tfoot>
+                          </table></div>
+                        </ReportSection>
+                      </>
+                    )
+                  })()}
 
                 <LegalFooter text="Plan gospodarczy uchwalany jest przez zebranie właścicieli (art. 22 ust. 3 pkt 1 UoWL). Zarząd zobowiązany jest do realizacji planu i informowania właścicieli o istotnych odchyleniach." />
               </div>
