@@ -195,17 +195,20 @@ export default function RaportyClient({
   const totalDebt = debtors.reduce((s, r) => s + Math.abs(r.balance), 0)
 
   // ── Plan vs execution ────────────────────────────────────────────────────
-  // Plan = faktyczne wykonanie roku poprzedniego — tylko koszty eksploatacyjne (bez funduszu remontowego)
-  const prevYearExpenses = expenses.filter(e => e.community_id === filterComm && e.year === filterYear - 1 && !(e.is_renovation_fund || e.category === 'fundusz_remontowy'))
+  // Plan gospodarczy posługuje się WYŁĄCZNIE kategorią "fundusz_eksploatacyjny"
+  // (nie sumą wszystkich kategorii kosztowych poza remontowym) — zgodnie z wymogiem:
+  // "w planie gospodarczym posługujemy się tylko wpłatami z funduszu eksploatacyjnego".
+  // Plan = faktyczne wykonanie roku poprzedniego dla kategorii fundusz_eksploatacyjny
+  const prevYearExpenses = expenses.filter(e => e.community_id === filterComm && e.year === filterYear - 1 && e.category === 'fundusz_eksploatacyjny')
   const planByCategory: Record<string, number> = {}
   for (const e of prevYearExpenses) {
     planByCategory[e.category] = (planByCategory[e.category] ?? 0) + e.amount
   }
-  const hasPrevYearData = expenses.some(e => e.community_id === filterComm && e.year === filterYear - 1)
+  const hasPrevYearData = expenses.some(e => e.community_id === filterComm && e.year === filterYear - 1 && e.category === 'fundusz_eksploatacyjny')
 
-  // Wykonanie = koszty eksploatacyjne bieżącego roku do maxMonth włącznie
+  // Wykonanie = kategoria fundusz_eksploatacyjny bieżącego roku do maxMonth włącznie
   const executionByCategory: Record<string, number> = {}
-  for (const e of commExpenses.filter(e => e.month <= maxMonth && !(e.is_renovation_fund || e.category === 'fundusz_remontowy'))) {
+  for (const e of commExpenses.filter(e => e.month <= maxMonth && e.category === 'fundusz_eksploatacyjny')) {
     executionByCategory[e.category] = (executionByCategory[e.category] ?? 0) + e.amount
   }
   const totalExecutionToDate = Object.values(executionByCategory).reduce((s, v) => s + v, 0)
