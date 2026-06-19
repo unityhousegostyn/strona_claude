@@ -111,13 +111,6 @@ export default async function DashboardPage() {
     }
     const chartData = Object.entries(months6).map(([name, v]) => ({ name, ...v }))
 
-    // Łączne sumy finansowe (wszystkie lata — saldo bieżące konta)
-    const totalPaidAll = Object.values(commStats).reduce((s, c) => s + c.totalPaid, 0)
-    const totalExpAll = Object.values(commStats).reduce((s, c) => s + c.totalExpenses, 0)
-    const totalIncomeAll = Object.values(commStats).reduce((s, c) => s + c.totalIncome, 0)
-    const totalDepositsAll = Object.values(commStats).reduce((s, c) => s + c.totalDeposits, 0)
-    const totalBalance = totalPaidAll + totalIncomeAll - totalExpAll
-
     return (
       <div className="space-y-6">
         {/* ── Header ── */}
@@ -159,26 +152,12 @@ export default async function DashboardPage() {
           {/* Podsumowanie finansowe */}
           <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-5 flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-[#99f6e4] uppercase tracking-wide">Stan konta</h3>
+              <h3 className="text-sm font-semibold text-[#99f6e4] uppercase tracking-wide">Stan kont — per wspólnota</h3>
               <Link href="/admin/finanse/raporty" className="text-xs text-teal-500 hover:underline">Raporty →</Link>
             </div>
-            <div className={`rounded-xl p-4 ${totalBalance >= 0 ? 'bg-teal-950/30 border border-teal-800/40' : 'bg-red-950/30 border border-red-900/40'}`}>
-              <p className="text-xs text-[#115e59] mb-1">Łączne saldo</p>
-              <p className={`text-3xl font-bold tabular-nums ${totalBalance >= 0 ? 'text-teal-400' : 'text-red-400'}`}>{pln(totalBalance)}</p>
-              <p className="text-xs text-[#115e59] mt-1">wpłaty + przychody − koszty</p>
-            </div>
-            {totalDepositsAll > 0 && (
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-[#051210] border border-[#0f2d2a] rounded-lg p-3">
-                  <p className="text-[10px] text-[#115e59] mb-0.5">🏦 Lokaty / Oszczędności</p>
-                  <p className="text-sm font-bold text-teal-400 tabular-nums">{pln(totalDepositsAll)}</p>
-                </div>
-                <div className="bg-[#051210] border border-[#0f2d2a] rounded-lg p-3">
-                  <p className="text-[10px] text-[#115e59] mb-0.5">💳 Fundusz eksploatacyjny</p>
-                  <p className="text-sm font-bold text-[#f0fdfa] tabular-nums">{pln(totalBalance - totalDepositsAll)}</p>
-                </div>
-              </div>
-            )}
+            <p className="text-[10px] text-[#115e59] -mt-2">
+              Środki poszczególnych wspólnot nigdy nie są sumowane — każda ma własne, odrębne saldo.
+            </p>
             <div className="space-y-3">
               {(communities.data ?? []).map(c => {
                 const s = commStats[c.id] ?? { totalPaid: 0, totalExpenses: 0, totalIncome: 0, totalDeposits: 0 }
