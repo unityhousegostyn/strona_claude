@@ -62,6 +62,7 @@ const EXP_CAT_LABELS: Record<string, string> = {
   woda:                   'Woda / kanalizacja',
   śmieci:                 'Odpady / śmieci',
   sprzątanie:             'Sprzątanie',
+  opłaty_bankowe:         'Opłaty bankowe',
   remonty:                'Remonty / naprawy',
   ubezpieczenie:          'Ubezpieczenie',
   energia:                'Energia / gaz',
