@@ -12,10 +12,12 @@ function calcNetInterest(amount: number, rate: number, startDate: string, endDat
 }
 
 export async function GET(req: NextRequest) {
-  // Zabezpieczenie: tylko Vercel Cron lub żądanie z poprawnym tokenem
+  // Zabezpieczenie: tylko Vercel Cron lub żądanie z poprawnym tokenem.
+  // CRON_SECRET musi być ustawiony — jeśli go brak, endpoint jest zablokowany
+  // (fail-closed), a nie otwarty publicznie (fail-open).
   const authHeader = req.headers.get('authorization')
   const cronSecret = process.env.CRON_SECRET
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

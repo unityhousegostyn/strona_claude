@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Ogłoszenie — podwyżka opłaty za śmieci</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 12pt;
+    color: #111827;
+    background: #f1f5f4;
+    padding: 24px;
+  }
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    background: #fff;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+    padding: 22mm 20mm;
+  }
+  .letterhead-brand {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .brand-left { display: flex; align-items: center; gap: 6px; }
+  .brand-icon { font-size: 14pt; line-height: 1; }
+  .brand-text {
+    font-size: 10pt;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: #0f766e;
+    text-transform: uppercase;
+  }
+  .brand-tag {
+    font-size: 8.5pt;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: #9ca3af;
+    text-transform: uppercase;
+  }
+  .accent-line {
+    height: 3px;
+    width: 100%;
+    margin-top: 8px;
+    border-radius: 2px;
+    background: linear-gradient(to right, #0f766e, #14b8a6, transparent);
+  }
+  .doc-date {
+    text-align: right;
+    font-size: 10pt;
+    color: #6b7280;
+    margin-top: 18px;
+  }
+  h1 {
+    font-size: 22pt;
+    font-weight: 800;
+    color: #111827;
+    margin-top: 6px;
+  }
+  .community {
+    font-size: 11pt;
+    color: #6b7280;
+    margin-top: 4px;
+    margin-bottom: 26px;
+  }
+  .lead {
+    font-size: 12pt;
+    line-height: 1.7;
+    color: #374151;
+    margin-bottom: 18px;
+  }
+  .rate-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    background: #f8fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 22px 24px;
+    margin: 22px 0 26px;
+  }
+  .rate-old, .rate-new {
+    text-align: center;
+  }
+  .rate-label {
+    font-size: 9pt;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .rate-value { font-size: 22pt; font-weight: 800; }
+  .rate-old .rate-value { color: #9ca3af; text-decoration: line-through; }
+  .rate-new .rate-value { color: #0f766e; }
+  .rate-unit { font-size: 10pt; color: #6b7280; font-weight: 500; margin-top: 2px; }
+  .rate-arrow { font-size: 24pt; color: #14b8a6; }
+  .effective {
+    text-align: center;
+    font-size: 12pt;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 26px;
+  }
+  .effective span {
+    color: #0f766e;
+  }
+  .info-block {
+    background: #ecfdf9;
+    border-left: 4px solid #0f766e;
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin-bottom: 18px;
+    font-size: 11pt;
+    line-height: 1.6;
+    color: #374151;
+  }
+  .info-block strong { color: #0f766e; }
+  p.body-p {
+    font-size: 11.5pt;
+    line-height: 1.7;
+    color: #374151;
+    margin-bottom: 14px;
+    text-align: justify;
+  }
+  .footer-note {
+    margin-top: 60px;
+    padding-top: 14px;
+    border-top: 1px solid #e5e7eb;
+  }
+  .signoff {
+    font-size: 11.5pt;
+    color: #374151;
+    margin-bottom: 4px;
+  }
+  .signoff strong { color: #111827; }
+  .doc-footer {
+    text-align: center;
+    font-size: 8.5pt;
+    color: #9ca3af;
+    margin-top: 40px;
+  }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .page { box-shadow: none; width: 100%; min-height: 0; padding: 15mm 16mm; }
+    .no-print { display: none !important; }
+    @page { size: A4 portrait; margin: 0; }
+  }
+  .print-btn {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    padding: 10px 20px;
+    background: #0f766e;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .print-btn:hover { background: #115e59; }
+</style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">🖨 Drukuj / Zapisz PDF</button>
+
+<div class="page">
+
+  <div class="letterhead-brand">
+    <div class="brand-left">
+      <span class="brand-icon">🏢</span>
+      <span class="brand-text">Wspólnoty</span>
+    </div>
+    <span class="brand-tag">Panel Wspólnoty</span>
+  </div>
+  <div class="accent-line"></div>
+
+  <div class="doc-date">Gostyń, dnia 19 czerwca 2026 r.</div>
+
+  <h1>Ogłoszenie</h1>
+  <div class="community">Wspólnota Mieszkaniowa Właścicieli Lokali &bdquo;Pod Klonami&rdquo; &middot; ul. Cukrownicza 1a i 1b</div>
+
+  <p class="body-p">
+    Zarząd Wspólnoty Mieszkaniowej &bdquo;Pod Klonami&rdquo; informuje wszystkich właścicieli i mieszkańców, że
+    <strong>od dnia 1 lipca 2026 r.</strong> zmianie ulega wysokość opłaty za wywóz odpadów komunalnych (śmieci),
+    naliczanej miesięcznie od osoby zamieszkującej lokal.
+  </p>
+
+  <div class="rate-box">
+    <div class="rate-old">
+      <div class="rate-label">Dotychczas</div>
+      <div class="rate-value">33,00 zł</div>
+      <div class="rate-unit">/ osobę / miesiąc</div>
+    </div>
+    <div class="rate-arrow">&rarr;</div>
+    <div class="rate-new">
+      <div class="rate-label">Od 01.07.2026</div>
+      <div class="rate-value">45,00 zł</div>
+      <div class="rate-unit">/ osobę / miesiąc</div>
+    </div>
+  </div>
+
+  <div class="effective">Nowa stawka obowiązuje od rozliczenia za <span>lipiec 2026 r.</span></div>
+
+  <p class="body-p">
+    Podwyżka wynika ze wzrostu kosztów odbioru i zagospodarowania odpadów komunalnych, jakimi obciążana jest
+    wspólnota. Prosimy o uwzględnienie nowej stawki przy najbliższych wpłatach zaliczek na pokrycie opłat
+    eksploatacyjnych.
+  </p>
+
+  <div class="info-block">
+    <strong>Przypominamy o obowiązku segregacji odpadów.</strong> Na terenie wspólnoty obowiązuje segregacja
+    śmieci zgodnie z zasadami obowiązującymi w gminie: papier, szkło, metale i plastik, bioodpady oraz odpady
+    zmieszane należy wyrzucać do odpowiednio oznaczonych pojemników. Niedopełnienie obowiązku segregacji może
+    skutkować naliczeniem przez gminę podwyższonej opłaty za odbiór odpadów dla całej wspólnoty, zgodnie z
+    przepisami ustawy o utrzymaniu czystości i porządku w gminach.
+  </div>
+
+  <p class="body-p">
+    W razie pytań prosimy o kontakt z zarządem wspólnoty.
+  </p>
+
+  <div class="footer-note">
+    <p class="signoff"><strong>Zarząd Wspólnoty Mieszkaniowej &bdquo;Pod Klonami&rdquo;</strong></p>
+    <p class="signoff">ul. Cukrownicza 1a i 1b, Gostyń</p>
+    <p class="signoff">e-mail: unity.housegostyn@gmail.com</p>
+  </div>
+
+  <div class="doc-footer">🏢 Panel Wspólnoty &middot; Ogłoszenie wygenerowane automatycznie &middot; 19 czerwca 2026</div>
+
+</div>
+</body>
+</html>

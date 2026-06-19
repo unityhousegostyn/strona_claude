@@ -1,7 +1,14 @@
 import { NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
+import { getAuthProfileAction } from '@/lib/getAuthProfile'
 
+// Endpoint diagnostyczny — tylko super_admin, nigdy publiczny.
 export async function GET() {
+  const auth = await getAuthProfileAction()
+  if (auth.error !== null || auth.profile.role !== 'super_admin') {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   const user = process.env.EMAIL_USER
   const pass = process.env.EMAIL_PASS
 
