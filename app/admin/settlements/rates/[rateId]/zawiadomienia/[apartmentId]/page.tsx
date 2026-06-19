@@ -3,6 +3,7 @@ import { getAuthProfile } from '@/lib/getAuthProfile'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import type { SettlementApartment, SettlementRate } from '@/lib/settlementCalc'
 import type { Community } from '@/types'
+import { formatDocDate } from '@/lib/documentBranding'
 import NoticeDocument from '../NoticeDocument'
 import NoticeToolbar from '../NoticeToolbar'
 
@@ -35,27 +36,12 @@ export default async function ZawiadomieniePage({
   if (!communityRes.data) notFound()
   const community = communityRes.data as Community
 
-  const generatedAt = new Date().toLocaleDateString('pl-PL', {
-    day: '2-digit', month: '2-digit', year: 'numeric'
-  })
+  const generatedAt = formatDocDate()
 
   return (
-    <>
-      <style>{`
-        @media print {
-          @page { size: A4 portrait; margin: 20mm; }
-          body { background: white !important; color: black !important; }
-          .print\\:hidden { display: none !important; }
-          nav, aside, header { display: none !important; }
-          .no-print { display: none !important; }
-        }
-        body { font-family: 'Segoe UI', Arial, sans-serif; }
-      `}</style>
-
-      <div className="max-w-2xl mx-auto p-6 print:p-0">
-        <NoticeToolbar />
-        <NoticeDocument apartment={apartment} community={community} rate={rate} generatedAt={generatedAt} />
-      </div>
-    </>
+    <div className="max-w-2xl mx-auto">
+      <NoticeToolbar />
+      <NoticeDocument apartment={apartment} community={community} rate={rate} generatedAt={generatedAt} />
+    </div>
   )
 }

@@ -5,12 +5,11 @@ import {
   buildYearlyTable, pln, shareStr,
   type SettlementApartment, type SettlementRate, type SettlementEntry
 } from '@/lib/settlementCalc'
+import { formatDocDate } from '@/lib/documentBranding'
+import DocumentPaper from '@/components/print/DocumentPaper'
+import DocumentHeader from '@/components/print/DocumentHeader'
+import DocumentFooter from '@/components/print/DocumentFooter'
 import PrintClient from './PrintClient'
-
-const MONTH_NAMES = [
-  'Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec',
-  'Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'
-]
 
 export default async function PrintPage({
   params,
@@ -35,7 +34,7 @@ export default async function PrintPage({
   if (profile.role !== 'super_admin' && profile.role !== 'admin' && profile.role !== 'user') redirect('/admin/dashboard')
 
   const [communityRes, ratesRes, entriesRes] = await Promise.all([
-    admin.from('communities').select('name').eq('id', apartment.community_id).single(),
+    admin.from('communities').select('name, address').eq('id', apartment.community_id).single(),
     admin.from('settlement_rates').select('*')
       .eq('community_id', apartment.community_id)
       .order('effective_from', { ascending: false }),
@@ -44,6 +43,7 @@ export default async function PrintPage({
   ])
 
   const communityName = communityRes.data?.name ?? 'Wspólnota Mieszkaniowa'
+  const communityAddress = communityRes.data?.address ?? null
   const rates: SettlementRate[] = ratesRes.data ?? []
   const entries: SettlementEntry[] = entriesRes.data ?? []
 
@@ -58,58 +58,37 @@ export default async function PrintPage({
   const totalCorrection = rows.reduce((s, r) => s + r.correction, 0)
   const finalBalance    = rows[11]?.balance_end ?? 0
 
-  const generatedAt = new Date().toLocaleDateString('pl-PL', {
-    day: '2-digit', month: 'long', year: 'numeric'
-  })
+  const generatedAt = formatDocDate()
 
   return (
-    <>
-      <style>{`
-        @media print {
-          @page { size: A4 landscape; margin: 15mm; }
-          body { background: white !important; color: black !important; }
-          .print\\:hidden { display: none !important; }
-          nav, aside, header { display: none !important; }
-          .no-print { display: none !important; }
-        }
-        body { font-family: 'Segoe UI', Arial, sans-serif; }
-      `}</style>
+    <div className="max-w-5xl mx-auto">
+      <PrintClient />
 
-      <div className="max-w-5xl mx-auto p-6 print:p-0">
-        <PrintClient />
-
-        {/* Nagłówek dokumentu */}
-        <div className="mb-6 border-b-2 border-[#0f2d2a] print:border-[#133835] pb-4">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-[#f0fdfa] print:text-black">
-                Rozliczenie lokalu — {year}
-              </h1>
-              <p className="text-[#0f766e] print:text-[#115e59] mt-1">{communityName}</p>
-            </div>
-            <div className="text-right text-xs text-[#115e59] print:text-[#115e59]">
-              <p>Wygenerowano: {generatedAt}</p>
-            </div>
-          </div>
-        </div>
+      <DocumentPaper size="a4-landscape">
+        <DocumentHeader
+          title={`Rozliczenie lokalu — ${year}`}
+          communityName={communityName}
+          communityAddress={communityAddress}
+          meta={[{ label: 'Wygenerowano', value: generatedAt }]}
+        />
 
         {/* Dane lokalu */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 p-4 bg-[#081918] print:bg-gray-50 rounded-xl border border-[#0f2d2a] print:border-gray-200">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 p-4 bg-[#f8fafb] rounded-xl border border-[#e5e7eb]">
           <div>
-            <p className="text-xs text-[#115e59] print:text-[#115e59] uppercase tracking-wide">Lokal</p>
-            <p className="font-bold text-[#f0fdfa] print:text-black text-lg mt-0.5">{apartment.number}</p>
+            <p className="text-xs text-[#6b7280] uppercase tracking-wide">Lokal</p>
+            <p className="font-bold text-[#111827] text-lg mt-0.5">{apartment.number}</p>
           </div>
           <div>
-            <p className="text-xs text-[#115e59] print:text-[#115e59] uppercase tracking-wide">Właściciel</p>
-            <p className="font-semibold text-[#ccfbf1] print:text-black mt-0.5">{apartment.owner_name}</p>
+            <p className="text-xs text-[#6b7280] uppercase tracking-wide">Właściciel</p>
+            <p className="font-semibold text-[#374151] mt-0.5">{apartment.owner_name}</p>
           </div>
           <div>
-            <p className="text-xs text-[#115e59] print:text-[#115e59] uppercase tracking-wide">Powierzchnia</p>
-            <p className="font-semibold text-[#ccfbf1] print:text-black mt-0.5">{Number(apartment.area_m2).toFixed(4)} m²</p>
+            <p className="text-xs text-[#6b7280] uppercase tracking-wide">Powierzchnia</p>
+            <p className="font-semibold text-[#374151] mt-0.5">{Number(apartment.area_m2).toFixed(4)} m²</p>
           </div>
           <div>
-            <p className="text-xs text-[#115e59] print:text-[#115e59] uppercase tracking-wide">Udział / Osoby</p>
-            <p className="font-semibold text-[#ccfbf1] print:text-black mt-0.5">
+            <p className="text-xs text-[#6b7280] uppercase tracking-wide">Udział / Osoby</p>
+            <p className="font-semibold text-[#374151] mt-0.5">
               {shareStr(apartment as SettlementApartment)} / {apartment.persons_count} os.
             </p>
           </div>
@@ -119,9 +98,9 @@ export default async function PrintPage({
         <div className="overflow-x-auto mb-6">
           <table className="w-full text-xs border-collapse">
             <thead>
-              <tr className="bg-[#0c2220] print:bg-gray-100">
+              <tr className="bg-[#f1f5f4]">
                 {['Miesiąc','Saldo pocz.','Wpłacono','Fund. rem.','Fund. ekspl.','Zarządca','Ryczałt wody','Śmieci','Korekta','Razem','Saldo końc.'].map(h => (
-                  <th key={h} className="px-2 py-2 text-right first:text-left text-[#99f6e4] print:text-stone-300 font-semibold border border-[#0f2d2a] print:border-[#133835] whitespace-nowrap">
+                  <th key={h} className="px-2 py-2 text-right first:text-left text-[#374151] font-semibold border border-[#e5e7eb] whitespace-nowrap">
                     {h}
                   </th>
                 ))}
@@ -129,61 +108,59 @@ export default async function PrintPage({
             </thead>
             <tbody>
               {rows.map((row, i) => (
-                <tr key={row.month} className={i % 2 === 0 ? 'bg-[#081918] print:bg-[#081918]' : 'bg-[#081918]/50 print:bg-gray-50'}>
-                  <td className="px-2 py-1.5 font-medium text-[#ccfbf1] print:text-black border border-[#0f2d2a] print:border-gray-200">{row.monthName}</td>
-                  <td className={`px-2 py-1.5 text-right border border-[#0f2d2a] print:border-gray-200 ${row.balance_start >= 0 ? 'text-teal-400 print:text-green-700' : 'text-red-400 print:text-red-600'}`}>{pln(row.balance_start)}</td>
-                  <td className="px-2 py-1.5 text-right text-teal-300 print:text-green-700 border border-[#0f2d2a] print:border-gray-200 font-medium">{pln(row.paid)}</td>
-                  <td className="px-2 py-1.5 text-right text-[#99f6e4] print:text-stone-300 border border-[#0f2d2a] print:border-gray-200">{row.hasRates ? pln(row.renovation) : '—'}</td>
-                  <td className="px-2 py-1.5 text-right text-[#99f6e4] print:text-stone-300 border border-[#0f2d2a] print:border-gray-200">{row.hasRates ? pln(row.operating) : '—'}</td>
-                  <td className="px-2 py-1.5 text-right text-[#99f6e4] print:text-stone-300 border border-[#0f2d2a] print:border-gray-200">{row.hasRates ? pln(row.manager) : '—'}</td>
-                  <td className="px-2 py-1.5 text-right text-[#99f6e4] print:text-stone-300 border border-[#0f2d2a] print:border-gray-200">{row.hasRates ? pln(row.water) : '—'}</td>
-                  <td className="px-2 py-1.5 text-right text-[#99f6e4] print:text-stone-300 border border-[#0f2d2a] print:border-gray-200">{row.hasRates ? pln(row.garbage) : '—'}</td>
-                  <td className={`px-2 py-1.5 text-right border border-[#0f2d2a] print:border-gray-200 ${row.correction !== 0 ? 'text-yellow-400 print:text-yellow-700' : 'text-[#115e59]'}`}>{row.correction !== 0 ? pln(row.correction) : '—'}</td>
-                  <td className="px-2 py-1.5 text-right font-semibold text-[#f0fdfa] print:text-black border border-[#0f2d2a] print:border-gray-200">{row.hasRates ? pln(row.total_due) : '—'}</td>
-                  <td className={`px-2 py-1.5 text-right font-bold border border-[#0f2d2a] print:border-gray-200 ${row.balance_end >= 0 ? 'text-teal-400 print:text-green-700' : 'text-red-400 print:text-red-600'}`}>{pln(row.balance_end)}</td>
+                <tr key={row.month} className={i % 2 === 0 ? 'bg-white' : 'bg-[#f8fafb]'}>
+                  <td className="px-2 py-1.5 font-medium text-[#111827] border border-[#e5e7eb]">{row.monthName}</td>
+                  <td className={`px-2 py-1.5 text-right border border-[#e5e7eb] ${row.balance_start >= 0 ? 'text-teal-700' : 'text-red-600'}`}>{pln(row.balance_start)}</td>
+                  <td className="px-2 py-1.5 text-right text-teal-700 border border-[#e5e7eb] font-medium">{pln(row.paid)}</td>
+                  <td className="px-2 py-1.5 text-right text-[#374151] border border-[#e5e7eb]">{row.hasRates ? pln(row.renovation) : '—'}</td>
+                  <td className="px-2 py-1.5 text-right text-[#374151] border border-[#e5e7eb]">{row.hasRates ? pln(row.operating) : '—'}</td>
+                  <td className="px-2 py-1.5 text-right text-[#374151] border border-[#e5e7eb]">{row.hasRates ? pln(row.manager) : '—'}</td>
+                  <td className="px-2 py-1.5 text-right text-[#374151] border border-[#e5e7eb]">{row.hasRates ? pln(row.water) : '—'}</td>
+                  <td className="px-2 py-1.5 text-right text-[#374151] border border-[#e5e7eb]">{row.hasRates ? pln(row.garbage) : '—'}</td>
+                  <td className={`px-2 py-1.5 text-right border border-[#e5e7eb] ${row.correction !== 0 ? 'text-amber-600' : 'text-[#9ca3af]'}`}>{row.correction !== 0 ? pln(row.correction) : '—'}</td>
+                  <td className="px-2 py-1.5 text-right font-semibold text-[#111827] border border-[#e5e7eb]">{row.hasRates ? pln(row.total_due) : '—'}</td>
+                  <td className={`px-2 py-1.5 text-right font-bold border border-[#e5e7eb] ${row.balance_end >= 0 ? 'text-teal-700' : 'text-red-600'}`}>{pln(row.balance_end)}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
-              <tr className="bg-[#0c2220] print:bg-[#0c2220] font-bold">
-                <td className="px-2 py-2 text-[#ccfbf1] print:text-black border border-[#0f2d2a] print:border-stone-400">RAZEM {year}</td>
-                <td className="px-2 py-2 text-right text-[#115e59] border border-[#0f2d2a] print:border-stone-400">—</td>
-                <td className="px-2 py-2 text-right text-teal-300 print:text-green-700 border border-[#0f2d2a] print:border-stone-400">{pln(totalPaid)}</td>
-                <td className="px-2 py-2 text-right text-[#ccfbf1] print:text-black border border-[#0f2d2a] print:border-stone-400">{pln(totalRenovation)}</td>
-                <td className="px-2 py-2 text-right text-[#ccfbf1] print:text-black border border-[#0f2d2a] print:border-stone-400">{pln(totalOperating)}</td>
-                <td className="px-2 py-2 text-right text-[#ccfbf1] print:text-black border border-[#0f2d2a] print:border-stone-400">{pln(totalManager)}</td>
-                <td className="px-2 py-2 text-right text-[#ccfbf1] print:text-black border border-[#0f2d2a] print:border-stone-400">{pln(totalWater)}</td>
-                <td className="px-2 py-2 text-right text-[#ccfbf1] print:text-black border border-[#0f2d2a] print:border-stone-400">{pln(totalGarbage)}</td>
-                <td className="px-2 py-2 text-right text-yellow-400 print:text-yellow-700 border border-[#0f2d2a] print:border-stone-400">{totalCorrection !== 0 ? pln(totalCorrection) : '—'}</td>
-                <td className="px-2 py-2 text-right text-[#f0fdfa] print:text-black border border-[#0f2d2a] print:border-stone-400">{pln(totalDue)}</td>
-                <td className={`px-2 py-2 text-right border border-[#0f2d2a] print:border-stone-400 ${finalBalance >= 0 ? 'text-teal-400 print:text-green-700' : 'text-red-400 print:text-red-600'}`}>{pln(finalBalance)}</td>
+              <tr className="bg-[#ecfdf9] font-bold">
+                <td className="px-2 py-2 text-[#111827] border border-[#e5e7eb] border-t-2 border-t-[#0f766e]">RAZEM {year}</td>
+                <td className="px-2 py-2 text-right text-[#9ca3af] border border-[#e5e7eb] border-t-2 border-t-[#0f766e]">—</td>
+                <td className="px-2 py-2 text-right text-teal-700 border border-[#e5e7eb] border-t-2 border-t-[#0f766e]">{pln(totalPaid)}</td>
+                <td className="px-2 py-2 text-right text-[#111827] border border-[#e5e7eb] border-t-2 border-t-[#0f766e]">{pln(totalRenovation)}</td>
+                <td className="px-2 py-2 text-right text-[#111827] border border-[#e5e7eb] border-t-2 border-t-[#0f766e]">{pln(totalOperating)}</td>
+                <td className="px-2 py-2 text-right text-[#111827] border border-[#e5e7eb] border-t-2 border-t-[#0f766e]">{pln(totalManager)}</td>
+                <td className="px-2 py-2 text-right text-[#111827] border border-[#e5e7eb] border-t-2 border-t-[#0f766e]">{pln(totalWater)}</td>
+                <td className="px-2 py-2 text-right text-[#111827] border border-[#e5e7eb] border-t-2 border-t-[#0f766e]">{pln(totalGarbage)}</td>
+                <td className="px-2 py-2 text-right text-amber-600 border border-[#e5e7eb] border-t-2 border-t-[#0f766e]">{totalCorrection !== 0 ? pln(totalCorrection) : '—'}</td>
+                <td className="px-2 py-2 text-right text-[#111827] border border-[#e5e7eb] border-t-2 border-t-[#0f766e]">{pln(totalDue)}</td>
+                <td className={`px-2 py-2 text-right border border-[#e5e7eb] border-t-2 border-t-[#0f766e] ${finalBalance >= 0 ? 'text-teal-700' : 'text-red-600'}`}>{pln(finalBalance)}</td>
               </tr>
             </tfoot>
           </table>
         </div>
 
         {/* Podsumowanie końcowe */}
-        <div className="grid grid-cols-3 gap-4 p-4 bg-[#081918] print:bg-gray-50 rounded-xl border border-[#0f2d2a] print:border-gray-200">
+        <div className="grid grid-cols-3 gap-4 p-4 bg-[#f8fafb] rounded-xl border border-[#e5e7eb]">
           <div>
-            <p className="text-xs text-[#115e59] print:text-[#115e59]">Łącznie naliczono</p>
-            <p className="text-lg font-bold text-[#f0fdfa] print:text-black mt-0.5">{pln(totalDue)}</p>
+            <p className="text-xs text-[#6b7280]">Łącznie naliczono</p>
+            <p className="text-lg font-bold text-[#111827] mt-0.5">{pln(totalDue)}</p>
           </div>
           <div>
-            <p className="text-xs text-[#115e59] print:text-[#115e59]">Łącznie wpłacono</p>
-            <p className="text-lg font-bold text-teal-400 print:text-green-700 mt-0.5">{pln(totalPaid)}</p>
+            <p className="text-xs text-[#6b7280]">Łącznie wpłacono</p>
+            <p className="text-lg font-bold text-teal-700 mt-0.5">{pln(totalPaid)}</p>
           </div>
           <div>
-            <p className="text-xs text-[#115e59] print:text-[#115e59]">{finalBalance >= 0 ? 'Nadpłata' : 'Niedopłata'}</p>
-            <p className={`text-lg font-bold mt-0.5 ${finalBalance >= 0 ? 'text-teal-400 print:text-green-700' : 'text-red-400 print:text-red-600'}`}>
+            <p className="text-xs text-[#6b7280]">{finalBalance >= 0 ? 'Nadpłata' : 'Niedopłata'}</p>
+            <p className={`text-lg font-bold mt-0.5 ${finalBalance >= 0 ? 'text-teal-700' : 'text-red-600'}`}>
               {pln(Math.abs(finalBalance))}
             </p>
           </div>
         </div>
 
-        <p className="text-xs text-[#115e59] print:text-[#0f766e] mt-6 text-center print:text-center">
-          Dokument wygenerowany automatycznie przez system Panel Wspólnoty · {generatedAt}
-        </p>
-      </div>
-    </>
+        <DocumentFooter generatedAt={generatedAt} />
+      </DocumentPaper>
+    </div>
   )
 }

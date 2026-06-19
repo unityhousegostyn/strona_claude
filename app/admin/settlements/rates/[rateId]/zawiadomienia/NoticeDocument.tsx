@@ -5,6 +5,9 @@ import {
   type SettlementRate,
 } from '@/lib/settlementCalc'
 import type { Community } from '@/types'
+import DocumentPaper from '@/components/print/DocumentPaper'
+import DocumentHeader from '@/components/print/DocumentHeader'
+import DocumentFooter from '@/components/print/DocumentFooter'
 
 /** Formatuje liczbę ze stałą liczbą miejsc po przecinku (notacja PL) */
 function fmtNum(v: number): string {
@@ -35,95 +38,98 @@ export default function NoticeDocument({ apartment, community, rate, generatedAt
   const managerIsFixed = rate.manager_fee_type === 'fixed'
 
   return (
-    <div
-      className={`notice-doc max-w-2xl mx-auto p-8 print:p-0 mb-8 print:mb-0 last:mb-0 bg-[#081918] print:bg-white text-[#ccfbf1] print:text-black rounded-xl print:rounded-none border border-[#0f2d2a] print:border-none ${pageBreakAfter ? 'print-break-after' : ''}`}
-    >
-      <div className="text-right mb-8">
-        {city ? `${city}, ${generatedAt}` : generatedAt}
-      </div>
+    <DocumentPaper size="a4-portrait" className={`notice-doc mb-8 last:mb-0 print:mb-0 ${pageBreakAfter ? 'print-break-after' : ''}`}>
+      <DocumentHeader
+        title="Zawiadomienie o opłatach"
+        communityName={community.name}
+        communityAddress={community.address}
+        meta={[{ label: city ? `${city}, dnia` : 'Dnia', value: generatedAt }]}
+      />
 
       <div className="text-right mb-8">
-        <p>Państwo</p>
-        <p className="font-bold">{apartment.owner_name}</p>
-        <p className="font-bold">{community.address}{apartment.number ? ` / ${apartment.number}` : ''}</p>
+        <p className="text-[#6b7280] text-sm">Państwo</p>
+        <p className="font-bold text-[#111827]">{apartment.owner_name}</p>
+        <p className="font-bold text-[#111827]">{community.address}{apartment.number ? ` / ${apartment.number}` : ''}</p>
       </div>
 
-      <p className="mb-6 leading-relaxed">
+      <p className="mb-6 leading-relaxed text-[#374151]">
         W nawiązaniu do {legalBasis} podajemy wysokość opłat nieruchomości wspólnej:
       </p>
 
-      <div className="text-right mb-1 font-bold">
+      <div className="text-right mb-1 font-bold text-[#111827]">
         Powierzchnia lokalu wraz z pomieszczeniami przynależnymi: {fmtNum(apartment.area_m2)} m²
       </div>
-      <div className="text-right mb-6 font-bold">
+      <div className="text-right mb-6 font-bold text-[#111827]">
         Ilość mieszkańców: {apartment.persons_count} {apartment.persons_count === 1 ? 'osoba' : 'osoby'}
       </div>
 
       <table className="w-full text-sm border-collapse mb-6">
         <thead>
-          <tr className="bg-[#0c2220] print:bg-gray-100">
-            <th className="px-2 py-2 text-left border border-[#0f2d2a] print:border-gray-300 font-semibold">Lp.</th>
-            <th className="px-2 py-2 text-left border border-[#0f2d2a] print:border-gray-300 font-semibold">Rodzaj opłaty</th>
-            <th className="px-2 py-2 text-right border border-[#0f2d2a] print:border-gray-300 font-semibold">Stawka</th>
-            <th className="px-2 py-2 text-right border border-[#0f2d2a] print:border-gray-300 font-semibold">Stawka × powierzchnia lokalu</th>
+          <tr className="bg-[#f1f5f4]">
+            <th className="px-2 py-2 text-left border border-[#e5e7eb] font-semibold text-[#374151]">Lp.</th>
+            <th className="px-2 py-2 text-left border border-[#e5e7eb] font-semibold text-[#374151]">Rodzaj opłaty</th>
+            <th className="px-2 py-2 text-right border border-[#e5e7eb] font-semibold text-[#374151]">Stawka</th>
+            <th className="px-2 py-2 text-right border border-[#e5e7eb] font-semibold text-[#374151]">Stawka × powierzchnia lokalu</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td className="px-2 py-1.5 border border-[#0f2d2a] print:border-gray-200">1</td>
-            <td className="px-2 py-1.5 border border-[#0f2d2a] print:border-gray-200">Wynagrodzenie zarządcy</td>
-            <td className="px-2 py-1.5 text-right border border-[#0f2d2a] print:border-gray-200">
+            <td className="px-2 py-1.5 border border-[#e5e7eb] text-[#374151]">1</td>
+            <td className="px-2 py-1.5 border border-[#e5e7eb] text-[#374151]">Wynagrodzenie zarządcy</td>
+            <td className="px-2 py-1.5 text-right border border-[#e5e7eb] text-[#374151]">
               {managerIsFixed ? `${fmtNum(rate.manager_fee_value)} zł` : `${fmtNum(rate.manager_fee_value)} zł/m²`}
             </td>
-            <td className="px-2 py-1.5 text-right border border-[#0f2d2a] print:border-gray-200">
+            <td className="px-2 py-1.5 text-right border border-[#e5e7eb] text-[#111827]">
               {managerIsFixed ? '—' : pln(charges.manager)}
             </td>
           </tr>
           <tr>
-            <td className="px-2 py-1.5 border border-[#0f2d2a] print:border-gray-200">2</td>
-            <td className="px-2 py-1.5 border border-[#0f2d2a] print:border-gray-200" colSpan={3}>Zaliczki:</td>
+            <td className="px-2 py-1.5 border border-[#e5e7eb] text-[#374151]">2</td>
+            <td className="px-2 py-1.5 border border-[#e5e7eb] text-[#374151]" colSpan={3}>Zaliczki:</td>
           </tr>
           <tr>
-            <td className="px-2 py-1.5 border border-[#0f2d2a] print:border-gray-200">a.</td>
-            <td className="px-2 py-1.5 border border-[#0f2d2a] print:border-gray-200">fundusz eksploatacyjny</td>
-            <td className="px-2 py-1.5 text-right border border-[#0f2d2a] print:border-gray-200">{fmtNum(rate.operating_rate_m2)} zł/m²</td>
-            <td className="px-2 py-1.5 text-right border border-[#0f2d2a] print:border-gray-200">{pln(charges.operating)}</td>
+            <td className="px-2 py-1.5 border border-[#e5e7eb] text-[#374151]">a.</td>
+            <td className="px-2 py-1.5 border border-[#e5e7eb] text-[#374151]">fundusz eksploatacyjny</td>
+            <td className="px-2 py-1.5 text-right border border-[#e5e7eb] text-[#374151]">{fmtNum(rate.operating_rate_m2)} zł/m²</td>
+            <td className="px-2 py-1.5 text-right border border-[#e5e7eb] text-[#111827]">{pln(charges.operating)}</td>
           </tr>
           <tr>
-            <td className="px-2 py-1.5 border border-[#0f2d2a] print:border-gray-200">b.</td>
-            <td className="px-2 py-1.5 border border-[#0f2d2a] print:border-gray-200">fundusz remontowy</td>
-            <td className="px-2 py-1.5 text-right border border-[#0f2d2a] print:border-gray-200">{fmtNum(rate.renovation_rate_m2)} zł/m²</td>
-            <td className="px-2 py-1.5 text-right border border-[#0f2d2a] print:border-gray-200">{pln(charges.renovation)}</td>
+            <td className="px-2 py-1.5 border border-[#e5e7eb] text-[#374151]">b.</td>
+            <td className="px-2 py-1.5 border border-[#e5e7eb] text-[#374151]">fundusz remontowy</td>
+            <td className="px-2 py-1.5 text-right border border-[#e5e7eb] text-[#374151]">{fmtNum(rate.renovation_rate_m2)} zł/m²</td>
+            <td className="px-2 py-1.5 text-right border border-[#e5e7eb] text-[#111827]">{pln(charges.renovation)}</td>
           </tr>
           <tr>
-            <td className="px-2 py-1.5 border border-[#0f2d2a] print:border-gray-200">3</td>
-            <td className="px-2 py-1.5 border border-[#0f2d2a] print:border-gray-200" colSpan={3}>Zaliczka na pokrycie świadczeń dotyczących właścicieli:</td>
+            <td className="px-2 py-1.5 border border-[#e5e7eb] text-[#374151]">3</td>
+            <td className="px-2 py-1.5 border border-[#e5e7eb] text-[#374151]" colSpan={3}>Zaliczka na pokrycie świadczeń dotyczących właścicieli:</td>
           </tr>
           <tr>
-            <td className="px-2 py-1.5 border border-[#0f2d2a] print:border-gray-200">a.</td>
-            <td className="px-2 py-1.5 border border-[#0f2d2a] print:border-gray-200">zimna woda oraz ścieki</td>
-            <td className="px-2 py-1.5 text-right border border-[#0f2d2a] print:border-gray-200">{fmtNum(rate.water_price_m3)} zł/m³</td>
-            <td className="px-2 py-1.5 text-right border border-[#0f2d2a] print:border-gray-200">{isMeter ? 'x' : pln(charges.water)}</td>
+            <td className="px-2 py-1.5 border border-[#e5e7eb] text-[#374151]">a.</td>
+            <td className="px-2 py-1.5 border border-[#e5e7eb] text-[#374151]">zimna woda oraz ścieki</td>
+            <td className="px-2 py-1.5 text-right border border-[#e5e7eb] text-[#374151]">{fmtNum(rate.water_price_m3)} zł/m³</td>
+            <td className="px-2 py-1.5 text-right border border-[#e5e7eb] text-[#111827]">{isMeter ? 'x' : pln(charges.water)}</td>
           </tr>
           <tr>
-            <td className="px-2 py-1.5 border border-[#0f2d2a] print:border-gray-200">b.</td>
-            <td className="px-2 py-1.5 border border-[#0f2d2a] print:border-gray-200">wywóz śmieci</td>
-            <td className="px-2 py-1.5 text-right border border-[#0f2d2a] print:border-gray-200">{fmtNum(rate.garbage_per_person)} zł/osoba</td>
-            <td className="px-2 py-1.5 text-right border border-[#0f2d2a] print:border-gray-200">{pln(charges.garbage)}</td>
+            <td className="px-2 py-1.5 border border-[#e5e7eb] text-[#374151]">b.</td>
+            <td className="px-2 py-1.5 border border-[#e5e7eb] text-[#374151]">wywóz śmieci</td>
+            <td className="px-2 py-1.5 text-right border border-[#e5e7eb] text-[#374151]">{fmtNum(rate.garbage_per_person)} zł/osoba</td>
+            <td className="px-2 py-1.5 text-right border border-[#e5e7eb] text-[#111827]">{pln(charges.garbage)}</td>
           </tr>
         </tbody>
       </table>
 
-      <p className="font-bold mb-4">
-        Razem do zapłaty: {pln(charges.total_due)}{isMeter ? ' + woda' : ''}
+      <p className="font-bold mb-4 text-[#111827]">
+        Razem do zapłaty: <span className="text-teal-700">{pln(charges.total_due)}{isMeter ? ' + woda' : ''}</span>
       </p>
 
       {community.bank_account && (
-        <p className="leading-relaxed">
-          Prosimy o dokonywanie wpłat na konto: <strong>{community.bank_account}</strong> do 10 dnia
+        <p className="leading-relaxed text-[#374151]">
+          Prosimy o dokonywanie wpłat na konto: <strong className="text-[#111827]">{community.bank_account}</strong> do 10 dnia
           każdego miesiąca{isMeter ? ', podając w tytule przelewu zużycie wody w m3' : ''}.
         </p>
       )}
-    </div>
+
+      <DocumentFooter generatedAt={generatedAt} />
+    </DocumentPaper>
   )
 }

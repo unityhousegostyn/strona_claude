@@ -4,6 +4,7 @@ import BackButton from '@/components/BackButton'
 import { useState, useRef } from 'react'
 import { exportToExcel, exportMultiSheet } from '@/lib/exportExcel'
 import { NON_INCOME_CATEGORIES } from '../przychody/income-categories'
+import { DOC_BRAND, formatDocDate } from '@/lib/documentBranding'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -415,15 +416,21 @@ export default function RaportyClient({
           <div ref={reportRef} className="print-area">
             {/* Nagłówek widoczny tylko w druku */}
             <header className="print-doc-header">
-              <div className="print-doc-header-left">
-                <h1>Panel Wspólnoty</h1>
-                <p>Zarządzanie nieruchomościami wspólnymi</p>
+              <div className="print-doc-header-wordmark">
+                <span className="print-doc-header-icon">{DOC_BRAND.wordmarkIcon}</span>
+                <span className="print-doc-header-brand">{DOC_BRAND.wordmark}</span>
               </div>
-              <div className="print-doc-header-right">
-                <p><strong>{commName}</strong></p>
-                <p>Rok: {filterYear}</p>
-                <p>Wygenerowano: {new Date().toLocaleDateString('pl-PL')}</p>
+              <div className="print-doc-header-row">
+                <div className="print-doc-header-left">
+                  <h1>{commName}</h1>
+                  <p>{DOC_BRAND.tagline}</p>
+                </div>
+                <div className="print-doc-header-right">
+                  <p>Rok: {filterYear}</p>
+                  <p>Wygenerowano: {formatDocDate()}</p>
+                </div>
               </div>
+              <div className="print-doc-header-accent" />
             </header>
 
             {/* ── 1. SPRAWOZDANIE FINANSOWE ── */}
@@ -1123,6 +1130,9 @@ export default function RaportyClient({
               </div>
             )}
 
+            <p className="print-doc-footer-note">
+              {DOC_BRAND.wordmarkIcon} {DOC_BRAND.tagline} · Dokument wygenerowany automatycznie · {formatDocDate()}
+            </p>
           </div>
         </div>
       )}
@@ -1162,14 +1172,27 @@ export default function RaportyClient({
           }
 
           /* ── Nagłówek dokumentu ── */
-          .print-doc-header {
-            display: flex !important; justify-content: space-between !important;
-            align-items: flex-start !important; padding-bottom: 8pt !important;
-            margin-bottom: 14pt !important; border-bottom: 2pt solid #0f766e !important;
+          .print-doc-header { display: block !important; margin-bottom: 14pt !important; }
+          .print-doc-header-wordmark {
+            display: flex !important; align-items: center !important; gap: 4pt !important;
+            margin-bottom: 6pt !important;
           }
-          .print-doc-header-left h1 { font-size: 14pt !important; font-weight: 700 !important; color: #0f766e !important; margin: 0 0 2pt !important; }
-          .print-doc-header-left p  { font-size: 8pt !important; color: #666 !important; margin: 0 !important; }
-          .print-doc-header-right   { text-align: right !important; font-size: 8.5pt !important; color: #333 !important; }
+          .print-area .print-doc-header-icon  { font-size: 10pt !important; line-height: 1 !important; }
+          .print-area .print-doc-header-brand { font-size: 8pt !important; font-weight: 700 !important; letter-spacing: 0.18em !important; color: #0f766e !important; text-transform: uppercase !important; }
+          .print-doc-header-row {
+            display: flex !important; justify-content: space-between !important; align-items: flex-start !important;
+          }
+          .print-area .print-doc-header-left h1 { font-size: 14pt !important; font-weight: 700 !important; color: #111111 !important; margin: 0 0 2pt !important; }
+          .print-area .print-doc-header-left p  { font-size: 8pt !important; color: #666 !important; margin: 0 !important; }
+          .print-area .print-doc-header-right   { text-align: right !important; font-size: 8.5pt !important; color: #333 !important; }
+          .print-doc-header-accent {
+            margin-top: 8pt !important; height: 2pt !important; width: 100% !important;
+            background: linear-gradient(to right, #0f766e, #14b8a6, transparent) !important;
+          }
+          .print-area .print-doc-footer-note {
+            margin-top: 16pt !important; padding-top: 6pt !important; border-top: 0.75pt solid #ccc !important;
+            text-align: center !important; font-size: 7pt !important; color: #999 !important;
+          }
 
           /* ── Nagłówki ── */
           .print-area h3 { font-size: 13pt !important; font-weight: 700 !important; color: #111 !important; margin: 0 0 4pt !important; }

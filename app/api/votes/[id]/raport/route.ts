@@ -134,14 +134,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   <title>Protokół — ${vote.title}</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:Georgia,serif;font-size:11pt;color:#1a1a1a;background:#f3f4f6}
+    body{font-family:'Segoe UI',Arial,sans-serif;font-size:11pt;color:#111827;background:#f1f5f4}
     .page{max-width:210mm;margin:0 auto;padding:20mm 20mm 25mm;background:white;box-shadow:0 2px 12px rgba(0,0,0,.12)}
-    h1{font-size:16pt;font-weight:bold;margin-bottom:4pt}
-    h2{font-size:12pt;font-weight:bold;margin:16pt 0 6pt;border-bottom:1px solid #aaa;padding-bottom:3pt}
+    h1{font-size:16pt;font-weight:bold;margin-bottom:4pt;color:#111827}
+    h2{font-size:12pt;font-weight:bold;margin:16pt 0 6pt;border-bottom:1px solid #e5e7eb;padding-bottom:3pt;color:#111827}
     p{margin-bottom:4pt;line-height:1.5}
-    .header{border-bottom:2px solid #1a1a1a;padding-bottom:12pt;margin-bottom:14pt}
-    .community{font-size:10pt;color:#555}
-    .res-num{font-size:14pt;font-weight:bold;color:#166534;margin-bottom:4pt}
+    .letterhead-brand{display:flex;align-items:center;gap:5pt;margin-bottom:8pt}
+    .letterhead-icon{font-size:13pt;line-height:1}
+    .letterhead-text{font-size:9pt;font-weight:bold;letter-spacing:0.18em;color:#0f766e;text-transform:uppercase}
+    .letterhead-accent{height:2pt;width:100%;background:linear-gradient(to right,#0f766e,#14b8a6,transparent);margin-bottom:14pt}
+    .header{padding-bottom:12pt;margin-bottom:14pt}
+    .community{font-size:10pt;color:#6b7280}
+    .res-num{font-size:14pt;font-weight:bold;color:#0f766e;margin-bottom:4pt}
     .meta{display:grid;grid-template-columns:1fr 1fr;gap:6pt;font-size:10pt;margin-bottom:12pt}
     .meta dt{color:#555} .meta dd{font-weight:600}
     .results{border:1px solid #ccc;border-radius:4pt;padding:10pt 14pt;margin:10pt 0}
@@ -152,7 +156,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     .verdict{font-size:13pt;font-weight:bold;margin-top:8pt;padding:6pt 10pt;border-radius:4pt;display:inline-block}
     .stats{display:flex;gap:12pt;margin-bottom:10pt;font-size:10pt;flex-wrap:wrap}
     .stat{border:1px solid #e5e7eb;border-radius:4pt;padding:5pt 10pt}
-    .stat-val{font-size:14pt;font-weight:bold;color:#166534}
+    .stat-val{font-size:14pt;font-weight:bold;color:#0f766e}
     .stat-lbl{color:#6b7280;font-size:9pt}
     table{width:100%;border-collapse:collapse;font-size:9.5pt;margin-top:6pt}
     th{background:#f3f4f6;border:1px solid #d1d5db;padding:4pt 6pt;text-align:left;font-size:9pt;text-transform:uppercase;letter-spacing:.3pt}
@@ -162,7 +166,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     .sigs{margin-top:40pt;display:grid;grid-template-columns:1fr 1fr;gap:40pt}
     .sig-line{border-top:1px solid #333;margin-top:30pt;padding-top:4pt;font-size:9pt;color:#555;text-align:center}
     .footer{margin-top:20pt;font-size:8pt;color:#999;text-align:center;border-top:1px solid #eee;padding-top:6pt}
-    .toolbar{background:#166534;color:white;padding:10pt 20pt;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;font-family:sans-serif}
+    .toolbar{background:#0f766e;color:white;padding:10pt 20pt;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;font-family:'Segoe UI',Arial,sans-serif}
     @media print{.toolbar{display:none!important}.page{box-shadow:none;padding:10mm 15mm;max-width:none}body{background:white}}
   </style>
 </head>
@@ -170,7 +174,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   <div class="toolbar">
     <span style="font-size:11pt;font-weight:600">📄 Protokół głosowania</span>
     <div style="display:flex;gap:12pt;align-items:center">
-      <button onclick="window.print()" style="background:white;color:#166534;border:none;padding:5pt 14pt;border-radius:4pt;font-weight:700;cursor:pointer;font-size:10pt">
+      <button onclick="window.print()" style="background:white;color:#0f766e;border:none;padding:5pt 14pt;border-radius:4pt;font-weight:700;cursor:pointer;font-size:10pt">
         🖨 Drukuj / Zapisz PDF
       </button>
       <a href="/admin/votes" style="color:white;text-decoration:none;font-size:10pt">← Wróć</a>
@@ -178,6 +182,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   </div>
 
   <div class="page">
+    <div class="letterhead-brand">
+      <span class="letterhead-icon">🏢</span>
+      <span class="letterhead-text">Wspólnoty</span>
+    </div>
+    <div class="letterhead-accent"></div>
+
     <div class="header">
       <div class="community">${communityName}${communityAddress ? ' · ' + communityAddress : ''}</div>
       <h1>${vote.title}</h1>
@@ -219,7 +229,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       <div><p style="font-size:10pt">Osoba sporządzająca protokół</p><div class="sig-line">Podpis i data</div></div>
     </div>
 
-    <div class="footer">Dokument wygenerowany automatycznie · ${communityName} · ${new Date().toLocaleDateString('pl-PL')}</div>
+    <div class="footer">🏢 Panel Wspólnoty · Dokument wygenerowany automatycznie · ${communityName} · ${new Date().toLocaleDateString('pl-PL', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
   </div>
 </body>
 </html>`

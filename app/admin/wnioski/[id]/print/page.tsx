@@ -62,11 +62,33 @@ export default async function PrintRequestPage({ params }: { params: { id: strin
             margin: 0 auto;
             padding: 25mm 20mm 25mm 30mm;
           }
+          .letterhead {
+            margin-bottom: 18px;
+          }
+          .letterhead-brand {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 8px;
+          }
+          .letterhead-icon { font-size: 13pt; line-height: 1; }
+          .letterhead-text {
+            font-size: 9pt;
+            font-weight: bold;
+            letter-spacing: 0.18em;
+            color: #0f766e;
+            text-transform: uppercase;
+          }
+          .letterhead-accent {
+            height: 2px;
+            width: 100%;
+            background: linear-gradient(to right, #0f766e, #14b8a6, transparent);
+          }
           .header-grid {
             display: flex;
             justify-content: space-between;
             gap: 20px;
-            margin-bottom: 20px;
+            margin: 16px 0 20px;
           }
           .sender-block { flex: 1; }
           .receiver-block { text-align: right; flex: 1; }
@@ -153,7 +175,7 @@ export default async function PrintRequestPage({ params }: { params: { id: strin
             top: 16px;
             right: 16px;
             padding: 10px 20px;
-            background: #1a56db;
+            background: #0f766e;
             color: #fff;
             border: none;
             border-radius: 6px;
@@ -163,7 +185,7 @@ export default async function PrintRequestPage({ params }: { params: { id: strin
             box-shadow: 0 2px 6px rgba(0,0,0,0.2);
             z-index: 999;
           }
-          .print-btn:hover { background: #1e429f; }
+          .print-btn:hover { background: #115e59; }
         `}} />
       </head>
       <body>
@@ -172,6 +194,15 @@ export default async function PrintRequestPage({ params }: { params: { id: strin
         </button>
 
         <div className="page">
+          {/* Letterhead */}
+          <div className="letterhead">
+            <div className="letterhead-brand">
+              <span className="letterhead-icon">🏢</span>
+              <span className="letterhead-text">Wspólnoty</span>
+            </div>
+            <div className="letterhead-accent" />
+          </div>
+
           {/* Nagłówek */}
           <div className="header-grid">
             <div className="sender-block">
@@ -238,8 +269,7 @@ export default async function PrintRequestPage({ params }: { params: { id: strin
           </div>
 
           <div className="footer-note">
-            Dokument wygenerowany automatycznie z systemu zarządzania Wspólnotą Mieszkaniową.
-            Wniosek złożony dnia {submittedDate}.
+            🏢 Panel Wspólnoty · Dokument wygenerowany automatycznie · Wniosek złożony dnia {submittedDate}
           </div>
         </div>
       </body>
