@@ -50,7 +50,7 @@ export default async function DashboardPage() {
       admin.from('community_expenses').select('community_id, amount'),
       admin.from('community_income').select('community_id, amount'),
       admin.from('community_deposits').select('community_id, amount, status'),
-      admin.from('audit_logs').select('id, action, target_type, created_at, user_id').order('created_at', { ascending: false }).limit(8),
+      admin.from('activity_logs').select('id, action, target_type, created_at, user_id').order('created_at', { ascending: false }).limit(8),
     ])
 
     const commMap: Record<string, string> = {}

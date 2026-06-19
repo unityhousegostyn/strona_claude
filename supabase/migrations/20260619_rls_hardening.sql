@@ -30,7 +30,10 @@ ALTER TABLE board_replies                    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contacts                         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications                    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE invitations                      ENABLE ROW LEVEL SECURITY;
-ALTER TABLE audit_logs                       ENABLE ROW LEVEL SECURITY;
+-- (audit_logs nie istnieje jako osobna tabela — dashboard odpytywał ją przez
+--  pomyłkę, w rzeczywistości dane audytu trzymane są w activity_logs, które
+--  RLS ma już włączone od 007_rls_policies.sql; literówkę naprawiono w
+--  app/admin/dashboard/page.tsx)
 
 -- =============================================
 -- settlement_apartments / settlement_rates
@@ -134,9 +137,8 @@ CREATE POLICY "notifications: own only" ON notifications
   WITH CHECK (user_id = auth.uid());
 
 -- =============================================
--- invitations / audit_logs
+-- invitations
 -- =============================================
 -- Brak CREATE POLICY = całkowicie zablokowane dla anon/authenticated.
 -- invitations zawiera tokeny zaproszeń + e-maile — dostęp wyłącznie przez
 -- service role w app/register/actions.ts i app/admin/users/actions.ts.
--- audit_logs jest czytane wyłącznie przez service role w dashboardzie super_admina.
