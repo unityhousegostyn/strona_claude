@@ -7,6 +7,7 @@ export type ExpenseCategory =
   | 'śmieci'
   | 'sprzątanie'
   | 'opłaty_bankowe'
+  | 'przeglądy_budynków'
   | 'remonty'
   | 'ubezpieczenie'
   | 'energia'
@@ -22,6 +23,7 @@ export const EXPENSE_CATEGORIES: { value: ExpenseCategory; label: string }[] = [
   { value: 'śmieci',                 label: 'Odpady / śmieci' },
   { value: 'sprzątanie',             label: 'Sprzątanie' },
   { value: 'opłaty_bankowe',         label: 'Opłaty bankowe' },
+  { value: 'przeglądy_budynków',     label: 'Przeglądy budynków' },
   { value: 'remonty',                label: 'Remonty / naprawy' },
   { value: 'ubezpieczenie',          label: 'Ubezpieczenie' },
   { value: 'energia',                label: 'Energia / gaz' },

@@ -180,6 +180,7 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
     śmieci:                 'bg-lime-950/40 text-lime-400',
     sprzątanie:             'bg-emerald-950/40 text-emerald-400',
     opłaty_bankowe:         'bg-slate-950/40 text-slate-400',
+    przeglądy_budynków:     'bg-fuchsia-950/40 text-fuchsia-400',
     remonty:                'bg-red-950/40 text-red-400',
     ubezpieczenie:          'bg-indigo-950/40 text-indigo-400',
     energia:                'bg-yellow-950/40 text-yellow-400',
