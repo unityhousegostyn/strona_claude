@@ -133,6 +133,20 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
     setQError(null)
   }
 
+  // Bazowy m³ za kwartał — suma "wody" naliczonej w 3 miesiącach / cena za m³.
+  // Dla modelu 'zaliczka' row.water to już kwota z wpłaty mieszkańca, więc ta
+  // suma jest dokładnie m³-odpowiednikiem tego, co faktycznie wpłacił za wodę.
+  function quarterPaidWaterM3(quarter: number): number {
+    if (!latestRates) return 0
+    const startM = (quarter - 1) * 3 + 1
+    const monthsInQ = [startM, startM + 1, startM + 2]
+    const sumWater = monthsInQ.reduce((s, m) => {
+      const row = rows.find(r => r.month === m)
+      return s + (row?.water ?? 0)
+    }, 0)
+    return latestRates.water_price_m3 > 0 ? sumWater / latestRates.water_price_m3 : 0
+  }
+
   async function saveReconciliation() {
     if (editQuarter === null || !latestRates) return
     setQSaving(true)
@@ -143,6 +157,11 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
       const row = rows.find(r => r.month === m)
       return s + (row?.water ?? 0) / (latestRates.water_price_m3 || 1)
     }, 0)
+    // Model 'zaliczka' nie ma ryczałtu jako bazy — zawsze porównujemy do tego,
+    // co faktycznie wpłacono za wodę. Dla 'ryczalt' zachowanie 1:1 jak dotychczas.
+    const baseline_m3 = isZaliczkaBilling
+      ? quarterPaidWaterM3(editQuarter)
+      : (parseFloat(qStart || '0') === 0 ? latestRates.water_ryczalt_m3 * 3 : ryczalt)
 
     const res = await upsertWaterReconciliation({
       apartment_id: apartment.id,
@@ -150,7 +169,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
       quarter: editQuarter,
       meter_reading_start: parseFloat(qStart || '0'),
       meter_reading_end: parseFloat(qEnd || '0'),
-      ryczalt_m3: parseFloat(qStart || '0') === 0 ? latestRates.water_ryczalt_m3 * 3 : ryczalt,
+      ryczalt_m3: baseline_m3,
       water_price_m3: latestRates.water_price_m3,
       notes: qNotes || null,
     })
@@ -428,13 +447,16 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
         </div>
       </div>
 
-      {/* Rozliczenie kwartalne wody — tylko dla modelu ryczałtowego */}
-      {apartment.has_meter && billingType === 'ryczalt' && (
+      {/* Rozliczenie kwartalne wody — dla modelu ryczałtowego i zaliczki mieszkańca */}
+      {apartment.has_meter && (billingType === 'ryczalt' || isZaliczkaBilling) && (
         <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl overflow-hidden">
           <div className="px-4 py-3 border-b border-[#0f2d2a]">
             <h3 className="text-sm font-semibold text-[#ccfbf1]">💧 Rozliczenie kwartalne wody</h3>
             <p className="text-xs text-[#115e59] mt-0.5">
-              Ryczałt {latestRates?.water_ryczalt_m3 ?? '?'} m³/mies × {pln(latestRates?.water_price_m3 ?? 0)}/m³
+              {isZaliczkaBilling
+                ? <>Porównanie z sumą zaliczek wpłaconych na wodę w kwartale × {pln(latestRates?.water_price_m3 ?? 0)}/m³</>
+                : <>Ryczałt {latestRates?.water_ryczalt_m3 ?? '?'} m³/mies × {pln(latestRates?.water_price_m3 ?? 0)}/m³</>
+              }
             </p>
           </div>
           <div className="divide-y divide-gray-800">
@@ -454,7 +476,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                             Odczyt: {rec.meter_reading_start} → {rec.meter_reading_end} m³
                           </span>
                           <span className="text-[#0f766e]">Zużycie: {rec.actual_m3} m³</span>
-                          <span className="text-[#0f766e]">Ryczałt: {rec.ryczalt_m3} m³</span>
+                          <span className="text-[#0f766e]">{isZaliczkaBilling ? 'Z wpłat' : 'Ryczałt'}: {rec.ryczalt_m3} m³</span>
                           <span className={`font-semibold ${rec.correction_amount >= 0 ? 'text-red-400' : 'text-teal-400'}`}>
                             {rec.correction_amount >= 0 ? 'Dopłata' : 'Nadpłata'}: {pln(Math.abs(rec.correction_amount))}
                           </span>
@@ -463,14 +485,26 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                         <span className="text-xs text-[#115e59]">Brak odczytu</span>
                       )}
                     </div>
-                    {!readonly && (
-                      <button
-                        onClick={() => isEditingQ ? setEditQuarter(null) : openQuarter(q)}
-                        className="text-xs text-teal-400 hover:text-teal-300 transition ml-4"
-                      >
-                        {isEditingQ ? 'Anuluj' : (rec ? '✏️ Edytuj' : '+ Dodaj odczyt')}
-                      </button>
-                    )}
+                    <div className="flex items-center gap-3 ml-4">
+                      {rec && (
+                        <a
+                          href={`/admin/settlements/${apartment.id}/nota-wody/${year}/${q}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-amber-400 hover:text-amber-300 transition whitespace-nowrap"
+                        >
+                          🖨 Wystaw notę
+                        </a>
+                      )}
+                      {!readonly && (
+                        <button
+                          onClick={() => isEditingQ ? setEditQuarter(null) : openQuarter(q)}
+                          className="text-xs text-teal-400 hover:text-teal-300 transition whitespace-nowrap"
+                        >
+                          {isEditingQ ? 'Anuluj' : (rec ? '✏️ Edytuj' : '+ Dodaj odczyt')}
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {isEditingQ && (
@@ -515,12 +549,24 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                         {qSaving ? 'Zapisuję...' : 'Zapisz'}
                       </button>
                       {qError && <span className="text-red-400 text-xs">{qError}</span>}
-                      {qStart && qEnd && latestRates && (
+                      {qStart && qEnd && latestRates && !isZaliczkaBilling && (
                         <span className="text-xs text-[#0f766e]">
                           Korekta: {Math.round((parseFloat(qEnd) - parseFloat(qStart) - latestRates.water_ryczalt_m3 * 3) * 100) / 100} m³
                           = {pln(Math.round((parseFloat(qEnd) - parseFloat(qStart) - latestRates.water_ryczalt_m3 * 3) * latestRates.water_price_m3 * 100) / 100)}
                         </span>
                       )}
+                      {qStart && qEnd && latestRates && isZaliczkaBilling && (() => {
+                        const baseline = quarterPaidWaterM3(q)
+                        const correctionM3 = Math.round((parseFloat(qEnd) - parseFloat(qStart) - baseline) * 1000) / 1000
+                        const correctionZl = Math.round(correctionM3 * latestRates.water_price_m3 * 100) / 100
+                        return (
+                          <span className="text-xs text-[#0f766e]">
+                            Zużycie: {(parseFloat(qEnd) - parseFloat(qStart)).toFixed(3)} m³, wpłacono za wodę: {baseline.toFixed(3)} m³ ({pln(baseline * latestRates.water_price_m3)})
+                            <br />
+                            {correctionZl >= 0 ? 'Dopłata' : 'Nadpłata'}: {pln(Math.abs(correctionZl))}
+                          </span>
+                        )
+                      })()}
                     </div>
                   )}
                 </div>
