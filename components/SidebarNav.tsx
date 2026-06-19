@@ -9,7 +9,7 @@ import { useI18n } from '@/lib/i18n'
 import ThemeToggle from './ThemeToggle'
 
 type NavItem = { href: string; label: string; icon: string }
-type NavGroup = { group: string; icon: string; subItems: NavItem[] }
+type NavGroup = { key: string; group: string; icon: string; subItems: NavItem[] }
 type NavEntry = NavItem | NavGroup
 
 function isGroup(entry: NavEntry): entry is NavGroup {
@@ -30,13 +30,22 @@ function useNavEntries(role: string): NavEntry[] {
     ...(!isNajemca ? [
       { href: '/admin/documents', label: t('nav.documents'), icon: '📁' },
       { href: '/admin/votes', label: t('nav.votes'), icon: '🗳️' },
-      { href: '/admin/settlements', label: t('nav.settlements'), icon: '🧾' },
+      {
+        key: 'rozliczenia',
+        group: t('nav.settlements'),
+        icon: '🧾',
+        subItems: [
+          { href: '/admin/settlements', label: t('nav.settlements'), icon: '🧾' },
+          { href: '/admin/settlements/zawiadomienia', label: t('nav.zawiadomienia'), icon: '📄' },
+        ],
+      },
       { href: '/admin/wnioski', label: t('nav.wnioski'), icon: '📝' },
     ] : []),
   ]
 
   if (!isNajemca && (role === 'super_admin' || role === 'admin')) {
     entries.push({
+      key: 'finanse',
       group: t('nav.finanse'),
       icon: '💳',
       subItems: [
@@ -73,7 +82,10 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
   const pathname = usePathname()
   const router = useRouter()
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [financeOpen, setFinanceOpen] = useState(pathname.startsWith('/admin/finanse'))
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    finanse: pathname.startsWith('/admin/finanse'),
+    rozliczenia: pathname.startsWith('/admin/settlements'),
+  })
   const navItems = useNavEntries(profile.role)
 
   const handleLogout = async () => {
@@ -99,10 +111,18 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
   const renderEntry = (entry: NavEntry, closeMobile: () => void) => {
     if (isGroup(entry)) {
       const anyActive = entry.subItems.some(s => pathname.startsWith(s.href))
+      const isOpen = openGroups[entry.key] ?? anyActive
+      // Wybierz najdłużej dopasowany href, żeby przy zagnieżdżonych ścieżkach
+      // (np. /admin/settlements i /admin/settlements/zawiadomienia) podświetlić tylko jedną pozycję
+      const bestMatch = entry.subItems.reduce<NavItem | null>((best, s) => {
+        if (!pathname.startsWith(s.href)) return best
+        if (!best || s.href.length > best.href.length) return s
+        return best
+      }, null)
       return (
-        <div key={entry.group}>
+        <div key={entry.key}>
           <button
-            onClick={() => setFinanceOpen(o => !o)}
+            onClick={() => setOpenGroups(o => ({ ...o, [entry.key]: !isOpen }))}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
               anyActive ? 'text-teal-400' : 'text-[#4d9e94] hover:bg-[#081918] hover:text-[#f0fdfa]'
             }`}
@@ -110,16 +130,16 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
             <span>{entry.icon}</span>
             <span className="flex-1 text-left">{entry.group}</span>
             <svg
-              className={`w-3.5 h-3.5 transition-transform ${financeOpen ? 'rotate-90' : ''}`}
+              className={`w-3.5 h-3.5 transition-transform ${isOpen ? 'rotate-90' : ''}`}
               fill="none" stroke="currentColor" viewBox="0 0 24 24"
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
-          {financeOpen && (
+          {isOpen && (
             <div className="ml-4 mt-0.5 space-y-0.5 border-l border-[#0f2d2a] pl-3">
               {entry.subItems.map(sub => {
-                const active = pathname.startsWith(sub.href)
+                const active = sub.href === bestMatch?.href
                 return (
                   <Link
                     key={sub.href}

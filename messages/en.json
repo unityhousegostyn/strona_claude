@@ -19,7 +19,8 @@
     "water_meters": "Water Meters",
     "messages": "Send Message",
     "lokaty": "Deposits / Savings",
-    "wnioski": "Requests"
+    "wnioski": "Requests",
+    "zawiadomienia": "Fee Notices"
   },
   "common": {
     "save": "Save",
