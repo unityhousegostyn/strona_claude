@@ -819,6 +819,7 @@ function AnnouncementList({ announcements }: { announcements: any[] }) {
 }
 
 function auditIcon(action: string): string {
+  if (action === 'login') return '🔐'
   if (action.includes('ticket')) return '🎫'
   if (action.includes('comment')) return '💬'
   if (action.includes('announcement')) return '📢'
@@ -834,6 +835,7 @@ function auditIcon(action: string): string {
 
 function auditLabel(action: string, targetType: string): string {
   const map: Record<string, string> = {
+    login: 'Zalogowano się',
     create_ticket: 'Nowe zgłoszenie',
     toggle_ticket_status: 'Zmiana statusu zgłoszenia',
     add_comment: 'Nowy komentarz',

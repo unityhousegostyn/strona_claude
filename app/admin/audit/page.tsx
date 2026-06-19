@@ -6,6 +6,7 @@ import Link from 'next/link'
 const PAGE_SIZE = 20
 
 const ACTION_LABELS: Record<string, string> = {
+  login: '🔐 Zalogowano się',
   approve_user: '✅ Zaakceptowano użytkownika',
   reject_user: '❌ Odrzucono użytkownika',
   create_announcement: '📢 Dodano ogłoszenie',

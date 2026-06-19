@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser'
+import { recordLogin } from '../login/actions'
 
 export default function MFAVerifyPage() {
   const supabase = getSupabaseBrowserClient()
@@ -64,6 +65,7 @@ export default function MFAVerifyPage() {
         return
       }
 
+      await recordLogin()
       window.location.href = '/admin/dashboard'
     } catch {
       setError('Wystąpił błąd. Spróbuj ponownie.')

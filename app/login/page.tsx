@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser'
+import { recordLogin } from './actions'
 import Link from 'next/link'
 
 function LoginForm() {
@@ -49,8 +50,10 @@ function LoginForm() {
       // Sprawdź czy użytkownik ma 2FA aktywne
       const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
       if (aalData?.nextLevel === 'aal2' && aalData?.currentLevel !== 'aal2') {
+        // Logowanie nie jest jeszcze kompletne — wpis do audit logu dopiero po weryfikacji 2FA
         window.location.href = '/mfa-verify'
       } else {
+        await recordLogin()
         window.location.href = '/admin/dashboard'
       }
     } catch {
