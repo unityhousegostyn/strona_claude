@@ -290,7 +290,6 @@ export async function closeVoteAndNotify(voteId: string): Promise<{ error?: stri
       const no      = choices.filter(c => c.choice === 'no').reduce((s: number, c: any) => s + (byShare ? c.share_value : 1), 0)
       const abstain = choices.filter(c => c.choice === 'abstain').reduce((s: number, c: any) => s + (byShare ? c.share_value : 1), 0)
       const total   = yes + no + abstain
-      const passed  = total > 0 ? yes > total / 2 : null
 
       const votedApts = new Set(choices.map((c: any) => c.apartment_id).filter(Boolean)).size
 
@@ -299,6 +298,13 @@ export async function closeVoteAndNotify(voteId: string): Promise<{ error?: stri
         .select('*', { count: 'exact', head: true })
         .eq('community_id', vote.community_id)
       const totalApts = aptCountNum ?? 0
+
+      // Bez minimum 50% frekwencji (udziałów przy głosowaniu wg udziałów, lub
+      // lokali przy "1 lokal = 1 głos") uchwała jest nierozstrzygnięta —
+      // niezależnie od rozkładu głosów wśród tych, co zagłosowali.
+      const frekwencjaFrac = byShare ? total : (totalApts > 0 ? votedApts / totalApts : 0)
+      const quorumMet = frekwencjaFrac >= 0.5
+      const passed = (!quorumMet || total === 0) ? null : yes > total / 2
 
       const { data: community } = await admin.from('communities').select('name').eq('id', vote.community_id).single()
 

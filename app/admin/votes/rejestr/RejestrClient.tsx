@@ -26,15 +26,31 @@ interface Props {
   aptCountByCommunity: Record<string, number>
 }
 
-function calcResults(vote: Vote) {
+function calcResults(vote: Vote, totalApts: number) {
   const byShare = vote.voting_method === 'by_share'
   const yes = vote.choices.filter(c => c.choice === 'yes').reduce((s, c) => s + (byShare ? c.share_value : 1), 0)
   const no  = vote.choices.filter(c => c.choice === 'no').reduce((s, c) => s + (byShare ? c.share_value : 1), 0)
   const ab  = vote.choices.filter(c => c.choice === 'abstain').reduce((s, c) => s + (byShare ? c.share_value : 1), 0)
   const total = yes + no + ab
   const pct = (v: number) => total > 0 ? Math.round(v / total * 100) : 0
-  const passed = yes > 0.5 // ponad 50% za (wg udziałów lub głosów)
-  return { yes, no, ab, total, pct, passed }
+
+  const voterApts = new Set(vote.choices.map(c => c.apartment_id ?? c.user_id)).size
+
+  // Frekwencja: przy głosowaniu wg udziałów suma share_value głosujących to
+  // bezpośrednio ułamek WSZYSTKICH udziałów we wspólnocie (udziały lokali
+  // sumują się do 1) — przy "1 lokal = 1 głos" liczymy % lokali, które głosowały.
+  const frekwencjaPct = byShare
+    ? Math.round(total * 100)
+    : (totalApts > 0 ? Math.round(voterApts / totalApts * 100) : 0)
+  const quorumMet = frekwencjaPct >= 50
+
+  // Bez minimum 50% udziałów/lokali w głosowaniu uchwały nie można uznać za
+  // przyjętą ani odrzuconą — wynik jest nierozstrzygnięty, niezależnie od tego,
+  // jak rozłożyły się głosy wśród tych, którzy faktycznie zagłosowali.
+  const verdict: 'przyjeta' | 'odrzucona' | 'nierozstrzygniete' =
+    (!quorumMet || total === 0) ? 'nierozstrzygniete' : (pct(yes) > 50 ? 'przyjeta' : 'odrzucona')
+
+  return { yes, no, ab, total, pct, voterApts, frekwencjaPct, quorumMet, verdict }
 }
 
 function fmtDate(d: string | null) {
@@ -122,10 +138,8 @@ export default function RejestrClient({ votes, communities, isSuperAdmin, aptCou
             </thead>
             <tbody className="divide-y divide-[#0f2d2a]">
               {filtered.map(vote => {
-                const res = calcResults(vote)
                 const totalApts = aptCountByCommunity[vote.community_id] ?? 0
-                const voterApts = new Set(vote.choices.map(c => c.apartment_id ?? c.user_id)).size
-                const frekwencja = totalApts > 0 ? Math.round(voterApts / totalApts * 100) : 0
+                const res = calcResults(vote, totalApts)
 
                 return (
                   <tr key={vote.id} className="bg-[#051210] hover:bg-[#081918] transition">
@@ -153,25 +167,33 @@ export default function RejestrClient({ votes, communities, isSuperAdmin, aptCou
                       <div className="flex items-center gap-2">
                         <div className="flex-1 bg-[#0c2220] rounded-full h-1.5 w-16">
                           <div
-                            className={`h-1.5 rounded-full ${res.pct(res.yes) > 50 ? 'bg-teal-500' : 'bg-red-500'}`}
+                            className={`h-1.5 rounded-full ${
+                              res.verdict === 'przyjeta' ? 'bg-teal-500' : res.verdict === 'odrzucona' ? 'bg-red-500' : 'bg-amber-500'
+                            }`}
                             style={{ width: `${res.pct(res.yes)}%` }}
                           />
                         </div>
-                        <span className={`text-xs font-semibold ${res.pct(res.yes) > 50 ? 'text-teal-400' : 'text-red-400'}`}>
+                        <span className={`text-xs font-semibold ${
+                          res.verdict === 'przyjeta' ? 'text-teal-400' : res.verdict === 'odrzucona' ? 'text-red-400' : 'text-amber-400'
+                        }`}>
                           {res.pct(res.yes)}%
                         </span>
                       </div>
                       {vote.status === 'closed' && (
-                        <p className={`text-xs mt-0.5 ${res.pct(res.yes) > 50 ? 'text-teal-500' : 'text-red-500'}`}>
-                          {res.pct(res.yes) > 50 ? '✓ Przyjęta' : '✗ Odrzucona'}
+                        <p className={`text-xs mt-0.5 ${
+                          res.verdict === 'przyjeta' ? 'text-teal-500' : res.verdict === 'odrzucona' ? 'text-red-500' : 'text-amber-500'
+                        }`}>
+                          {res.verdict === 'przyjeta' ? '✓ Przyjęta' : res.verdict === 'odrzucona' ? '✗ Odrzucona' : '⚠ Nierozstrzygnięte (brak quorum)'}
                         </p>
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-xs text-[#0f766e]">{voterApts}/{totalApts || '?'}</span>
-                      {totalApts > 0 && (
-                        <p className="text-xs text-[#115e59]">{frekwencja}%</p>
-                      )}
+                      <span className="text-xs text-[#0f766e]">
+                        {vote.voting_method === 'by_share' ? `${res.frekwencjaPct}% udziałów` : `${res.voterApts}/${totalApts || '?'} lokali`}
+                      </span>
+                      <p className={`text-xs ${res.quorumMet ? 'text-[#115e59]' : 'text-amber-500'}`}>
+                        {res.frekwencjaPct}%{!res.quorumMet ? ' ⚠ brak quorum' : ''}
+                      </p>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <Link
@@ -192,15 +214,20 @@ export default function RejestrClient({ votes, communities, isSuperAdmin, aptCou
 
       {/* Podsumowanie */}
       {filtered.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           {[
             { label: 'Łącznie', value: filtered.length, color: 'text-[#f0fdfa]' },
             { label: 'Otwartych', value: filtered.filter(v => v.status === 'open').length, color: 'text-teal-400' },
             { label: 'Zamkniętych', value: filtered.filter(v => v.status === 'closed').length, color: 'text-[#0f766e]' },
             {
               label: 'Przyjętych',
-              value: filtered.filter(v => v.status === 'closed' && calcResults(v).pct(calcResults(v).yes) > 50).length,
+              value: filtered.filter(v => v.status === 'closed' && calcResults(v, aptCountByCommunity[v.community_id] ?? 0).verdict === 'przyjeta').length,
               color: 'text-teal-400',
+            },
+            {
+              label: 'Nierozstrzygniętych',
+              value: filtered.filter(v => v.status === 'closed' && calcResults(v, aptCountByCommunity[v.community_id] ?? 0).verdict === 'nierozstrzygniete').length,
+              color: 'text-amber-400',
             },
           ].map(s => (
             <div key={s.label} className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-4 text-center">

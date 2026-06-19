@@ -80,7 +80,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const ab  = choices.filter(c => c.choice === 'abstain').reduce((s: number, c: any) => s + (byShare ? c.share_value : 1), 0)
   const total = yes + no + ab
   const pct = (v: number) => total > 0 ? (v / total * 100).toFixed(2) : '0.00'
-  const passed = yes > total / 2
 
   const choiceByApt: Record<string, any> = {}
   for (const c of choices) {
@@ -90,6 +89,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const totalApts = apartments?.length ?? 0
   const votedApts = new Set(choices.map((c: any) => c.apartment_id).filter(Boolean)).size
   const frekwencja = totalApts > 0 ? (votedApts / totalApts * 100).toFixed(1) : '0.0'
+
+  // Bez minimum 50% frekwencji (udziałów przy "by_share", lokali przy "1 lokal
+  // = 1 głos") uchwała jest nierozstrzygnięta, niezależnie od rozkładu głosów.
+  const frekwencjaFrac = byShare ? total : (totalApts > 0 ? votedApts / totalApts : 0)
+  const quorumMet = frekwencjaFrac >= 0.5
+  const verdict: 'przyjeta' | 'odrzucona' | 'nierozstrzygniete' =
+    (!quorumMet || total === 0) ? 'nierozstrzygniete' : (yes > total / 2 ? 'przyjeta' : 'odrzucona')
   const choiceLabel: Record<string, string> = { yes: 'ZA', no: 'PRZECIW', abstain: 'WSTRZYMUJĘ SIĘ' }
 
   const aptRows = (apartments ?? []).map(apt => {
@@ -121,10 +127,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const barNo  = `<div style="height:8pt;background:#dc2626;border-radius:4pt;width:${pct(no)}%"></div>`
   const barAb  = `<div style="height:8pt;background:#9ca3af;border-radius:4pt;width:${pct(ab)}%"></div>`
 
-  const verdictStyle = passed
+  const verdictStyle = verdict === 'przyjeta'
     ? 'background:#dcfce7;color:#166534;border:1px solid #86efac'
-    : 'background:#fee2e2;color:#991b1b;border:1px solid #fca5a5'
-  const verdictText = passed ? '✓ Uchwała PRZYJĘTA' : '✗ Uchwała ODRZUCONA'
+    : verdict === 'odrzucona'
+      ? 'background:#fee2e2;color:#991b1b;border:1px solid #fca5a5'
+      : 'background:#fef3c7;color:#92400e;border:1px solid #fcd34d'
+  const verdictText = verdict === 'przyjeta' ? '✓ Uchwała PRZYJĘTA' : verdict === 'odrzucona' ? '✗ Uchwała ODRZUCONA' : '⚠ Uchwała NIEROZSTRZYGNIĘTA (brak quorum 50%)'
 
   const html = `<!DOCTYPE html>
 <html lang="pl">

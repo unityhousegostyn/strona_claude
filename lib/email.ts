@@ -569,7 +569,7 @@ export async function sendVoteClosedEmail(params: {
     ? (params.votedApts / params.totalApts * 100).toFixed(0)
     : '0'
   const verdictColor = params.passed === true ? '#16a34a' : params.passed === false ? '#dc2626' : '#d97706'
-  const verdictText  = params.passed === true ? '✅ Uchwała PRZYJĘTA' : params.passed === false ? '❌ Uchwała ODRZUCONA' : '⏳ Głosowanie zamknięte'
+  const verdictText  = params.passed === true ? '✅ Uchwała PRZYJĘTA' : params.passed === false ? '❌ Uchwała ODRZUCONA' : '⚠️ Uchwała NIEROZSTRZYGNIĘTA (brak quorum 50%)'
   const methodLabel  = params.byShare ? 'według udziałów' : '1 lokal = 1 głos'
 
   await sendMail({
