@@ -195,21 +195,41 @@ export default function RaportyClient({
   const totalDebt = debtors.reduce((s, r) => s + Math.abs(r.balance), 0)
 
   // ── Plan vs execution ────────────────────────────────────────────────────
-  // Plan gospodarczy = stawka funduszu eksploatacyjnego × m² lokali × 12 miesięcy (prognoza na cały rok)
-  // Wykonanie = stawka funduszu eksploatacyjnego × m² lokali × maxMonth (naliczone do bieżącego miesiąca)
-  //   — to ta sama wielkość, co już wyliczona w chargeBreakdown.operating dla bieżącego roku.
-  let planOperatingTotal = 0
+  // Plan gospodarczy 2026 = suma wszystkich składników funduszu eksploatacyjnego
+  // (stawka eksploatacyjna × m² + wynagrodzenie zarządcy + woda + śmieci) × 12 miesięcy (prognoza na cały rok).
+  // Fundusz remontowy jest wykluczony — to osobny fundusz celowy.
+  // Wykonanie = te same składniki naliczone do maxMonth — to dokładnie chargeBreakdown bez renovation.
+  const planBreakdown = { operating: 0, manager: 0, water: 0, garbage: 0 }
   for (const apt of commApts) {
     for (let m = 1; m <= 12; m++) {
       const rate = getActiveRate(rates, filterComm, filterYear, m)
-      if (rate) planOperatingTotal += rate.operating_rate_m2 * apt.area_m2
+      if (!rate) continue
+      const water = rate.water_billing_type === 'ryczalt'
+        ? rate.water_ryczalt_m3 * rate.water_price_m3
+        : 0
+      planBreakdown.operating += rate.operating_rate_m2 * apt.area_m2
+      planBreakdown.manager   += rate.manager_fee_type === 'per_m2'
+        ? rate.manager_fee_value * apt.area_m2
+        : rate.manager_fee_value
+      planBreakdown.water   += water
+      planBreakdown.garbage += rate.garbage_per_person * apt.persons_count
     }
   }
   const hasRateForYear = commApts.length > 0 && Array.from({ length: 12 }, (_, i) => i + 1).some(m => !!getActiveRate(rates, filterComm, filterYear, m))
 
-  const planByCategory: Record<string, number> = { fundusz_eksploatacyjny: planOperatingTotal }
-  const executionByCategory: Record<string, number> = { fundusz_eksploatacyjny: chargeBreakdown.operating }
-  const totalExecutionToDate = chargeBreakdown.operating
+  const planByCategory: Record<string, number> = {
+    fundusz_eksploatacyjny: planBreakdown.operating,
+    wynagrodzenie_zarządcy: planBreakdown.manager,
+    woda: planBreakdown.water,
+    śmieci: planBreakdown.garbage,
+  }
+  const executionByCategory: Record<string, number> = {
+    fundusz_eksploatacyjny: chargeBreakdown.operating,
+    wynagrodzenie_zarządcy: chargeBreakdown.manager,
+    woda: chargeBreakdown.water,
+    śmieci: chargeBreakdown.garbage,
+  }
+  const totalExecutionToDate = chargeBreakdown.operating + chargeBreakdown.manager + chargeBreakdown.water + chargeBreakdown.garbage
   const hasPrevYearData = hasRateForYear
 
   // Rzeczywiste wydatki eksploatacyjne per kategoria (informacyjnie — co realnie wydano,
@@ -881,10 +901,11 @@ export default function RaportyClient({
                       <>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           <KpiCard label={`Plan ${filterYear}`} value={pln(totalPlan)} color="blue"
-                            note="stawka × m² × 12 mies."
-                            formula={`stawka funduszu eksploatacyjnego × m² lokali × 12 miesięcy (rok ${filterYear})`} />
+                            note="fundusz eksploatacyjny + zarządca + woda + śmieci"
+                            formula={`(stawka funduszu eksploatacyjnego × m² + wynagrodzenie zarządcy + woda + śmieci) × 12 miesięcy (rok ${filterYear})`} />
                           <KpiCard label={`Wykonanie do ${['','Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'][maxMonth]}`} value={pln(totalExecutionToDate)} color="red"
-                            formula={`stawka funduszu eksploatacyjnego × m² lokali × ${maxMonth} mies. (styczeń–${['','styczeń','luty','marzec','kwiecień','maj','czerwiec','lipiec','sierpień','wrzesień','październik','listopad','grudzień'][maxMonth]} ${filterYear})`} />
+                            note="fundusz eksploatacyjny + zarządca + woda + śmieci"
+                            formula={`(stawka funduszu eksploatacyjnego × m² + wynagrodzenie zarządcy + woda + śmieci) × ${maxMonth} mies. (styczeń–${['','styczeń','luty','marzec','kwiecień','maj','czerwiec','lipiec','sierpień','wrzesień','październik','listopad','grudzień'][maxMonth]} ${filterYear})`} />
                           <KpiCard label="Odchylenie" value={pln(Math.abs(diff))} color={diff <= 0 ? 'green' : 'red'}
                             note={diff <= 0 ? 'W planie / oszczędność' : 'Przekroczenie planu'}
                             formula="Wykonanie − Plan (ujemne = oszczędność)" />
