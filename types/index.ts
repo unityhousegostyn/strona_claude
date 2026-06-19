@@ -5,6 +5,8 @@ export interface Community {
   name: string
   address: string
   created_at: string
+  bank_account?: string | null
+  legal_basis?: string | null
 }
 
 export interface Profile {

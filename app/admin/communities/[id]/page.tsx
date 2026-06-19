@@ -13,6 +13,8 @@ export default function EditCommunityPage() {
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
   const [waterMeterEnabled, setWaterMeterEnabled] = useState(false)
+  const [bankAccount, setBankAccount] = useState('')
+  const [legalBasis, setLegalBasis] = useState('')
   const [loading, setLoading] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -28,6 +30,8 @@ export default function EditCommunityPage() {
         setName(data.name)
         setAddress(data.address)
         setWaterMeterEnabled(data.water_meter_enabled ?? false)
+        setBankAccount(data.bank_account ?? '')
+        setLegalBasis(data.legal_basis ?? '')
       }
     }
     load()
@@ -42,7 +46,12 @@ export default function EditCommunityPage() {
     setError(null)
 
     try {
-      await updateCommunity(id as string, { name, address, water_meter_enabled: waterMeterEnabled })
+      await updateCommunity(id as string, {
+        name, address,
+        water_meter_enabled: waterMeterEnabled,
+        bank_account: bankAccount,
+        legal_basis: legalBasis,
+      })
       router.push('/admin/communities')
     } catch (e: any) {
       setError(e.message ?? 'Błąd podczas zapisywania.')
@@ -102,6 +111,26 @@ export default function EditCommunityPage() {
           >
             <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${waterMeterEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
           </button>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-[#99f6e4] mb-1">Numer konta bankowego</label>
+          <input
+            className="input"
+            placeholder="np. 97 1020 3121 0000 6702 0003 8968"
+            value={bankAccount}
+            onChange={(e) => setBankAccount(e.target.value)}
+          />
+          <p className="text-xs text-[#115e59] mt-1">Wyświetlany na zawiadomieniach o wysokości opłat dla tej wspólnoty</p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-[#99f6e4] mb-1">Podstawa prawna</label>
+          <input
+            className="input"
+            placeholder="np. ustawa z dnia 24.06.1994 oraz uchwała nr 2/2017"
+            value={legalBasis}
+            onChange={(e) => setLegalBasis(e.target.value)}
+          />
+          <p className="text-xs text-[#115e59] mt-1">Treść powołania prawnego na zawiadomieniach (ustawa, nr uchwały itp.)</p>
         </div>
       </div>
 

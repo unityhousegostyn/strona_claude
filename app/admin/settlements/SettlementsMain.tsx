@@ -499,6 +499,10 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                           )}
                         </div>
                         <div className="flex items-center gap-3">
+                          <Link href={`/admin/settlements/rates/${r.id}/zawiadomienia`}
+                            className="text-xs text-teal-400 hover:text-teal-300 transition">
+                            📄 Zawiadomienia
+                          </Link>
                           <button onClick={() => editRateId === r.id ? setEditRateId(null) : handleEditRateOpen(r)}
                             disabled={isPending}
                             className="text-xs text-teal-400 hover:text-teal-300 transition">
