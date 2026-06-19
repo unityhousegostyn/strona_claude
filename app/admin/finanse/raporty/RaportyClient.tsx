@@ -212,6 +212,21 @@ export default function RaportyClient({
   const totalExecutionToDate = chargeBreakdown.operating
   const hasPrevYearData = hasRateForYear
 
+  // Rzeczywiste wydatki eksploatacyjne per kategoria (informacyjnie — co realnie wydano,
+  // w odróżnieniu od KPI powyżej, które liczy naliczenie wg stawki). Fundusz remontowy wykluczony.
+  const isExploitation = (e: { is_renovation_fund?: boolean | null; category: string }) =>
+    !(e.is_renovation_fund || e.category === 'fundusz_remontowy')
+  const actualExpByCategoryPrevYear: Record<string, number> = {}
+  for (const e of expenses.filter(e => e.community_id === filterComm && e.year === filterYear - 1 && isExploitation(e))) {
+    actualExpByCategoryPrevYear[e.category] = (actualExpByCategoryPrevYear[e.category] ?? 0) + e.amount
+  }
+  const actualExpByCategoryThisYear: Record<string, number> = {}
+  for (const e of commExpenses.filter(e => e.month <= maxMonth && isExploitation(e))) {
+    actualExpByCategoryThisYear[e.category] = (actualExpByCategoryThisYear[e.category] ?? 0) + e.amount
+  }
+  const totalActualPrevYear = Object.values(actualExpByCategoryPrevYear).reduce((s, v) => s + v, 0)
+  const totalActualThisYear = Object.values(actualExpByCategoryThisYear).reduce((s, v) => s + v, 0)
+
   // ── Renovation fund ──────────────────────────────────────────────────────
   const allYears = [...new Set([...entries.filter(e => e.community_id === filterComm).map(e => e.year), ...expenses.filter(e => e.community_id === filterComm).map(e => e.year)])].sort()
   const renovFundRows = allYears.map(year => {
@@ -906,6 +921,44 @@ export default function RaportyClient({
                                 <td className="text-right py-2 font-bold text-[#99f6e4]">{pln(totalPlan)}</td>
                                 <td className="text-right py-2 font-bold text-red-400">{pln(totalExecutionToDate)}</td>
                                 <td className={`text-right py-2 font-bold ${diff > 0 ? 'text-red-400' : 'text-teal-400'}`}>{(diff > 0 ? '+' : '') + pln(diff)}</td>
+                              </tr>
+                            </tfoot>
+                          </table></div>
+                        </ReportSection>
+
+                        <ReportSection title="Szczegóły wydatków eksploatacyjnych — rzeczywiste koszty per kategoria (bez funduszu remontowego)">
+                          <div className="overflow-x-auto"><table className="w-full text-sm min-w-[400px]">
+                            <thead><tr className="border-b border-[#0f2d2a]">
+                              <th className="text-left py-2 pr-4 text-[#0f766e] font-medium">Kategoria</th>
+                              <th className="text-right py-2 px-3 text-[#0f766e] font-medium">Wydatki {filterYear - 1}</th>
+                              <th className="text-right py-2 px-3 text-[#0f766e] font-medium">Wydatki {filterYear} (do {['','Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'][maxMonth]})</th>
+                              <th className="text-right py-2 pl-3 text-[#0f766e] font-medium">Różnica</th>
+                            </tr></thead>
+                            <tbody>
+                              {Object.keys({ ...actualExpByCategoryPrevYear, ...actualExpByCategoryThisYear }).sort().map(cat => {
+                                const prev = actualExpByCategoryPrevYear[cat] ?? 0
+                                const cur = actualExpByCategoryThisYear[cat] ?? 0
+                                const d = cur - prev
+                                return (
+                                  <tr key={cat} className="border-b border-[#0f2d2a]/50">
+                                    <td className="py-2 pr-4 text-[#99f6e4]">{EXP_CAT_LABELS[cat] ?? cat}</td>
+                                    <td className="text-right py-2 px-3 text-[#99f6e4]">{prev > 0 ? pln(prev) : '—'}</td>
+                                    <td className="text-right py-2 px-3 text-[#99f6e4]">{cur > 0 ? pln(cur) : '—'}</td>
+                                    <td className={`text-right py-2 pl-3 font-medium ${d > 0 ? 'text-red-400' : d < 0 ? 'text-teal-400' : 'text-[#115e59]'}`}>
+                                      {prev > 0 || cur > 0 ? (d > 0 ? '+' : '') + pln(d) : '—'}
+                                    </td>
+                                  </tr>
+                                )
+                              })}
+                            </tbody>
+                            <tfoot>
+                              <tr className="border-t border-[#133835]">
+                                <td className="py-2 font-bold text-[#f0fdfa]">Razem</td>
+                                <td className="text-right py-2 font-bold text-[#99f6e4]">{pln(totalActualPrevYear)}</td>
+                                <td className="text-right py-2 font-bold text-[#99f6e4]">{pln(totalActualThisYear)}</td>
+                                <td className={`text-right py-2 font-bold ${totalActualThisYear - totalActualPrevYear > 0 ? 'text-red-400' : 'text-teal-400'}`}>
+                                  {(totalActualThisYear - totalActualPrevYear > 0 ? '+' : '') + pln(totalActualThisYear - totalActualPrevYear)}
+                                </td>
                               </tr>
                             </tfoot>
                           </table></div>
