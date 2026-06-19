@@ -195,27 +195,22 @@ export default function RaportyClient({
   const totalDebt = debtors.reduce((s, r) => s + Math.abs(r.balance), 0)
 
   // ── Plan vs execution ────────────────────────────────────────────────────
-  // Fundusz eksploatacyjny = WSZYSTKIE kategorie kosztowe OPRÓCZ funduszu remontowego
-  // (woda, śmieci, sprzątanie, energia, zarząd, koszty administracji, opłaty bankowe, itd.
-  // — to są wszystko wydatki z funduszu eksploatacyjnego; fundusz remontowy jest wyłączony
-  // przez flagę is_renovation_fund LUB kategorię 'fundusz_remontowy').
-  const isExploitation = (e: { is_renovation_fund?: boolean | null; category: string }) =>
-    !(e.is_renovation_fund || e.category === 'fundusz_remontowy')
-
-  // Plan = faktyczne wykonanie roku poprzedniego — tylko fundusz eksploatacyjny
-  const prevYearExpenses = expenses.filter(e => e.community_id === filterComm && e.year === filterYear - 1 && isExploitation(e))
-  const planByCategory: Record<string, number> = {}
-  for (const e of prevYearExpenses) {
-    planByCategory[e.category] = (planByCategory[e.category] ?? 0) + e.amount
+  // Plan gospodarczy = stawka funduszu eksploatacyjnego × m² lokali × 12 miesięcy (prognoza na cały rok)
+  // Wykonanie = stawka funduszu eksploatacyjnego × m² lokali × maxMonth (naliczone do bieżącego miesiąca)
+  //   — to ta sama wielkość, co już wyliczona w chargeBreakdown.operating dla bieżącego roku.
+  let planOperatingTotal = 0
+  for (const apt of commApts) {
+    for (let m = 1; m <= 12; m++) {
+      const rate = getActiveRate(rates, filterComm, filterYear, m)
+      if (rate) planOperatingTotal += rate.operating_rate_m2 * apt.area_m2
+    }
   }
-  const hasPrevYearData = expenses.some(e => e.community_id === filterComm && e.year === filterYear - 1 && isExploitation(e))
+  const hasRateForYear = commApts.length > 0 && Array.from({ length: 12 }, (_, i) => i + 1).some(m => !!getActiveRate(rates, filterComm, filterYear, m))
 
-  // Wykonanie = fundusz eksploatacyjny bieżącego roku do maxMonth włącznie
-  const executionByCategory: Record<string, number> = {}
-  for (const e of commExpenses.filter(e => e.month <= maxMonth && isExploitation(e))) {
-    executionByCategory[e.category] = (executionByCategory[e.category] ?? 0) + e.amount
-  }
-  const totalExecutionToDate = Object.values(executionByCategory).reduce((s, v) => s + v, 0)
+  const planByCategory: Record<string, number> = { fundusz_eksploatacyjny: planOperatingTotal }
+  const executionByCategory: Record<string, number> = { fundusz_eksploatacyjny: chargeBreakdown.operating }
+  const totalExecutionToDate = chargeBreakdown.operating
+  const hasPrevYearData = hasRateForYear
 
   // ── Renovation fund ──────────────────────────────────────────────────────
   const allYears = [...new Set([...entries.filter(e => e.community_id === filterComm).map(e => e.year), ...expenses.filter(e => e.community_id === filterComm).map(e => e.year)])].sort()
@@ -863,7 +858,7 @@ export default function RaportyClient({
                 />
 
                 {!hasPrevYearData
-                  ? <div className="text-center py-12 text-[#115e59]"><p className="text-3xl mb-3">📂</p><p>Brak danych kosztowych za rok {filterYear - 1} — plan nie może być wyznaczony.</p></div>
+                  ? <div className="text-center py-12 text-[#115e59]"><p className="text-3xl mb-3">📂</p><p>Brak ustawionej stawki funduszu eksploatacyjnego za rok {filterYear} — plan nie może być wyznaczony.</p></div>
                   : (() => {
                     const totalPlan = Object.values(planByCategory).reduce((s, v) => s + v, 0)
                     const diff = totalExecutionToDate - totalPlan
@@ -871,20 +866,20 @@ export default function RaportyClient({
                       <>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           <KpiCard label={`Plan ${filterYear}`} value={pln(totalPlan)} color="blue"
-                            note={`wykonanie ${filterYear - 1}`}
-                            formula={`faktyczne koszty roku ${filterYear - 1} per kategoria (podstawa planu)`} />
+                            note="stawka × m² × 12 mies."
+                            formula={`stawka funduszu eksploatacyjnego × m² lokali × 12 miesięcy (rok ${filterYear})`} />
                           <KpiCard label={`Wykonanie do ${['','Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'][maxMonth]}`} value={pln(totalExecutionToDate)} color="red"
-                            formula={`suma kosztów ${filterYear} od stycznia do ${['','Stycznia','Lutego','Marca','Kwietnia','Maja','Czerwca','Lipca','Sierpnia','Września','Października','Listopada','Grudnia'][maxMonth]}`} />
+                            formula={`stawka funduszu eksploatacyjnego × m² lokali × ${maxMonth} mies. (styczeń–${['','styczeń','luty','marzec','kwiecień','maj','czerwiec','lipiec','sierpień','wrzesień','październik','listopad','grudzień'][maxMonth]} ${filterYear})`} />
                           <KpiCard label="Odchylenie" value={pln(Math.abs(diff))} color={diff <= 0 ? 'green' : 'red'}
                             note={diff <= 0 ? 'W planie / oszczędność' : 'Przekroczenie planu'}
                             formula="Wykonanie − Plan (ujemne = oszczędność)" />
                         </div>
 
-                        <ReportSection title={`Porównanie per kategoria (plan ${filterYear - 1} vs wykonanie ${filterYear} do ${['','Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'][maxMonth]})`}>
+                        <ReportSection title={`Porównanie — plan roczny ${filterYear} vs naliczone do ${['','Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'][maxMonth]} ${filterYear}`}>
                           <div className="overflow-x-auto"><table className="w-full text-sm min-w-[400px]">
                             <thead><tr className="border-b border-[#0f2d2a]">
                               <th className="text-left py-2 pr-4 text-[#0f766e] font-medium">Kategoria</th>
-                              <th className="text-right py-2 px-3 text-[#0f766e] font-medium">Plan ({filterYear - 1})</th>
+                              <th className="text-right py-2 px-3 text-[#0f766e] font-medium">Plan ({filterYear})</th>
                               <th className="text-right py-2 px-3 text-[#0f766e] font-medium">Wykonanie ({filterYear})</th>
                               <th className="text-right py-2 pl-3 text-[#0f766e] font-medium">Różnica</th>
                             </tr></thead>
