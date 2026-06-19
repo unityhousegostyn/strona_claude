@@ -25,7 +25,7 @@ interface Entry {
 interface Expense {
   community_id: string; category: string; description: string
   amount: number; expense_date: string; year: number; month: number
-  invoice_number?: string | null
+  invoice_number?: string | null; is_renovation_fund?: boolean | null
 }
 interface CommunityIncome {
   community_id: string; category: string; description: string

@@ -11,7 +11,7 @@ import Pagination from '@/components/Pagination'
 interface Expense {
   id: string; community_id: string; category: string; description: string
   amount: number; expense_date: string; year: number; month: number
-  invoice_number: string | null; created_at: string
+  invoice_number: string | null; created_at: string; is_renovation_fund?: boolean | null
 }
 interface Props {
   expenses: Expense[]
