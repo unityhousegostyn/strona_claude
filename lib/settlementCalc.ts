@@ -145,6 +145,15 @@ export function buildYearlyTable(
   const rows: MonthlyRow[] = []
   let balance = initialBalance
 
+  // Tylko dla modelu 'zaliczka': najpierw pokrywamy bieżące i zaległe opłaty
+  // stałe (fundusze, zarządca, śmieci, korekta) ze WSZYSTKICH dotychczasowych
+  // wpłat narastająco, a dopiero nadwyżka ponad to liczy się jako woda. Dzięki
+  // temu spóźniona wpłata pokrywająca kilka miesięcy zaległości nie zostaje
+  // błędnie zaksięgowana w całości jako woda za miesiąc, w którym wpłynęła.
+  let cumFixedDue = 0
+  let cumPaid = 0
+  let cumWaterAttributed = 0
+
   const now = new Date()
   const currentYear  = now.getFullYear()
   const currentMonth = now.getMonth() + 1  // 1-based
@@ -192,6 +201,20 @@ export function buildYearlyTable(
     }
 
     const charges = calcMonthCharges(apt, monthRates, entry)
+
+    // Model 'zaliczka': przelicz wodę narastająco (zaległe opłaty stałe mają
+    // priorytet przed wodą), niezależnie od tego, co calcMonthCharges policzył
+    // dla samego tego miesiąca w izolacji.
+    if (monthRates.water_billing_type === 'zaliczka') {
+      const r = (v: number) => Math.round(v * 100) / 100
+      cumFixedDue = r(cumFixedDue + charges.renovation + charges.operating + charges.manager + charges.garbage + charges.correction)
+      cumPaid = r(cumPaid + charges.paid)
+      const totalWaterAvailable = Math.max(0, r(cumPaid - cumFixedDue))
+      charges.water = r(totalWaterAvailable - cumWaterAttributed)
+      cumWaterAttributed = totalWaterAvailable
+      charges.total_due = r(charges.renovation + charges.operating + charges.manager + charges.water + charges.garbage + charges.correction)
+    }
+
     const balance_end = Math.round((balance_start + charges.paid - charges.total_due) * 100) / 100
 
     rows.push({

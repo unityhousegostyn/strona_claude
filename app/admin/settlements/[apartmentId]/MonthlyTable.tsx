@@ -85,6 +85,21 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
     return renovation + operating + manager + garbage
   }
 
+  // Stan narastająco (opłaty stałe / wpłaty / już rozliczona woda) ze wszystkich
+  // miesięcy PRZED danym miesiącem — żeby podgląd na żywo w modelu "zaliczka"
+  // zgadzał się z tym, co policzy buildYearlyTable (zaległości stałe mają
+  // priorytet przed wodą, więc spóźniona wpłata nie "wpada" cała w wodę).
+  function cumulativeBeforeMonth(month: number): { fixedDue: number; paid: number; waterAttributed: number } {
+    let fixedDue = 0, paid = 0, waterAttributed = 0
+    for (const row of rows) {
+      if (row.month >= month) break
+      fixedDue += row.renovation + row.operating + row.manager + row.garbage + row.correction
+      paid += row.paid
+      waterAttributed += row.water
+    }
+    return { fixedDue, paid, waterAttributed }
+  }
+
   function openEdit(row: MonthlyRow) {
     setEditMonth(row.month)
     setEditPaid(row.entry?.paid != null ? String(row.entry.paid) : '')
@@ -336,16 +351,28 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                                 <label className="text-xs text-[#0f766e] block mb-1">Woda (wyliczana automatycznie)</label>
                                 {(() => {
                                   const persons = editPersons.trim() !== '' ? parseInt(editPersons, 10) : apartment.persons_count
-                                  const waterZl = parseFloat(editPaid || '0') - fixedChargesExceptWater(persons)
+                                  const { fixedDue: prevFixedDue, paid: prevPaid, waterAttributed: prevWaterAttributed } = cumulativeBeforeMonth(editMonth ?? 1)
+                                  const cumFixedDue = prevFixedDue + fixedChargesExceptWater(persons)
+                                  const cumPaidNow = prevPaid + parseFloat(editPaid || '0')
+                                  const totalWaterAvailable = Math.max(0, cumPaidNow - cumFixedDue)
+                                  const waterZl = totalWaterAvailable - prevWaterAttributed
                                   const waterM3 = latestRates && latestRates.water_price_m3 > 0 ? waterZl / latestRates.water_price_m3 : 0
+                                  const arrears = Math.max(0, cumFixedDue - cumPaidNow)
                                   return (
-                                    <p className="w-40 text-sm text-[#99f6e4] py-1.5">
-                                      {waterZl.toFixed(2)} zł
-                                      <span className="text-[#115e59] text-xs ml-1">≈ {waterM3.toFixed(2)} m³</span>
-                                    </p>
+                                    <>
+                                      <p className="w-44 text-sm text-[#99f6e4] py-1.5">
+                                        {waterZl.toFixed(2)} zł
+                                        <span className="text-[#115e59] text-xs ml-1">≈ {waterM3.toFixed(2)} m³</span>
+                                      </p>
+                                      {arrears > 0 && (
+                                        <p className="text-[10px] text-amber-400 mt-0.5">
+                                          ⚠ najpierw pokryto {arrears.toFixed(2)} zł zaległości stałych — nic nie zostało na wodę
+                                        </p>
+                                      )}
+                                    </>
                                   )
                                 })()}
-                                <p className="text-[10px] text-[#115e59] mt-0.5">= wpłacono − pozostałe opłaty</p>
+                                <p className="text-[10px] text-[#115e59] mt-0.5">= wpłaty narastająco − zaległe i bieżące opłaty stałe</p>
                               </div>
                             ) : (
                               <div>

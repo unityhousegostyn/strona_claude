@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Podgląd — Nota rozliczenia wody</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { background: #f1f5f4; font-family: 'Segoe UI', Arial, sans-serif; padding: 24px; }
+  .page { max-width: 680px; margin: 0 auto; }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <p class="text-center text-xs text-[#6b7280] mb-3">
+    Podgląd przykładowy — tak wygląda strona „🖨 Wystaw notę" w panelu (z przykładowymi danymi)
+  </p>
+
+  <div class="bg-white text-[#111827] rounded-2xl shadow-xl w-full p-10" style="font-family: 'Segoe UI', Arial, sans-serif;">
+
+    <!-- DocumentHeader -->
+    <header class="mb-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-1.5">
+          <span class="text-base leading-none">🏢</span>
+          <span class="text-[11px] font-bold tracking-[0.18em] text-[#0f766e] uppercase">WSPÓLNOTY</span>
+        </div>
+        <span class="text-[10px] font-semibold tracking-[0.12em] text-[#9ca3af] uppercase">II kwartał (kwiecień–czerwiec)</span>
+      </div>
+      <div class="mt-2 h-[3px] w-full rounded-full bg-gradient-to-r from-[#0f766e] via-[#14b8a6] to-transparent"></div>
+      <div class="mt-4 flex items-start justify-between gap-6 flex-wrap">
+        <div>
+          <h1 class="text-2xl font-bold text-[#111827] leading-tight">Nota rozliczenia wody</h1>
+          <p class="text-sm text-[#6b7280] mt-1">Wspólnota Mieszkaniowa „Urzędnik” · ul. Przykładowa 1</p>
+        </div>
+        <dl class="text-right text-xs text-[#6b7280] space-y-0.5 whitespace-nowrap shrink-0">
+          <div><dt class="inline text-[#9ca3af]">Dnia: </dt><dd class="inline font-semibold text-[#374151]">19 czerwca 2026</dd></div>
+        </dl>
+      </div>
+    </header>
+
+    <!-- Adresat -->
+    <div class="text-right mb-8">
+      <p class="text-[#6b7280] text-sm">Państwo</p>
+      <p class="font-bold text-[#111827]">Jan Kowalski</p>
+      <p class="font-bold text-[#111827]">ul. Przykładowa 1 / 5</p>
+    </div>
+
+    <p class="mb-6 leading-relaxed text-[#374151]">
+      Informujemy o wyniku rozliczenia rzeczywistego zużycia wody na podstawie zdalnego odczytu licznika
+      za <strong>ii kwartał (kwiecień–czerwiec) 2026 r.</strong>
+    </p>
+
+    <table class="w-full text-sm border-collapse mb-6">
+      <tbody>
+        <tr>
+          <td class="px-3 py-2 border border-[#e5e7eb] text-[#374151]">Odczyt na początek okresu</td>
+          <td class="px-3 py-2 text-right border border-[#e5e7eb] text-[#111827] font-medium">120,500 m³</td>
+        </tr>
+        <tr>
+          <td class="px-3 py-2 border border-[#e5e7eb] text-[#374151]">Odczyt na koniec okresu</td>
+          <td class="px-3 py-2 text-right border border-[#e5e7eb] text-[#111827] font-medium">135,800 m³</td>
+        </tr>
+        <tr class="bg-[#f8fafb]">
+          <td class="px-3 py-2 border border-[#e5e7eb] text-[#374151] font-semibold">Rzeczywiste zużycie</td>
+          <td class="px-3 py-2 text-right border border-[#e5e7eb] text-[#111827] font-bold">15,300 m³</td>
+        </tr>
+        <tr>
+          <td class="px-3 py-2 border border-[#e5e7eb] text-[#374151]">Cena wody</td>
+          <td class="px-3 py-2 text-right border border-[#e5e7eb] text-[#111827]">8,50 zł / m³</td>
+        </tr>
+        <tr class="bg-[#f8fafb]">
+          <td class="px-3 py-2 border border-[#e5e7eb] text-[#374151] font-semibold">Rzeczywisty koszt zużytej wody</td>
+          <td class="px-3 py-2 text-right border border-[#e5e7eb] text-[#111827] font-bold">130,05 zł</td>
+        </tr>
+        <tr>
+          <td class="px-3 py-2 border border-[#e5e7eb] text-[#374151]">Wpłacono za wodę w tym okresie (z zaliczek)</td>
+          <td class="px-3 py-2 text-right border border-[#e5e7eb] text-[#111827]">108,86 zł</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Wynik: dopłata (czerwone) -->
+    <div class="rounded-xl border p-4 mb-6 bg-red-50 border-red-200">
+      <p class="font-bold text-lg text-red-700">Do dopłaty: 21,19 zł</p>
+      <p class="text-sm mt-1 text-[#374151]">
+        Rzeczywiste zużycie wody w tym okresie było wyższe niż wynikało to z dotychczasowych wpłat. Prosimy o dopłatę różnicy.
+      </p>
+    </div>
+
+    <p class="leading-relaxed text-[#374151]">
+      Prosimy o dokonanie wpłaty na konto: <strong class="text-[#111827]">94 1020 4160 0000 2702 0278 8206</strong>,
+      w tytule podając numer lokalu i okres rozliczenia.
+    </p>
+
+    <!-- DocumentFooter -->
+    <footer class="mt-8 pt-3 border-t border-[#e5e7eb] text-center">
+      <p class="text-[10px] text-[#9ca3af]">🏢 Panel Wspólnoty · Nota rozliczeniowa wygenerowana automatycznie · 19 czerwca 2026</p>
+    </footer>
+
+  </div>
+
+  <p class="text-center text-xs text-[#6b7280] mt-6 mb-10">
+    Gdyby wpłaty przewyższały rzeczywisty koszt, ta sama nota pokazuje zielony panel<br>
+    „Nadpłata do zwrotu / odliczenia" zamiast czerwonego „Do dopłaty" — i nie pojawia się prośba o wpłatę na konto.
+  </p>
+</div>
+
+</body>
+</html>
