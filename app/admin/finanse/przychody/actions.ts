@@ -60,6 +60,13 @@ export async function updateIncome(id: string, data: {
     if (!data.description.trim()) return { error: 'Opis jest wymagany' }
     if (!data.amount || data.amount <= 0) return { error: 'Kwota musi być większa niż 0' }
     const admin = getSupabaseAdminClient()
+
+    if (profile.role === 'admin') {
+      const { data: existing } = await admin.from('community_income').select('community_id').eq('id', id).single()
+      if (!existing) return { error: 'Przychód nie istnieje' }
+      if (existing.community_id !== profile.community_id) return { error: 'Brak uprawnień do tej wspólnoty' }
+    }
+
     const { error } = await admin.from('community_income').update({
       category: data.category,
       description: data.description.trim(),
@@ -81,6 +88,13 @@ export async function deleteIncome(id: string): Promise<{ error?: string }> {
     const { profile } = await getActor()
     if (profile.role === 'user') return { error: 'Brak uprawnień' }
     const admin = getSupabaseAdminClient()
+
+    if (profile.role === 'admin') {
+      const { data: existing } = await admin.from('community_income').select('community_id').eq('id', id).single()
+      if (!existing) return { error: 'Przychód nie istnieje' }
+      if (existing.community_id !== profile.community_id) return { error: 'Brak uprawnień do tej wspólnoty' }
+    }
+
     const { error } = await admin.from('community_income').delete().eq('id', id)
     if (error) return { error: error.message }
     revalidatePath('/admin/finanse/koszty')

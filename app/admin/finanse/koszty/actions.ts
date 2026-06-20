@@ -61,6 +61,13 @@ export async function updateExpense(id: string, data: {
   if (profile.role === 'user') return { error: 'Brak uprawnień' }
 
   const admin = getSupabaseAdminClient()
+
+  if (profile.role === 'admin') {
+    const { data: existing } = await admin.from('community_expenses').select('community_id').eq('id', id).single()
+    if (!existing) return { error: 'Koszt nie istnieje' }
+    if (existing.community_id !== profile.community_id) return { error: 'Brak uprawnień do tej wspólnoty' }
+  }
+
   const { error } = await admin.from('community_expenses').update({
     category: data.category,
     description: data.description.trim(),
@@ -82,6 +89,13 @@ export async function deleteExpense(id: string): Promise<{ error?: string }> {
   if (profile.role === 'user') return { error: 'Brak uprawnień' }
 
   const admin = getSupabaseAdminClient()
+
+  if (profile.role === 'admin') {
+    const { data: existing } = await admin.from('community_expenses').select('community_id').eq('id', id).single()
+    if (!existing) return { error: 'Koszt nie istnieje' }
+    if (existing.community_id !== profile.community_id) return { error: 'Brak uprawnień do tej wspólnoty' }
+  }
+
   const { error } = await admin.from('community_expenses').delete().eq('id', id)
   if (error) return { error: error.message }
   revalidatePath('/admin/finanse/koszty')
@@ -169,6 +183,13 @@ export async function bulkUpdateCategory(
     if (profile.role === 'user') return { error: 'Brak uprawnień' }
     if (!ids.length) return { error: 'Brak zaznaczonych wpisów' }
     const admin = getSupabaseAdminClient()
+
+    if (profile.role === 'admin') {
+      const { data: rows } = await admin.from('community_expenses').select('id, community_id').in('id', ids)
+      const foreign = (rows ?? []).some(r => r.community_id !== profile.community_id)
+      if (foreign || (rows ?? []).length !== ids.length) return { error: 'Brak uprawnień do części wybranych wpisów' }
+    }
+
     const { error } = await admin
       .from('community_expenses')
       .update({ category })

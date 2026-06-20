@@ -91,6 +91,13 @@ export async function deleteRequest(id: string): Promise<{ error?: string; succe
     if (profile.role === 'user') return { error: 'Brak uprawnień' }
 
     const admin = getSupabaseAdminClient()
+
+    if (profile.role === 'admin') {
+      const { data } = await admin.from('community_requests').select('community_id').eq('id', id).single()
+      if (!data) return { error: 'Wniosek nie istnieje' }
+      if (data.community_id !== profile.community_id) return { error: 'Brak uprawnień' }
+    }
+
     const { error } = await admin.from('community_requests').delete().eq('id', id)
     if (error) return { error: error.message }
 

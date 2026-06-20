@@ -69,11 +69,18 @@ export async function togglePin(postId: string, pinned: boolean): Promise<{ erro
   try {
     const auth = await getAuthProfileAction()
     if (auth.error !== null) return { error: auth.error }
-    const { user, profile } = auth
+    const { profile } = auth
 
     if (!profile || profile.role === 'user') return { error: 'Brak uprawnień' }
 
     const admin = getSupabaseAdminClient()
+
+    if (profile.role === 'admin') {
+      const { data: post } = await admin.from('board_posts').select('community_id').eq('id', postId).single()
+      if (!post) return { error: 'Post nie istnieje' }
+      if (post.community_id !== profile.community_id) return { error: 'Brak uprawnień do tej wspólnoty' }
+    }
+
     const { error: pinError } = await admin.from('board_posts').update({ pinned: !pinned }).eq('id', postId)
     if (pinError) return { error: pinError.message }
     revalidatePath('/admin/board')
@@ -124,10 +131,13 @@ export async function deleteReply(replyId: string): Promise<{ error?: string }> 
 
     if (!reply) return { error: 'Odpowiedź nie istnieje' }
 
-    const canDelete =
-      reply.author_id === user.id ||
-      profile.role === 'super_admin' ||
-      profile.role === 'admin'
+    let sameCommunity = profile.role === 'super_admin'
+    if (profile.role === 'admin') {
+      const { data: post } = await admin.from('board_posts').select('community_id').eq('id', reply.post_id).single()
+      sameCommunity = !!post && post.community_id === profile.community_id
+    }
+
+    const canDelete = reply.author_id === user.id || sameCommunity
 
     if (!canDelete) return { error: 'Brak uprawnień' }
 

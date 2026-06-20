@@ -154,6 +154,16 @@ export async function updateAnnouncement(
 
     const admin = getSupabaseAdminClient()
 
+    // Sprawdź też ISTNIEJĄCY rekord — admin nie może edytować cudzego ogłoszenia
+    // (target/community_id w formData to dane PRZYCHODZĄCE, nie to co już jest w bazie)
+    if (profile.role === 'admin') {
+      const { data: existing } = await admin.from('announcements').select('target, community_id').eq('id', id).single()
+      if (!existing) return { error: 'Ogłoszenie nie istnieje' }
+      if (existing.target !== 'one' || existing.community_id !== profile.community_id) {
+        return { error: 'Admin może edytować ogłoszenia tylko swojej wspólnoty' }
+      }
+    }
+
     const { error } = await admin
       .from('announcements')
       .update({
@@ -190,8 +200,18 @@ export async function togglePin(announcementId: string, pinned: boolean): Promis
     const auth = await getAuthProfileAction()
     if (auth.error !== null) return { error: auth.error }
     if (auth.profile.role === 'user') return { error: 'Brak uprawnień' }
+    const { profile } = auth
 
     const admin = getSupabaseAdminClient()
+
+    if (profile.role === 'admin') {
+      const { data: existing } = await admin.from('announcements').select('target, community_id').eq('id', announcementId).single()
+      if (!existing) return { error: 'Ogłoszenie nie istnieje' }
+      if (existing.target !== 'one' || existing.community_id !== profile.community_id) {
+        return { error: 'Brak uprawnień do tej wspólnoty' }
+      }
+    }
+
     const { error } = await admin
       .from('announcements')
       .update({ pinned })

@@ -13,6 +13,13 @@ async function getActor() {
   return { user: auth.user, profile: auth.profile }
 }
 
+/** super_admin ma dostęp do wszystkiego; admin tylko do swojej wspólnoty. */
+function guardCommunity(profile: { role: string; community_id: string | null }, communityId: string): string | null {
+  if (profile.role === 'super_admin') return null
+  if (!profile.community_id || profile.community_id !== communityId) return 'Brak uprawnień do tej wspólnoty'
+  return null
+}
+
 // ── UPLOAD ZAŁĄCZNIKA (admin client omija RLS storage) ───────────────────────
 
 export async function uploadVoteAttachment(formData: FormData): Promise<{ error?: string; path?: string }> {
@@ -338,6 +345,12 @@ export async function updateResolutionNumber(voteId: string, resolutionNumber: n
   if (profile.role === 'user') return { error: 'Brak uprawnień' }
 
   const admin = getSupabaseAdminClient()
+
+  const { data: vote } = await admin.from('votes').select('community_id').eq('id', voteId).single()
+  if (!vote) return { error: 'Głosowanie nie istnieje' }
+  const guardErr = guardCommunity(profile, vote.community_id)
+  if (guardErr) return { error: guardErr }
+
   const { error } = await admin.from('votes')
     .update({ resolution_number: resolutionNumber })
     .eq('id', voteId)
@@ -354,6 +367,12 @@ export async function closeVote(voteId: string): Promise<{ error?: string }> {
   const { profile } = await getActor()
   if (profile.role === 'user') return { error: 'Brak uprawnień' }
 
+  const admin = getSupabaseAdminClient()
+  const { data: vote } = await admin.from('votes').select('community_id').eq('id', voteId).single()
+  if (!vote) return { error: 'Głosowanie nie istnieje' }
+  const guardErr = guardCommunity(profile, vote.community_id)
+  if (guardErr) return { error: guardErr }
+
   return closeVoteAndNotify(voteId)
 }
 
@@ -369,8 +388,10 @@ export async function reopenVote(voteId: string): Promise<{ error?: string; dead
 
   const admin = getSupabaseAdminClient()
 
-  const { data: vote } = await admin.from('votes').select('deadline').eq('id', voteId).single()
+  const { data: vote } = await admin.from('votes').select('deadline, community_id').eq('id', voteId).single()
   if (!vote) return { error: 'Głosowanie nie istnieje' }
+  const guardErr = guardCommunity(profile, vote.community_id)
+  if (guardErr) return { error: guardErr }
 
   const deadlinePassed = !!(vote.deadline && new Date(vote.deadline) < new Date())
 
@@ -503,6 +524,12 @@ export async function updateVote(voteId: string, data: {
   }
 
   const admin = getSupabaseAdminClient()
+
+  const { data: vote } = await admin.from('votes').select('community_id').eq('id', voteId).single()
+  if (!vote) return { error: 'Głosowanie nie istnieje' }
+  const guardErr = guardCommunity(profile, vote.community_id)
+  if (guardErr) return { error: guardErr }
+
   const { error } = await admin.from('votes').update({
     title: data.title.trim(),
     description: data.description?.trim() || null,
@@ -521,6 +548,12 @@ export async function deleteVote(voteId: string): Promise<{ error?: string }> {
   if (profile.role === 'user') return { error: 'Brak uprawnień' }
 
   const admin = getSupabaseAdminClient()
+
+  const { data: vote } = await admin.from('votes').select('community_id').eq('id', voteId).single()
+  if (!vote) return { error: 'Głosowanie nie istnieje' }
+  const guardErr = guardCommunity(profile, vote.community_id)
+  if (guardErr) return { error: guardErr }
+
   const { error } = await admin.from('votes').delete().eq('id', voteId)
   if (error) return { error: error.message }
   revalidatePath('/admin/votes')
