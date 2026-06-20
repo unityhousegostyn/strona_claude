@@ -172,6 +172,7 @@ export default function RaportyClient({
   const [calcGoalAmount, setCalcGoalAmount] = useState('500000')
   const [calcGoalYears, setCalcGoalYears] = useState('5')
   const [calcGoalArea, setCalcGoalArea] = useState<string | null>(null)
+  const [calcGoalStartBalance, setCalcGoalStartBalance] = useState<string | null>(null)
 
   // ── Filtered data ────────────────────────────────────────────────────────
   const commApts = apartments.filter(a => a.community_id === filterComm)
@@ -1385,9 +1386,13 @@ export default function RaportyClient({
                         const goalYears = parseFloat(calcGoalYears) || 0
                         const areaDefault = totalAreaM2
                         const area = calcGoalArea !== null && calcGoalArea.trim() !== '' ? (parseFloat(calcGoalArea) || 0) : areaDefault
+                        const startBalanceDefault = renovFundCumulative[renovFundCumulative.length - 1]?.cumulative ?? 0
+                        const startBalance = calcGoalStartBalance !== null && calcGoalStartBalance.trim() !== '' ? (parseFloat(calcGoalStartBalance) || 0) : startBalanceDefault
+                        const remainingNeeded = Math.max(0, goalAmount - startBalance)
+                        const goalAlreadyMet = startBalance >= goalAmount && goalAmount > 0
                         const months = goalYears * 12
-                        const suggestedRate = (area > 0 && months > 0) ? goalAmount / area / months : 0
-                        const annualNeeded = goalYears > 0 ? goalAmount / goalYears : 0
+                        const suggestedRate = (area > 0 && months > 0) ? remainingNeeded / area / months : 0
+                        const annualNeeded = goalYears > 0 ? remainingNeeded / goalYears : 0
                         const monthlyTotal = suggestedRate * area
                         const rateDelta = suggestedRate - currentRate
                         const rateDeltaPct = currentRate > 0 ? Math.round(rateDelta / currentRate * 100) : null
@@ -1395,12 +1400,13 @@ export default function RaportyClient({
                         return (
                           <>
                             <p className="text-xs text-[#115e59] mb-4">
-                              Zakładasz konkretny cel (np. wymiana dachu, elewacja) i liczbę lat, w jakie chcesz go zebrać —
-                              kalkulator liczy, jaka stawka zł/m²/miesiąc jest do tego potrzebna. Przelicza się na żywo.
+                              Zakładasz konkretny cel (np. wymiana dachu, elewacja), liczbę lat, w jakie chcesz go zebrać, i ile
+                              masz już zgromadzone na funduszu — kalkulator liczy, jaka stawka zł/m²/miesiąc jest potrzebna na
+                              <strong> resztę</strong> celu. Przelicza się na żywo.
                             </p>
 
                             {/* Wejście */}
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
                               <div>
                                 <label className="block text-xs text-[#0f766e] mb-1">Cel — kwota do zebrania (zł)</label>
                                 <input
@@ -1412,7 +1418,23 @@ export default function RaportyClient({
                                 <p className="text-[10px] text-[#115e59] mt-0.5">np. koszt planowanego remontu</p>
                               </div>
                               <div>
-                                <label className="block text-xs text-[#0f766e] mb-1">Liczba lat na zebranie celu</label>
+                                <label className="block text-xs text-[#0f766e] mb-1">Już zgromadzone (zł)</label>
+                                <input
+                                  type="number" step="100"
+                                  value={calcGoalStartBalance ?? startBalanceDefault.toFixed(2)}
+                                  onChange={e => setCalcGoalStartBalance(e.target.value)}
+                                  className="input w-full text-sm"
+                                />
+                                {calcGoalStartBalance !== null ? (
+                                  <button onClick={() => setCalcGoalStartBalance(null)} className="text-[10px] text-teal-500 hover:underline mt-0.5">
+                                    ↺ przywróć domyślną ({pln(startBalanceDefault)})
+                                  </button>
+                                ) : (
+                                  <p className="text-[10px] text-[#115e59] mt-0.5">domyślnie: saldo skumulowane funduszu</p>
+                                )}
+                              </div>
+                              <div>
+                                <label className="block text-xs text-[#0f766e] mb-1">Liczba lat na zebranie reszty</label>
                                 <input
                                   type="number" step="1" min="1"
                                   value={calcGoalYears}
@@ -1437,10 +1459,21 @@ export default function RaportyClient({
                               </div>
                             </div>
 
-                            {/* Wzór krok po kroku */}
-                            <p className="text-xs text-[#115e59] mb-4 font-mono bg-[#051210] border border-[#0f2d2a] rounded-lg px-3 py-2 overflow-x-auto whitespace-nowrap">
-                              {pln(goalAmount)} ÷ {goalYears || 0} lat ÷ {area.toFixed(2)} m² ÷ 12 mies. = <span className="text-teal-400 font-semibold">{suggestedRate.toFixed(2)} zł/m²/mies.</span>
-                            </p>
+                            {goalAlreadyMet ? (
+                              <div className="bg-teal-950/30 border border-teal-800/40 rounded-xl p-4 mb-4">
+                                <p className="text-teal-400 font-semibold text-sm">
+                                  ✓ Cel już zrealizowany — zgromadzone środki ({pln(startBalance)}) pokrywają cel ({pln(goalAmount)}).
+                                </p>
+                              </div>
+                            ) : (
+                              <>
+                                {/* Wzór krok po kroku */}
+                                <p className="text-xs text-[#115e59] mb-4 font-mono bg-[#051210] border border-[#0f2d2a] rounded-lg px-3 py-2 overflow-x-auto whitespace-nowrap">
+                                  ({pln(goalAmount)} − {pln(startBalance)}) ÷ {goalYears || 0} lat ÷ {area.toFixed(2)} m² ÷ 12 mies. = <span className="text-teal-400 font-semibold">{suggestedRate.toFixed(2)} zł/m²/mies.</span>
+                                </p>
+                                <p className="text-[10px] text-[#115e59] -mt-3 mb-4">Do zebrania pozostało: {pln(remainingNeeded)}</p>
+                              </>
+                            )}
 
                             {/* Teraz vs proponowana */}
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
