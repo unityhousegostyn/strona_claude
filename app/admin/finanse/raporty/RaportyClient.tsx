@@ -154,14 +154,18 @@ export default function RaportyClient({
   const reportRef = useRef<HTMLDivElement>(null)
 
   // ── Kalkulator stawki funduszu eksploatacyjnego (live) ───────────────────
+  // Pola kosztu/powierzchni: null = "jeszcze nietknięte, pokazuj i licz z domyślnej
+  // wartości" — dzięki temu input jest wypełniony realną liczbą (nie szarym
+  // placeholderem) i zostaje edytowalny, a po zmianie roku/wspólnoty domyślna
+  // wartość aktualizuje się sama, dopóki użytkownik nie wpisze własnej.
   const [calcBufferPct, setCalcBufferPct] = useState('0')
-  const [calcOverrideCost, setCalcOverrideCost] = useState('')
-  const [calcOverrideArea, setCalcOverrideArea] = useState('')
+  const [calcOverrideCost, setCalcOverrideCost] = useState<string | null>(null)
+  const [calcOverrideArea, setCalcOverrideArea] = useState<string | null>(null)
 
   // ── Kalkulator stawki funduszu remontowego (live) ────────────────────────
   const [calcRenovBufferPct, setCalcRenovBufferPct] = useState('0')
-  const [calcRenovOverrideCost, setCalcRenovOverrideCost] = useState('')
-  const [calcRenovOverrideArea, setCalcRenovOverrideArea] = useState('')
+  const [calcRenovOverrideCost, setCalcRenovOverrideCost] = useState<string | null>(null)
+  const [calcRenovOverrideArea, setCalcRenovOverrideArea] = useState<string | null>(null)
 
   // ── Filtered data ────────────────────────────────────────────────────────
   const commApts = apartments.filter(a => a.community_id === filterComm)
@@ -326,6 +330,11 @@ export default function RaportyClient({
     .filter(([cat]) => !SEPARATE_BUDGET_LINES.includes(cat))
     .reduce((s, [, v]) => s + v, 0)
   const totalAreaM2 = commApts.reduce((s, apt) => s + apt.area_m2, 0)
+  const avgAreaM2 = commApts.length > 0 ? totalAreaM2 / commApts.length : 0
+
+  // Stawka faktycznie obowiązująca DZIŚ (nie zależy od wybranego filtru roku w
+  // raporcie) — do porównania "teraz vs proponowana" w kalkulatorach niżej.
+  const currentRateRow = getActiveRate(rates, filterComm, currentYear, nowDate.getMonth() + 1)
 
   const executionByCategory: Record<string, number> = {
     fundusz_eksploatacyjny: operatingExecution,
@@ -1043,20 +1052,28 @@ export default function RaportyClient({
                         </ReportSection>
 
                         {(() => {
-                          const baseCost = calcOverrideCost.trim() !== '' ? (parseFloat(calcOverrideCost) || 0) : operatingExecutionPrevYear
-                          const area = calcOverrideArea.trim() !== '' ? (parseFloat(calcOverrideArea) || 0) : totalAreaM2
+                          const costDefault = operatingExecutionPrevYear
+                          const areaDefault = totalAreaM2
+                          const baseCost = calcOverrideCost !== null && calcOverrideCost.trim() !== '' ? (parseFloat(calcOverrideCost) || 0) : costDefault
+                          const area = calcOverrideArea !== null && calcOverrideArea.trim() !== '' ? (parseFloat(calcOverrideArea) || 0) : areaDefault
                           const buffer = parseFloat(calcBufferPct) || 0
-                          const adjustedCost = baseCost * (1 + buffer / 100)
+                          const multiplier = 1 + buffer / 100
+                          const adjustedCost = baseCost * multiplier
                           const suggestedRate = area > 0 ? adjustedCost / area / 12 : 0
                           const annualAtSuggestedRate = suggestedRate * area * 12
+                          const currentRate = currentRateRow?.operating_rate_m2 ?? 0
+                          const rateDelta = suggestedRate - currentRate
+                          const rateDeltaPct = currentRate > 0 ? Math.round(rateDelta / currentRate * 100) : null
 
                           return (
                             <ReportSection title="🧮 Kalkulator stawki funduszu eksploatacyjnego">
                               <p className="text-xs text-[#115e59] mb-4">
                                 Wylicza proponowaną stawkę zł/m²/miesiąc na podstawie kosztów funduszu eksploatacyjnego
-                                <strong> bez śmieci, wody i wynagrodzenia zarządcy</strong> (te mają własne stawki) — domyślnie z roku {filterYear - 1},
-                                z możliwością korekty. Przelicza się na żywo.
+                                <strong> bez śmieci, wody i wynagrodzenia zarządcy</strong> (te mają własne stawki). Pola poniżej są
+                                wypełnione domyślnymi, realnymi liczbami z roku {filterYear - 1} — możesz je dowolnie nadpisać. Przelicza się na żywo.
                               </p>
+
+                              {/* Wejście */}
                               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
                                 <div>
                                   <label className="block text-xs text-[#0f766e] mb-1">
@@ -1064,27 +1081,29 @@ export default function RaportyClient({
                                   </label>
                                   <input
                                     type="number" step="0.01"
-                                    value={calcOverrideCost}
+                                    value={calcOverrideCost ?? costDefault.toFixed(2)}
                                     onChange={e => setCalcOverrideCost(e.target.value)}
-                                    placeholder={operatingExecutionPrevYear.toFixed(2)}
                                     className="input w-full text-sm"
                                   />
-                                  <p className="text-[10px] text-[#115e59] mt-0.5">
-                                    domyślnie: rzeczywiste wydatki {filterYear - 1} = {pln(operatingExecutionPrevYear)}
-                                  </p>
+                                  {calcOverrideCost !== null && (
+                                    <button onClick={() => setCalcOverrideCost(null)} className="text-[10px] text-teal-500 hover:underline mt-0.5">
+                                      ↺ przywróć domyślną ({pln(costDefault)})
+                                    </button>
+                                  )}
                                 </div>
                                 <div>
                                   <label className="block text-xs text-[#0f766e] mb-1">Łączna powierzchnia lokali (m²)</label>
                                   <input
                                     type="number" step="0.01"
-                                    value={calcOverrideArea}
+                                    value={calcOverrideArea ?? areaDefault.toFixed(2)}
                                     onChange={e => setCalcOverrideArea(e.target.value)}
-                                    placeholder={totalAreaM2.toFixed(2)}
                                     className="input w-full text-sm"
                                   />
-                                  <p className="text-[10px] text-[#115e59] mt-0.5">
-                                    domyślnie: aktywne lokale = {totalAreaM2.toFixed(2)} m²
-                                  </p>
+                                  {calcOverrideArea !== null && (
+                                    <button onClick={() => setCalcOverrideArea(null)} className="text-[10px] text-teal-500 hover:underline mt-0.5">
+                                      ↺ przywróć domyślną ({areaDefault.toFixed(2)} m²)
+                                    </button>
+                                  )}
                                 </div>
                                 <div>
                                   <label className="block text-xs text-[#0f766e] mb-1">Bufor / korekta (%)</label>
@@ -1094,27 +1113,46 @@ export default function RaportyClient({
                                     onChange={e => setCalcBufferPct(e.target.value)}
                                     className="input w-full text-sm"
                                   />
-                                  <p className="text-[10px] text-[#115e59] mt-0.5">
-                                    np. +10 na wzrost cen, −5 na oszczędności
-                                  </p>
+                                  <p className="text-[10px] text-[#115e59] mt-0.5">np. +10 na wzrost cen, −5 na oszczędności</p>
                                 </div>
                               </div>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                              {/* Wzór krok po kroku */}
+                              <p className="text-xs text-[#115e59] mb-4 font-mono bg-[#051210] border border-[#0f2d2a] rounded-lg px-3 py-2 overflow-x-auto whitespace-nowrap">
+                                {pln(baseCost)} × {multiplier.toFixed(2)} ÷ {area.toFixed(2)} m² ÷ 12 mies. = <span className="text-teal-400 font-semibold">{suggestedRate.toFixed(2)} zł/m²/mies.</span>
+                              </p>
+
+                              {/* Teraz vs proponowana */}
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                                <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-4">
+                                  <p className="text-xs text-[#115e59] mb-1">Aktualna stawka</p>
+                                  <p className="text-2xl font-bold text-[#f0fdfa] tabular-nums">{currentRate.toFixed(2)} zł/m²</p>
+                                  <p className="text-xs text-[#115e59] mt-1">obowiązuje dziś w systemie</p>
+                                </div>
                                 <div className="bg-teal-950/30 border border-teal-800/40 rounded-xl p-4">
                                   <p className="text-xs text-[#115e59] mb-1">Proponowana stawka</p>
-                                  <p className="text-2xl font-bold text-teal-400 tabular-nums">
-                                    {suggestedRate.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł/m²
+                                  <p className="text-2xl font-bold text-teal-400 tabular-nums">{suggestedRate.toFixed(2)} zł/m²</p>
+                                  <p className={`text-xs mt-1 font-medium ${rateDelta > 0 ? 'text-red-400' : rateDelta < 0 ? 'text-teal-400' : 'text-[#115e59]'}`}>
+                                    {rateDelta === 0 ? 'bez zmiany' : `${rateDelta > 0 ? '+' : ''}${rateDelta.toFixed(2)} zł${rateDeltaPct !== null ? ` (${rateDelta > 0 ? '+' : ''}${rateDeltaPct}%)` : ''}`}
                                   </p>
-                                  <p className="text-xs text-[#115e59] mt-1">miesięcznie</p>
                                 </div>
                                 <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-4">
-                                  <p className="text-xs text-[#115e59] mb-1">Roczny budżet przy tej stawce</p>
+                                  <p className="text-xs text-[#115e59] mb-1">Roczny budżet przy nowej stawce</p>
                                   <p className="text-2xl font-bold text-[#f0fdfa] tabular-nums">{pln(annualAtSuggestedRate)}</p>
-                                  <p className="text-xs text-[#115e59] mt-1">
-                                    = stawka × {area.toFixed(2)} m² × 12 mies. {buffer !== 0 ? `(koszt bazowy + ${buffer > 0 ? '+' : ''}${buffer}%)` : ''}
-                                  </p>
+                                  <p className="text-xs text-[#115e59] mt-1">{area.toFixed(2)} m² × 12 mies.</p>
                                 </div>
                               </div>
+
+                              {/* Przykład dla lokalu */}
+                              {avgAreaM2 > 0 && (
+                                <div className="bg-[#051210] border border-[#0f2d2a] rounded-lg px-4 py-3 text-sm">
+                                  <p className="text-[#99f6e4]">
+                                    Dla przykładowego lokalu <strong>{avgAreaM2.toFixed(1)} m²</strong> (średnia w tej wspólnocie):
+                                    teraz <strong>{(currentRate * avgAreaM2).toFixed(2)} zł/mies.</strong> → po zmianie <strong className="text-teal-400">{(suggestedRate * avgAreaM2).toFixed(2)} zł/mies.</strong>
+                                    {' '}({((suggestedRate - currentRate) * avgAreaM2) >= 0 ? '+' : ''}{((suggestedRate - currentRate) * avgAreaM2).toFixed(2)} zł)
+                                  </p>
+                                </div>
+                              )}
                             </ReportSection>
                           )
                         })()}
@@ -1208,13 +1246,18 @@ export default function RaportyClient({
                 </ReportSection>
 
                 {(() => {
-                  const renovBaseCostDefault = renovFundRows.find(r => r.year === filterYear - 1)?.wydatki ?? 0
-                  const baseCost = calcRenovOverrideCost.trim() !== '' ? (parseFloat(calcRenovOverrideCost) || 0) : renovBaseCostDefault
-                  const area = calcRenovOverrideArea.trim() !== '' ? (parseFloat(calcRenovOverrideArea) || 0) : totalAreaM2
+                  const costDefault = renovFundRows.find(r => r.year === filterYear - 1)?.wydatki ?? 0
+                  const areaDefault = totalAreaM2
+                  const baseCost = calcRenovOverrideCost !== null && calcRenovOverrideCost.trim() !== '' ? (parseFloat(calcRenovOverrideCost) || 0) : costDefault
+                  const area = calcRenovOverrideArea !== null && calcRenovOverrideArea.trim() !== '' ? (parseFloat(calcRenovOverrideArea) || 0) : areaDefault
                   const buffer = parseFloat(calcRenovBufferPct) || 0
-                  const adjustedCost = baseCost * (1 + buffer / 100)
+                  const multiplier = 1 + buffer / 100
+                  const adjustedCost = baseCost * multiplier
                   const suggestedRate = area > 0 ? adjustedCost / area / 12 : 0
                   const annualAtSuggestedRate = suggestedRate * area * 12
+                  const currentRate = currentRateRow?.renovation_rate_m2 ?? 0
+                  const rateDelta = suggestedRate - currentRate
+                  const rateDeltaPct = currentRate > 0 ? Math.round(rateDelta / currentRate * 100) : null
 
                   return (
                     <ReportSection title="🧮 Kalkulator stawki funduszu remontowego">
@@ -1224,6 +1267,8 @@ export default function RaportyClient({
                         powinien <strong>budować rezerwę</strong> na większe remonty, nie tylko pokrywać wydatki z ostatniego roku —
                         nadpisz kwotę bazową, jeśli planujesz konkretny większy remont rozłożony na kilka lat. Przelicza się na żywo.
                       </p>
+
+                      {/* Wejście */}
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
                         <div>
                           <label className="block text-xs text-[#0f766e] mb-1">
@@ -1231,27 +1276,29 @@ export default function RaportyClient({
                           </label>
                           <input
                             type="number" step="0.01"
-                            value={calcRenovOverrideCost}
+                            value={calcRenovOverrideCost ?? costDefault.toFixed(2)}
                             onChange={e => setCalcRenovOverrideCost(e.target.value)}
-                            placeholder={renovBaseCostDefault.toFixed(2)}
                             className="input w-full text-sm"
                           />
-                          <p className="text-[10px] text-[#115e59] mt-0.5">
-                            domyślnie: wydatki na remonty {filterYear - 1} = {pln(renovBaseCostDefault)}
-                          </p>
+                          {calcRenovOverrideCost !== null && (
+                            <button onClick={() => setCalcRenovOverrideCost(null)} className="text-[10px] text-teal-500 hover:underline mt-0.5">
+                              ↺ przywróć domyślną ({pln(costDefault)})
+                            </button>
+                          )}
                         </div>
                         <div>
                           <label className="block text-xs text-[#0f766e] mb-1">Łączna powierzchnia lokali (m²)</label>
                           <input
                             type="number" step="0.01"
-                            value={calcRenovOverrideArea}
+                            value={calcRenovOverrideArea ?? areaDefault.toFixed(2)}
                             onChange={e => setCalcRenovOverrideArea(e.target.value)}
-                            placeholder={totalAreaM2.toFixed(2)}
                             className="input w-full text-sm"
                           />
-                          <p className="text-[10px] text-[#115e59] mt-0.5">
-                            domyślnie: aktywne lokale = {totalAreaM2.toFixed(2)} m²
-                          </p>
+                          {calcRenovOverrideArea !== null && (
+                            <button onClick={() => setCalcRenovOverrideArea(null)} className="text-[10px] text-teal-500 hover:underline mt-0.5">
+                              ↺ przywróć domyślną ({areaDefault.toFixed(2)} m²)
+                            </button>
+                          )}
                         </div>
                         <div>
                           <label className="block text-xs text-[#0f766e] mb-1">Bufor / korekta (%)</label>
@@ -1261,27 +1308,46 @@ export default function RaportyClient({
                             onChange={e => setCalcRenovBufferPct(e.target.value)}
                             className="input w-full text-sm"
                           />
-                          <p className="text-[10px] text-[#115e59] mt-0.5">
-                            np. +50 żeby szybciej budować rezerwę
-                          </p>
+                          <p className="text-[10px] text-[#115e59] mt-0.5">np. +50 żeby szybciej budować rezerwę</p>
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                      {/* Wzór krok po kroku */}
+                      <p className="text-xs text-[#115e59] mb-4 font-mono bg-[#051210] border border-[#0f2d2a] rounded-lg px-3 py-2 overflow-x-auto whitespace-nowrap">
+                        {pln(baseCost)} × {multiplier.toFixed(2)} ÷ {area.toFixed(2)} m² ÷ 12 mies. = <span className="text-teal-400 font-semibold">{suggestedRate.toFixed(2)} zł/m²/mies.</span>
+                      </p>
+
+                      {/* Teraz vs proponowana */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                        <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-4">
+                          <p className="text-xs text-[#115e59] mb-1">Aktualna stawka</p>
+                          <p className="text-2xl font-bold text-[#f0fdfa] tabular-nums">{currentRate.toFixed(2)} zł/m²</p>
+                          <p className="text-xs text-[#115e59] mt-1">obowiązuje dziś w systemie</p>
+                        </div>
                         <div className="bg-teal-950/30 border border-teal-800/40 rounded-xl p-4">
                           <p className="text-xs text-[#115e59] mb-1">Proponowana stawka</p>
-                          <p className="text-2xl font-bold text-teal-400 tabular-nums">
-                            {suggestedRate.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł/m²
+                          <p className="text-2xl font-bold text-teal-400 tabular-nums">{suggestedRate.toFixed(2)} zł/m²</p>
+                          <p className={`text-xs mt-1 font-medium ${rateDelta > 0 ? 'text-red-400' : rateDelta < 0 ? 'text-teal-400' : 'text-[#115e59]'}`}>
+                            {rateDelta === 0 ? 'bez zmiany' : `${rateDelta > 0 ? '+' : ''}${rateDelta.toFixed(2)} zł${rateDeltaPct !== null ? ` (${rateDelta > 0 ? '+' : ''}${rateDeltaPct}%)` : ''}`}
                           </p>
-                          <p className="text-xs text-[#115e59] mt-1">miesięcznie</p>
                         </div>
                         <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-4">
-                          <p className="text-xs text-[#115e59] mb-1">Roczny budżet przy tej stawce</p>
+                          <p className="text-xs text-[#115e59] mb-1">Roczny budżet przy nowej stawce</p>
                           <p className="text-2xl font-bold text-[#f0fdfa] tabular-nums">{pln(annualAtSuggestedRate)}</p>
-                          <p className="text-xs text-[#115e59] mt-1">
-                            = stawka × {area.toFixed(2)} m² × 12 mies. {buffer !== 0 ? `(koszt bazowy ${buffer > 0 ? '+' : ''}${buffer}%)` : ''}
-                          </p>
+                          <p className="text-xs text-[#115e59] mt-1">{area.toFixed(2)} m² × 12 mies.</p>
                         </div>
                       </div>
+
+                      {/* Przykład dla lokalu */}
+                      {avgAreaM2 > 0 && (
+                        <div className="bg-[#051210] border border-[#0f2d2a] rounded-lg px-4 py-3 text-sm">
+                          <p className="text-[#99f6e4]">
+                            Dla przykładowego lokalu <strong>{avgAreaM2.toFixed(1)} m²</strong> (średnia w tej wspólnocie):
+                            teraz <strong>{(currentRate * avgAreaM2).toFixed(2)} zł/mies.</strong> → po zmianie <strong className="text-teal-400">{(suggestedRate * avgAreaM2).toFixed(2)} zł/mies.</strong>
+                            {' '}({((suggestedRate - currentRate) * avgAreaM2) >= 0 ? '+' : ''}{((suggestedRate - currentRate) * avgAreaM2).toFixed(2)} zł)
+                          </p>
+                        </div>
+                      )}
                     </ReportSection>
                   )
                 })()}
