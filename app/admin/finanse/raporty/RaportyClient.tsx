@@ -269,15 +269,31 @@ export default function RaportyClient({
   // module Koszty, NIE kwoty naliczone mieszkańcom — to są dwie różne rzeczy:
   // zaliczka/ryczałt to tylko sposób finansowania, a wykonanie planu liczy się
   // z rzeczywistych wydatków). Fundusz remontowy wykluczony — osobny fundusz.
-  const isExploitation = (e: { is_renovation_fund?: boolean | null; category: string }) =>
-    !(e.is_renovation_fund || e.category === 'fundusz_remontowy')
+  // is_renovation_fund bywa w danych zapisany jako string "true"/"false" (np. po
+  // imporcie z Excela) — string "false" jest w JS truthy, więc samo `||
+  // e.is_renovation_fund` potrafiło wtedy odfiltrować WSZYSTKO. Liczymy się też
+  // z tym, że category może mieć spacje na końcu albo (przy starych/importowanych
+  // wpisach) być zapisana jako pełna etykieta ("Woda / kanalizacja") zamiast slugu.
+  const isRenovationFund = (v: unknown) => v === true || v === 'true' || v === 1 || v === '1'
+  const LABEL_TO_SLUG: Record<string, string> = Object.fromEntries(
+    Object.entries(EXP_CAT_LABELS).map(([slug, label]) => [label.toLowerCase(), slug])
+  )
+  const normalizeCategory = (raw: string | null | undefined): string => {
+    const c = (raw ?? '').trim()
+    if (EXP_CAT_LABELS[c]) return c
+    return LABEL_TO_SLUG[c.toLowerCase()] ?? c
+  }
+  const isExploitation = (e: { is_renovation_fund?: boolean | string | number | null; category: string }) =>
+    !(isRenovationFund(e.is_renovation_fund) || normalizeCategory(e.category) === 'fundusz_remontowy')
   const actualExpByCategoryPrevYear: Record<string, number> = {}
   for (const e of expenses.filter(e => e.community_id === filterComm && e.year === filterYear - 1 && isExploitation(e))) {
-    actualExpByCategoryPrevYear[e.category] = (actualExpByCategoryPrevYear[e.category] ?? 0) + e.amount
+    const cat = normalizeCategory(e.category)
+    actualExpByCategoryPrevYear[cat] = (actualExpByCategoryPrevYear[cat] ?? 0) + e.amount
   }
   const actualExpByCategoryThisYear: Record<string, number> = {}
   for (const e of commExpenses.filter(e => e.month <= maxMonth && isExploitation(e))) {
-    actualExpByCategoryThisYear[e.category] = (actualExpByCategoryThisYear[e.category] ?? 0) + e.amount
+    const cat = normalizeCategory(e.category)
+    actualExpByCategoryThisYear[cat] = (actualExpByCategoryThisYear[cat] ?? 0) + e.amount
   }
   const totalActualPrevYear = Object.values(actualExpByCategoryPrevYear).reduce((s, v) => s + v, 0)
   const totalActualThisYear = Object.values(actualExpByCategoryThisYear).reduce((s, v) => s + v, 0)
@@ -304,7 +320,7 @@ export default function RaportyClient({
         }
       }
     }
-    const wydatki = expenses.filter(e => e.community_id === filterComm && e.year === year && (e.is_renovation_fund || e.category === 'fundusz_remontowy')).reduce((s, e) => s + e.amount, 0)
+    const wydatki = expenses.filter(e => e.community_id === filterComm && e.year === year && (isRenovationFund(e.is_renovation_fund) || normalizeCategory(e.category) === 'fundusz_remontowy')).reduce((s, e) => s + e.amount, 0)
     return { year, naliczenia, wydatki, saldo: naliczenia - wydatki }
   })
   let cumulative = 0
