@@ -93,6 +93,42 @@ function calcMonthlyCharge(apt: Apartment, rate: Rate): number {
   return water + garbage + renovation + operating + manager
 }
 
+// Woda dla modeli 'meter' i 'zaliczka' nie da się policzyć miesiąc po miesiącu
+// w izolacji (patrz lib/settlementCalc.ts — 'zaliczka' liczy narastająco:
+// najpierw pokrywane są zaległe i bieżące opłaty stałe, nadwyżka idzie na
+// wodę), więc liczymy ją osobno, per lokal, przez wszystkie miesiące naraz.
+// Dla miesięcy z modelem 'ryczalt' funkcja nie dodaje nic — ten model jest
+// już liczony (bez zmian) w istniejących pętlach miesiąc-po-miesiącu.
+function calcWaterThroughMonth(
+  apt: Apartment, aptEntries: Entry[], allRates: Rate[], communityId: string, year: number, maxMonth: number
+): number {
+  let cumFixedDue = 0, cumPaid = 0, zaliczkaWater = 0
+  let meterWater = 0
+  for (let m = 1; m <= maxMonth; m++) {
+    const rate = getActiveRate(allRates, communityId, year, m)
+    if (!rate) continue
+    const entry = aptEntries.find(e => e.month === m) ?? null
+
+    if (rate.water_billing_type === 'meter') {
+      meterWater += (entry?.water_m3 ?? 0) * rate.water_price_m3
+      continue
+    }
+    if (rate.water_billing_type !== 'zaliczka') continue // ryczałt — liczony gdzie indziej
+
+    const renovation = rate.renovation_rate_m2 * apt.area_m2
+    const operating  = rate.operating_rate_m2  * apt.area_m2
+    const manager    = rate.manager_fee_type === 'per_m2' ? rate.manager_fee_value * apt.area_m2 : rate.manager_fee_value
+    const garbage    = rate.garbage_per_person * apt.persons_count
+    const correction = entry?.water_correction ?? 0
+    const paid       = entry?.paid ?? 0
+
+    cumFixedDue += renovation + operating + manager + garbage + correction
+    cumPaid     += paid
+    zaliczkaWater = Math.max(0, cumPaid - cumFixedDue)
+  }
+  return meterWater + zaliczkaWater
+}
+
 // ── Report types ───────────────────────────────────────────────────────────────
 
 type ReportType = 'sprawozdanie' | 'rozliczenie' | 'zadluzenia' | 'plan' | 'remontowy' | 'faktury'
@@ -171,6 +207,9 @@ export default function RaportyClient({
       chargeBreakdown.water   += water
       chargeBreakdown.garbage += rate.garbage_per_person * apt.persons_count
     }
+    // Woda dla modeli 'meter' i 'zaliczka' (patrz komentarz przy calcWaterThroughMonth)
+    const aptEntriesForWater = commEntries.filter(e => e.apartment_id === apt.id)
+    chargeBreakdown.water += calcWaterThroughMonth(apt, aptEntriesForWater, rates, filterComm, filterYear, maxMonth)
   }
   const totalChargeBD = Object.values(chargeBreakdown).reduce((s, v) => s + v, 0)
 
@@ -185,6 +224,7 @@ export default function RaportyClient({
       const rate = getActiveRate(rates, filterComm, filterYear, m)
       if (rate) charged += calcMonthlyCharge(apt, rate)
     }
+    charged += calcWaterThroughMonth(apt, aptEntries, rates, filterComm, filterYear, maxMonth)
     return { apt, paid, charged, balance: paid - charged, months: aptEntries.length }
   }).sort((a, b) => a.balance - b.balance)
 
@@ -200,6 +240,11 @@ export default function RaportyClient({
   // (stawka eksploatacyjna × m² + wynagrodzenie zarządcy + woda + śmieci) × 12 miesięcy (prognoza na cały rok).
   // Fundusz remontowy jest wykluczony — to osobny fundusz celowy.
   // Wykonanie = te same składniki naliczone do maxMonth — to dokładnie chargeBreakdown bez renovation.
+  // Uwaga: dla modeli 'meter' i 'zaliczka' woda w PLANIE celowo zostaje 0/— —
+  // nie da się jej zaplanować z wyprzedzeniem (zależy od realnego zużycia /
+  // samodzielnej kalkulacji mieszkańca), więc tu nie ma czego "naprawiać".
+  // W WYKONANIU (chargeBreakdown, niżej) woda dla tych modeli jest liczona
+  // poprawnie — patrz calcWaterThroughMonth.
   const planBreakdown = { operating: 0, manager: 0, water: 0, garbage: 0 }
   for (const apt of commApts) {
     for (let m = 1; m <= 12; m++) {
