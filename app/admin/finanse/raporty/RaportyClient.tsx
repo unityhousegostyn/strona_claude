@@ -298,8 +298,20 @@ export default function RaportyClient({
   const totalActualPrevYear = Object.values(actualExpByCategoryPrevYear).reduce((s, v) => s + v, 0)
   const totalActualThisYear = Object.values(actualExpByCategoryThisYear).reduce((s, v) => s + v, 0)
 
+  // "Fundusz eksploatacyjny" w planie to budżet ogólny (ze stawki × m²), który
+  // pokrywa WSZYSTKIE drobne koszty operacyjne — w realnych fakturach te koszty
+  // są rozbite na konkretne kategorie (zarząd, sprzątanie, energia, opłaty
+  // bankowe, przeglądy budynków, ubezpieczenie, koszty administracji, inne...),
+  // a nie zaksięgowane pod jedną kategorią "fundusz_eksploatacyjny" — więc jego
+  // "Wykonanie" to suma WSZYSTKIEGO oprócz zarządcy/wody/śmieci (te trzy mają
+  // własne, odrębne linie budżetu).
+  const SEPARATE_BUDGET_LINES = ['wynagrodzenie_zarządcy', 'woda', 'śmieci']
+  const operatingExecution = Object.entries(actualExpByCategoryThisYear)
+    .filter(([cat]) => !SEPARATE_BUDGET_LINES.includes(cat))
+    .reduce((s, [, v]) => s + v, 0)
+
   const executionByCategory: Record<string, number> = {
-    fundusz_eksploatacyjny: actualExpByCategoryThisYear['fundusz_eksploatacyjny'] ?? 0,
+    fundusz_eksploatacyjny: operatingExecution,
     wynagrodzenie_zarządcy: actualExpByCategoryThisYear['wynagrodzenie_zarządcy'] ?? 0,
     woda: actualExpByCategoryThisYear['woda'] ?? 0,
     śmieci: actualExpByCategoryThisYear['śmieci'] ?? 0,
@@ -971,7 +983,7 @@ export default function RaportyClient({
                             formula={`(stawka funduszu eksploatacyjnego × m² + wynagrodzenie zarządcy + woda + śmieci) × 12 miesięcy (rok ${filterYear})`} />
                           <KpiCard label={`Wykonanie do ${['','Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'][maxMonth]}`} value={pln(totalExecutionToDate)} color="red"
                             note="rzeczywiste wydatki z faktur (moduł Koszty)"
-                            formula={`suma faktur z modułu Koszty w kategoriach: fundusz eksploatacyjny, zarządca, woda, śmieci — styczeń–${['','styczeń','luty','marzec','kwiecień','maj','czerwiec','lipiec','sierpień','wrzesień','październik','listopad','grudzień'][maxMonth]} ${filterYear}`} />
+                            formula={`suma faktur z modułu Koszty: zarządca, woda, śmieci jako własne linie + wszystkie pozostałe kategorie (zarząd, sprzątanie, energia, opłaty bankowe itd.) jako fundusz eksploatacyjny — styczeń–${['','styczeń','luty','marzec','kwiecień','maj','czerwiec','lipiec','sierpień','wrzesień','październik','listopad','grudzień'][maxMonth]} ${filterYear}`} />
                           <KpiCard label="Odchylenie" value={pln(Math.abs(diff))} color={diff <= 0 ? 'green' : 'red'}
                             note={diff <= 0 ? 'W planie / oszczędność' : 'Przekroczenie planu'}
                             formula="Wykonanie (rzeczywiste wydatki) − Plan (ujemne = oszczędność)" />
