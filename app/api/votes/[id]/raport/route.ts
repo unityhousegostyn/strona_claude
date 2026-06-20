@@ -28,7 +28,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       id, title, description, status, voting_method, created_at, closed_at, deadline,
       resolution_number, community_id,
       community:communities(name, address),
-      choices:vote_choices(id, choice, share_value, apartment_id, user_id, created_at)
+      choices:vote_choices(id, choice, share_value, apartment_id, user_id, created_at, cast_by_admin)
     `)
     .eq('id', id)
     .single()
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   // Pobierz lokale — najpierw przez community_id, fallback przez IDs z głosów
   let { data: apartments, error: aptErr } = await admin
     .from('settlement_apartments')
-    .select('id, number, share_numerator, share_denominator, active')
+    .select('id, number, owner_name, share_numerator, share_denominator, active')
     .eq('community_id', vote.community_id)
     .order('number')
 
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   if ((!apartments || apartments.length === 0) && aptIdsFromChoices.length > 0) {
     const { data: aptByIds } = await admin
       .from('settlement_apartments')
-      .select('id, number, share_numerator, share_denominator, active, community_id')
+      .select('id, number, owner_name, share_numerator, share_denominator, active, community_id')
       .in('id', aptIdsFromChoices)
       .order('number')
     apartments = aptByIds
@@ -103,8 +103,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const share = apt.share_numerator && apt.share_denominator
       ? `${(apt.share_numerator / apt.share_denominator * 100).toFixed(4)}%`
       : '—'
+    // Głos wprowadzony przez super_admina w imieniu mieszkańca (np. z papierowej
+    // karty) — zawsze pokazujemy nazwisko właściciela lokalu, NIGDY nazwiska
+    // super_admina, nawet jeśli technicznie zapisał się jako user_id (brak
+    // przypisanego konta do lokalu).
     const p = c ? profileMap[c.user_id] : null
-    const voterName = p?.full_name ?? p?.email ?? '—'
+    const voterName = c?.cast_by_admin
+      ? `${apt.owner_name ?? '—'} (głos wprowadzony przez administratora)`
+      : (p?.full_name ?? p?.email ?? '—')
     const badgeStyle = c
       ? c.choice === 'yes'
         ? 'background:#dcfce7;color:#166534;font-weight:bold;padding:1pt 5pt;border-radius:3pt'
