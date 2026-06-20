@@ -158,6 +158,11 @@ export default function RaportyClient({
   const [calcOverrideCost, setCalcOverrideCost] = useState('')
   const [calcOverrideArea, setCalcOverrideArea] = useState('')
 
+  // ── Kalkulator stawki funduszu remontowego (live) ────────────────────────
+  const [calcRenovBufferPct, setCalcRenovBufferPct] = useState('0')
+  const [calcRenovOverrideCost, setCalcRenovOverrideCost] = useState('')
+  const [calcRenovOverrideArea, setCalcRenovOverrideArea] = useState('')
+
   // ── Filtered data ────────────────────────────────────────────────────────
   const commApts = apartments.filter(a => a.community_id === filterComm)
   const commEntries = entries.filter(e => e.community_id === filterComm && e.year === filterYear)
@@ -1201,6 +1206,85 @@ export default function RaportyClient({
                       </tbody>
                     </table></div>}
                 </ReportSection>
+
+                {(() => {
+                  const renovBaseCostDefault = renovFundRows.find(r => r.year === filterYear - 1)?.wydatki ?? 0
+                  const baseCost = calcRenovOverrideCost.trim() !== '' ? (parseFloat(calcRenovOverrideCost) || 0) : renovBaseCostDefault
+                  const area = calcRenovOverrideArea.trim() !== '' ? (parseFloat(calcRenovOverrideArea) || 0) : totalAreaM2
+                  const buffer = parseFloat(calcRenovBufferPct) || 0
+                  const adjustedCost = baseCost * (1 + buffer / 100)
+                  const suggestedRate = area > 0 ? adjustedCost / area / 12 : 0
+                  const annualAtSuggestedRate = suggestedRate * area * 12
+
+                  return (
+                    <ReportSection title="🧮 Kalkulator stawki funduszu remontowego">
+                      <p className="text-xs text-[#115e59] mb-4">
+                        Wylicza proponowaną stawkę zł/m²/miesiąc na podstawie wydatków na remonty z roku {filterYear - 1}
+                        (kategoria „Remonty / naprawy" lub oznaczone jako fundusz remontowy). Pamiętaj, że ten fundusz zwykle
+                        powinien <strong>budować rezerwę</strong> na większe remonty, nie tylko pokrywać wydatki z ostatniego roku —
+                        nadpisz kwotę bazową, jeśli planujesz konkretny większy remont rozłożony na kilka lat. Przelicza się na żywo.
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                        <div>
+                          <label className="block text-xs text-[#0f766e] mb-1">
+                            Koszty bazowe — remonty {filterYear - 1} (zł)
+                          </label>
+                          <input
+                            type="number" step="0.01"
+                            value={calcRenovOverrideCost}
+                            onChange={e => setCalcRenovOverrideCost(e.target.value)}
+                            placeholder={renovBaseCostDefault.toFixed(2)}
+                            className="input w-full text-sm"
+                          />
+                          <p className="text-[10px] text-[#115e59] mt-0.5">
+                            domyślnie: wydatki na remonty {filterYear - 1} = {pln(renovBaseCostDefault)}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-[#0f766e] mb-1">Łączna powierzchnia lokali (m²)</label>
+                          <input
+                            type="number" step="0.01"
+                            value={calcRenovOverrideArea}
+                            onChange={e => setCalcRenovOverrideArea(e.target.value)}
+                            placeholder={totalAreaM2.toFixed(2)}
+                            className="input w-full text-sm"
+                          />
+                          <p className="text-[10px] text-[#115e59] mt-0.5">
+                            domyślnie: aktywne lokale = {totalAreaM2.toFixed(2)} m²
+                          </p>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-[#0f766e] mb-1">Bufor / korekta (%)</label>
+                          <input
+                            type="number" step="1"
+                            value={calcRenovBufferPct}
+                            onChange={e => setCalcRenovBufferPct(e.target.value)}
+                            className="input w-full text-sm"
+                          />
+                          <p className="text-[10px] text-[#115e59] mt-0.5">
+                            np. +50 żeby szybciej budować rezerwę
+                          </p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="bg-teal-950/30 border border-teal-800/40 rounded-xl p-4">
+                          <p className="text-xs text-[#115e59] mb-1">Proponowana stawka</p>
+                          <p className="text-2xl font-bold text-teal-400 tabular-nums">
+                            {suggestedRate.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł/m²
+                          </p>
+                          <p className="text-xs text-[#115e59] mt-1">miesięcznie</p>
+                        </div>
+                        <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-4">
+                          <p className="text-xs text-[#115e59] mb-1">Roczny budżet przy tej stawce</p>
+                          <p className="text-2xl font-bold text-[#f0fdfa] tabular-nums">{pln(annualAtSuggestedRate)}</p>
+                          <p className="text-xs text-[#115e59] mt-1">
+                            = stawka × {area.toFixed(2)} m² × 12 mies. {buffer !== 0 ? `(koszt bazowy ${buffer > 0 ? '+' : ''}${buffer}%)` : ''}
+                          </p>
+                        </div>
+                      </div>
+                    </ReportSection>
+                  )
+                })()}
 
                 <LegalFooter text="Zarząd prowadzi ewidencję funduszu remontowego zgodnie z art. 29 ust. 1a UoWL. Środki funduszu są własnością wspólnoty i nie podlegają podziałowi między właścicieli (uchwała SN z 21.12.2007, III CZP 65/07)." />
               </div>
