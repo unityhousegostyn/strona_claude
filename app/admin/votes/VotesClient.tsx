@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { createVote, castVote, castVoteAsAdmin, closeVote, deleteVote, uploadVoteAttachment, updateResolutionNumber, updateVote } from './actions'
+import { createVote, castVote, castVoteAsAdmin, closeVote, reopenVote, deleteVote, uploadVoteAttachment, updateResolutionNumber, updateVote } from './actions'
 import Link from 'next/link'
 import BackButton from '@/components/BackButton'
 
@@ -188,6 +188,17 @@ export default function VotesClient({ votes, apartments, communities, userId, us
   const handleClose = (voteId: string) => {
     if (!confirm('Zamknąć głosowanie? Nie będzie można cofnąć.')) return
     startTransition(async () => { await closeVote(voteId); router.refresh() })
+  }
+
+  const handleReopen = (voteId: string) => {
+    if (!confirm('Otworzyć głosowanie ponownie? Mieszkańcy będą mogli znowu oddawać głosy.')) return
+    startTransition(async () => {
+      const res = await reopenVote(voteId)
+      if (res.deadlineCleared) {
+        alert('Termin głosowania już minął, więc został usunięty (głosowanie jest teraz bezterminowe). Możesz ustawić nowy termin przez "Edytuj".')
+      }
+      router.refresh()
+    })
   }
 
   const handleDelete = (voteId: string) => {
@@ -449,6 +460,12 @@ export default function VotesClient({ votes, apartments, communities, userId, us
                       <button onClick={() => handleClose(vote.id)} disabled={isPending}
                         className="text-xs text-yellow-400 hover:text-yellow-300 border border-yellow-800 px-2 py-1 rounded-lg transition">
                         Zamknij
+                      </button>
+                    )}
+                    {isAdmin && vote.status === 'closed' && (
+                      <button onClick={() => handleReopen(vote.id)} disabled={isPending}
+                        className="text-xs text-teal-400 hover:text-teal-300 border border-teal-800 px-2 py-1 rounded-lg transition">
+                        🔓 Otwórz ponownie
                       </button>
                     )}
                     {isAdmin && (

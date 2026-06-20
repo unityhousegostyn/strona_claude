@@ -357,6 +357,40 @@ export async function closeVote(voteId: string): Promise<{ error?: string }> {
   return closeVoteAndNotify(voteId)
 }
 
+// ── PONOWNE OTWARCIE GŁOSOWANIA ───────────────────────────────────────────────
+// Np. zamknięto przez pomyłkę, albo trzeba dopuścić jeszcze jeden głos.
+// Jeśli termin już minął, czyścimy go (głosowanie staje się bezterminowe) —
+// inaczej oddanie głosu i tak byłoby zablokowane przez sprawdzenie deadline.
+// Admin może potem ustawić nowy termin przez "Edytuj".
+
+export async function reopenVote(voteId: string): Promise<{ error?: string; deadlineCleared?: boolean }> {
+  const { user, profile } = await getActor()
+  if (profile.role === 'user') return { error: 'Brak uprawnień' }
+
+  const admin = getSupabaseAdminClient()
+
+  const { data: vote } = await admin.from('votes').select('deadline').eq('id', voteId).single()
+  if (!vote) return { error: 'Głosowanie nie istnieje' }
+
+  const deadlinePassed = !!(vote.deadline && new Date(vote.deadline) < new Date())
+
+  const { error } = await admin.from('votes').update({
+    status: 'open',
+    closed_at: null,
+    reminder_sent_at: null,
+    ...(deadlinePassed ? { deadline: null } : {}),
+  }).eq('id', voteId)
+
+  if (error) return { error: error.message }
+
+  await logActivity({ userId: user.id, action: 'reopen_vote', targetType: 'vote', targetId: voteId })
+
+  revalidatePath('/admin/votes')
+  revalidatePath('/admin/votes/rejestr')
+  revalidatePath(`/admin/votes/${voteId}`)
+  return { deadlineCleared: deadlinePassed }
+}
+
 /**
  * Właściwa logika zamknięcia głosowania (zapis statusu + e-mail z wynikami),
  * bez sprawdzania uprawnień zalogowanego użytkownika — używana przez:
