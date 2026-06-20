@@ -153,6 +153,11 @@ export default function RaportyClient({
   const [activeReport, setActiveReport] = useState<ReportType | null>(null)
   const reportRef = useRef<HTMLDivElement>(null)
 
+  // ── Kalkulator stawki funduszu eksploatacyjnego (live) ───────────────────
+  const [calcBufferPct, setCalcBufferPct] = useState('0')
+  const [calcOverrideCost, setCalcOverrideCost] = useState('')
+  const [calcOverrideArea, setCalcOverrideArea] = useState('')
+
   // ── Filtered data ────────────────────────────────────────────────────────
   const commApts = apartments.filter(a => a.community_id === filterComm)
   const commEntries = entries.filter(e => e.community_id === filterComm && e.year === filterYear)
@@ -309,6 +314,13 @@ export default function RaportyClient({
   const operatingExecution = Object.entries(actualExpByCategoryThisYear)
     .filter(([cat]) => !SEPARATE_BUDGET_LINES.includes(cat))
     .reduce((s, [, v]) => s + v, 0)
+
+  // Ta sama logika dla CAŁEGO poprzedniego roku (bez ograniczenia do maxMonth) —
+  // baza do kalkulatora stawki funduszu eksploatacyjnego niżej.
+  const operatingExecutionPrevYear = Object.entries(actualExpByCategoryPrevYear)
+    .filter(([cat]) => !SEPARATE_BUDGET_LINES.includes(cat))
+    .reduce((s, [, v]) => s + v, 0)
+  const totalAreaM2 = commApts.reduce((s, apt) => s + apt.area_m2, 0)
 
   const executionByCategory: Record<string, number> = {
     fundusz_eksploatacyjny: operatingExecution,
@@ -1024,6 +1036,83 @@ export default function RaportyClient({
                             </tfoot>
                           </table></div>
                         </ReportSection>
+
+                        {(() => {
+                          const baseCost = calcOverrideCost.trim() !== '' ? (parseFloat(calcOverrideCost) || 0) : operatingExecutionPrevYear
+                          const area = calcOverrideArea.trim() !== '' ? (parseFloat(calcOverrideArea) || 0) : totalAreaM2
+                          const buffer = parseFloat(calcBufferPct) || 0
+                          const adjustedCost = baseCost * (1 + buffer / 100)
+                          const suggestedRate = area > 0 ? adjustedCost / area / 12 : 0
+                          const annualAtSuggestedRate = suggestedRate * area * 12
+
+                          return (
+                            <ReportSection title="🧮 Kalkulator stawki funduszu eksploatacyjnego">
+                              <p className="text-xs text-[#115e59] mb-4">
+                                Wylicza proponowaną stawkę zł/m²/miesiąc na podstawie kosztów funduszu eksploatacyjnego
+                                <strong> bez śmieci, wody i wynagrodzenia zarządcy</strong> (te mają własne stawki) — domyślnie z roku {filterYear - 1},
+                                z możliwością korekty. Przelicza się na żywo.
+                              </p>
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                                <div>
+                                  <label className="block text-xs text-[#0f766e] mb-1">
+                                    Koszty bazowe — fundusz eksploatacyjny {filterYear - 1} (zł)
+                                  </label>
+                                  <input
+                                    type="number" step="0.01"
+                                    value={calcOverrideCost}
+                                    onChange={e => setCalcOverrideCost(e.target.value)}
+                                    placeholder={operatingExecutionPrevYear.toFixed(2)}
+                                    className="input w-full text-sm"
+                                  />
+                                  <p className="text-[10px] text-[#115e59] mt-0.5">
+                                    domyślnie: rzeczywiste wydatki {filterYear - 1} = {pln(operatingExecutionPrevYear)}
+                                  </p>
+                                </div>
+                                <div>
+                                  <label className="block text-xs text-[#0f766e] mb-1">Łączna powierzchnia lokali (m²)</label>
+                                  <input
+                                    type="number" step="0.01"
+                                    value={calcOverrideArea}
+                                    onChange={e => setCalcOverrideArea(e.target.value)}
+                                    placeholder={totalAreaM2.toFixed(2)}
+                                    className="input w-full text-sm"
+                                  />
+                                  <p className="text-[10px] text-[#115e59] mt-0.5">
+                                    domyślnie: aktywne lokale = {totalAreaM2.toFixed(2)} m²
+                                  </p>
+                                </div>
+                                <div>
+                                  <label className="block text-xs text-[#0f766e] mb-1">Bufor / korekta (%)</label>
+                                  <input
+                                    type="number" step="1"
+                                    value={calcBufferPct}
+                                    onChange={e => setCalcBufferPct(e.target.value)}
+                                    className="input w-full text-sm"
+                                  />
+                                  <p className="text-[10px] text-[#115e59] mt-0.5">
+                                    np. +10 na wzrost cen, −5 na oszczędności
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div className="bg-teal-950/30 border border-teal-800/40 rounded-xl p-4">
+                                  <p className="text-xs text-[#115e59] mb-1">Proponowana stawka</p>
+                                  <p className="text-2xl font-bold text-teal-400 tabular-nums">
+                                    {suggestedRate.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł/m²
+                                  </p>
+                                  <p className="text-xs text-[#115e59] mt-1">miesięcznie</p>
+                                </div>
+                                <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-4">
+                                  <p className="text-xs text-[#115e59] mb-1">Roczny budżet przy tej stawce</p>
+                                  <p className="text-2xl font-bold text-[#f0fdfa] tabular-nums">{pln(annualAtSuggestedRate)}</p>
+                                  <p className="text-xs text-[#115e59] mt-1">
+                                    = stawka × {area.toFixed(2)} m² × 12 mies. {buffer !== 0 ? `(koszt bazowy + ${buffer > 0 ? '+' : ''}${buffer}%)` : ''}
+                                  </p>
+                                </div>
+                              </div>
+                            </ReportSection>
+                          )
+                        })()}
 
                         <ReportSection title="Szczegóły wydatków eksploatacyjnych — rzeczywiste koszty per kategoria (bez funduszu remontowego)">
                           <div className="overflow-x-auto"><table className="w-full text-sm min-w-[400px]">
