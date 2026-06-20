@@ -121,12 +121,23 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/admin/dashboard', request.url))
   }
 
-  // Sprawdź poziom MFA — jeśli użytkownik ma 2FA a nie zweryfikował, przekieruj
+  // Sprawdź poziom MFA — jeśli użytkownik ma 2FA a nie zweryfikował, przekieruj.
+  // Zabezpieczenie czasowe: gdyby Supabase Auth chwilowo nie odpowiadał, to
+  // zapytanie nie może zawiesić całego middleware (a tym samym zablokować
+  // logowanie wszystkim użytkownikom) — w takim wypadku po prostu przepuszczamy
+  // dalej, bez wymuszania przekierowania na /mfa-verify.
   if (user && isAdminRoute && !pathname.startsWith('/mfa-verify')) {
-    const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
-    if (aalData?.nextLevel === 'aal2' && aalData?.currentLevel !== 'aal2') {
-      const mfaUrl = new URL('/mfa-verify', request.url)
-      return NextResponse.redirect(mfaUrl)
+    try {
+      const aalPromise = supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+      const timeout = new Promise<null>(resolve => setTimeout(() => resolve(null), 5000))
+      const result = await Promise.race([aalPromise, timeout])
+      const aalData = result?.data
+      if (aalData?.nextLevel === 'aal2' && aalData?.currentLevel !== 'aal2') {
+        const mfaUrl = new URL('/mfa-verify', request.url)
+        return NextResponse.redirect(mfaUrl)
+      }
+    } catch {
+      // ignoruj — patrz komentarz wyżej
     }
   }
 

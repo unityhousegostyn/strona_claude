@@ -44,19 +44,27 @@ export default function MFAVerifyPage() {
     setLoading(true)
     setError(null)
 
+    // Zabezpieczenie przed zawieszeniem przycisku, gdy Supabase nie odpowiada.
+    const TIMEOUT_MS = 15000
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), TIMEOUT_MS)
+    )
+
     try {
-      const { data: challenge, error: chalErr } = await supabase.auth.mfa.challenge({ factorId })
+      const { data: challenge, error: chalErr } = await Promise.race([
+        supabase.auth.mfa.challenge({ factorId }),
+        timeout,
+      ])
       if (chalErr || !challenge) {
         setError('Błąd weryfikacji. Spróbuj ponownie.')
         setLoading(false)
         return
       }
 
-      const { error: verifyErr } = await supabase.auth.mfa.verify({
-        factorId,
-        challengeId: challenge.id,
-        code,
-      })
+      const { error: verifyErr } = await Promise.race([
+        supabase.auth.mfa.verify({ factorId, challengeId: challenge.id, code }),
+        timeout,
+      ])
 
       if (verifyErr) {
         setError('Nieprawidłowy kod. Sprawdź aplikację i spróbuj ponownie.')
@@ -65,10 +73,11 @@ export default function MFAVerifyPage() {
         return
       }
 
-      await recordLogin()
+      // Audit log "best effort" — nigdy nie blokuje i nie przerywa logowania
+      recordLogin().catch(() => {})
       window.location.href = '/admin/dashboard'
-    } catch {
-      setError('Wystąpił błąd. Spróbuj ponownie.')
+    } catch (e: any) {
+      setError(e?.message === 'timeout' ? 'Serwer nie odpowiada. Spróbuj ponownie.' : 'Wystąpił błąd. Spróbuj ponownie.')
       setLoading(false)
     }
   }

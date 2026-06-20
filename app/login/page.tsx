@@ -34,12 +34,28 @@ function LoginForm() {
   }, [searchParams])
 
   const handleLogin = async () => {
+    if (!email.trim() || !password) {
+      setError('Podaj email i hasło.')
+      return
+    }
+
     setLoading(true)
     setError(null)
 
+    // Zabezpieczenie przed "zawieszeniem się" przycisku, gdy zapytanie do
+    // Supabase nie odpowiada (np. chwilowy problem sieciowy) — bez tego
+    // przycisk pokazywał "Logowanie..." w nieskończoność, bez żadnego błędu.
+    const TIMEOUT_MS = 15000
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), TIMEOUT_MS)
+    )
+
     try {
       const supabase = getSupabaseBrowserClient()
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      const { error } = await Promise.race([
+        supabase.auth.signInWithPassword({ email: email.trim(), password }),
+        timeout,
+      ])
 
       if (error) {
         setError(error.message || 'Nieprawidłowy email lub hasło.')
@@ -53,12 +69,16 @@ function LoginForm() {
         // Logowanie nie jest jeszcze kompletne — wpis do audit logu dopiero po weryfikacji 2FA
         window.location.href = '/mfa-verify'
       } else {
-        await recordLogin()
+        // Audit log "best effort" — nigdy nie blokuje i nie przerywa logowania
+        recordLogin().catch(() => {})
         window.location.href = '/admin/dashboard'
       }
-    } catch {
-      setError('Wystąpił błąd logowania.')
-    } finally {
+    } catch (e: any) {
+      setError(
+        e?.message === 'timeout'
+          ? 'Serwer nie odpowiada. Sprawdź połączenie z internetem i spróbuj ponownie.'
+          : 'Wystąpił błąd logowania. Spróbuj ponownie.'
+      )
       setLoading(false)
     }
   }
