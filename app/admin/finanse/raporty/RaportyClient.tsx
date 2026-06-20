@@ -239,12 +239,6 @@ export default function RaportyClient({
   // Plan gospodarczy 2026 = suma wszystkich składników funduszu eksploatacyjnego
   // (stawka eksploatacyjna × m² + wynagrodzenie zarządcy + woda + śmieci) × 12 miesięcy (prognoza na cały rok).
   // Fundusz remontowy jest wykluczony — to osobny fundusz celowy.
-  // Wykonanie = te same składniki naliczone do maxMonth — to dokładnie chargeBreakdown bez renovation.
-  // Uwaga: dla modeli 'meter' i 'zaliczka' woda w PLANIE celowo zostaje 0/— —
-  // nie da się jej zaplanować z wyprzedzeniem (zależy od realnego zużycia /
-  // samodzielnej kalkulacji mieszkańca), więc tu nie ma czego "naprawiać".
-  // W WYKONANIU (chargeBreakdown, niżej) woda dla tych modeli jest liczona
-  // poprawnie — patrz calcWaterThroughMonth.
   const planBreakdown = { operating: 0, manager: 0, water: 0, garbage: 0 }
   for (const apt of commApts) {
     for (let m = 1; m <= 12; m++) {
@@ -269,17 +263,12 @@ export default function RaportyClient({
     woda: planBreakdown.water,
     śmieci: planBreakdown.garbage,
   }
-  const executionByCategory: Record<string, number> = {
-    fundusz_eksploatacyjny: chargeBreakdown.operating,
-    wynagrodzenie_zarządcy: chargeBreakdown.manager,
-    woda: chargeBreakdown.water,
-    śmieci: chargeBreakdown.garbage,
-  }
-  const totalExecutionToDate = chargeBreakdown.operating + chargeBreakdown.manager + chargeBreakdown.water + chargeBreakdown.garbage
-  const hasPrevYearData = hasRateForYear
 
-  // Rzeczywiste wydatki eksploatacyjne per kategoria (informacyjnie — co realnie wydano,
-  // w odróżnieniu od KPI powyżej, które liczy naliczenie wg stawki). Fundusz remontowy wykluczony.
+  // Rzeczywiste wydatki eksploatacyjne per kategoria — TO jest "Wykonanie" planu
+  // gospodarczego (wykonanie budżetu = realnie wydane pieniądze z faktur w
+  // module Koszty, NIE kwoty naliczone mieszkańcom — to są dwie różne rzeczy:
+  // zaliczka/ryczałt to tylko sposób finansowania, a wykonanie planu liczy się
+  // z rzeczywistych wydatków). Fundusz remontowy wykluczony — osobny fundusz.
   const isExploitation = (e: { is_renovation_fund?: boolean | null; category: string }) =>
     !(e.is_renovation_fund || e.category === 'fundusz_remontowy')
   const actualExpByCategoryPrevYear: Record<string, number> = {}
@@ -292,6 +281,15 @@ export default function RaportyClient({
   }
   const totalActualPrevYear = Object.values(actualExpByCategoryPrevYear).reduce((s, v) => s + v, 0)
   const totalActualThisYear = Object.values(actualExpByCategoryThisYear).reduce((s, v) => s + v, 0)
+
+  const executionByCategory: Record<string, number> = {
+    fundusz_eksploatacyjny: actualExpByCategoryThisYear['fundusz_eksploatacyjny'] ?? 0,
+    wynagrodzenie_zarządcy: actualExpByCategoryThisYear['wynagrodzenie_zarządcy'] ?? 0,
+    woda: actualExpByCategoryThisYear['woda'] ?? 0,
+    śmieci: actualExpByCategoryThisYear['śmieci'] ?? 0,
+  }
+  const totalExecutionToDate = Object.values(executionByCategory).reduce((s, v) => s + v, 0)
+  const hasPrevYearData = hasRateForYear
 
   // ── Renovation fund ──────────────────────────────────────────────────────
   const allYears = [...new Set([...entries.filter(e => e.community_id === filterComm).map(e => e.year), ...expenses.filter(e => e.community_id === filterComm).map(e => e.year)])].sort()
@@ -956,14 +954,14 @@ export default function RaportyClient({
                             note="fundusz eksploatacyjny + zarządca + woda + śmieci"
                             formula={`(stawka funduszu eksploatacyjnego × m² + wynagrodzenie zarządcy + woda + śmieci) × 12 miesięcy (rok ${filterYear})`} />
                           <KpiCard label={`Wykonanie do ${['','Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'][maxMonth]}`} value={pln(totalExecutionToDate)} color="red"
-                            note="fundusz eksploatacyjny + zarządca + woda + śmieci"
-                            formula={`(stawka funduszu eksploatacyjnego × m² + wynagrodzenie zarządcy + woda + śmieci) × ${maxMonth} mies. (styczeń–${['','styczeń','luty','marzec','kwiecień','maj','czerwiec','lipiec','sierpień','wrzesień','październik','listopad','grudzień'][maxMonth]} ${filterYear})`} />
+                            note="rzeczywiste wydatki z faktur (moduł Koszty)"
+                            formula={`suma faktur z modułu Koszty w kategoriach: fundusz eksploatacyjny, zarządca, woda, śmieci — styczeń–${['','styczeń','luty','marzec','kwiecień','maj','czerwiec','lipiec','sierpień','wrzesień','październik','listopad','grudzień'][maxMonth]} ${filterYear}`} />
                           <KpiCard label="Odchylenie" value={pln(Math.abs(diff))} color={diff <= 0 ? 'green' : 'red'}
                             note={diff <= 0 ? 'W planie / oszczędność' : 'Przekroczenie planu'}
-                            formula="Wykonanie − Plan (ujemne = oszczędność)" />
+                            formula="Wykonanie (rzeczywiste wydatki) − Plan (ujemne = oszczędność)" />
                         </div>
 
-                        <ReportSection title={`Porównanie — plan roczny ${filterYear} vs naliczone do ${['','Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'][maxMonth]} ${filterYear}`}>
+                        <ReportSection title={`Porównanie — plan roczny ${filterYear} vs rzeczywiste wydatki do ${['','Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'][maxMonth]} ${filterYear}`}>
                           <div className="overflow-x-auto"><table className="w-full text-sm min-w-[400px]">
                             <thead><tr className="border-b border-[#0f2d2a]">
                               <th className="text-left py-2 pr-4 text-[#0f766e] font-medium">Kategoria</th>
