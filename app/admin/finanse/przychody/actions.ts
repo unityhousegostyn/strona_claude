@@ -12,14 +12,6 @@ async function getActor() {
   return { user: auth.user!, profile: auth.profile! }
 }
 
-// Tabela community_income ma osobne kolumny year/month (oprócz income_date),
-// z których korzystają Raporty (filtrowanie po roku/miesiącu) — trzeba je
-// zawsze wyliczać z income_date i zapisywać, inaczej zostają NULL.
-function yearMonthFromDate(dateStr: string): { year: number; month: number } {
-  const [y, m] = dateStr.split('-').map(Number)
-  return { year: y, month: m }
-}
-
 export async function addIncome(data: {
   community_id: string
   category: IncomeCategory
@@ -37,15 +29,12 @@ export async function addIncome(data: {
     if (!data.income_date) return { error: 'Data jest wymagana' }
 
     const admin = getSupabaseAdminClient()
-    const { year, month } = yearMonthFromDate(data.income_date)
     const { data: row, error } = await admin.from('community_income').insert({
       community_id: data.community_id,
       category: data.category,
       description: data.description.trim(),
       amount: data.amount,
       income_date: data.income_date,
-      year,
-      month,
       created_by: user.id,
     }).select('id').single()
 
@@ -71,14 +60,11 @@ export async function updateIncome(id: string, data: {
     if (!data.description.trim()) return { error: 'Opis jest wymagany' }
     if (!data.amount || data.amount <= 0) return { error: 'Kwota musi być większa niż 0' }
     const admin = getSupabaseAdminClient()
-    const { year, month } = yearMonthFromDate(data.income_date)
     const { error } = await admin.from('community_income').update({
       category: data.category,
       description: data.description.trim(),
       amount: data.amount,
       income_date: data.income_date,
-      year,
-      month,
     }).eq('id', id)
     if (error) return { error: error.message }
     revalidatePath('/admin/finanse/przychody')

@@ -12,14 +12,6 @@ async function getActor() {
   return { user: auth.user, profile: auth.profile }
 }
 
-// Tabela community_expenses ma osobne kolumny year/month (oprócz expense_date),
-// z których korzystają Raporty (filtrowanie po roku/miesiącu) — trzeba je
-// zawsze wyliczać z expense_date i zapisywać, inaczej zostają NULL.
-function yearMonthFromDate(dateStr: string): { year: number; month: number } {
-  const [y, m] = dateStr.split('-').map(Number)
-  return { year: y, month: m }
-}
-
 // ── DODAJ KOSZT ──────────────────────────────────────────────────
 export async function addExpense(data: {
   community_id: string
@@ -39,15 +31,12 @@ export async function addExpense(data: {
   if (!data.expense_date) return { error: 'Data jest wymagana' }
 
   const admin = getSupabaseAdminClient()
-  const { year, month } = yearMonthFromDate(data.expense_date)
   const { data: row, error } = await admin.from('community_expenses').insert({
     community_id: data.community_id,
     category: data.category,
     description: data.description.trim(),
     amount: data.amount,
     expense_date: data.expense_date,
-    year,
-    month,
     invoice_number: data.invoice_number?.trim() || null,
     is_renovation_fund: data.is_renovation_fund ?? (data.category === 'fundusz_remontowy'),
     created_by: user.id,
@@ -72,14 +61,11 @@ export async function updateExpense(id: string, data: {
   if (profile.role === 'user') return { error: 'Brak uprawnień' }
 
   const admin = getSupabaseAdminClient()
-  const { year, month } = yearMonthFromDate(data.expense_date)
   const { error } = await admin.from('community_expenses').update({
     category: data.category,
     description: data.description.trim(),
     amount: data.amount,
     expense_date: data.expense_date,
-    year,
-    month,
     invoice_number: data.invoice_number?.trim() || null,
     is_renovation_fund: data.is_renovation_fund ?? (data.category === 'fundusz_remontowy'),
   }).eq('id', id)
@@ -148,15 +134,12 @@ export async function importExpensesCSV(
         errors.push(`Wiersz ${i + 1}: nieprawidłowa kwota "${amountStr}"`)
         continue
       }
-      const { year, month } = yearMonthFromDate(expense_date)
       rows.push({
         community_id,
         category,
         description,
         amount,
         expense_date,
-        year,
-        month,
         invoice_number: invoice_number || null,
         created_by: user.id,
       })
