@@ -5,6 +5,7 @@ import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import { getAuthProfileAction } from '@/lib/getAuthProfile'
 import { verifyPin } from '@/lib/pin'
 import { sendNewVoteEmail, sendVoteClosedEmail } from '@/lib/email'
+import { logActivity } from '@/lib/audit'
 
 async function getActor() {
   const auth = await getAuthProfileAction()
@@ -228,6 +229,103 @@ export async function castVote(data: {
   }
 
   if (voteError) return { error: voteError.message }
+  revalidatePath(`/admin/votes/${data.vote_id}`)
+  revalidatePath('/admin/votes')
+  return {}
+}
+
+// ── GŁOS W IMIENIU MIESZKAŃCA (tylko super_admin) ────────────────────────────
+// Np. mieszkaniec oddał głos na papierowej karcie, nie ma konta / dostępu do
+// internetu — super_admin wprowadza go ręcznie. Bez PINu (super_admin loguje
+// się własną sesją), ale zawsze ze śladem audytowym (cast_by_admin, recorded_by).
+
+export async function castVoteAsAdmin(data: {
+  vote_id: string
+  apartment_id: string
+  choice: 'yes' | 'no' | 'abstain'
+}): Promise<{ error?: string }> {
+  const { user, profile } = await getActor()
+  if (profile.role !== 'super_admin')
+    return { error: 'Tylko super_admin może dodać głos w imieniu mieszkańca.' }
+
+  const admin = getSupabaseAdminClient()
+
+  const { data: vote } = await admin.from('votes').select('*').eq('id', data.vote_id).single()
+  if (!vote) return { error: 'Głosowanie nie istnieje' }
+  if (vote.status !== 'open') return { error: 'Głosowanie jest już zamknięte' }
+  if (vote.deadline && new Date(vote.deadline) < new Date())
+    return { error: 'Termin głosowania minął' }
+
+  const { data: apartment } = await admin
+    .from('settlement_apartments')
+    .select('id, share_numerator, share_denominator, community_id')
+    .eq('id', data.apartment_id)
+    .eq('community_id', vote.community_id)
+    .eq('active', true)
+    .single()
+
+  if (!apartment) return { error: 'Lokal nie należy do tej wspólnoty lub jest nieaktywny.' }
+
+  const shareValue = apartment.share_numerator && apartment.share_denominator
+    ? apartment.share_numerator / apartment.share_denominator
+    : 1
+
+  // Atrybucja głosu do mieszkańca przypisanego do lokalu (jeśli jest taki
+  // profil) — żeby wynik czytało się naturalnie jako głos tego mieszkańca.
+  // Jeśli lokal nie ma przypisanego konta, głos i tak zostaje zapisany
+  // (user_id = super_admin), ale zawsze z flagą cast_by_admin = true.
+  const { data: residentProfile } = await admin
+    .from('profiles')
+    .select('id')
+    .eq('apartment_id', apartment.id)
+    .limit(1)
+    .maybeSingle()
+
+  const attributedUserId = residentProfile?.id ?? user.id
+
+  const { data: existingChoice } = await admin
+    .from('vote_choices')
+    .select('id')
+    .eq('vote_id', data.vote_id)
+    .eq('apartment_id', apartment.id)
+    .maybeSingle()
+
+  let voteError: { message: string } | null = null
+
+  if (existingChoice) {
+    const { error } = await admin.from('vote_choices')
+      .update({
+        choice: data.choice,
+        share_value: shareValue,
+        user_id: attributedUserId,
+        cast_by_admin: true,
+        recorded_by: user.id,
+      })
+      .eq('id', existingChoice.id)
+    voteError = error
+  } else {
+    const { error } = await admin.from('vote_choices').insert({
+      vote_id: data.vote_id,
+      user_id: attributedUserId,
+      apartment_id: apartment.id,
+      choice: data.choice,
+      share_value: shareValue,
+      cast_by_admin: true,
+      recorded_by: user.id,
+    })
+    voteError = error
+  }
+
+  if (voteError) return { error: voteError.message }
+
+  await logActivity({
+    userId: user.id,
+    action: 'cast_vote_as_admin',
+    targetType: 'vote',
+    targetId: data.vote_id,
+    meta: { apartment_id: apartment.id, choice: data.choice },
+  })
+
   revalidatePath(`/admin/votes/${data.vote_id}`)
   revalidatePath('/admin/votes')
   return {}

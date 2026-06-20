@@ -23,11 +23,21 @@ export default async function VotesPage() {
 
   const communityIds = communities.map(c => c.id)
 
-  const { data: votes } = await admin
-    .from('votes')
-    .select('*, community:communities(name), choices:vote_choices(choice, share_value, user_id, apartment_id)')
-    .in('community_id', communityIds.length ? communityIds : ['00000000-0000-0000-0000-000000000000'])
-    .order('created_at', { ascending: false })
+  const safeCommunityIds = communityIds.length ? communityIds : ['00000000-0000-0000-0000-000000000000']
+
+  const [{ data: votes }, { data: apartments }] = await Promise.all([
+    admin
+      .from('votes')
+      .select('*, community:communities(name), choices:vote_choices(choice, share_value, user_id, apartment_id)')
+      .in('community_id', safeCommunityIds)
+      .order('created_at', { ascending: false }),
+    admin
+      .from('settlement_apartments')
+      .select('id, number, owner_name, community_id')
+      .in('community_id', safeCommunityIds)
+      .eq('active', true)
+      .order('number'),
+  ])
 
   const isSuperAdmin = profile.role === 'super_admin'
   const isAdmin = profile.role === 'admin' || isSuperAdmin
@@ -59,6 +69,7 @@ export default async function VotesPage() {
   return (
     <VotesClient
       votes={votes ?? []}
+      apartments={apartments ?? []}
       communities={communities}
       userId={user.id}
       userApartmentId={userApartmentId}

@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { createVote, castVote, closeVote, deleteVote, uploadVoteAttachment, updateResolutionNumber, updateVote } from './actions'
+import { createVote, castVote, castVoteAsAdmin, closeVote, deleteVote, uploadVoteAttachment, updateResolutionNumber, updateVote } from './actions'
 import Link from 'next/link'
 import BackButton from '@/components/BackButton'
 
@@ -23,9 +23,11 @@ interface Vote {
   choices: Choice[]
 }
 interface Community { id: string; name: string }
+interface Apartment { id: string; number: string; owner_name: string; community_id: string }
 
 interface Props {
   votes: Vote[]
+  apartments: Apartment[]
   communities: Community[]
   userId: string
   userApartmentId: string | null
@@ -51,7 +53,7 @@ function calcResults(vote: Vote) {
   return { yes, no, ab, total, pct: (v: number) => total > 0 ? Math.round(v / total * 100) : 0 }
 }
 
-export default function VotesClient({ votes, communities, userId, userApartmentId, communityId, isAdmin, isSuperAdmin, hasPin, nextResolutionNumber }: Props) {
+export default function VotesClient({ votes, apartments, communities, userId, userApartmentId, communityId, isAdmin, isSuperAdmin, hasPin, nextResolutionNumber }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [showForm, setShowForm] = useState(false)
@@ -109,6 +111,11 @@ export default function VotesClient({ votes, communities, userId, userApartmentI
   const [pin, setPin] = useState('')
   const [pinError, setPinError] = useState<string | null>(null)
 
+  // Głos w imieniu mieszkańca (tylko super_admin)
+  const [adminVoteOpenFor, setAdminVoteOpenFor] = useState<string | null>(null) // voteId
+  const [adminVoteApt, setAdminVoteApt] = useState<Record<string, string>>({}) // voteId -> apartmentId
+  const [adminVoteError, setAdminVoteError] = useState<string | null>(null)
+
   const handleCreate = async () => {
     setFormError(null)
     let attachmentPath: string | null = null
@@ -162,6 +169,18 @@ export default function VotesClient({ votes, communities, userId, userApartmentI
       const res = await castVote({ vote_id: pinModal.voteId, choice: pinModal.choice, pin })
       if (res.error) { setPinError(res.error); return }
       setPinModal(null); setPin('')
+      router.refresh()
+    })
+  }
+
+  const handleAdminVote = (voteId: string, choice: 'yes' | 'no' | 'abstain') => {
+    const apartmentId = adminVoteApt[voteId]
+    if (!apartmentId) { setAdminVoteError('Wybierz lokal.'); return }
+    setAdminVoteError(null)
+    startTransition(async () => {
+      const res = await castVoteAsAdmin({ vote_id: voteId, apartment_id: apartmentId, choice })
+      if (res.error) { setAdminVoteError(res.error); return }
+      setAdminVoteOpenFor(null)
       router.refresh()
     })
   }
@@ -474,9 +493,45 @@ export default function VotesClient({ votes, communities, userId, userApartmentI
                     ))}
                   </div>
                 )}
-                {isOpen && !myChoice && isSuperAdmin && (
-                  <div className="pt-1 border-t border-[#0f2d2a]">
-                    <p className="text-xs text-[#115e59] italic">Administrator nie głosuje w uchwałach.</p>
+                {isOpen && isSuperAdmin && (
+                  <div className="pt-1 border-t border-[#0f2d2a] space-y-2">
+                    <p className="text-xs text-[#115e59] italic">Super_admin nie głosuje w uchwałach we własnym imieniu.</p>
+                    {adminVoteOpenFor === vote.id ? (
+                      <div className="bg-[#0c2220] border border-[#0f2d2a] rounded-lg p-3 space-y-2">
+                        <p className="text-xs text-[#99f6e4] font-medium">Dodaj głos w imieniu mieszkańca (np. z papierowej karty głosowania):</p>
+                        <select
+                          className="input w-full text-sm"
+                          value={adminVoteApt[vote.id] ?? ''}
+                          onChange={e => setAdminVoteApt(p => ({ ...p, [vote.id]: e.target.value }))}
+                        >
+                          <option value="">— wybierz lokal —</option>
+                          {apartments.filter(a => a.community_id === vote.community_id).map(a => {
+                            const already = vote.choices.find(c => c.apartment_id === a.id)
+                            return (
+                              <option key={a.id} value={a.id}>
+                                Lokal {a.number} — {a.owner_name}{already ? ` (już zagłosował: ${choiceLabel[already.choice as keyof typeof choiceLabel]})` : ''}
+                              </option>
+                            )
+                          })}
+                        </select>
+                        {adminVoteError && <p className="text-xs text-red-400">{adminVoteError}</p>}
+                        <div className="flex flex-wrap items-center gap-2">
+                          {(['yes', 'no', 'abstain'] as const).map(c => (
+                            <button key={c} onClick={() => handleAdminVote(vote.id, c)} disabled={isPending || !adminVoteApt[vote.id]}
+                              className={`${choiceColor[c]} text-white text-xs font-bold px-4 py-1.5 rounded-lg transition disabled:opacity-50`}>
+                              {choiceLabel[c]}
+                            </button>
+                          ))}
+                          <button onClick={() => { setAdminVoteOpenFor(null); setAdminVoteError(null) }}
+                            className="text-xs text-[#115e59] hover:text-[#99f6e4] px-2">Anuluj</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button onClick={() => { setAdminVoteOpenFor(vote.id); setAdminVoteError(null) }}
+                        className="text-xs text-teal-400 hover:text-teal-300 border border-teal-800/60 px-3 py-1.5 rounded-lg transition">
+                        ➕ Dodaj głos w imieniu mieszkańca
+                      </button>
+                    )}
                   </div>
                 )}
                 {myChoice && (
