@@ -55,7 +55,8 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
   const [csvDragOver, setCsvDragOver] = useState(false)
   const [csvFileName, setCsvFileName] = useState<string | null>(null)
   const [listPage, setListPage] = useState(1)
-  const LIST_PAGE_SIZE = 50
+  const [groupPages, setGroupPages] = useState<Record<string, number>>({})
+  const LIST_PAGE_SIZE = 10
 
   const handleFile = useCallback((file: File) => {
     setCsvFileName(file.name); setImportResult(null)
@@ -333,6 +334,9 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
                 const commFiltered = filtered.filter(e => e.community_id === comm.id)
                 if (commFiltered.length === 0) return null
                 const commTotal = commFiltered.reduce((s, e) => s + e.amount, 0)
+                const commPage = groupPages[comm.id] ?? 1
+                const commTotalPages = Math.ceil(commFiltered.length / LIST_PAGE_SIZE)
+                const commPaginated = commFiltered.slice((commPage - 1) * LIST_PAGE_SIZE, commPage * LIST_PAGE_SIZE)
                 return (
                   <div key={comm.id}>
                     <div className="flex items-center gap-3 mb-3 px-1">
@@ -345,7 +349,7 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
                       <div className="flex-1 h-px bg-[#0a1f1d]" />
                     </div>
                     <div className="space-y-2">
-                      {commFiltered.map(e => editId===e.id?(
+                      {commPaginated.map(e => editId===e.id?(
                         <div key={e.id} className="bg-[#081918] border border-teal-700 rounded-xl p-4 space-y-3">
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             <select className="input text-sm" value={editForm.category} onChange={x=>setEditForm(p=>({...p,category:x.target.value as ExpenseCategory}))}>{categories.map(c=><option key={c.value} value={c.value}>{c.label}</option>)}</select>
@@ -372,6 +376,7 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
                         </div>
                       ))}
                     </div>
+                    {commTotalPages > 1 && <Pagination page={commPage} totalPages={commTotalPages} onPageChange={p => setGroupPages(prev => ({ ...prev, [comm.id]: p }))} />}
                   </div>
                 )
               })}
