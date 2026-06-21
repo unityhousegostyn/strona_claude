@@ -37,7 +37,7 @@ export default async function DashboardPage() {
       admin.from('tickets').select('id', { count: 'exact', head: true }).eq('status', 'open'),
       admin.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       admin.from('tickets').select('status, community_id, created_at'),
-      admin.from('communities').select('id, name, opening_balance').order('name'),
+      admin.from('communities').select('id, name, opening_balance_eksploatacyjny, opening_balance_remont').order('name'),
       admin.from('tickets').select('id, title, status, created_at, community_id')
         .order('created_at', { ascending: false }).limit(4),
       admin.from('board_posts').select('id, content, created_at, author_id, community_id')
@@ -65,7 +65,8 @@ export default async function DashboardPage() {
     interface CommStats { apartments: number; users: number; openTickets: number; openVotes: number; totalPaid: number; totalExpenses: number; totalIncome: number; totalDeposits: number; openingBalance: number }
     const commStats: Record<string, CommStats> = {}
     for (const c of communities.data ?? []) {
-      commStats[c.id] = { apartments: 0, users: 0, openTickets: 0, openVotes: 0, totalPaid: 0, totalExpenses: 0, totalIncome: 0, totalDeposits: 0, openingBalance: (c as any).opening_balance ?? 0 }
+      const cc = c as any
+      commStats[c.id] = { apartments: 0, users: 0, openTickets: 0, openVotes: 0, totalPaid: 0, totalExpenses: 0, totalIncome: 0, totalDeposits: 0, openingBalance: (cc.opening_balance_eksploatacyjny ?? 0) + (cc.opening_balance_remont ?? 0) }
     }
     for (const a of allApartments.data ?? []) {
       if (commStats[a.community_id]) commStats[a.community_id].apartments++

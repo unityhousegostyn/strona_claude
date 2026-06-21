@@ -15,7 +15,8 @@ export default function EditCommunityPage() {
   const [waterMeterEnabled, setWaterMeterEnabled] = useState(false)
   const [bankAccount, setBankAccount] = useState('')
   const [legalBasis, setLegalBasis] = useState('')
-  const [openingBalance, setOpeningBalance] = useState('0')
+  const [openingBalanceEksploatacyjny, setOpeningBalanceEksploatacyjny] = useState('0')
+  const [openingBalanceRemont, setOpeningBalanceRemont] = useState('0')
   const [openingBalanceDate, setOpeningBalanceDate] = useState('')
   const [loading, setLoading] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -34,7 +35,8 @@ export default function EditCommunityPage() {
         setWaterMeterEnabled(data.water_meter_enabled ?? false)
         setBankAccount(data.bank_account ?? '')
         setLegalBasis(data.legal_basis ?? '')
-        setOpeningBalance(String(data.opening_balance ?? 0))
+        setOpeningBalanceEksploatacyjny(String(data.opening_balance_eksploatacyjny ?? 0))
+        setOpeningBalanceRemont(String(data.opening_balance_remont ?? 0))
         setOpeningBalanceDate(data.opening_balance_date ?? '')
       }
     }
@@ -55,7 +57,8 @@ export default function EditCommunityPage() {
         water_meter_enabled: waterMeterEnabled,
         bank_account: bankAccount,
         legal_basis: legalBasis,
-        opening_balance: parseFloat(openingBalance.replace(',', '.')) || 0,
+        opening_balance_eksploatacyjny: parseFloat(openingBalanceEksploatacyjny.replace(',', '.')) || 0,
+        opening_balance_remont: parseFloat(openingBalanceRemont.replace(',', '.')) || 0,
         opening_balance_date: openingBalanceDate,
       })
       router.push('/admin/communities')
@@ -139,20 +142,30 @@ export default function EditCommunityPage() {
           <p className="text-xs text-[#115e59] mt-1">Treść powołania prawnego na zawiadomieniach (ustawa, nr uchwały itp.)</p>
         </div>
         <div className="pt-2 border-t border-[#0f2d2a]">
-          <p className="text-sm font-medium text-[#99f6e4] mb-1">Saldo początkowe konta</p>
-          <p className="text-xs text-[#115e59] mb-3">Stan konta wspólnoty w dniu, od którego zaczęliście wprowadzać dane do panelu — np. jeśli na koncie było już 20 000 zł, zanim zaczęliście korzystać z systemu. Bez tego &bdquo;Stan konta&rdquo; na dashboardzie liczy się tylko z wpłat i kosztów wpisanych w panelu.</p>
+          <p className="text-sm font-medium text-[#99f6e4] mb-1">Saldo początkowe</p>
+          <p className="text-xs text-[#115e59] mb-3">Stan funduszy wspólnoty w dniu, od którego zaczęliście wprowadzać dane do panelu — np. jeśli na koncie już było 20 000 zł, zanim zaczęliście korzystać z systemu. Rozbite na fundusz eksploatacyjny i remontowy, bo to dwa odrębne fundusze (nigdy nie mieszane). Bez tego &bdquo;Stan konta&rdquo; na dashboardzie i saldo skumulowane funduszu remontowego liczą się tylko z wpłat i kosztów wpisanych w panelu.</p>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-[#115e59] mb-1">Kwota (zł)</label>
+              <label className="block text-xs text-[#115e59] mb-1">Fundusz eksploatacyjny (zł)</label>
               <input
                 className="input"
                 type="number"
                 step="0.01"
-                value={openingBalance}
-                onChange={(e) => setOpeningBalance(e.target.value)}
+                value={openingBalanceEksploatacyjny}
+                onChange={(e) => setOpeningBalanceEksploatacyjny(e.target.value)}
               />
             </div>
             <div>
+              <label className="block text-xs text-[#115e59] mb-1">Fundusz remontowy (zł)</label>
+              <input
+                className="input"
+                type="number"
+                step="0.01"
+                value={openingBalanceRemont}
+                onChange={(e) => setOpeningBalanceRemont(e.target.value)}
+              />
+            </div>
+            <div className="col-span-2">
               <label className="block text-xs text-[#115e59] mb-1">Stan na dzień</label>
               <input
                 className="input"

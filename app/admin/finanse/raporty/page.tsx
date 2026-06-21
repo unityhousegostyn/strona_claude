@@ -10,12 +10,12 @@ export default async function RaportyPage() {
   const admin = getSupabaseAdminClient()
   const isSuperAdmin = profile.role === 'super_admin'
 
-  let communities: { id: string; name: string }[] = []
+  let communities: { id: string; name: string; opening_balance_eksploatacyjny?: number; opening_balance_remont?: number }[] = []
   if (isSuperAdmin) {
-    const { data } = await admin.from('communities').select('id, name').order('name')
+    const { data } = await admin.from('communities').select('id, name, opening_balance_eksploatacyjny, opening_balance_remont').order('name')
     communities = data ?? []
   } else if (profile.community_id) {
-    const { data } = await admin.from('communities').select('id, name').eq('id', profile.community_id).single()
+    const { data } = await admin.from('communities').select('id, name, opening_balance_eksploatacyjny, opening_balance_remont').eq('id', profile.community_id).single()
     if (data) communities = [data]
   }
 

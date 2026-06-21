@@ -39,7 +39,7 @@ interface Deposit {
   start_date: string; end_date: string | null; status: 'active' | 'closed'
 }
 interface Props {
-  communities: { id: string; name: string }[]
+  communities: { id: string; name: string; opening_balance_eksploatacyjny?: number; opening_balance_remont?: number }[]
   apartments: Apartment[]
   rates: Rate[]
   entries: Entry[]
@@ -184,7 +184,10 @@ export default function RaportyClient({
   const commDeposits = deposits.filter(d => d.community_id === filterComm)
   const activeDeposits = commDeposits.filter(d => d.status === 'active')
   const totalActiveDeposits = activeDeposits.reduce((s, d) => s + d.amount, 0)
-  const commName = communities.find(c => c.id === filterComm)?.name ?? '—'
+  const commMeta = communities.find(c => c.id === filterComm)
+  const commName = commMeta?.name ?? '—'
+  const openingBalanceEksploatacyjny = commMeta?.opening_balance_eksploatacyjny ?? 0
+  const openingBalanceRemont = commMeta?.opening_balance_remont ?? 0
 
   // ── Monthly aggregates ───────────────────────────────────────────────────
   const monthlyPaid: Record<number, number> = {}
@@ -381,8 +384,32 @@ export default function RaportyClient({
     const wydatki = expenses.filter(e => e.community_id === filterComm && e.year === year && (isRenovationFund(e.is_renovation_fund) || normalizeCategory(e.category) === 'fundusz_remontowy')).reduce((s, e) => s + e.amount, 0)
     return { year, naliczenia, wydatki, saldo: naliczenia - wydatki }
   })
-  let cumulative = 0
+  // Saldo skumulowane zaczyna się od salda początkowego wpisanego we wspólnocie
+  // (stan funduszu remontowego z dnia rozpoczęcia śledzenia w panelu), nie od 0 —
+  // inaczej fundusz "zgromadzony wcześniej" byłby zupełnie niewidoczny.
+  let cumulative = openingBalanceRemont
   const renovFundCumulative = renovFundRows.map(r => { cumulative += r.saldo; return { ...r, cumulative } })
+
+  // ── Operating fund (fundusz eksploatacyjny) — symetryczne skumulowane saldo ──
+  const eksploatFundRows = allYears.map(year => {
+    const yearApts = apartments.filter(a => a.community_id === filterComm)
+    let naliczenia = 0
+    for (let m = 1; m <= 12; m++) {
+      const rate = getActiveRate(rates, filterComm, year, m)
+      if (rate) {
+        for (const apt of yearApts) {
+          naliczenia += rate.operating_rate_m2 * apt.area_m2
+        }
+      }
+    }
+    const wydatki = expenses
+      .filter(e => e.community_id === filterComm && e.year === year && isExploitation(e))
+      .filter(e => !SEPARATE_BUDGET_LINES.includes(normalizeCategory(e.category)))
+      .reduce((s, e) => s + e.amount, 0)
+    return { year, naliczenia, wydatki, saldo: naliczenia - wydatki }
+  })
+  let eksploatCumulativeAcc = openingBalanceEksploatacyjny
+  const eksploatFundCumulative = eksploatFundRows.map(r => { eksploatCumulativeAcc += r.saldo; return { ...r, cumulative: eksploatCumulativeAcc } })
 
   // ── Print / export ───────────────────────────────────────────────────────
   const handlePrint = () => {
@@ -1023,7 +1050,7 @@ export default function RaportyClient({
                     const diff = totalExecutionToDate - totalPlan
                     return (
                       <>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                           <KpiCard label={`Plan ${filterYear}`} value={pln(totalPlan)} color="blue"
                             note="fundusz eksploatacyjny + zarządca + woda + śmieci"
                             formula={`(stawka funduszu eksploatacyjnego × m² + wynagrodzenie zarządcy + woda + śmieci) × 12 miesięcy (rok ${filterYear})`} />
@@ -1033,6 +1060,10 @@ export default function RaportyClient({
                           <KpiCard label="Odchylenie" value={pln(Math.abs(diff))} color={diff <= 0 ? 'green' : 'red'}
                             note={diff <= 0 ? 'W planie / oszczędność' : 'Przekroczenie planu'}
                             formula="Wykonanie (rzeczywiste wydatki) − Plan (ujemne = oszczędność)" />
+                          <KpiCard label="Saldo skumulowane funduszu eksploatacyjnego" value={pln(eksploatFundCumulative[eksploatFundCumulative.length - 1]?.cumulative ?? 0)}
+                            color={(eksploatFundCumulative[eksploatFundCumulative.length - 1]?.cumulative ?? 0) >= 0 ? 'green' : 'red'}
+                            note="łącznie od salda początkowego, wszystkie lata"
+                            formula="Saldo początkowe (wspólnota) + suma (naliczenia − wydatki) za wszystkie lata" />
                         </div>
 
                         <ReportSection title={`Porównanie — plan roczny ${filterYear} vs rzeczywiste wydatki do ${['','Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'][maxMonth]} ${filterYear}`}>
