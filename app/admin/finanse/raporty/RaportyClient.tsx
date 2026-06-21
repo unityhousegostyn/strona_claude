@@ -69,6 +69,7 @@ const EXP_CAT_LABELS: Record<string, string> = {
   remonty:                'Remonty / naprawy',
   ubezpieczenie:          'Ubezpieczenie',
   energia:                'Energia / gaz',
+  najem:                  'Najem',
   zarząd:                 'Zarządzanie (inne)',
   inne:                   'Inne',
 }

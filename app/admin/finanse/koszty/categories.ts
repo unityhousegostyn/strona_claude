@@ -11,6 +11,7 @@ export type ExpenseCategory =
   | 'remonty'
   | 'ubezpieczenie'
   | 'energia'
+  | 'najem'
   | 'zarząd'
   | 'inne'
 
@@ -27,6 +28,7 @@ export const EXPENSE_CATEGORIES: { value: ExpenseCategory; label: string }[] = [
   { value: 'remonty',                label: 'Remonty / naprawy' },
   { value: 'ubezpieczenie',          label: 'Ubezpieczenie' },
   { value: 'energia',                label: 'Energia / gaz' },
+  { value: 'najem',                  label: 'Najem (fundusz eksploatacyjny)' },
   { value: 'zarząd',                 label: 'Zarządzanie (inne)' },
   { value: 'inne',                   label: 'Inne' },
 ]
