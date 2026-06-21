@@ -253,7 +253,7 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
 
       {/* Filtry + tabs */}
       <div className="flex flex-wrap gap-3 items-center">
-        {isSuperAdmin && <select className="input text-sm" value={filterComm} onChange={e=>setFilterComm(e.target.value)}><option value="">Wszystkie wspólnoty</option>{communities.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select>}
+        {isSuperAdmin && <select className="input text-sm" value={filterComm} onChange={e=>setFilterComm(e.target.value)}><option value="">— wybierz wspólnotę —</option>{communities.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select>}
         <select className="input text-sm" value={filterYear} onChange={e=>setFilterYear(Number(e.target.value))}><option value={currentYear}>{currentYear}</option><option value={currentYear-1}>{currentYear-1}</option></select>
         <select className="input text-sm" value={filterMonth} onChange={e=>setFilterMonth(Number(e.target.value))}>
           <option value={0}>Wszystkie miesiące</option>
