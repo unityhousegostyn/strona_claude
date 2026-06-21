@@ -13,7 +13,7 @@ export async function sendMessageToResidents(data: {
   try {
     const auth = await getAuthProfileAction()
     if (auth.error !== null) return { error: auth.error }
-    if (auth.profile.role === 'user') return { error: 'Brak uprawnień' }
+    if (auth.profile.role === 'user' || auth.profile.role === 'najemca') return { error: 'Brak uprawnień' }
 
     const subject = data.subject.trim()
     const body = data.body.trim()
@@ -66,13 +66,19 @@ export async function sendMessageToResidents(data: {
 export async function getResidentsForMessage(communityId: string) {
   const auth = await getAuthProfileAction()
   if (auth.error !== null) return []
-  if (auth.profile.role === 'user') return []
+  if (auth.profile.role === 'user' || auth.profile.role === 'najemca') return []
+
+  // Admin może wylistować mieszkańców tylko swojej własnej wspólnoty — bez
+  // tego mógłby podać communityId innej wspólnoty i wyciągnąć imiona/emaile
+  // jej mieszkańców (PII innej wspólnoty).
+  const effectiveCommunityId = auth.profile.role === 'admin' ? auth.profile.community_id : communityId
+  if (!effectiveCommunityId) return []
 
   const admin = getSupabaseAdminClient()
   const { data } = await admin
     .from('profiles')
     .select('id, full_name, email')
-    .eq('community_id', communityId)
+    .eq('community_id', effectiveCommunityId)
     .eq('role', 'user')
     .eq('status', 'active')
     .not('email', 'is', null)

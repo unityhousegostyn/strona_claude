@@ -11,7 +11,7 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 async function requireAdminOrSuperAdmin() {
   const auth = await getAuthProfileAction()
   if (auth.error !== null) throw new Error(auth.error)
-  if (auth.profile.role === 'user') throw new Error('Brak uprawnień')
+  if (auth.profile.role === 'user' || auth.profile.role === 'najemca') throw new Error('Brak uprawnień')
   return { user: auth.user, profile: auth.profile }
 }
 
@@ -31,8 +31,14 @@ export async function approveUser(userId: string, communityId: string, apartment
 
     if (error) return { error: error.message }
 
-    // Przypisz lokal jeśli podano
+    // Przypisz lokal jeśli podano — lokal MUSI należeć do wspólnoty, do której
+    // przypisujemy użytkownika, inaczej admin mógłby (podając cudzy apartmentId)
+    // przejąć własność mieszkania nalężącego do innej wspólnoty.
     if (apartmentId) {
+      const { data: targetApt } = await admin.from('settlement_apartments').select('community_id').eq('id', apartmentId).single()
+      if (!targetApt) return { error: 'Mieszkanie nie istnieje' }
+      if (targetApt.community_id !== communityId) return { error: 'Mieszkanie nie należy do tej wspólnoty' }
+
       await admin.from('settlement_apartments').update({ owner_id: null }).eq('owner_id', userId)
       const { error: aptError } = await admin
         .from('settlement_apartments')

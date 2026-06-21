@@ -57,7 +57,7 @@ export async function updateRequestStatus(
 ): Promise<{ error?: string; success?: boolean }> {
   try {
     const { profile } = await getActor()
-    if (profile.role === 'user') return { error: 'Brak uprawnień' }
+    if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
 
     const admin = getSupabaseAdminClient()
 
@@ -88,7 +88,7 @@ export async function updateRequestStatus(
 export async function deleteRequest(id: string): Promise<{ error?: string; success?: boolean }> {
   try {
     const { profile } = await getActor()
-    if (profile.role === 'user') return { error: 'Brak uprawnień' }
+    if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
 
     const admin = getSupabaseAdminClient()
 

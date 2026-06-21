@@ -10,7 +10,7 @@ export default async function EditAnnouncementPage({ params }: { params: Promise
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-  if (!profile || profile.role === 'user') redirect('/admin/dashboard')
+  if (!profile || profile.role === 'user' || profile.role === 'najemca') redirect('/admin/dashboard')
 
   const admin = getSupabaseAdminClient()
 

@@ -5,7 +5,7 @@ import MessagesClient from './MessagesClient'
 
 export default async function MessagesPage() {
   const { profile } = await getAuthProfile()
-  if (profile.role === 'user') redirect('/admin/dashboard')
+  if (profile.role === 'user' || profile.role === 'najemca') redirect('/admin/dashboard')
 
   const admin = getSupabaseAdminClient()
 

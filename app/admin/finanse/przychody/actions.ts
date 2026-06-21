@@ -21,7 +21,7 @@ export async function addIncome(data: {
 }): Promise<{ error?: string; id?: string }> {
   try {
     const { user, profile } = await getActor()
-    if (profile.role === 'user') return { error: 'Brak uprawnień' }
+    if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
     if (profile.role === 'admin' && profile.community_id !== data.community_id)
       return { error: 'Brak uprawnień do tej wspólnoty' }
     if (!data.description.trim()) return { error: 'Opis jest wymagany' }
@@ -56,7 +56,7 @@ export async function updateIncome(id: string, data: {
 }): Promise<{ error?: string }> {
   try {
     const { profile } = await getActor()
-    if (profile.role === 'user') return { error: 'Brak uprawnień' }
+    if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
     if (!data.description.trim()) return { error: 'Opis jest wymagany' }
     if (!data.amount || data.amount <= 0) return { error: 'Kwota musi być większa niż 0' }
     const admin = getSupabaseAdminClient()
@@ -86,7 +86,7 @@ export async function updateIncome(id: string, data: {
 export async function deleteIncome(id: string): Promise<{ error?: string }> {
   try {
     const { profile } = await getActor()
-    if (profile.role === 'user') return { error: 'Brak uprawnień' }
+    if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
     const admin = getSupabaseAdminClient()
 
     if (profile.role === 'admin') {
@@ -108,6 +108,13 @@ export async function deleteIncome(id: string): Promise<{ error?: string }> {
 
 export async function getIncomeList(community_id: string): Promise<any[]> {
   try {
+    // Wcześniej ta funkcja nie miała ŻADNEJ autoryzacji — dowolny zalogowany
+    // (albo nawet niezalogowany) caller mógł podać community_id innej
+    // wspólnoty i pobrać jej pełną listę przychodów.
+    const { profile } = await getActor()
+    if (profile.role === 'user' || profile.role === 'najemca') return []
+    if (profile.role === 'admin' && profile.community_id !== community_id) return []
+
     const admin = getSupabaseAdminClient()
     const { data } = await admin
       .from('community_income')

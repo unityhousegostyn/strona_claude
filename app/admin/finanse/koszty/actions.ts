@@ -23,7 +23,7 @@ export async function addExpense(data: {
   is_renovation_fund?: boolean
 }): Promise<{ error?: string; id?: string }> {
   const { user, profile } = await getActor()
-  if (profile.role === 'user') return { error: 'Brak uprawnień' }
+  if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
   if (profile.role === 'admin' && profile.community_id !== data.community_id)
     return { error: 'Brak uprawnień do tej wspólnoty' }
   if (!data.description.trim()) return { error: 'Opis jest wymagany' }
@@ -58,7 +58,7 @@ export async function updateExpense(id: string, data: {
   is_renovation_fund?: boolean
 }): Promise<{ error?: string }> {
   const { profile } = await getActor()
-  if (profile.role === 'user') return { error: 'Brak uprawnień' }
+  if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
 
   const admin = getSupabaseAdminClient()
 
@@ -86,7 +86,7 @@ export async function updateExpense(id: string, data: {
 // ── USUŃ KOSZT ───────────────────────────────────────────────────
 export async function deleteExpense(id: string): Promise<{ error?: string }> {
   const { profile } = await getActor()
-  if (profile.role === 'user') return { error: 'Brak uprawnień' }
+  if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
 
   const admin = getSupabaseAdminClient()
 
@@ -273,7 +273,7 @@ export async function importExpensesCSV(
     if (auth.error !== null) return { imported: 0, errors: [auth.error] }
     const { user, profile } = { user: auth.user!, profile: auth.profile! }
 
-    if (profile.role === 'user') return { imported: 0, errors: ['Brak uprawnień'] }
+    if (profile.role === 'user' || profile.role === 'najemca') return { imported: 0, errors: ['Brak uprawnień'] }
     if (profile.role === 'admin' && profile.community_id !== community_id)
       return { imported: 0, errors: ['Brak uprawnień do tej wspólnoty'] }
 
@@ -343,7 +343,7 @@ export async function bulkUpdateCategory(
 ): Promise<{ error?: string; updated?: number }> {
   try {
     const { profile } = await getActor()
-    if (profile.role === 'user') return { error: 'Brak uprawnień' }
+    if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
     if (!ids.length) return { error: 'Brak zaznaczonych wpisów' }
     const admin = getSupabaseAdminClient()
 
@@ -370,7 +370,7 @@ export async function bulkUpdateCategory(
 export async function bulkDeleteExpenses(ids: string[]): Promise<{ error?: string; deleted?: number }> {
   try {
     const { profile } = await getActor()
-    if (profile.role === 'user') return { error: 'Brak uprawnień' }
+    if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
     if (!ids.length) return { error: 'Brak zaznaczonych wpisów' }
     const admin = getSupabaseAdminClient()
 

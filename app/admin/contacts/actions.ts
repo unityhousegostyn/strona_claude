@@ -17,7 +17,7 @@ export async function createContact(data: {
   try {
     const auth = await getAuthProfileAction()
     if (auth.error !== null) return { error: auth.error }
-    if (auth.profile.role === 'user') return { error: 'Brak uprawnień' }
+    if (auth.profile.role === 'user' || auth.profile.role === 'najemca') return { error: 'Brak uprawnień' }
     const { user, profile } = auth
 
     const name = data.name?.trim()
@@ -52,7 +52,7 @@ export async function deleteContact(contactId: string): Promise<{ error?: string
   try {
     const auth = await getAuthProfileAction()
     if (auth.error !== null) return { error: auth.error }
-    if (auth.profile.role === 'user') return { error: 'Brak uprawnień' }
+    if (auth.profile.role === 'user' || auth.profile.role === 'najemca') return { error: 'Brak uprawnień' }
     const { user, profile } = auth
 
     const admin = getSupabaseAdminClient()

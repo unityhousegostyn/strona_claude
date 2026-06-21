@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
 
     const { data: senderProfile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, community_id')
       .eq('id', user.id)
       .single()
 
@@ -17,9 +17,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const { title, body, url, communityId } = await req.json()
+    const { title, body, url, communityId: requestedCommunityId } = await req.json()
     if (!title || !body) {
       return NextResponse.json({ error: 'title and body required' }, { status: 400 })
+    }
+
+    // Admin (zarządca) może wysłać push WYŁĄCZNIE do swojej wspólnoty — bez tego
+    // mógłby podać communityId innej wspólnoty (albo nic nie podać, co wysyłało
+    // powiadomienie do WSZYSTKICH subskrybentów wszystkich wspólnot).
+    const communityId = senderProfile.role === 'admin' ? senderProfile.community_id : requestedCommunityId
+    if (senderProfile.role === 'admin' && !communityId) {
+      return NextResponse.json({ error: 'Brak przypisanej wspólnoty' }, { status: 403 })
     }
 
     const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY

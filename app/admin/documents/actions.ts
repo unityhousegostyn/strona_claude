@@ -9,7 +9,7 @@ import { extractText, splitIntoChunks } from '@/lib/docChunker'
 async function requireUploader() {
   const auth = await getAuthProfileAction()
   if (auth.error !== null) throw new Error(auth.error)
-  if (auth.profile.role === 'user') throw new Error('Brak uprawnień')
+  if (auth.profile.role === 'user' || auth.profile.role === 'najemca') throw new Error('Brak uprawnień')
   return { user: auth.user, profile: auth.profile }
 }
 

@@ -10,7 +10,7 @@ import { sendNewTicketEmail } from '@/lib/email'
 export async function toggleTicketStatus(ticketId: string, currentStatus: string) {
   const auth = await getAuthProfileAction()
   if (auth.error !== null) throw new Error(auth.error)
-  if (auth.profile.role === 'user') throw new Error('Brak uprawnień')
+  if (auth.profile.role === 'user' || auth.profile.role === 'najemca') throw new Error('Brak uprawnień')
   const { user, profile } = auth
 
   const admin = getSupabaseAdminClient()
@@ -162,7 +162,7 @@ export async function updateTicket(ticketId: string, data: { title: string; desc
     const auth = await getAuthProfileAction()
     if (auth.error !== null) return { error: auth.error }
     const { user, profile } = auth
-    if (profile.role === 'user') return { error: 'Brak uprawnień' }
+    if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
 
     const title = data.title.trim()
     const description = data.description.trim()

@@ -10,7 +10,10 @@ export async function createPost(content: string, communityId?: string): Promise
     if (auth.error !== null) return { error: auth.error }
     const { user, profile } = auth
 
-    const effectiveCommunityId = communityId ?? profile.community_id
+    // communityId z parametru jest honorowany TYLKO dla super_admina (wybór wspólnoty
+    // w UI) — każdy inny caller (admin/user/najemca) może pisać wyłącznie na tablicę
+    // swojej własnej wspólnoty, niezależnie co podałby w żądaniu.
+    const effectiveCommunityId = profile.role === 'super_admin' ? (communityId ?? profile.community_id) : profile.community_id
     if (!effectiveCommunityId) return { error: 'Brak przypisanej wspólnoty' }
 
     const trimmed = content?.trim()
@@ -71,7 +74,7 @@ export async function togglePin(postId: string, pinned: boolean): Promise<{ erro
     if (auth.error !== null) return { error: auth.error }
     const { profile } = auth
 
-    if (!profile || profile.role === 'user') return { error: 'Brak uprawnień' }
+    if (!profile || profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
 
     const admin = getSupabaseAdminClient()
 
@@ -94,13 +97,22 @@ export async function createReply(postId: string, content: string): Promise<{ er
   try {
     const auth = await getAuthProfileAction()
     if (auth.error !== null) return { error: auth.error }
-    const { user } = auth
+    const { user, profile } = auth
 
     const trimmed = content?.trim()
     if (!trimmed || trimmed.length < 2) return { error: 'Odpowiedź musi mieć min. 2 znaki' }
     if (trimmed.length > 500) return { error: 'Odpowiedź może mieć max 500 znaków' }
 
     const admin = getSupabaseAdminClient()
+
+    // Bez tego dowolny zalogowany użytkownik mógłby dopisać odpowiedź pod
+    // postem należącym do INNEJ wspólnoty, znając/zgadując postId.
+    if (profile.role !== 'super_admin') {
+      const { data: post } = await admin.from('board_posts').select('community_id').eq('id', postId).single()
+      if (!post) return { error: 'Post nie istnieje' }
+      if (post.community_id !== profile.community_id) return { error: 'Brak uprawnień do tego postu' }
+    }
+
     const { error } = await admin.from('board_replies').insert({
       post_id: postId,
       author_id: user.id,

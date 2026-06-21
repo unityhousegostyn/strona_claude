@@ -18,7 +18,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   if (auth.error !== null) return NextResponse.redirect(new URL('/login', request.url))
   const { profile } = auth
 
-  if (profile.role === 'user') return new NextResponse('Brak uprawnień', { status: 403 })
+  if (profile.role === 'user' || profile.role === 'najemca') return new NextResponse('Brak uprawnień', { status: 403 })
 
   const admin = getSupabaseAdminClient()
 

@@ -112,7 +112,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // Trasy tylko dla admin/super_admin
-  if (isAdminOnlyRoute && profile?.role === 'user') {
+  if (isAdminOnlyRoute && (profile?.role === 'user' || profile?.role === 'najemca')) {
     return NextResponse.redirect(new URL('/admin/dashboard', request.url))
   }
 

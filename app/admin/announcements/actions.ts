@@ -20,7 +20,7 @@ export async function createAnnouncement(formData: {
   try {
   const auth = await getAuthProfileAction()
   if (auth.error !== null) return { error: auth.error }
-  if (auth.profile.role === 'user') return { error: 'Brak uprawnień' }
+  if (auth.profile.role === 'user' || auth.profile.role === 'najemca') return { error: 'Brak uprawnień' }
   const { user, profile } = auth
 
   // Walidacja wejścia
@@ -137,7 +137,7 @@ export async function updateAnnouncement(
   try {
     const auth = await getAuthProfileAction()
     if (auth.error !== null) return { error: auth.error }
-    if (auth.profile.role === 'user') return { error: 'Brak uprawnień' }
+    if (auth.profile.role === 'user' || auth.profile.role === 'najemca') return { error: 'Brak uprawnień' }
     const { user, profile } = auth
 
     const title = formData.title?.trim()
@@ -199,7 +199,7 @@ export async function togglePin(announcementId: string, pinned: boolean): Promis
   try {
     const auth = await getAuthProfileAction()
     if (auth.error !== null) return { error: auth.error }
-    if (auth.profile.role === 'user') return { error: 'Brak uprawnień' }
+    if (auth.profile.role === 'user' || auth.profile.role === 'najemca') return { error: 'Brak uprawnień' }
     const { profile } = auth
 
     const admin = getSupabaseAdminClient()

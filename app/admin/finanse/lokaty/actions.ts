@@ -32,7 +32,7 @@ export async function addDeposit(formData: {
 }): Promise<{ error?: string; success?: boolean }> {
   try {
     const { profile } = await getActor()
-    if (profile.role === 'user') return { error: 'Brak uprawnień' }
+    if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
     if (profile.role === 'admin' && profile.community_id !== formData.community_id)
       return { error: 'Brak uprawnień do tej wspólnoty' }
     if (!formData.amount || formData.amount <= 0) return { error: 'Kwota musi być większa od 0' }
@@ -64,7 +64,7 @@ export async function addDeposit(formData: {
 export async function matureDeposit(id: string): Promise<{ error?: string; success?: boolean; netInterest?: number; incomeId?: string | null }> {
   try {
     const { profile, user } = await getActor()
-    if (profile.role === 'user') return { error: 'Brak uprawnień' }
+    if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
 
     const admin = getSupabaseAdminClient()
 
@@ -127,7 +127,7 @@ export async function matureDeposit(id: string): Promise<{ error?: string; succe
 export async function deleteDeposit(id: string): Promise<{ error?: string; success?: boolean }> {
   try {
     const { profile } = await getActor()
-    if (profile.role === 'user') return { error: 'Brak uprawnień' }
+    if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
 
     const admin = getSupabaseAdminClient()
 

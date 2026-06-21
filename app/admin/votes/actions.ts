@@ -24,7 +24,7 @@ function guardCommunity(profile: { role: string; community_id: string | null }, 
 
 export async function uploadVoteAttachment(formData: FormData): Promise<{ error?: string; path?: string }> {
   const { profile } = await getActor()
-  if (profile.role === 'user') return { error: 'Brak uprawnień' }
+  if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
 
   const file = formData.get('file') as File | null
   if (!file) return { error: 'Brak pliku' }
@@ -57,7 +57,7 @@ export async function createVote(data: {
   resolution_number?: number | null
 }): Promise<{ error?: string; id?: string }> {
   const { user, profile } = await getActor()
-  if (profile.role === 'user') return { error: 'Brak uprawnień' }
+  if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
   if (profile.role === 'admin' && profile.community_id !== data.community_id)
     return { error: 'Brak uprawnień do tej wspólnoty' }
 
@@ -154,6 +154,10 @@ export async function castVote(data: {
   pin: string
 }): Promise<{ error?: string }> {
   const { user, profile } = await getActor()
+
+  // Prawo głosu na zebraniu wspólnoty mają WŁAŚCICIELE lokali (art. 23 UoWL),
+  // nie najemcy/lokatorzy — najemca nie może oddać wiążącego głosu nad uchwałą.
+  if (profile.role === 'najemca') return { error: 'Najemcy nie mają prawa głosu w głosowaniach wspólnoty' }
 
   // Weryfikuj PIN
   const admin = getSupabaseAdminClient()
@@ -342,7 +346,7 @@ export async function castVoteAsAdmin(data: {
 
 export async function updateResolutionNumber(voteId: string, resolutionNumber: number): Promise<{ error?: string }> {
   const { profile } = await getActor()
-  if (profile.role === 'user') return { error: 'Brak uprawnień' }
+  if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
 
   const admin = getSupabaseAdminClient()
 
@@ -365,7 +369,7 @@ export async function updateResolutionNumber(voteId: string, resolutionNumber: n
 
 export async function closeVote(voteId: string): Promise<{ error?: string }> {
   const { profile } = await getActor()
-  if (profile.role === 'user') return { error: 'Brak uprawnień' }
+  if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
 
   const admin = getSupabaseAdminClient()
   const { data: vote } = await admin.from('votes').select('community_id').eq('id', voteId).single()
@@ -384,7 +388,7 @@ export async function closeVote(voteId: string): Promise<{ error?: string }> {
 
 export async function reopenVote(voteId: string): Promise<{ error?: string; deadlineCleared?: boolean }> {
   const { user, profile } = await getActor()
-  if (profile.role === 'user') return { error: 'Brak uprawnień' }
+  if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
 
   const admin = getSupabaseAdminClient()
 
@@ -513,7 +517,7 @@ export async function updateVote(voteId: string, data: {
   link_url?: string | null
 }): Promise<{ error?: string }> {
   const { profile } = await getActor()
-  if (profile.role === 'user') return { error: 'Brak uprawnień' }
+  if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
 
   if (!data.title.trim()) return { error: 'Tytuł jest wymagany' }
 
@@ -545,7 +549,7 @@ export async function updateVote(voteId: string, data: {
 
 export async function deleteVote(voteId: string): Promise<{ error?: string }> {
   const { profile } = await getActor()
-  if (profile.role === 'user') return { error: 'Brak uprawnień' }
+  if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
 
   const admin = getSupabaseAdminClient()
 

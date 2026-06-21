@@ -10,7 +10,7 @@ import CopyRegisterLink from './CopyRegisterLink'
 export default async function UsersPage() {
   // Auth check — anon client (RLS)
   const { user, profile } = await getAuthProfile()
-  if (profile.role === 'user') redirect('/admin/dashboard')
+  if (profile.role === 'user' || profile.role === 'najemca') redirect('/admin/dashboard')
 
   const isSuperAdmin = profile.role === 'super_admin'
 

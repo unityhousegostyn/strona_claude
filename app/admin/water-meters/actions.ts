@@ -69,7 +69,7 @@ export async function confirmReading(id: string): Promise<{ error?: string }> {
   try {
     const auth = await getAuthProfileAction()
     if (auth.error !== null) return { error: auth.error }
-    if (auth.profile.role === 'user') return { error: 'Brak uprawnień' }
+    if (auth.profile.role === 'user' || auth.profile.role === 'najemca') return { error: 'Brak uprawnień' }
 
     const admin = getSupabaseAdminClient()
     const { data: reading } = await admin
@@ -97,7 +97,7 @@ export async function rejectReading(id: string, reason: string): Promise<{ error
   try {
     const auth = await getAuthProfileAction()
     if (auth.error !== null) return { error: auth.error }
-    if (auth.profile.role === 'user') return { error: 'Brak uprawnień' }
+    if (auth.profile.role === 'user' || auth.profile.role === 'najemca') return { error: 'Brak uprawnień' }
 
     const admin = getSupabaseAdminClient()
     const { data: reading } = await admin
