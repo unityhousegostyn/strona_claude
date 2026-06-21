@@ -365,3 +365,30 @@ export async function bulkUpdateCategory(
     return { error: e?.message ?? String(e) }
   }
 }
+
+// ── GRUPOWE USUWANIE ──────────────────────────────────────────────
+export async function bulkDeleteExpenses(ids: string[]): Promise<{ error?: string; deleted?: number }> {
+  try {
+    const { profile } = await getActor()
+    if (profile.role === 'user') return { error: 'Brak uprawnień' }
+    if (!ids.length) return { error: 'Brak zaznaczonych wpisów' }
+    const admin = getSupabaseAdminClient()
+
+    if (profile.role === 'admin') {
+      const { data: rows } = await admin.from('community_expenses').select('id, community_id').in('id', ids)
+      const foreign = (rows ?? []).some(r => r.community_id !== profile.community_id)
+      if (foreign || (rows ?? []).length !== ids.length) return { error: 'Brak uprawnień do części wybranych wpisów' }
+    }
+
+    const { error } = await admin
+      .from('community_expenses')
+      .delete()
+      .in('id', ids)
+    if (error) return { error: error.message }
+    revalidatePath('/admin/finanse/koszty')
+    revalidatePath('/admin/dashboard')
+    return { deleted: ids.length }
+  } catch (e: any) {
+    return { error: e?.message ?? String(e) }
+  }
+}

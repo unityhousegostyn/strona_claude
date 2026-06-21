@@ -3,7 +3,7 @@ import BackButton from '@/components/BackButton'
 
 import { useState, useTransition, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { addExpense, updateExpense, deleteExpense, importExpensesCSV, bulkUpdateCategory } from './actions'
+import { addExpense, updateExpense, deleteExpense, importExpensesCSV, bulkUpdateCategory, bulkDeleteExpenses } from './actions'
 import type { ExpenseCategory } from './categories'
 import { exportToExcel } from '@/lib/exportExcel'
 import Pagination from '@/components/Pagination'
@@ -131,6 +131,18 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
       const res = await bulkUpdateCategory(Array.from(selectedIds), bulkCat)
       if (res.error) { setBulkResult('❌ ' + res.error); return }
       setBulkResult(`✓ Zmieniono kategorię dla ${res.updated} wpisów`)
+      setSelectedIds(new Set())
+      router.refresh()
+    })
+  }
+  const handleBulkDelete = () => {
+    if (!selectedIds.size) return
+    if (!confirm(`Usunąć ${selectedIds.size} zaznaczonych pozycji? Tej operacji nie można odwrócić.`)) return
+    setBulkResult(null)
+    startTransition(async () => {
+      const res = await bulkDeleteExpenses(Array.from(selectedIds))
+      if (res.error) { setBulkResult('❌ ' + res.error); return }
+      setBulkResult(`✓ Usunięto ${res.deleted} wpisów`)
       setSelectedIds(new Set())
       router.refresh()
     })
@@ -301,6 +313,10 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
                   </select>
                   <button onClick={handleBulkCategory} disabled={isPending} className="bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-50 transition">
                     {isPending ? '...' : `Zastosuj (${selectedIds.size})`}
+                  </button>
+                  <span className="text-[#0f2d2a]">|</span>
+                  <button onClick={handleBulkDelete} disabled={isPending} className="bg-red-900/40 hover:bg-red-900/60 border border-red-800 text-red-400 text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-50 transition">
+                    {isPending ? '...' : `🗑️ Usuń zaznaczone (${selectedIds.size})`}
                   </button>
                   <button onClick={() => setSelectedIds(new Set())} className="text-xs text-[#115e59] hover:text-[#99f6e4]">Odznacz</button>
                 </div>
