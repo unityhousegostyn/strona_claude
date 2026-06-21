@@ -70,6 +70,7 @@ const EXP_CAT_LABELS: Record<string, string> = {
   ubezpieczenie:          'Ubezpieczenie',
   energia:                'Energia / gaz',
   najem:                  'Najem',
+  podatek_od_nieruchomości: 'Podatek od nieruchomości',
   zarząd:                 'Zarządzanie (inne)',
   inne:                   'Inne',
 }

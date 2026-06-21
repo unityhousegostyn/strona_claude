@@ -12,6 +12,7 @@ export type ExpenseCategory =
   | 'ubezpieczenie'
   | 'energia'
   | 'najem'
+  | 'podatek_od_nieruchomości'
   | 'zarząd'
   | 'inne'
 
@@ -29,6 +30,7 @@ export const EXPENSE_CATEGORIES: { value: ExpenseCategory; label: string }[] = [
   { value: 'ubezpieczenie',          label: 'Ubezpieczenie' },
   { value: 'energia',                label: 'Energia / gaz' },
   { value: 'najem',                  label: 'Najem (fundusz eksploatacyjny)' },
+  { value: 'podatek_od_nieruchomości', label: 'Podatek od nieruchomości' },
   { value: 'zarząd',                 label: 'Zarządzanie (inne)' },
   { value: 'inne',                   label: 'Inne' },
 ]
