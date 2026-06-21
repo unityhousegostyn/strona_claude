@@ -141,8 +141,21 @@ function parseCsvLine(line: string): string[] {
 }
 
 function isBankExport(firstLine: string): boolean {
-  const unwrapped = unwrapBankLine(firstLine).toLowerCase()
-  return unwrapped.includes('data operacji') && unwrapped.includes('typ transakcji')
+  const lower = firstLine.toLowerCase()
+  return lower.includes('data operacji') && lower.includes('typ transakcji')
+}
+
+// Banki eksportują "Zestawienie operacji" w co najmniej dwóch wariantach CSV:
+// (A) każde pole osobno w cudzysłowie: "f1","f2","f3" — standardowy CSV,
+//     parseCsvLine działa na nim bezpośrednio i daje >=4 pól;
+// (B) CAŁY wiersz dodatkowo owinięty w jeden zewnętrzny cudzysłów z
+//     zdublowanymi cudzysłowami wewnątrz (CSV-w-CSV), zakończony ";" —
+//     parseCsvLine na surowym wierszu zwróci wtedy tylko 1 "pole" (cały
+//     wiersz), które trzeba dodatkowo "rozpakować" przed ponownym parsowaniem.
+function parseBankLine(line: string): string[] {
+  const direct = parseCsvLine(line)
+  if (direct.length >= 4) return direct
+  return parseCsvLine(unwrapBankLine(line))
 }
 
 function guessExpenseCategory(text: string): ExpenseCategory {
@@ -201,7 +214,7 @@ async function importBankStatementCSV(
   let skippedIncome = 0
 
   for (let i = 1; i < lines.length; i++) {
-    const fields = parseCsvLine(unwrapBankLine(lines[i]))
+    const fields = parseBankLine(lines[i])
     if (fields.length < 4) { errors.push(`Wiersz ${i + 1}: nieprawidłowy format`); continue }
 
     const [dateRaw, , typTransakcji, kwotaRaw] = fields
