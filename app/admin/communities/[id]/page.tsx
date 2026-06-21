@@ -15,6 +15,8 @@ export default function EditCommunityPage() {
   const [waterMeterEnabled, setWaterMeterEnabled] = useState(false)
   const [bankAccount, setBankAccount] = useState('')
   const [legalBasis, setLegalBasis] = useState('')
+  const [openingBalance, setOpeningBalance] = useState('0')
+  const [openingBalanceDate, setOpeningBalanceDate] = useState('')
   const [loading, setLoading] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -32,6 +34,8 @@ export default function EditCommunityPage() {
         setWaterMeterEnabled(data.water_meter_enabled ?? false)
         setBankAccount(data.bank_account ?? '')
         setLegalBasis(data.legal_basis ?? '')
+        setOpeningBalance(String(data.opening_balance ?? 0))
+        setOpeningBalanceDate(data.opening_balance_date ?? '')
       }
     }
     load()
@@ -51,6 +55,8 @@ export default function EditCommunityPage() {
         water_meter_enabled: waterMeterEnabled,
         bank_account: bankAccount,
         legal_basis: legalBasis,
+        opening_balance: parseFloat(openingBalance.replace(',', '.')) || 0,
+        opening_balance_date: openingBalanceDate,
       })
       router.push('/admin/communities')
     } catch (e: any) {
@@ -131,6 +137,31 @@ export default function EditCommunityPage() {
             onChange={(e) => setLegalBasis(e.target.value)}
           />
           <p className="text-xs text-[#115e59] mt-1">Treść powołania prawnego na zawiadomieniach (ustawa, nr uchwały itp.)</p>
+        </div>
+        <div className="pt-2 border-t border-[#0f2d2a]">
+          <p className="text-sm font-medium text-[#99f6e4] mb-1">Saldo początkowe konta</p>
+          <p className="text-xs text-[#115e59] mb-3">Stan konta wspólnoty w dniu, od którego zaczęliście wprowadzać dane do panelu — np. jeśli na koncie było już 20 000 zł, zanim zaczęliście korzystać z systemu. Bez tego &bdquo;Stan konta&rdquo; na dashboardzie liczy się tylko z wpłat i kosztów wpisanych w panelu.</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-[#115e59] mb-1">Kwota (zł)</label>
+              <input
+                className="input"
+                type="number"
+                step="0.01"
+                value={openingBalance}
+                onChange={(e) => setOpeningBalance(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-[#115e59] mb-1">Stan na dzień</label>
+              <input
+                className="input"
+                type="date"
+                value={openingBalanceDate}
+                onChange={(e) => setOpeningBalanceDate(e.target.value)}
+              />
+            </div>
+          </div>
         </div>
       </div>
 

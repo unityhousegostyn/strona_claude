@@ -29,7 +29,7 @@ export async function createCommunity(formData: { name: string; address: string 
   revalidatePath('/admin/communities')
 }
 
-export async function updateCommunity(id: string, formData: { name: string; address: string; water_meter_enabled?: boolean; bank_account?: string; legal_basis?: string }) {
+export async function updateCommunity(id: string, formData: { name: string; address: string; water_meter_enabled?: boolean; bank_account?: string; legal_basis?: string; opening_balance?: number; opening_balance_date?: string }) {
   await requireSuperAdmin()
 
   const name = formData.name.trim()
@@ -38,12 +38,15 @@ export async function updateCommunity(id: string, formData: { name: string; addr
   if (!name || name.length < 3 || name.length > 100) throw new Error('Nazwa musi mieć 3–100 znaków')
   if (!address || address.length < 5 || address.length > 200) throw new Error('Adres musi mieć 5–200 znaków')
   if (!id) throw new Error('Brak ID wspólnoty')
+  if (formData.opening_balance !== undefined && isNaN(formData.opening_balance)) throw new Error('Saldo początkowe musi być liczbą')
 
   const admin = getSupabaseAdminClient()
   const updateData: Record<string, unknown> = { name, address }
   if (formData.water_meter_enabled !== undefined) updateData.water_meter_enabled = formData.water_meter_enabled
   if (formData.bank_account !== undefined) updateData.bank_account = formData.bank_account.trim() || null
   if (formData.legal_basis !== undefined) updateData.legal_basis = formData.legal_basis.trim() || null
+  if (formData.opening_balance !== undefined) updateData.opening_balance = formData.opening_balance
+  if (formData.opening_balance_date !== undefined) updateData.opening_balance_date = formData.opening_balance_date.trim() || null
   const { error } = await admin.from('communities').update(updateData).eq('id', id)
   if (error) throw new Error('Błąd podczas zapisywania')
   const { user } = await requireSuperAdmin()
