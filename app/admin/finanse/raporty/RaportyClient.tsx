@@ -280,10 +280,21 @@ export default function RaportyClient({
   }
   const hasRateForYear = commApts.length > 0 && Array.from({ length: 12 }, (_, i) => i + 1).some(m => !!getActiveRate(rates, filterComm, filterYear, m))
 
+  // Dla modeli 'meter'/'zaliczka' nie ma stałej, z góry znanej stawki wody (woda
+  // wynika z odczytu licznika albo z wpłaty mieszkańca), więc planBreakdown.water
+  // wychodzi 0 — wiersz "Woda/kanalizacja" w tabeli planu wygląda wtedy na puste
+  // pole. Zamiast tego szacujemy plan roczny na podstawie tempa naliczeń
+  // mieszkańcom do bieżącego miesiąca (chargeBreakdown.water), wyciągnięte na
+  // cały rok — to jest najlepsze dostępne przybliżenie "ile powinno wpłynąć
+  // zaliczek na wodę w całym roku" przy tym modelu rozliczania.
+  const planWater = planBreakdown.water > 0
+    ? planBreakdown.water
+    : (maxMonth > 0 ? (chargeBreakdown.water / maxMonth) * 12 : 0)
+
   const planByCategory: Record<string, number> = {
     fundusz_eksploatacyjny: planBreakdown.operating,
     wynagrodzenie_zarządcy: planBreakdown.manager,
-    woda: planBreakdown.water,
+    woda: planWater,
     śmieci: planBreakdown.garbage,
   }
 
