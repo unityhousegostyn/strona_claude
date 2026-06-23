@@ -7,10 +7,11 @@ const windows = new Map<string, RateWindow>()
 
 // Rate limiting tylko dla POST (próby logowania) i API — GET stron nie jest limitowany
 const LIMITS: Record<string, { max: number; windowMs: number; postOnly?: boolean }> = {
-  '/api/':     { max: 60,  windowMs: 60_000 },
-  '/login':    { max: 15,  windowMs: 60_000, postOnly: true },
-  '/register': { max: 10,  windowMs: 60_000, postOnly: true },
-  '/admin/':   { max: 300, windowMs: 60_000 },
+  '/api/chat':   { max: 20,  windowMs: 60_000 }, // Anthropic API — kosztowny endpoint, ściślejszy limit
+  '/api/':       { max: 60,  windowMs: 60_000 },
+  '/login':      { max: 15,  windowMs: 60_000, postOnly: true },
+  '/register':   { max: 10,  windowMs: 60_000, postOnly: true },
+  '/admin/':     { max: 300, windowMs: 60_000 },
 }
 
 function getRealIp(req: NextRequest): string {

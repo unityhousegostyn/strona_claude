@@ -31,7 +31,7 @@ export async function updateUser(userId: string, data: {
   if (full_name && (full_name.length < 2 || full_name.length > 100)) {
     throw new Error('Imię i nazwisko musi mieć 2–100 znaków')
   }
-  if (!['user', 'admin', 'super_admin'].includes(data.role)) {
+  if (!['user', 'najemca', 'admin', 'super_admin'].includes(data.role)) {
     throw new Error('Nieprawidłowa rola')
   }
   // super_admin nie może mieć community_id

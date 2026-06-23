@@ -114,7 +114,7 @@ export default async function DocumentsPage() {
                   <div className="flex items-center gap-3 flex-shrink-0">
                     <DocPreviewButton url={getPublicUrl(d.storage_path)} name={d.name} />
                     {canUpload && (
-                      <form action={deleteDocument.bind(null, d.id, d.storage_path)}>
+                      <form action={deleteDocument.bind(null, d.id)}>
                         <button type="submit" className="text-sm text-red-500 hover:text-red-400">
                           Usuń
                         </button>

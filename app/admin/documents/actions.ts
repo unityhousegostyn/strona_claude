@@ -91,18 +91,28 @@ export async function uploadDocument(formData: FormData) {
   revalidatePath('/admin/documents')
 }
 
-export async function deleteDocument(docId: string, storagePath: string) {
+export async function deleteDocument(docId: string) {
   const { user, profile } = await requireUploader()
 
   const admin = getSupabaseAdminClient()
 
+  // Pobierz storage_path z bazy — nigdy nie ufaj klientowi w tym parametrze.
+  // Wcześniej storagePath był przekazywany z frontendu, co pozwalało adminowi
+  // podać docId ze swojej wspólnoty + storagePath z cudzej (path injection).
+  const { data: doc } = await admin
+    .from('documents')
+    .select('community_id, storage_path')
+    .eq('id', docId)
+    .single()
+
+  if (!doc) throw new Error('Dokument nie istnieje')
+
   // Admin może usuwać tylko dokumenty swojej wspólnoty
-  if (profile.role === 'admin') {
-    const { data: doc } = await admin.from('documents').select('community_id').eq('id', docId).single()
-    if (doc?.community_id !== profile.community_id) throw new Error('Brak uprawnień')
+  if (profile.role === 'admin' && doc.community_id !== profile.community_id) {
+    throw new Error('Brak uprawnień')
   }
 
-  await admin.storage.from('documents').remove([storagePath])
+  await admin.storage.from('documents').remove([doc.storage_path])
   await admin.from('documents').delete().eq('id', docId)
   await logActivity({ userId: user.id, action: 'delete_document', targetType: 'document', targetId: docId })
 
