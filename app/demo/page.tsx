@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 
 const SCREENS = [
@@ -394,7 +394,7 @@ function ScreenDokumenty({ active }: { active: boolean }) {
   )
 }
 
-const SCREEN_COMPONENTS: Record<string, (props: { active: boolean }) => JSX.Element> = {
+const SCREEN_COMPONENTS: Record<string, (props: { active: boolean }) => React.ReactElement> = {
   dashboard:   ScreenDashboard,
   finanse:     ScreenFinanse,
   glosowania:  ScreenGlosowania,
