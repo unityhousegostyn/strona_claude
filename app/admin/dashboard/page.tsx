@@ -769,9 +769,13 @@ function QuickAction({ href, icon, label, badge, badgeColor }: {
     <Link href={href}
       className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-4 flex flex-col items-center gap-3 hover:border-teal-800/60 hover:bg-teal-950/20 transition text-center group">
       <div className="w-10 h-10 rounded-xl bg-[#051210] flex items-center justify-center group-hover:bg-teal-950/40 transition">
-        <svg className="w-5 h-5 text-teal-600 group-hover:text-teal-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          {icon}
-        </svg>
+        {typeof icon === 'string' ? (
+          <span className="text-xl">{icon}</span>
+        ) : (
+          <svg className="w-5 h-5 text-teal-600 group-hover:text-teal-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {icon}
+          </svg>
+        )}
       </div>
       <span className="text-xs font-semibold text-[#99f6e4] group-hover:text-[#f0fdfa] transition">{label}</span>
       {badge && (
