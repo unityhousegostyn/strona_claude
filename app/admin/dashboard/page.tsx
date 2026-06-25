@@ -121,7 +121,7 @@ export default async function DashboardPage() {
               Witaj, {profile.full_name?.split(' ')[0] ?? 'Super Admin'} 👋
             </h2>
             <p className="text-sm text-[#115e59] mt-1">
-              {now.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              {now.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Warsaw' })}
             </p>
           </div>
           {pendingCount.count! > 0 && (

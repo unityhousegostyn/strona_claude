@@ -77,7 +77,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
                   </p>
                 </div>
                 <span className="text-xs text-[#115e59] flex-shrink-0">
-                  {new Date(log.created_at).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })}
+                  {new Date(log.created_at).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Europe/Warsaw' })}
                 </span>
               </li>
             ))}

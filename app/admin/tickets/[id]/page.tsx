@@ -141,7 +141,7 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
                     </span></span>
                   )}
                   <p className="text-xs text-[#115e59] mt-0.5">
-                    {h.user?.full_name ?? h.user?.email ?? '—'} · {new Date(h.created_at).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })}
+                    {h.user?.full_name ?? h.user?.email ?? '—'} · {new Date(h.created_at).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Europe/Warsaw' })}
                   </p>
                 </div>
               </div>
