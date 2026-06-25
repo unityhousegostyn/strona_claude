@@ -28,7 +28,11 @@ export default async function ZawiadomieniePage({
 
   if (apartment.community_id !== rate.community_id) notFound()
 
-  if (profile.role === 'user' && apartment.owner_id !== user.id) redirect('/admin/settlements')
+  if (profile.role === 'user') {
+    const isProfileApt = profile.apartment_id === apartment.id
+    const isLegacyOwner = apartment.owner_id === user.id
+    if (!isProfileApt && !isLegacyOwner) redirect('/admin/settlements')
+  }
   if (profile.role === 'admin' && profile.community_id !== rate.community_id) redirect('/admin/settlements')
   if (profile.role !== 'super_admin' && profile.role !== 'admin' && profile.role !== 'user') redirect('/admin/dashboard')
 
