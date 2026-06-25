@@ -10,40 +10,51 @@ import ThemeToggle from './ThemeToggle'
 
 type NavItem = { href: string; label: string; icon: string }
 type NavGroup = { key: string; group: string; icon: string; subItems: NavItem[] }
-type NavEntry = NavItem | NavGroup
+type NavSection = { section: string }
+type NavEntry = NavItem | NavGroup | NavSection
 
 function isGroup(entry: NavEntry): entry is NavGroup {
   return 'group' in entry
+}
+function isSection(entry: NavEntry): entry is NavSection {
+  return 'section' in entry
 }
 
 function useNavEntries(role: string): NavEntry[] {
   const { t } = useI18n()
 
   const isNajemca = role === 'najemca'
+  const isAdminPlus = role === 'super_admin' || role === 'admin'
 
   const entries: NavEntry[] = [
     { href: '/admin/dashboard', label: t('nav.home'), icon: '🏠' },
+
+    { section: 'Komunikacja' },
     { href: '/admin/announcements', label: t('nav.announcements'), icon: '📢' },
-    { href: '/admin/tickets', label: t('nav.tickets'), icon: '🎫' },
     { href: '/admin/board', label: t('nav.board'), icon: '💬' },
+    { href: '/admin/tickets', label: t('nav.tickets'), icon: '🎫' },
+    ...(!isNajemca ? [{ href: '/admin/wnioski', label: t('nav.wnioski'), icon: '📝' }] : []),
+
+    { section: 'Zasoby' },
     { href: '/admin/contacts', label: t('nav.contacts'), icon: '📞' },
+    ...(!isNajemca ? [{ href: '/admin/documents', label: t('nav.documents'), icon: '📁' }] : []),
+
     ...(!isNajemca ? [
-      { href: '/admin/documents', label: t('nav.documents'), icon: '📁' },
+      { section: 'Wspólnota' },
       { href: '/admin/votes', label: t('nav.votes'), icon: '🗳️' },
       {
         key: 'rozliczenia',
         group: t('nav.settlements'),
         icon: '🧾',
         subItems: [
-          { href: '/admin/settlements', label: t('nav.settlements'), icon: '🧾' },
+          { href: '/admin/settlements', label: 'Zestawienie', icon: '📋' },
           { href: '/admin/settlements/zawiadomienia', label: t('nav.zawiadomienia'), icon: '📄' },
         ],
       },
-      { href: '/admin/wnioski', label: t('nav.wnioski'), icon: '📝' },
     ] : []),
   ]
 
-  if (!isNajemca && (role === 'super_admin' || role === 'admin')) {
+  if (!isNajemca && isAdminPlus) {
     entries.push({
       key: 'finanse',
       group: t('nav.finanse'),
@@ -57,16 +68,18 @@ function useNavEntries(role: string): NavEntry[] {
     })
   }
 
-  if (role === 'super_admin') {
-    entries.push({ href: '/admin/communities', label: t('nav.communities'), icon: '🏢' })
-  }
-  if (role === 'super_admin' || role === 'admin') {
+  if (isAdminPlus) {
+    entries.push({ section: 'Administracja' })
+    if (role === 'super_admin') {
+      entries.push({ href: '/admin/communities', label: t('nav.communities'), icon: '🏢' })
+    }
     entries.push({ href: '/admin/users', label: t('nav.users'), icon: '👥' })
     entries.push({ href: '/admin/messages', label: t('nav.messages'), icon: '✉️' })
+    if (role === 'super_admin') {
+      entries.push({ href: '/admin/audit', label: t('nav.audit'), icon: '🔍' })
+    }
   }
-  if (role === 'super_admin') {
-    entries.push({ href: '/admin/audit', label: t('nav.audit'), icon: '🔍' })
-  }
+
   return entries
 }
 
@@ -109,6 +122,14 @@ export default function SidebarNav({ profile, userEmail, unreadAnnouncements = 0
   }
 
   const renderEntry = (entry: NavEntry, closeMobile: () => void) => {
+    if (isSection(entry)) {
+      return (
+        <div key={entry.section} className="pt-3 pb-1 px-3">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-[#1f5c55]">{entry.section}</p>
+        </div>
+      )
+    }
+
     if (isGroup(entry)) {
       const anyActive = entry.subItems.some(s => pathname.startsWith(s.href))
       const isOpen = openGroups[entry.key] ?? anyActive
