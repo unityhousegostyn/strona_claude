@@ -27,8 +27,9 @@ export default async function ApartmentSettlementPage({
 
   // Sprawdź uprawnienia
   if (profile.role === 'user') {
-    // User widzi tylko swoje mieszkanie
-    if (apartment.owner_id !== user.id) redirect('/admin/settlements')
+    // User widzi tylko swoje mieszkanie — sprawdź oba źródła przypisania
+    const hasAccess = apartment.owner_id === user.id || profile.apartment_id === apartmentId
+    if (!hasAccess) redirect('/admin/settlements')
   } else if (profile.role === 'admin') {
     // Admin widzi tylko mieszkania swojej wspólnoty
     if (apartment.community_id !== profile.community_id) redirect('/admin/settlements')
