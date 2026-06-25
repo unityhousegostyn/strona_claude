@@ -75,9 +75,15 @@ export async function createTicket(formData: FormData): Promise<{ error?: string
     const admin = getSupabaseAdminClient()
 
     // Upload załącznika przez admin client
+    const ALLOWED_ATTACHMENT_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/plain']
+
     let attachmentPath: string | null = null
     if (file && file.size > 0) {
       if (file.size > 10 * 1024 * 1024) return { error: 'Załącznik może mieć maksymalnie 10 MB' }
+      if (!ALLOWED_ATTACHMENT_TYPES.includes(file.type)) return { error: 'Niedozwolony typ pliku. Akceptowane: PDF, obrazy, Word, Excel, TXT.' }
       const ext = file.name.split('.').pop()
       const storagePath = `${crypto.randomUUID()}.${ext}`
       const arrayBuffer = await file.arrayBuffer()

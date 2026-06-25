@@ -4,6 +4,7 @@ import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/
 import { revalidatePath } from 'next/cache'
 import { hashPin, verifyPin } from '@/lib/pin'
 import { logActivity } from '@/lib/audit'
+import { checkPinRateLimit, clearPinRateLimit, remainingPinAttempts } from '@/lib/pin-rate-limit'
 
 export async function updateProfile(data: { full_name: string }) {
   const supabase = await getSupabaseServerClient()
@@ -76,12 +77,17 @@ export async function deleteOwnAccount(): Promise<{ error?: string }> {
   return {}
 }
 
-export async function verifyPinAction(pin: string): Promise<{ valid: boolean }> {
+export async function verifyPinAction(pin: string): Promise<{ valid: boolean; error?: string }> {
   if (!/^\d{4}$/.test(pin)) return { valid: false }
 
   const supabase = await getSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { valid: false }
+
+  // Rate limiting — 5 błędnych prób w 15 minut
+  if (!checkPinRateLimit(user.id)) {
+    return { valid: false, error: 'Zbyt wiele błędnych prób PIN. Poczekaj 15 minut.' }
+  }
 
   const admin = getSupabaseAdminClient()
   const { data: profile } = await admin
@@ -92,5 +98,11 @@ export async function verifyPinAction(pin: string): Promise<{ valid: boolean }> 
 
   if (!profile?.voting_pin_hash) return { valid: false }
   const valid = await verifyPin(pin, profile.voting_pin_hash)
+
+  if (valid) clearPinRateLimit(user.id)
+  else if (remainingPinAttempts(user.id) === 0) {
+    return { valid: false, error: 'Zbyt wiele błędnych prób PIN. Poczekaj 15 minut.' }
+  }
+
   return { valid }
 }

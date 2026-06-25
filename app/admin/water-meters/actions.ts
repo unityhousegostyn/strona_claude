@@ -18,14 +18,25 @@ export async function submitWaterReading(data: {
 
     const admin = getSupabaseAdminClient()
 
-    // Sprawdź czy lokal należy do tego usera
+    // Sprawdź czy lokal należy do tego usera.
+    // Priorytet: profiles.apartment_id (nowy system), fallback: owner_id (legacy).
+    const profileApartmentId = auth.profile.apartment_id
+    if (profileApartmentId !== data.apartment_id) {
+      const { data: legacyCheck } = await admin
+        .from('settlement_apartments')
+        .select('id')
+        .eq('id', data.apartment_id)
+        .eq('owner_id', auth.user.id)
+        .maybeSingle()
+      if (!legacyCheck) return { error: 'Brak uprawnień do tego lokalu' }
+    }
+
     const { data: apt } = await admin
       .from('settlement_apartments')
       .select('id, community_id, number')
       .eq('id', data.apartment_id)
-      .eq('owner_id', auth.user.id)
       .maybeSingle()
-    if (!apt) return { error: 'Brak przypisanego lokalu' }
+    if (!apt) return { error: 'Lokal nie istnieje' }
 
     // Sprawdź czy wspólnota ma włączone liczniki
     const { data: community } = await admin

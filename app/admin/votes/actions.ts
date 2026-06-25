@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import { getAuthProfileAction } from '@/lib/getAuthProfile'
 import { verifyPin } from '@/lib/pin'
+import { checkPinRateLimit, clearPinRateLimit, remainingPinAttempts } from '@/lib/pin-rate-limit'
 import { sendNewVoteEmail, sendVoteClosedEmail } from '@/lib/email'
 import { logActivity } from '@/lib/audit'
 
@@ -28,6 +29,13 @@ export async function uploadVoteAttachment(formData: FormData): Promise<{ error?
 
   const file = formData.get('file') as File | null
   if (!file) return { error: 'Brak pliku' }
+
+  // Allowlista typów plików
+  const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+    'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+  if (!ALLOWED_TYPES.includes(file.type)) return { error: 'Niedozwolony typ pliku. Akceptowane: PDF, obrazy, Word, Excel.' }
+  if (file.size > 20 * 1024 * 1024) return { error: 'Plik może mieć maksymalnie 20 MB' }
 
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
   const path = `votes/${Date.now()}_${safeName}`
@@ -159,6 +167,11 @@ export async function castVote(data: {
   // nie najemcy/lokatorzy — najemca nie może oddać wiążącego głosu nad uchwałą.
   if (profile.role === 'najemca') return { error: 'Najemcy nie mają prawa głosu w głosowaniach wspólnoty' }
 
+  // Rate limiting — 5 błędnych prób PIN w 15 minut
+  if (!checkPinRateLimit(user.id)) {
+    return { error: 'Zbyt wiele błędnych prób PIN. Poczekaj 15 minut.' }
+  }
+
   // Weryfikuj PIN
   const admin = getSupabaseAdminClient()
   const { data: profileData } = await admin
@@ -171,7 +184,13 @@ export async function castVote(data: {
     return { error: 'Nie masz ustawionego PINu. Ustaw PIN w Profilu przed głosowaniem.' }
 
   const pinValid = await verifyPin(data.pin, profileData.voting_pin_hash)
-  if (!pinValid) return { error: 'Nieprawidłowy PIN' }
+  if (!pinValid) {
+    if (remainingPinAttempts(user.id) === 0) {
+      return { error: 'Zbyt wiele błędnych prób PIN. Poczekaj 15 minut.' }
+    }
+    return { error: `Nieprawidłowy PIN. Pozostało prób: ${remainingPinAttempts(user.id)}` }
+  }
+  clearPinRateLimit(user.id)
 
   // Sprawdź czy głosowanie jest otwarte
   const { data: vote } = await admin.from('votes').select('*').eq('id', data.vote_id).single()

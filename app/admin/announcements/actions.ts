@@ -42,8 +42,8 @@ export async function createAnnouncement(formData: {
   const { data: announcement, error } = await admin
     .from('announcements')
     .insert({
-      title: formData.title,
-      content: formData.content,
+      title: title,
+      content: content,
       start_date: formData.start_date || null,
       end_date: formData.end_date || null,
       target: formData.target,
