@@ -16,12 +16,26 @@ export default async function SettlementsPage({
 
   // ── USER: przekieruj bezpośrednio do swojego mieszkania ──────────────────
   if (profile.role === 'user') {
+    // Preferuj profiles.apartment_id (ustawiane przez assignApartment i addUser)
+    const profileApartmentId = profile.apartment_id
+
+    if (profileApartmentId) {
+      const { data: apt } = await admin
+        .from('settlement_apartments')
+        .select('id')
+        .eq('id', profileApartmentId)
+        .eq('active', true)
+        .maybeSingle()
+      if (apt) redirect(`/admin/settlements/${apt.id}`)
+    }
+
+    // Fallback: stare przypisanie przez owner_id (approveUser / legacy)
     const { data: apt } = await admin
       .from('settlement_apartments')
       .select('id')
       .eq('owner_id', user.id)
       .eq('active', true)
-      .single()
+      .maybeSingle()
 
     if (apt) redirect(`/admin/settlements/${apt.id}`)
 

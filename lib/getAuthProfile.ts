@@ -19,6 +19,7 @@ export interface AuthProfile {
   role: UserRole
   community_id: string | null
   full_name: string | null
+  apartment_id: string | null
 }
 
 export interface AuthUser {
@@ -39,7 +40,7 @@ export async function getAuthProfile(): Promise<{
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, role, community_id, full_name')
+    .select('id, role, community_id, full_name, apartment_id')
     .eq('id', user.id)
     .single()
   if (!profile) redirect('/login')
@@ -61,7 +62,7 @@ export async function getAuthProfileAction(): Promise<ActionAuth> {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, role, community_id, full_name')
+    .select('id, role, community_id, full_name, apartment_id')
     .eq('id', user.id)
     .single()
   if (!profile) return { error: 'Brak profilu', user: null, profile: null }

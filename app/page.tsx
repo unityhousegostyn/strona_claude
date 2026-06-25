@@ -448,7 +448,7 @@ export default function LandingPage() {
           </p>
           <div className="lp-hero-btns">
             <a href="#kontakt" className="lp-btn lp-btn-lg">📞 Zleć zarządzanie</a>
-            <a href="#funkcje" className="lp-btn lp-btn-lg lp-btn-outline">Zobacz panel →</a>
+            <Link href="/demo" className="lp-btn lp-btn-lg lp-btn-outline">▶ Zobacz demo →</Link>
           </div>
           <p className="lp-hero-trust">
             <span>✓</span> Bez zobowiązań &nbsp;&nbsp;
