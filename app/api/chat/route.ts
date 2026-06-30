@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseServerClient, getSupabaseAdminClient } from '@/lib/supabase/server'
+import { checkChatRateLimit } from '@/lib/chat-rate-limit'
 
 export async function POST(req: NextRequest) {
   try {
@@ -7,6 +8,14 @@ export async function POST(req: NextRequest) {
     const supabase = await getSupabaseServerClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Brak autoryzacji' }, { status: 401 })
+
+    // Rate limiting — 20 zapytań / godzinę per użytkownik
+    if (!checkChatRateLimit(user.id)) {
+      return NextResponse.json(
+        { error: 'Zbyt wiele zapytań. Poczekaj chwilę i spróbuj ponownie.' },
+        { status: 429 }
+      )
+    }
 
     const { data: profile } = await supabase
       .from('profiles')

@@ -11,6 +11,21 @@ function fmtDateTime(d: string | null | undefined) {
   return new Date(d).toLocaleString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
+/** Escape HTML special chars — prevents stored XSS in the generated report. */
+function esc(s: string | null | undefined): string {
+  if (!s) return ''
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+}
+/** Escape then convert newlines to <br> (for multi-line description). */
+function escNl(s: string | null | undefined): string {
+  return esc(s).replace(/\n/g, '<br>')
+}
+
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
@@ -69,8 +84,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const communityRaw = vote.community as any
   const community = Array.isArray(communityRaw) ? communityRaw[0] : communityRaw
-  const communityName = community?.name ?? 'Wspólnota'
-  const communityAddress = community?.address ?? ''
+  const communityName = esc(community?.name ?? 'Wspólnota')
+  const communityAddress = esc(community?.address ?? '')
   const year = new Date(vote.created_at).getFullYear()
   const resolutionNumber = vote.resolution_number ? `${vote.resolution_number}/${year}` : '—'
 
@@ -109,8 +124,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // przypisanego konta do lokalu).
     const p = c ? profileMap[c.user_id] : null
     const voterName = c?.cast_by_admin
-      ? `${apt.owner_name ?? '—'} (głos wprowadzony przez administratora)`
-      : (p?.full_name ?? p?.email ?? '—')
+      ? `${esc(apt.owner_name ?? '—')} (głos wprowadzony przez administratora)`
+      : esc(p?.full_name ?? p?.email ?? '—')
     const badgeStyle = c
       ? c.choice === 'yes'
         ? 'background:#dcfce7;color:#166534;font-weight:bold;padding:1pt 5pt;border-radius:3pt'
@@ -121,7 +136,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const badgeText = c ? choiceLabel[c.choice] : '<span style="color:#9ca3af;font-style:italic">brak głosu</span>'
     const inactive = !(apt as any).active
     return `<tr style="${inactive ? 'opacity:0.5' : ''}">
-      <td><strong>${apt.number}</strong>${inactive ? ' <span style="font-size:8pt;color:#9ca3af">(nieaktywny)</span>' : ''}</td>
+      <td><strong>${esc(apt.number)}</strong>${inactive ? ' <span style="font-size:8pt;color:#9ca3af">(nieaktywny)</span>' : ''}</td>
       <td style="font-family:monospace">${share}</td>
       <td>${c ? `<span style="${badgeStyle}">${choiceLabel[c.choice]}</span>` : '<span style="color:#9ca3af;font-style:italic">brak głosu</span>'}</td>
       <td style="font-size:8.5pt;color:#6b7280">${c?.created_at ? fmtDateTime(c.created_at) : '—'}</td>
@@ -145,7 +160,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Protokół — ${vote.title}</title>
+  <title>Protokół — ${esc(vote.title)}</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'Segoe UI',Arial,sans-serif;font-size:11pt;color:#111827;background:#f1f5f4}
@@ -204,7 +219,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     <div class="header">
       <div class="community">${communityName}${communityAddress ? ' · ' + communityAddress : ''}</div>
-      <h1>${vote.title}</h1>
+      <h1>${esc(vote.title)}</h1>
     </div>
 
     <dl class="meta">
@@ -214,7 +229,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       <dt>Metoda głosowania:</dt><dd>${vote.voting_method === 'by_share' ? 'Według udziałów (art. 23 UWL)' : '1 lokal = 1 głos'}</dd>
     </dl>
 
-    ${vote.description ? `<h2>Treść uchwały</h2><div class="desc-box">${vote.description}</div>` : ''}
+    ${vote.description ? `<h2>Treść uchwały</h2><div class="desc-box">${escNl(vote.description)}</div>` : ''}
 
     <h2>Wyniki głosowania</h2>
     <div class="stats">
