@@ -26,26 +26,28 @@ export async function diagnoseKsefApi(env: 'prod' | 'test' = 'prod'): Promise<{
   const qTok = encodeURIComponent(dummyToken)
   const qNip = encodeURIComponent(dummyNip)
 
+  // Klucz: type musi być STRING 'Nip', nie integer 1 (dla /auth/ksef-token)
+  const dummyBodyNip = JSON.stringify({ contextIdentifier: { type: 'Nip',  identifier: dummyNip }, authorisationToken: dummyToken, challenge: dummyChallenge })
+  const dummyBodyInt = JSON.stringify({ contextIdentifier: { type: 1,     identifier: dummyNip }, authorisationToken: dummyToken, challenge: dummyChallenge })
+  const dummyRef = 'test-ref-12345'
+  const qRef = encodeURIComponent(dummyRef)
+
   const targets: Target[] = [
-    // GET — health / struktura
+    // ── Health ──
     { url: `${base}/`, method: 'GET' },
-    { url: `${base}/auth`, method: 'GET' },
-    { url: `${base}/swagger/index.html`, method: 'GET' },
-    // GET — challenge endpoint (zwraca challengeKey)
-    { url: `${base}/auth/challenge`, method: 'GET' },
-    // GET — token endpoints z challenge+NIP w query i Bearer w headerze
-    { url: `${base}/auth/token?challenge=${qCh}&nip=${qNip}`,       method: 'GET', headers: { Authorization: `Bearer ${dummyToken}`, Accept: 'application/json' } },
-    { url: `${base}/auth/authorise?challenge=${qCh}&nip=${qNip}`,   method: 'GET', headers: { Authorization: `Bearer ${dummyToken}`, Accept: 'application/json' } },
-    { url: `${base}/auth/authorize?challenge=${qCh}&nip=${qNip}`,   method: 'GET', headers: { Authorization: `Bearer ${dummyToken}`, Accept: 'application/json' } },
-    // GET — token w query params (bez Bearer)
-    { url: `${base}/auth/token?challenge=${qCh}&authorisationToken=${qTok}&nip=${qNip}`, method: 'GET' },
-    // POST — ksef-token (nie testowany wcześniej)
-    { url: `${base}/auth/ksef-token`,  method: 'POST', body: dummyBody },
-    { url: `${base}/auth/init-token`,  method: 'POST', body: dummyBody },
-    // POST — stare próby (potwierdzenie 405)
-    { url: `${base}/auth/token`,       method: 'POST', body: dummyBody },
-    { url: `${base}/auth/authorise`,   method: 'POST', body: dummyBody },
-    // OPTIONS — challenge
+    // ── KROK 1: challenge ──
+    { url: `${base}/auth/challenge`, method: 'POST',    body: JSON.stringify({ contextIdentifier: { type: 1, identifier: dummyNip } }) },
+    // ── KROK 2: ksef-token z type: 'Nip' (STRING) ──
+    { url: `${base}/auth/ksef-token`, method: 'POST',   body: dummyBodyNip },
+    { url: `${base}/auth/ksef-token`, method: 'POST',   body: dummyBodyInt },
+    // ── KROK 3: GET /auth/token/{referenceNumber} (path param) ──
+    { url: `${base}/auth/token/${qRef}`,                method: 'GET' },
+    { url: `${base}/auth/token?referenceNumber=${qRef}`,method: 'GET', headers: { Accept: 'application/json' } },
+    { url: `${base}/auth/session/${qRef}`,              method: 'GET' },
+    // ── Starsze warianty (potwierdzenie 405/401) ──
+    { url: `${base}/auth/token?challenge=${qCh}&nip=${qNip}`, method: 'GET', headers: { Authorization: `Bearer ${dummyToken}` } },
+    { url: `${base}/auth/token`,  method: 'POST', body: dummyBodyNip },
+    // ── OPTIONS ──
     { url: `${base}/auth/challenge`, method: 'OPTIONS' },
   ]
 

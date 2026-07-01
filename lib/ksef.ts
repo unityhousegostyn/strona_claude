@@ -156,126 +156,131 @@ export async function ksefAuth(
     )
   }
 
-  // ── Krok 2: uwierzytelnianie tokenem ─────────────────────────────────────
-  // DIAGNOZA: POST /auth/token → 405 [Allow: GET], podobnie /auth/authorise, /auth/session itd.
-  // Endpointy tokenowe w KSeF v2.6.1 WYMAGAJĄ GET, nie POST.
-  // Przekazujemy challenge + token przez query params i/lub Authorization header.
+  // ── Krok 2: POST /auth/ksef-token ────────────────────────────────────────
+  // Diagnostyka wykazała:
+  //   POST /auth/token     → 405 [Allow: GET]  (to endpoint do POBIERANIA tokena)
+  //   POST /auth/ksef-token → 400 JSON          (endpoint istnieje, błąd: zły typ)
+  //   GET  /auth/token?... → 401 JSON           (endpoint istnieje, zła autentykacja)
+  //
+  // Właściwy flow KSeF v2:
+  //   1. POST /auth/challenge → {challenge}
+  //   2. POST /auth/ksef-token z type: 'Nip' → {sessionToken: {referenceNumber}}
+  //   3. GET  /auth/token/{referenceNumber}  → {sessionToken: {token: "ACCESS_TOKEN"}}
+  //
+  // UWAGA: type musi być STRING "Nip", nie integer 1 (odróżnić od /auth/challenge!)
 
-  type AuthAttempt = {
-    url: string
-    method: 'GET' | 'POST'
-    body?: Record<string, any>
-    authHeader?: string
-  }
+  // Warianty type dla /auth/ksef-token — próbujemy kolejno:
+  const kseTokenTypes = ['Nip', 'Onip', 'OnipType', 'nip', 'onip', 1, 2]
 
-  const tokenBodyPost = { contextIdentifier: { type: 1, identifier: nip }, authorisationToken: token, challenge: challengeKey }
-  const tokenBodyV1 = { contextIdentifier: { type: 'onip', identifier: nip }, token: { challenge: challengeKey, value: token } }
-  const ch = encodeURIComponent(challengeKey)
-  const tok = encodeURIComponent(token)
-  const nip_ = encodeURIComponent(nip)
+  let ksefTokenResponse: any
+  let lastKsefTokenError = ''
 
-  const authAttempts: AuthAttempt[] = [
-    // ── GET: challenge + NIP w query, Bearer token w headerze (najprawdopodobniejsze) ──
-    { method: 'GET', url: `${base}/auth/token?challenge=${ch}&nip=${nip_}`,            authHeader: token },
-    { method: 'GET', url: `${base}/auth/token?challenge=${ch}`,                        authHeader: token },
-    // ── GET: authorisationToken w query (fallback) ──
-    { method: 'GET', url: `${base}/auth/token?challenge=${ch}&authorisationToken=${tok}&nip=${nip_}` },
-    { method: 'GET', url: `${base}/auth/token?challenge=${ch}&token=${tok}&nip=${nip_}` },
-    // ── GET na innych endpointach tokenowych ──
-    { method: 'GET', url: `${base}/auth/authorise?challenge=${ch}&nip=${nip_}`,        authHeader: token },
-    { method: 'GET', url: `${base}/auth/authorize?challenge=${ch}&nip=${nip_}`,        authHeader: token },
-    { method: 'GET', url: `${base}/auth/session?challenge=${ch}&nip=${nip_}`,          authHeader: token },
-    { method: 'GET', url: `${base}/auth/init?challenge=${ch}&nip=${nip_}`,             authHeader: token },
-    // ── POST: endpoint /auth/ksef-token (v2, nie testowany w diagnostyce) ──
-    { method: 'POST', url: `${base}/auth/ksef-token`, body: tokenBodyPost },
-    // ── v1 fallback (POST) ──
-    { method: 'POST', url: `${BASE_V1[env]}/online/Session/InitToken`, body: tokenBodyV1 },
-  ]
-
-  let lastAuthError = ''
-  let authData: any
-  for (const attempt of authAttempts) {
+  for (const t of kseTokenTypes) {
     try {
-      const extraHeaders: Record<string, string> = attempt.authHeader
-        ? { Authorization: `Bearer ${attempt.authHeader}` }
-        : {}
-      authData = await kfetch(attempt.url, {
-        method: attempt.method,
-        headers: extraHeaders,
-        body: attempt.body != null ? JSON.stringify(attempt.body) : undefined,
+      ksefTokenResponse = await kfetch(`${base}/auth/ksef-token`, {
+        method: 'POST',
+        body: JSON.stringify({
+          contextIdentifier: { type: t, identifier: nip },
+          authorisationToken: token,
+          challenge: challengeKey,
+        }),
       })
       break
     } catch (e: any) {
-      lastAuthError = e?.message ?? String(e)
-      const isHttpOrParseError = /KSeF HTTP|zwrócił HTML|JSON/.test(lastAuthError)
-      if (!isHttpOrParseError) throw e
+      lastKsefTokenError = e?.message ?? String(e)
+      if (!/KSeF HTTP|zwrócił HTML|JSON/.test(lastKsefTokenError)) throw e
     }
   }
-  if (!authData) throw new Error(`KSeF auth/token wszystkie próby nieudane. Ostatni błąd: ${lastAuthError}`)
 
-  // Sprawdź czy krok 2 zwrócił od razu accessToken (niektóre v2 API łączą kroki 2+3)
-  const directAccessToken = pick(authData, 'accessToken', 'access_token', 'sessionToken')
-  if (directAccessToken) {
+  if (!ksefTokenResponse) {
+    throw new Error(`KSeF /auth/ksef-token wszystkie próby nieudane. Ostatni błąd: ${lastKsefTokenError}`)
+  }
+
+  // Sprawdź czy krok 2 zwrócił od razu accessToken (flow 2-krokowy)
+  const directToken =
+    ksefTokenResponse?.accessToken ??
+    ksefTokenResponse?.access_token ??
+    ksefTokenResponse?.sessionToken?.token ??
+    ksefTokenResponse?.data?.sessionToken?.token
+
+  if (directToken) {
+    const s = ksefTokenResponse?.sessionToken ?? ksefTokenResponse?.data?.sessionToken ?? ksefTokenResponse
     return {
-      accessToken: directAccessToken,
-      refreshToken: pick(authData, 'refreshToken', 'refresh_token') ?? '',
-      expiresAt: pick(authData, 'tokenExpiresAt', 'expiresAt', 'expires_at') ?? '',
+      accessToken: String(directToken),
+      refreshToken: s?.refreshToken ?? s?.refresh_token ?? '',
+      expiresAt: s?.tokenExpiresAt ?? s?.expiresAt ?? s?.expires_at ?? '',
     }
   }
 
-  const authCode = pick(authData,
-    'authCode', 'AuthCode',
-    'referenceNumber', 'ReferenceNumber',
-    'sessionToken', 'token',
-  )
+  // Pobierz referenceNumber z odpowiedzi /auth/ksef-token
+  const referenceNumber: string | undefined =
+    ksefTokenResponse?.sessionToken?.referenceNumber ??
+    ksefTokenResponse?.data?.sessionToken?.referenceNumber ??
+    ksefTokenResponse?.referenceNumber ??
+    ksefTokenResponse?.data?.referenceNumber ??
+    pick(ksefTokenResponse, 'referenceNumber', 'ReferenceNumber', 'authCode', 'AuthCode')
 
-  if (!authCode) {
+  if (!referenceNumber) {
     throw new Error(
-      `Brak authCode w odpowiedzi KSeF auth/token. ` +
-      `Odpowiedź API: ${JSON.stringify(authData).slice(0, 500)}`,
+      `Brak referenceNumber w odpowiedzi KSeF /auth/ksef-token. ` +
+      `Odpowiedź API: ${JSON.stringify(ksefTokenResponse).slice(0, 500)}`,
     )
   }
 
-  // ── Krok 3: wymiana authCode na accessToken ───────────────────────────────
-  // W v2 endpoint redeem może być w innym miejscu
+  // ── Krok 3: GET /auth/token/{referenceNumber} ─────────────────────────────
+  // Endpoint /auth/token akceptuje GET (POST → 405) — pobieramy sesję po referenceNumber.
+  // Może wymagać krótkiego poll (status = Processing → ponów).
+
   let tokenData: any
-  const redeemAttempts = [
-    { url: `${base}/auth/token/redeem`, body: { authCode } },
-    { url: `${base}/auth/redeem`,       body: { authCode } },
-    { url: `${base}/auth/session`,      body: { authCode } },
-    { url: `${BASE_V1[env]}/online/Session/Status/${authCode}`, body: null, method: 'GET' as const },
+  let lastTokenError = ''
+
+  const tokenEndpoints = [
+    `${base}/auth/token/${encodeURIComponent(referenceNumber)}`,
+    `${base}/auth/token?referenceNumber=${encodeURIComponent(referenceNumber)}`,
+    `${base}/auth/session/${encodeURIComponent(referenceNumber)}`,
+    `${BASE_V1[env]}/online/Session/Status/${encodeURIComponent(referenceNumber)}`,
   ]
 
-  let lastRedeemError = ''
-  for (const attempt of redeemAttempts) {
-    try {
-      tokenData = await kfetch(attempt.url, {
-        method: attempt.method ?? 'POST',
-        body: attempt.body != null ? JSON.stringify(attempt.body) : undefined,
-      })
-      break
-    } catch (e: any) {
-      lastRedeemError = e?.message ?? String(e)
-      const isHttpOrParseError = /KSeF HTTP|zwrócił HTML|JSON/.test(lastRedeemError)
-      if (!isHttpOrParseError) throw e
+  // Spróbuj 3 razy dla każdego endpointu (polling — API może być async)
+  for (const url of tokenEndpoints) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const res = await kfetch(url, { method: 'GET' })
+        // Sprawdź czy status = "Processing" (trzeba poczekać)
+        const status = res?.status ?? res?.processingCode ?? res?.sessionToken?.processingCode
+        if (String(status).toLowerCase() === 'processing' || status === 202) {
+          await new Promise(r => setTimeout(r, 1500))
+          continue
+        }
+        tokenData = res
+        break
+      } catch (e: any) {
+        lastTokenError = e?.message ?? String(e)
+        if (!/KSeF HTTP|zwrócił HTML|JSON/.test(lastTokenError)) throw e
+        break // przejdź do kolejnego endpointu
+      }
     }
+    if (tokenData) break
   }
-  if (!tokenData) throw new Error(`KSeF auth/token/redeem wszystkie próby nieudane. Ostatni błąd: ${lastRedeemError}`)
+
+  if (!tokenData) {
+    throw new Error(`KSeF GET /auth/token/{ref} wszystkie próby nieudane. Ostatni błąd: ${lastTokenError}`)
+  }
 
   const d = tokenData?.data ?? tokenData
   const accessToken =
-    d?.accessToken ??
     d?.sessionToken?.token ??
+    d?.accessToken ??
     d?.token ??
     d?.access_token ??
     d?.sessionToken
 
-  const refreshToken: string = d?.refreshToken ?? d?.refresh_token ?? ''
-  const expiresAt: string = d?.tokenExpiresAt ?? d?.expiresAt ?? d?.expires_at ?? ''
+  const refreshToken: string = d?.sessionToken?.refreshToken ?? d?.refreshToken ?? d?.refresh_token ?? ''
+  const expiresAt: string = d?.sessionToken?.tokenExpiresAt ?? d?.tokenExpiresAt ?? d?.expiresAt ?? d?.expires_at ?? ''
 
   if (!accessToken) {
     throw new Error(
-      `Brak accessToken w odpowiedzi KSeF /auth/token/redeem. ` +
+      `Brak accessToken w odpowiedzi KSeF GET /auth/token/{ref}. ` +
       `Odpowiedź API: ${JSON.stringify(tokenData).slice(0, 500)}`,
     )
   }
