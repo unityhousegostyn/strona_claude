@@ -81,6 +81,7 @@ export async function diagnoseKsefQuery(): Promise<{
   error?: string
   nip?: string
   rows: { subjectType: string; dateType: string; count: number; samples: string[]; error?: string }[]
+  rawFirstInvoice?: string
 }> {
   const auth = await requireSuperAdmin()
   if (auth.error) return { error: auth.error, rows: [] }
@@ -113,6 +114,8 @@ export async function diagnoseKsefQuery(): Promise<{
     { subjectType: 'SubjectAuthorized', dateType: 'Issue' },
   ]
 
+  let rawFirstInvoice: string | null = null
+
   const rows = await Promise.all(combos.map(async ({ subjectType, dateType }) => {
     try {
       const res = await fetch(
@@ -128,6 +131,10 @@ export async function diagnoseKsefQuery(): Promise<{
       const json = JSON.parse(text)
       const invoices: any[] = json?.invoices ?? json?.data?.invoices ?? []
       const total: number = json?.totalCount ?? json?.total ?? invoices.length
+      // Zapisz surowe pola pierwszej faktury żeby wiedzieć co API zwraca
+      if (!rawFirstInvoice && invoices.length > 0) {
+        rawFirstInvoice = JSON.stringify(invoices[0], null, 2).slice(0, 1500)
+      }
       const samples = invoices.slice(0, 3).map((inv: any) => {
         const nr = inv.kseNumber ?? inv.ksefNumber ?? inv.referenceNumber ?? '?'
         const date = inv.invoiceDate ?? inv.issueDate ?? inv.issueDateTime?.slice(0,10) ?? '?'
@@ -140,7 +147,7 @@ export async function diagnoseKsefQuery(): Promise<{
     }
   }))
 
-  return { nip: settings.nip, rows }
+  return { nip: settings.nip, rows, rawFirstInvoice: rawFirstInvoice ?? undefined }
 }
 
 // ── Auth helper ───────────────────────────────────────────────────────────────

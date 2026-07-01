@@ -406,6 +406,18 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
               </div>
             )}
 
+            {/* Raw dump pierwszej faktury — do debugowania nazw pól */}
+            {queryDiag?.rawFirstInvoice && (
+              <div className="mt-3 rounded-xl border border-blue-200 dark:border-blue-800 overflow-hidden">
+                <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800">
+                  Raw JSON pierwszej faktury (wszystkie pola zwracane przez KSeF API)
+                </p>
+                <pre className="px-4 py-3 text-[10px] font-mono text-[#374151] dark:text-[#d1d5db] overflow-x-auto whitespace-pre-wrap break-all bg-[#f9fafb] dark:bg-[#111827]">
+                  {queryDiag.rawFirstInvoice}
+                </pre>
+              </div>
+            )}
+
             {/* Wyniki diagnostyki */}
             {diagResults && (
               <div className="mt-4 rounded-xl border border-[#e5e7eb] dark:border-[#374151] overflow-hidden">
