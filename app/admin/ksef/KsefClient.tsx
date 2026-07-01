@@ -81,7 +81,7 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
   const [log, setLog] = useState<SyncLogEntry[]>(initialLog)
   const [syncMsg, setSyncMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const [syncing, setSyncing] = useState(false)
-  const [diagResults, setDiagResults] = useState<{ url: string; status: number; contentType: string; preview: string }[] | null>(null)
+  const [diagResults, setDiagResults] = useState<{ url: string; method: string; status: number; contentType: string; preview: string }[] | null>(null)
   const [diagLoading, setDiagLoading] = useState(false)
 
   function handleDiagnose() {
@@ -345,9 +345,10 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
                   {diagResults.map((r, i) => (
                     <div key={i} className="px-4 py-2 text-xs">
                       <div className="flex gap-2 items-center mb-1">
-                        <span className={`font-mono font-bold ${r.status === 200 ? 'text-teal-600' : r.status === 0 ? 'text-red-500' : 'text-orange-500'}`}>
+                        <span className={`font-mono font-bold ${r.status === 200 || r.status === 400 ? 'text-teal-600' : r.status === 0 ? 'text-red-500' : 'text-orange-500'}`}>
                           {r.status || 'ERR'}
                         </span>
+                        <span className="text-[#9ca3af] font-mono">{r.method}</span>
                         <span className="text-[#6b7280] break-all">{r.url}</span>
                         <span className="text-[#9ca3af] ml-auto shrink-0">{r.contentType.slice(0, 30)}</span>
                       </div>

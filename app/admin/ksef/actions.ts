@@ -8,36 +8,57 @@ import { ksefAuth, ksefQueryInvoices, guessCategory, type KsefEnvironment } from
 // ── Diagnostyka API KSeF ─────────────────────────────────────────────────────
 
 export async function diagnoseKsefApi(env: 'prod' | 'test' = 'prod'): Promise<{
-  results: { url: string; status: number; contentType: string; preview: string }[]
+  results: { url: string; method: string; status: number; contentType: string; preview: string }[]
 }> {
   const base = env === 'prod'
     ? 'https://api.ksef.mf.gov.pl/api/v2'
     : 'https://api-test.ksef.mf.gov.pl/api/v2'
 
-  // Próbujemy pobrać swagger/openapi spec i kilka innych endpointów
-  const targets = [
-    `${base}/swagger/v1/swagger.json`,
-    `${base}/swagger.json`,
-    `${base}/openapi.json`,
-    `${base}/api-docs`,
-    `${base}/`,
-    `${base}/auth`,
-    `https://api.ksef.mf.gov.pl/swagger/v1/swagger.json`,
-    `https://api.ksef.mf.gov.pl/api/swagger/v1/swagger.json`,
+  type Target = { url: string; method: string; body?: string }
+
+  // POST do potencjalnych endpointów tokenowych — szukamy który zwraca JSON (nawet 400)
+  const dummyNip = '0000000000'
+  const dummyBody = JSON.stringify({ contextIdentifier: { type: 1, identifier: dummyNip }, authorisationToken: 'test', challenge: 'test' })
+
+  const targets: Target[] = [
+    // GET — health / struktura
+    { url: `${base}/`, method: 'GET' },
+    { url: `${base}/auth`, method: 'GET' },
+    { url: `${base}/swagger`, method: 'GET' },
+    { url: `${base}/swagger/index.html`, method: 'GET' },
+    // POST — możliwe endpointy step-2 auth
+    { url: `${base}/auth/token`,       method: 'POST', body: dummyBody },
+    { url: `${base}/auth/authorise`,   method: 'POST', body: dummyBody },
+    { url: `${base}/auth/authorize`,   method: 'POST', body: dummyBody },
+    { url: `${base}/auth/session`,     method: 'POST', body: dummyBody },
+    { url: `${base}/auth/init`,        method: 'POST', body: dummyBody },
+    { url: `${base}/auth/login`,       method: 'POST', body: dummyBody },
+    { url: `${base}/session`,          method: 'POST', body: dummyBody },
+    { url: `${base}/session/token`,    method: 'POST', body: dummyBody },
+    { url: `${base}/token`,            method: 'POST', body: dummyBody },
+    // OPTIONS — co pozwala challenge
+    { url: `${base}/auth/challenge`, method: 'OPTIONS' },
   ]
 
-  const results = await Promise.all(targets.map(async url => {
+  const results = await Promise.all(targets.map(async t => {
     try {
-      const res = await fetch(url, {
-        headers: { Accept: 'application/json, text/html' },
+      const res = await fetch(t.url, {
+        method: t.method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json, text/html',
+        },
+        body: t.body,
         signal: AbortSignal.timeout(8000),
       })
       const text = await res.text()
       const contentType = res.headers.get('content-type') ?? ''
-      const preview = text.slice(0, 300)
-      return { url, status: res.status, contentType, preview }
+      // Pobierz Allow header dla OPTIONS
+      const allow = res.headers.get('allow') ?? ''
+      const preview = (allow ? `[Allow: ${allow}] ` : '') + text.slice(0, 250)
+      return { url: t.url, method: t.method, status: res.status, contentType, preview }
     } catch (e: any) {
-      return { url, status: 0, contentType: 'error', preview: e?.message ?? String(e) }
+      return { url: t.url, method: t.method, status: 0, contentType: 'error', preview: e?.message ?? String(e) }
     }
   }))
 
