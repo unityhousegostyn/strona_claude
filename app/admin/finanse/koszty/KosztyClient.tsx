@@ -3,7 +3,7 @@ import BackButton from '@/components/BackButton'
 
 import { useState, useTransition, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { addExpense, updateExpense, deleteExpense, importExpensesCSV, bulkUpdateCategory, bulkDeleteExpenses } from './actions'
+import { addExpense, updateExpense, deleteExpense, importExpensesCSV, bulkUpdateCategory, bulkDeleteExpenses, getReconciliation } from './actions'
 import type { ExpenseCategory } from './categories'
 import { exportToExcel } from '@/lib/exportExcel'
 import Pagination from '@/components/Pagination'
@@ -37,7 +37,11 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
   const [filterMonth, setFilterMonth] = useState(0)
   const [filterCat, setFilterCat] = useState('')
   const [search, setSearch] = useState('')
-  const [tab, setTab] = useState<'list' | 'summary'>('list')
+  const [tab, setTab] = useState<'list' | 'summary' | 'zestawienie'>('list')
+  const [recon, setRecon] = useState<{ charged: Record<string,number>; expenses: Record<string,number> } | null>(null)
+  const [reconLoading, setReconLoading] = useState(false)
+  const [reconError, setReconError] = useState<string|null>(null)
+  const [reconKey, setReconKey] = useState('')   // do wykrywania gdy trzeba przeładować
 
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ community_id: isSuperAdmin ? '' : defaultCommunityId, category: 'inne' as ExpenseCategory, description: '', amount: '', expense_date: new Date().toISOString().slice(0,10), invoice_number: '', is_renovation_fund: false })
@@ -57,6 +61,24 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
   const [listPage, setListPage] = useState(1)
   const [groupPages, setGroupPages] = useState<Record<string, number>>({})
   const LIST_PAGE_SIZE = 10
+
+  // Ładuje dane zestawienia gdy zakładka aktywna i wybrana wspólnota
+  async function loadRecon(commId: string, year: number, month: number) {
+    if (!commId) { setRecon(null); return }
+    const key = `${commId}:${year}:${month}`
+    if (key === reconKey && recon) return   // już załadowane
+    setReconLoading(true); setReconError(null)
+    const res = await getReconciliation(commId, year, month)
+    setReconLoading(false)
+    if (res.error) { setReconError(res.error); return }
+    setRecon({ charged: res.charged ?? {}, expenses: res.expenses ?? {} })
+    setReconKey(key)
+  }
+
+  function handleTabChange(t: 'list' | 'summary' | 'zestawienie') {
+    setTab(t)
+    if (t === 'zestawienie') loadRecon(filterComm, filterYear, filterMonth)
+  }
 
   const handleFile = useCallback((file: File) => {
     setCsvFileName(file.name); setImportResult(null)
@@ -275,11 +297,22 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
           {search && <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#115e59] hover:text-[#99f6e4] text-xs">✕</button>}
         </div>
         <div className="flex gap-1 bg-[#081918] rounded-lg p-1">
-          {(['list','summary'] as const).map(t=><button key={t} onClick={()=>setTab(t)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${tab===t?'bg-[#0c2220] text-[#f0fdfa]':'text-[#115e59] hover:text-[#99f6e4]'}`}>{t==='list'?'📋 Lista':'📊 Podsumowanie'}</button>)}
+          {([['list','📋 Lista'],['summary','📊 Podsumowanie'],['zestawienie','⚖️ Zestawienie']] as const).map(([t,label])=><button key={t} onClick={()=>handleTabChange(t)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${tab===t?'bg-[#0c2220] text-[#f0fdfa]':'text-[#115e59] hover:text-[#99f6e4]'}`}>{label}</button>)}
         </div>
       </div>
 
-      {tab==='summary'?(
+      {tab==='zestawienie'?(
+        <ZestawieniTab
+          recon={recon}
+          loading={reconLoading}
+          error={reconError}
+          hasComm={!!filterComm}
+          year={filterYear}
+          month={filterMonth}
+          onReload={() => { setReconKey(''); loadRecon(filterComm, filterYear, filterMonth) }}
+          catLabel={catLabel}
+        />
+      ):tab==='summary'?(
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-4 text-center"><p className="text-xs text-[#115e59] mb-1">Wpłaty mieszkańców</p><p className="text-2xl font-bold text-teal-400">{pln(totalIncome)}</p></div>
@@ -415,6 +448,190 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
           )}
         </div>
       )}
+    </div>
+  )
+}
+
+// ── Zestawienie: Naliczone vs Faktury ─────────────────────────────────────────
+
+const MONTHS_PL = ['','Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień']
+
+// Kategorie które mają odpowiednik w rozliczeniach mieszkańców
+const RECON_ROWS: { key: string; label: string; icon: string }[] = [
+  { key: 'woda',                   label: 'Woda / kanalizacja',      icon: '💧' },
+  { key: 'śmieci',                 label: 'Odpady / śmieci',         icon: '🗑️' },
+  { key: 'fundusz_remontowy',      label: 'Fundusz remontowy',       icon: '🔨' },
+  { key: 'fundusz_eksploatacyjny', label: 'Fundusz eksploatacyjny',  icon: '🏗️' },
+  { key: 'wynagrodzenie_zarządcy', label: 'Wynagrodzenie zarządcy',  icon: '👔' },
+]
+
+function ZestawieniTab({
+  recon, loading, error, hasComm, year, month, onReload, catLabel,
+}: {
+  recon: { charged: Record<string,number>; expenses: Record<string,number> } | null
+  loading: boolean
+  error: string | null
+  hasComm: boolean
+  year: number
+  month: number
+  onReload: () => void
+  catLabel: (k: string) => string
+}) {
+  const f = (v: number) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(v)
+
+  if (!hasComm) return (
+    <div className="flex flex-col items-center justify-center py-20 text-[#115e59] gap-3">
+      <span className="text-4xl">⚖️</span>
+      <p className="text-sm">Wybierz wspólnotę, aby zobaczyć zestawienie.</p>
+    </div>
+  )
+
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center py-20 text-[#115e59] gap-3">
+      <span className="text-3xl animate-spin">⏳</span>
+      <p className="text-sm">Wyliczam naliczone z rozliczeń…</p>
+    </div>
+  )
+
+  if (error) return (
+    <div className="flex flex-col items-center justify-center py-20 gap-3">
+      <p className="text-sm text-red-400">{error}</p>
+      <button onClick={onReload} className="text-xs text-teal-400 underline">Spróbuj ponownie</button>
+    </div>
+  )
+
+  if (!recon) return (
+    <div className="flex flex-col items-center justify-center py-20 text-[#115e59] gap-3">
+      <span className="text-4xl">⚖️</span>
+      <p className="text-sm">Brak danych. Kliknij, aby załadować.</p>
+      <button onClick={onReload} className="text-xs text-teal-400 underline">Załaduj</button>
+    </div>
+  )
+
+  const { charged, expenses } = recon
+
+  // Suma naliczonych i faktur dla RECON_ROWS
+  let totalCharged = 0, totalExpRecon = 0
+  for (const { key } of RECON_ROWS) {
+    totalCharged += charged[key] ?? 0
+    totalExpRecon += expenses[key] ?? 0
+  }
+
+  // Pozostałe kategorie kosztów (spoza RECON_ROWS)
+  const reconKeys = new Set(RECON_ROWS.map(r => r.key))
+  const otherExpenses = Object.entries(expenses).filter(([k]) => !reconKeys.has(k))
+  const totalOther = otherExpenses.reduce((s, [, v]) => s + v, 0)
+
+  const periodLabel = month > 0 ? `${MONTHS_PL[month]} ${year}` : `Rok ${year}`
+
+  return (
+    <div className="space-y-6">
+      {/* Nagłówek */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <h3 className="text-sm font-semibold text-[#ccfbf1]">Naliczone vs Faktury — {periodLabel}</h3>
+          <p className="text-xs text-[#115e59] mt-0.5">
+            Naliczone = opłaty wynikające ze stawek i parametrów lokali. Faktury = wpisane koszty w module Koszty.
+          </p>
+        </div>
+        <button onClick={onReload} className="text-xs text-teal-500 hover:text-teal-300 underline">🔄 Odśwież</button>
+      </div>
+
+      {/* Tabela porównawcza */}
+      <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-[#0f2d2a]">
+              <th className="text-left px-4 py-3 text-xs font-semibold text-[#0f766e] uppercase tracking-wide">Kategoria</th>
+              <th className="text-right px-4 py-3 text-xs font-semibold text-teal-600 uppercase tracking-wide">Naliczone</th>
+              <th className="text-right px-4 py-3 text-xs font-semibold text-red-600 uppercase tracking-wide">Faktury</th>
+              <th className="text-right px-4 py-3 text-xs font-semibold text-[#0f766e] uppercase tracking-wide">Różnica</th>
+              <th className="px-4 py-3 text-xs text-[#0f766e] uppercase tracking-wide"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {RECON_ROWS.map(({ key, label, icon }) => {
+              const ch = charged[key] ?? 0
+              const ex = expenses[key] ?? 0
+              const diff = ch - ex
+              const pct = ch > 0 ? Math.round((ex / ch) * 100) : (ex > 0 ? 999 : 0)
+              const isOk = diff >= 0
+              const isOver = diff < 0
+              const noData = ch === 0 && ex === 0
+              return (
+                <tr key={key} className="border-b border-[#0a1f1d] hover:bg-[#0a1f1d]/60 transition">
+                  <td className="px-4 py-3 font-medium text-[#ccfbf1]">
+                    <span className="mr-2">{icon}</span>{label}
+                  </td>
+                  <td className="px-4 py-3 text-right font-semibold text-teal-400 tabular-nums">
+                    {noData ? <span className="text-[#115e59] font-normal">—</span> : f(ch)}
+                  </td>
+                  <td className="px-4 py-3 text-right font-semibold text-red-400 tabular-nums">
+                    {noData ? <span className="text-[#115e59] font-normal">—</span> : f(ex)}
+                  </td>
+                  <td className={`px-4 py-3 text-right font-bold tabular-nums ${noData?'text-[#115e59]':isOver?'text-red-400':'text-teal-400'}`}>
+                    {noData ? '—' : (isOver ? '' : '+') + f(diff)}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {noData ? (
+                      <span className="text-xs text-[#115e59]">brak danych</span>
+                    ) : isOk && diff === 0 ? (
+                      <span className="text-xs bg-teal-900/40 text-teal-400 border border-teal-800 px-2 py-0.5 rounded-full">✓ równo</span>
+                    ) : isOk ? (
+                      <span className="text-xs bg-teal-900/40 text-teal-400 border border-teal-800 px-2 py-0.5 rounded-full" title={`Pokrycie: ${pct}%`}>✓ nadwyżka</span>
+                    ) : (
+                      <span className="text-xs bg-red-900/40 text-red-400 border border-red-800 px-2 py-0.5 rounded-full" title={`Pokrycie: ${pct}%`}>⚠ niedobór</span>
+                    )}
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+          <tfoot>
+            <tr className="border-t border-[#0f2d2a] bg-[#0a1f1d]">
+              <td className="px-4 py-3 text-xs font-bold text-[#0f766e] uppercase">Suma (mapowane)</td>
+              <td className="px-4 py-3 text-right font-bold text-teal-300 tabular-nums">{f(totalCharged)}</td>
+              <td className="px-4 py-3 text-right font-bold text-red-300 tabular-nums">{f(totalExpRecon)}</td>
+              <td className={`px-4 py-3 text-right font-bold tabular-nums ${totalCharged-totalExpRecon<0?'text-red-300':'text-teal-300'}`}>
+                {(totalCharged-totalExpRecon >= 0 ? '+' : '') + f(totalCharged-totalExpRecon)}
+              </td>
+              <td />
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      {/* Pozostałe koszty (nie mapowane do rozliczeń) */}
+      {otherExpenses.length > 0 && (
+        <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-5">
+          <h4 className="text-xs font-semibold text-[#0f766e] uppercase tracking-wide mb-3">
+            Pozostałe faktury (brak odpowiednika w rozliczeniach)
+          </h4>
+          <div className="space-y-2">
+            {otherExpenses.sort((a,b) => b[1]-a[1]).map(([key, amt]) => (
+              <div key={key} className="flex items-center justify-between gap-3">
+                <span className="text-xs text-[#99f6e4]">{catLabel(key)}</span>
+                <span className="text-sm font-semibold text-red-400 tabular-nums">{f(amt)}</span>
+              </div>
+            ))}
+            <div className="pt-2 border-t border-[#0a1f1d] flex justify-between">
+              <span className="text-xs font-bold text-[#0f766e]">Suma pozostałych</span>
+              <span className="text-sm font-bold text-red-300 tabular-nums">{f(totalOther)}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Łączne saldo okresu */}
+      <div className={`rounded-xl p-4 border flex items-center justify-between ${totalCharged - (totalExpRecon + totalOther) >= 0 ? 'bg-teal-950/20 border-teal-800' : 'bg-red-950/20 border-red-900'}`}>
+        <div>
+          <p className="text-xs text-[#0f766e] mb-0.5">Łączny bilans okresu</p>
+          <p className="text-xs text-[#115e59]">Naliczone − wszystkie faktury</p>
+        </div>
+        <p className={`text-2xl font-bold tabular-nums ${totalCharged - (totalExpRecon + totalOther) >= 0 ? 'text-teal-400' : 'text-red-400'}`}>
+          {(totalCharged - (totalExpRecon + totalOther) >= 0 ? '+' : '') + f(totalCharged - (totalExpRecon + totalOther))}
+        </p>
+      </div>
     </div>
   )
 }

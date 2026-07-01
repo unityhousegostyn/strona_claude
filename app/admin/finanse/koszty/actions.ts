@@ -5,6 +5,7 @@ import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import { getAuthProfileAction } from '@/lib/getAuthProfile'
 import type { ExpenseCategory } from './categories'
 import { EXPENSE_CATEGORIES } from './categories'
+import { getRatesForMonth, calcMonthCharges } from '@/lib/settlementCalc'
 
 async function getActor() {
   const auth = await getAuthProfileAction()
@@ -388,6 +389,125 @@ export async function bulkDeleteExpenses(ids: string[]): Promise<{ error?: strin
     revalidatePath('/admin/finanse/koszty')
     revalidatePath('/admin/dashboard')
     return { deleted: ids.length }
+  } catch (e: any) {
+    return { error: e?.message ?? String(e) }
+  }
+}
+
+// ── ZESTAWIENIE: naliczone z rozliczeń vs faktury ─────────────────────────────
+/**
+ * Dla danej wspólnoty i roku (+ opcjonalnie miesiąca) wylicza sumę naliczonych
+ * opłat per kategoria (z modułu Rozliczenia) oraz sumę faktur per kategoria
+ * (z modułu Koszty), zwracając gotowe zestawienie do porównania.
+ *
+ * "Naliczone" = teoretyczne opłaty wynikające ze stawek i parametrów lokali,
+ * liczone dla każdego miesiąca od stycznia do bieżącego (lub wybranego).
+ * Dla billing_type='meter' liczy tylko miesiące z wpisem (odczytem).
+ * Dla billing_type='zaliczka' liczy tylko miesiące z wpisem.
+ */
+export async function getReconciliation(
+  communityId: string,
+  year: number,
+  month = 0,          // 0 = cały rok
+): Promise<{
+  error?: string
+  charged?: Record<string, number>   // naliczone wg kategorii
+  expenses?: Record<string, number>  // faktury wg kategorii
+}> {
+  try {
+    const { profile } = await getActor()
+    if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
+    if (profile.role === 'admin' && profile.community_id !== communityId) return { error: 'Brak dostępu' }
+
+    const admin = getSupabaseAdminClient()
+
+    // 1. Lokale wspólnoty
+    const { data: apartments } = await admin
+      .from('settlement_apartments')
+      .select('id, area_m2, persons_count, has_meter, community_id')
+      .eq('community_id', communityId)
+      .eq('active', true)
+    if (!apartments?.length) return { charged: {}, expenses: {} }
+
+    // 2. Stawki wspólnoty
+    const { data: rates } = await admin
+      .from('settlement_rates')
+      .select('*')
+      .eq('community_id', communityId)
+      .order('effective_from')
+
+    // 3. Wpisy rozliczeń za wybrany rok (+ opcjonalnie miesiąc)
+    let entriesQ = admin
+      .from('settlement_entries')
+      .select('apartment_id, year, month, paid, water_m3, water_correction, persons_count')
+      .in('apartment_id', apartments.map(a => a.id))
+      .eq('year', year)
+    if (month > 0) entriesQ = entriesQ.eq('month', month)
+    const { data: entries } = await entriesQ
+
+    type EntryRow = { apartment_id: string; year: number; month: number; paid: number; water_m3: number; water_correction: number; persons_count: number | null }
+    const entryMap: Record<string, EntryRow> = {}
+    for (const e of entries ?? []) entryMap[`${e.apartment_id}:${e.month}`] = e
+
+    // 4. Wylicz naliczone per kategoria
+    const charged: Record<string, number> = {}
+    const r = (v: number) => Math.round(v * 100) / 100
+
+    const now = new Date()
+    const todayY = now.getFullYear()
+    const todayM = now.getMonth() + 1
+
+    const monthsToProcess = month > 0
+      ? [month]
+      : Array.from({ length: 12 }, (_, i) => i + 1).filter(m => {
+          if (year < todayY) return true
+          if (year === todayY) return m <= todayM
+          return false
+        })
+
+    for (const apt of apartments) {
+      for (const m of monthsToProcess) {
+        const monthRates = getRatesForMonth(rates ?? [], year, m)
+        if (!monthRates) continue
+
+        const entry = entryMap[`${apt.id}:${m}`] ?? null
+
+        // Dla billing_type='meter' lub 'zaliczka' — woda liczymy tylko przy wpisie
+        const needsEntry = monthRates.water_billing_type !== 'ryczalt'
+        const effectiveEntry = needsEntry ? entry : null
+
+        // Opłaty stałe (fundusz remontowy, eksploatacyjny, zarządca, śmieci)
+        // liczymy dla wszystkich miesięcy gdzie są stawki — niezależnie od wpisu.
+        // Woda ryczałt = zawsze, meter/zaliczka = tylko przy wpisie.
+        const charges = calcMonthCharges(
+          { ...apt, active: true, number: '', owner_name: '', owner_id: null, floor: null, notes: null, share_numerator: null, share_denominator: null } as any,
+          monthRates,
+          effectiveEntry as any,
+        )
+
+        charged['woda'] = r((charged['woda'] ?? 0) + charges.water)
+        charged['śmieci'] = r((charged['śmieci'] ?? 0) + charges.garbage)
+        charged['fundusz_remontowy'] = r((charged['fundusz_remontowy'] ?? 0) + charges.renovation)
+        charged['fundusz_eksploatacyjny'] = r((charged['fundusz_eksploatacyjny'] ?? 0) + charges.operating)
+        charged['wynagrodzenie_zarządcy'] = r((charged['wynagrodzenie_zarządcy'] ?? 0) + charges.manager)
+      }
+    }
+
+    // 5. Faktury (koszty) za wybrany okres
+    let expQ = admin
+      .from('community_expenses')
+      .select('category, amount')
+      .eq('community_id', communityId)
+      .eq('year', year)
+    if (month > 0) expQ = expQ.eq('month', month)
+    const { data: expRows } = await expQ
+
+    const expenses: Record<string, number> = {}
+    for (const e of expRows ?? []) {
+      expenses[e.category] = r((expenses[e.category] ?? 0) + e.amount)
+    }
+
+    return { charged, expenses }
   } catch (e: any) {
     return { error: e?.message ?? String(e) }
   }
