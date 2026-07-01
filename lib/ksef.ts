@@ -235,14 +235,19 @@ export async function ksefAuth(
     // brak body — autentykacja przez header
   })
 
-  const accessToken =
-    redeemRes?.accessToken ??
-    redeemRes?.access_token ??
-    redeemRes?.sessionToken?.token ??
-    redeemRes?.token
+  // accessToken może być obiektem {token:"JWT", expirationTime:"..."} — jak authenticationToken w kroku 4
+  const rawAccess = redeemRes?.accessToken ?? redeemRes?.access_token ?? redeemRes?.token
+  const accessToken: string =
+    (typeof rawAccess === 'object' ? rawAccess?.token : rawAccess) ??
+    redeemRes?.sessionToken?.token ?? ''
 
-  const refreshToken: string = redeemRes?.refreshToken ?? redeemRes?.refresh_token ?? ''
-  const expiresAt: string = redeemRes?.expiresAt ?? redeemRes?.tokenExpiresAt ?? ''
+  const rawRefresh = redeemRes?.refreshToken ?? redeemRes?.refresh_token
+  const refreshToken: string =
+    (typeof rawRefresh === 'object' ? rawRefresh?.token : rawRefresh) ?? ''
+
+  const expiresAt: string =
+    (typeof rawAccess === 'object' ? rawAccess?.expirationTime : null) ??
+    redeemRes?.expiresAt ?? redeemRes?.tokenExpiresAt ?? ''
 
   if (!accessToken) {
     throw new Error(
@@ -251,7 +256,7 @@ export async function ksefAuth(
     )
   }
 
-  return { accessToken: String(accessToken), refreshToken, expiresAt }
+  return { accessToken, refreshToken, expiresAt }
 }
 
 // ── Pobieranie faktur ─────────────────────────────────────────────────────────
