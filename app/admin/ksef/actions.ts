@@ -274,6 +274,10 @@ export async function runKsefSync(): Promise<{
   error?: string
   imported?: number
   fetched?: number
+  skipped?: number
+  dateFrom?: string
+  dateTo?: string
+  insertErrors?: string[]
 }> {
   const auth = await requireSuperAdmin()
   if (auth.error) return { error: auth.error }
@@ -295,26 +299,34 @@ export async function runKsefSync(): Promise<{
   let fetched = 0
   let imported = 0
   let skipped = 0
+  let windowStartISO = ''
+  let dateToISO = ''
+  let insertErrorsOut: string[] = []
 
   try {
     // Uwierzytelnienie
     const auth2 = await ksefAuth(settings.nip, settings.ksef_token, settings.environment)
 
-    // Zakres dat: sync_from_date jako dolna granica, teraz jako górna.
-    // API KSeF v2 ogranicza zapytanie do max 3 miesięcy — dzielimy na okna 90-dniowe.
+    // Zakres dat: sync_from_date jako dolna granica (zawsze), teraz jako górna.
+    // API KSeF v2 ogranicza zapytanie do max 3 miesięcy — dzielimy na okna 89-dniowe.
     const dateTo = new Date()
     const syncFromDate = settings.sync_from_date ? new Date(settings.sync_from_date) : null
     let windowStart: Date
-    if (settings.last_sync_at) {
+    if (syncFromDate) {
+      // Zawsze startujemy od sync_from_date — dedulikacja przez UNIQUE ksef_number
+      windowStart = syncFromDate
+    } else if (settings.last_sync_at) {
+      // Fallback: jeśli brak sync_from_date, cofnij się 1h przed ostatnim synciem
       const fromLastSync = new Date(settings.last_sync_at)
       fromLastSync.setHours(fromLastSync.getHours() - 1)
-      windowStart = syncFromDate && syncFromDate < fromLastSync ? syncFromDate : fromLastSync
-    } else if (syncFromDate) {
-      windowStart = syncFromDate
+      windowStart = fromLastSync
     } else {
+      // Ostateczny fallback: ostatnie 30 dni
       windowStart = new Date()
       windowStart.setDate(windowStart.getDate() - 30)
     }
+    windowStartISO = windowStart.toISOString().slice(0, 10)
+    dateToISO = dateTo.toISOString().slice(0, 10)
 
     // Podziel zakres na okna max 90 dni (limit API KSeF)
     const MAX_WINDOW_DAYS = 89
@@ -381,8 +393,13 @@ export async function runKsefSync(): Promise<{
       }
     }
 
+    insertErrorsOut = insertErrors
     if (insertErrors.length > 0) {
       console.error('[KSeF] Błędy insertów:', insertErrors.join('; '))
+      // Aktualizuj log z błędami insertów żeby były widoczne
+      await admin.from('ksef_sync_log').update({
+        error_message: `Błędy insertów: ${insertErrors.slice(0, 3).join('; ')}${insertErrors.length > 3 ? ` (+${insertErrors.length - 3} więcej)` : ''}`,
+      }).eq('id', logId)
     }
 
     // Zaktualizuj log i last_sync_at
@@ -422,5 +439,5 @@ export async function runKsefSync(): Promise<{
 
   revalidatePath('/admin/ksef')
   revalidatePath('/admin/finanse/koszty')
-  return { fetched, imported }
+  return { fetched, imported, skipped, dateFrom: windowStartISO, dateTo: dateToISO, insertErrors: insertErrorsOut }
 }

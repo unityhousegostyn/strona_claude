@@ -107,7 +107,10 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
       if (res.error) {
         setSyncMsg({ ok: false, text: res.error })
       } else {
-        setSyncMsg({ ok: true, text: `Pobrano ${res.fetched} faktur, dodano ${res.imported} do kolejki.` })
+        const range = res.dateFrom ? ` (zakres: ${res.dateFrom} – ${res.dateTo})` : ''
+        const skippedInfo = res.skipped ? `, pominięto ${res.skipped} duplikatów` : ''
+        const errInfo = res.insertErrors?.length ? ` ⚠ błędy insertów (${res.insertErrors.length}): ${res.insertErrors[0]}` : ''
+        setSyncMsg({ ok: !res.insertErrors?.length, text: `Pobrano ${res.fetched} faktur z KSeF${range}, dodano ${res.imported} do kolejki${skippedInfo}.${errInfo}` })
         // Odśwież kolejkę po syncu — użytkownik nie musi klikać ręcznie
         const { items } = await fetchQueue('pending')
         setQueue(items)
