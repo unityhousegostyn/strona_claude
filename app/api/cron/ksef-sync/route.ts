@@ -38,18 +38,39 @@ export async function GET(request: Request) {
     const auth = await ksefAuth(settings.nip, settings.ksef_token, settings.environment)
 
     const dateTo = new Date()
-    let dateFrom: Date
-    if (settings.last_sync_at) {
-      dateFrom = new Date(settings.last_sync_at)
-      dateFrom.setHours(dateFrom.getHours() - 1)
-    } else if (settings.sync_from_date) {
-      dateFrom = new Date(settings.sync_from_date)
+    let windowStart: Date
+    if (settings.sync_from_date) {
+      // L2-FIX: zawsze startuj od sync_from_date (spójne z ręcznym syncem)
+      windowStart = new Date(settings.sync_from_date)
+    } else if (settings.last_sync_at) {
+      windowStart = new Date(settings.last_sync_at)
+      windowStart.setHours(windowStart.getHours() - 1)
     } else {
-      dateFrom = new Date()
-      dateFrom.setDate(dateFrom.getDate() - 30)
+      windowStart = new Date()
+      windowStart.setDate(windowStart.getDate() - 30)
     }
 
-    const invoices = await ksefQueryInvoices(auth.accessToken, settings.environment, dateFrom, dateTo)
+    // L2-FIX: okna 89-dniowe — KSeF odrzuca zakres > 3 miesięcy (HTTP 400)
+    const MAX_WINDOW_DAYS = 89
+    const allInvoices: Awaited<ReturnType<typeof ksefQueryInvoices>> = []
+    let cursor = new Date(windowStart)
+    while (cursor < dateTo) {
+      const windowEnd = new Date(cursor)
+      windowEnd.setDate(windowEnd.getDate() + MAX_WINDOW_DAYS)
+      if (windowEnd > dateTo) windowEnd.setTime(dateTo.getTime())
+      const chunk = await ksefQueryInvoices(auth.accessToken, settings.environment, cursor, windowEnd)
+      allInvoices.push(...chunk)
+      cursor.setDate(cursor.getDate() + MAX_WINDOW_DAYS) // overlap 1 dzień = brak luki
+    }
+
+    // Deduplikacja po kseNumber (może wystąpić przez overlap okien)
+    const seen = new Set<string>()
+    const invoices = allInvoices.filter(inv => {
+      if (!inv.kseNumber) return true
+      if (seen.has(inv.kseNumber)) return false
+      seen.add(inv.kseNumber)
+      return true
+    })
     fetched = invoices.length
 
     // Pobierz NIP-y wspólnot do automatycznego dopasowania
@@ -61,23 +82,25 @@ export async function GET(request: Request) {
 
     for (const inv of invoices) {
       // Pomiń duplikaty
-      const { data: dup } = await admin
-        .from('ksef_invoice_queue')
-        .select('id')
-        .eq('ksef_number', inv.kseNumber)
-        .maybeSingle()
-
-      if (dup) { skipped++; continue }
+      if (inv.kseNumber) {
+        const { data: dup } = await admin
+          .from('ksef_invoice_queue')
+          .select('id')
+          .eq('ksef_number', inv.kseNumber)
+          .maybeSingle()
+        if (dup) { skipped++; continue }
+      }
 
       const communityId = nipMap.get(inv.buyerNip) ?? null
 
       await admin.from('ksef_invoice_queue').insert({
-        ksef_number: inv.kseNumber,
+        ksef_number: inv.kseNumber || null,
+        invoice_number: inv.invoiceNumber || null,  // L3-FIX: zapisz numer faktury wystawcy
         invoice_date: inv.invoiceDate || null,
         issue_date: inv.issueDate || null,
         seller_name: inv.sellerName,
-        seller_nip: inv.sellerNip,
-        buyer_nip: inv.buyerNip,
+        seller_nip: String(inv.sellerNip ?? '').slice(0, 10) || null,
+        buyer_nip: String(inv.buyerNip ?? '').slice(0, 10) || null,
         net_amount: inv.netAmount,
         vat_amount: inv.vatAmount,
         gross_amount: inv.grossAmount,

@@ -9,7 +9,11 @@ import { ksefAuth, ksefQueryInvoices, guessCategory, type KsefEnvironment } from
 
 export async function diagnoseKsefApi(env: 'prod' | 'test' = 'prod'): Promise<{
   results: { url: string; method: string; status: number; contentType: string; preview: string }[]
+  error?: string
 }> {
+  // L1-FIX: brak auth w poprzedniej wersji — każdy mógł wywołać ten Server Action
+  const auth = await requireSuperAdmin()
+  if (auth.error) return { results: [], error: auth.error }
   // WAŻNE: base URL to /v2 (NIE /api/v2) — zweryfikowane z OpenAPI spec
   const base = env === 'prod'
     ? 'https://api.ksef.mf.gov.pl/v2'
@@ -282,7 +286,7 @@ export async function refreshInvoiceNumbers(): Promise<{
 
 // ── Skan konkretnego zakresu dat — do debugowania brakujących faktur ──────────
 
-export async function scanKsefDateRange(daysBack: number = 7): Promise<{
+export async function scanKsefDateRange(daysBack: number = 7): Promise<{  // L4-FIX: clamp poniżej
   error?: string
   nip?: string
   dateFrom?: string
@@ -319,7 +323,9 @@ export async function scanKsefDateRange(daysBack: number = 7): Promise<{
 
   const dateTo = new Date()
   const dateFrom = new Date(dateTo)
-  dateFrom.setDate(dateFrom.getDate() - daysBack)
+  // L4-FIX: clamp do max 89 dni (limit API KSeF) i min 1 dzień
+  const safeDaysBack = Math.min(Math.max(1, Math.floor(daysBack)), 89)
+  dateFrom.setDate(dateFrom.getDate() - safeDaysBack)
   const fmt = (d: Date) => d.toISOString().slice(0, 10)
 
   const subjectTypes = ['Subject1', 'Subject2', 'SubjectAuthorized'] as const
