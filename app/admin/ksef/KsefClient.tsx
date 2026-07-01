@@ -504,7 +504,7 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
               <table className="w-full text-sm">
                 <thead className="bg-[#f9fafb] dark:bg-[#111827]">
                   <tr>
-                    {['Data', 'Nr faktury KSeF', 'Sprzedawca', 'Kwota brutto', 'Kategoria', 'Status', 'Akcje'].map(h => (
+                    {['Data', 'Numer faktury', 'Sprzedawca', 'Kwota brutto', 'Kategoria', 'Status', 'Akcje'].map(h => (
                       <th key={h} className="px-4 py-2 text-left text-xs font-semibold text-[#6b7280]">{h}</th>
                     ))}
                   </tr>
