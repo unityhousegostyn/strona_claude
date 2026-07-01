@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { saveKsefSettings, runKsefSync, importQueueItem, skipQueueItem, getKsefQueue as fetchQueue, diagnoseKsefApi } from './actions'
+import { saveKsefSettings, runKsefSync, importQueueItem, skipQueueItem, getKsefQueue as fetchQueue, diagnoseKsefApi, diagnoseKsefQuery } from './actions'
 import type { KsefSettings, SyncLogEntry, QueueItem } from './actions'
 
 type Tab = 'ustawienia' | 'sync' | 'kolejka'
@@ -88,6 +88,8 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
   const [syncing, setSyncing] = useState(false)
   const [diagResults, setDiagResults] = useState<{ url: string; method: string; status: number; contentType: string; preview: string }[] | null>(null)
   const [diagLoading, setDiagLoading] = useState(false)
+  const [queryDiag, setQueryDiag] = useState<Awaited<ReturnType<typeof diagnoseKsefQuery>> | null>(null)
+  const [queryDiagLoading, setQueryDiagLoading] = useState(false)
 
   function handleDiagnose() {
     setDiagLoading(true)
@@ -96,6 +98,16 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
       const { results } = await diagnoseKsefApi(form.environment as 'prod' | 'test')
       setDiagResults(results)
       setDiagLoading(false)
+    })
+  }
+
+  function handleQueryDiagnose() {
+    setQueryDiagLoading(true)
+    setQueryDiag(null)
+    startTransition(async () => {
+      const res = await diagnoseKsefQuery()
+      setQueryDiag(res)
+      setQueryDiagLoading(false)
     })
   }
 
@@ -354,7 +366,38 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
               >
                 {diagLoading ? '⏳ Diagnozy…' : '🔍 Diagnostyka API'}
               </button>
+              <button
+                onClick={handleQueryDiagnose}
+                disabled={isPending || queryDiagLoading}
+                className="px-4 py-2 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-lg text-sm hover:bg-amber-200 disabled:opacity-50"
+              >
+                {queryDiagLoading ? '⏳ Sprawdzam…' : '🧪 Ile faktur per zapytanie?'}
+              </button>
             </div>
+
+            {/* Wyniki diagnostyki zapytań */}
+            {queryDiag && (
+              <div className="mt-4 rounded-xl border border-amber-200 dark:border-amber-800 overflow-hidden">
+                <p className="text-xs font-semibold text-amber-700 dark:text-amber-300 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800">
+                  Diagnostyka zapytań KSeF — NIP: {queryDiag.nip ?? '?'}{queryDiag.error ? ` — BŁĄD: ${queryDiag.error}` : ''}
+                </p>
+                <div className="divide-y divide-amber-100 dark:divide-amber-900">
+                  {queryDiag.rows?.map((r, i) => (
+                    <div key={i} className="px-4 py-2 text-xs flex flex-col gap-1">
+                      <div className="flex gap-3 items-center">
+                        <span className="font-mono text-[#6b7280] w-20">{r.subjectType}</span>
+                        <span className="font-mono text-[#6b7280] w-16">{r.dateType}</span>
+                        <span className={`font-bold ${r.count > 0 ? 'text-teal-600' : 'text-[#9ca3af]'}`}>{r.count} faktur</span>
+                        {r.error && <span className="text-red-500 text-[10px] truncate">{r.error}</span>}
+                      </div>
+                      {r.samples.map((s, j) => (
+                        <div key={j} className="ml-36 text-[10px] font-mono text-[#6b7280]">{s}</div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Wyniki diagnostyki */}
             {diagResults && (

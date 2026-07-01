@@ -75,6 +75,75 @@ export async function diagnoseKsefApi(env: 'prod' | 'test' = 'prod'): Promise<{
   return { results }
 }
 
+// ── Diagnostyka zapytań o faktury ─────────────────────────────────────────────
+
+export async function diagnoseKsefQuery(): Promise<{
+  error?: string
+  nip?: string
+  rows: { subjectType: string; dateType: string; count: number; samples: string[]; error?: string }[]
+}> {
+  const auth = await requireSuperAdmin()
+  if (auth.error) return { error: auth.error, rows: [] }
+
+  const admin = getSupabaseAdminClient()
+  const { data: settings } = await admin.from('ksef_settings').select('*').maybeSingle()
+  if (!settings?.ksef_token || !settings?.nip) return { error: 'Brak konfiguracji KSeF', rows: [] }
+
+  let accessToken: string
+  try {
+    const a = await (await import('@/lib/ksef')).ksefAuth(settings.nip, settings.ksef_token, settings.environment)
+    accessToken = a.accessToken
+  } catch (e: any) {
+    return { error: `Auth failed: ${e?.message}`, rows: [] }
+  }
+
+  const base = settings.environment === 'prod'
+    ? 'https://api.ksef.mf.gov.pl/v2'
+    : 'https://api-test.ksef.mf.gov.pl/v2'
+
+  const dateFrom = settings.sync_from_date ?? '2026-01-01'
+  const dateTo = new Date(); dateTo.setDate(dateTo.getDate() + 1)
+  const fmt = (d: Date | string) => typeof d === 'string' ? d : d.toISOString().slice(0, 10)
+
+  const combos = [
+    { subjectType: 'Subject1',          dateType: 'Issue'   },
+    { subjectType: 'Subject1',          dateType: 'Receipt' },
+    { subjectType: 'Subject2',          dateType: 'Issue'   },
+    { subjectType: 'Subject2',          dateType: 'Receipt' },
+    { subjectType: 'SubjectAuthorized', dateType: 'Issue'   },
+    { subjectType: 'SubjectAuthorized', dateType: 'Receipt' },
+  ]
+
+  const rows = await Promise.all(combos.map(async ({ subjectType, dateType }) => {
+    try {
+      const res = await fetch(
+        `${base}/invoices/query/metadata?pageOffset=0&pageSize=10`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}`, Accept: 'application/json' },
+          body: JSON.stringify({ subjectType, dateRange: { from: fmt(dateFrom), to: fmt(dateTo), dateType } }),
+        },
+      )
+      const text = await res.text()
+      if (!res.ok) return { subjectType, dateType, count: 0, samples: [], error: `HTTP ${res.status}: ${text.slice(0, 120)}` }
+      const json = JSON.parse(text)
+      const invoices: any[] = json?.invoices ?? json?.data?.invoices ?? []
+      const total: number = json?.totalCount ?? json?.total ?? invoices.length
+      const samples = invoices.slice(0, 3).map((inv: any) => {
+        const nr = inv.kseNumber ?? inv.ksefNumber ?? inv.referenceNumber ?? '?'
+        const date = inv.invoiceDate ?? inv.issueDate ?? inv.issueDateTime?.slice(0,10) ?? '?'
+        const seller = inv.sellerName ?? inv.seller?.name ?? '?'
+        return `${nr} | ${date} | ${seller}`
+      })
+      return { subjectType, dateType, count: total, samples }
+    } catch (e: any) {
+      return { subjectType, dateType, count: 0, samples: [], error: e?.message ?? 'błąd' }
+    }
+  }))
+
+  return { nip: settings.nip, rows }
+}
+
 // ── Auth helper ───────────────────────────────────────────────────────────────
 
 async function requireSuperAdmin() {
