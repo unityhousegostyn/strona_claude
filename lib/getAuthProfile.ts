@@ -92,3 +92,19 @@ export function getCommunityFilter(profile: AuthProfile): string | null {
   if (profile.role === 'super_admin') return null
   return profile.community_id
 }
+
+/** Sprawdza czy użytkownik ma dostęp do konkretnego lokalu.
+ *  super_admin: zawsze tak
+ *  admin: tylko lokale swojej wspólnoty
+ *  user/najemca: tylko swój lokal (przez owner_id LUB profiles.apartment_id)
+ */
+export function canAccessApartment(
+  profile: AuthProfile,
+  user: AuthUser,
+  apartment: { id: string; community_id: string; owner_id?: string | null },
+): boolean {
+  if (profile.role === 'super_admin') return true
+  if (profile.role === 'admin') return apartment.community_id === profile.community_id
+  // user / najemca — oba źródła przypisania
+  return apartment.owner_id === user.id || profile.apartment_id === apartment.id
+}

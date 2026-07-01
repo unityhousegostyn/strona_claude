@@ -1,5 +1,5 @@
 import { redirect, notFound } from 'next/navigation'
-import { getAuthProfile } from '@/lib/getAuthProfile'
+import { getAuthProfile, canAccessApartment } from '@/lib/getAuthProfile'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import MonthlyTable from './MonthlyTable'
@@ -26,16 +26,7 @@ export default async function ApartmentSettlementPage({
   const apartment = aptRes.data
 
   // Sprawdź uprawnienia
-  if (profile.role === 'user') {
-    // User widzi tylko swoje mieszkanie — sprawdź oba źródła przypisania
-    const hasAccess = apartment.owner_id === user.id || profile.apartment_id === apartmentId
-    if (!hasAccess) redirect('/admin/settlements')
-  } else if (profile.role === 'admin') {
-    // Admin widzi tylko mieszkania swojej wspólnoty
-    if (apartment.community_id !== profile.community_id) redirect('/admin/settlements')
-  } else if (profile.role !== 'super_admin') {
-    redirect('/admin/dashboard')
-  }
+  if (!canAccessApartment(profile, user, apartment)) redirect('/admin/settlements')
 
   const readonly = profile.role === 'user'
 

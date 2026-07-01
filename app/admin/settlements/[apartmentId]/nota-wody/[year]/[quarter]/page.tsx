@@ -1,5 +1,5 @@
 import { redirect, notFound } from 'next/navigation'
-import { getAuthProfile } from '@/lib/getAuthProfile'
+import { getAuthProfile, canAccessApartment } from '@/lib/getAuthProfile'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import { getRatesForMonth, type SettlementRate } from '@/lib/settlementCalc'
 import type { Community } from '@/types'
@@ -54,9 +54,7 @@ export default async function NotaWodyPage({
   if (!aptRes.data) notFound()
   const apartment = aptRes.data
 
-  if (profile.role === 'user' && apartment.owner_id !== user.id && profile.apartment_id !== apartmentId) redirect('/admin/settlements')
-  if (profile.role === 'admin' && apartment.community_id !== profile.community_id) redirect('/admin/settlements')
-  if (profile.role !== 'super_admin' && profile.role !== 'admin' && profile.role !== 'user') redirect('/admin/dashboard')
+  if (!canAccessApartment(profile, user, apartment)) redirect('/admin/settlements')
 
   const [communityRes, ratesRes, recRes] = await Promise.all([
     admin.from('communities').select('*').eq('id', apartment.community_id).single(),
