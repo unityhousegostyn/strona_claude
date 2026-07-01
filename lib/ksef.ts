@@ -307,6 +307,14 @@ export async function ksefQueryInvoices(
     const invoices: any[] = data?.items ?? data?.invoices ?? data?.metadata ?? []
     const total: number = data?.totalCount ?? data?.total ?? invoices.length
 
+    // Debug — rzuć wyjątek z surową odpowiedzią jeśli pierwsze wywołanie zwróciło 0
+    if (pageOffset === 0 && invoices.length === 0) {
+      throw new Error(
+        `KSeF /invoices/query/metadata zwróciło 0 faktur. ` +
+        `Surowa odpowiedź: ${JSON.stringify(res).slice(0, 600)}`
+      )
+    }
+
     if (totalCount === null) totalCount = total
 
     for (const inv of invoices) {
