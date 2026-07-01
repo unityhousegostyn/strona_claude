@@ -18,3 +18,21 @@ COMMENT ON TABLE ksef_seller_mapping IS
 -- RLS
 ALTER TABLE ksef_seller_mapping ENABLE ROW LEVEL SECURITY;
 -- Dostęp tylko przez getSupabaseAdminClient (service_role) — brak polis dla anonimowych
+
+-- Bootstrap: wypełnij z już istniejących zaimportowanych faktur
+-- Bierze najnowszą kategorię dla każdej pary (community_id, seller_nip)
+INSERT INTO ksef_seller_mapping (community_id, seller_nip, seller_name, category, updated_at)
+SELECT DISTINCT ON (q.community_id, q.seller_nip)
+  q.community_id,
+  q.seller_nip,
+  q.seller_name,
+  e.category,
+  NOW()
+FROM ksef_invoice_queue q
+JOIN community_expenses e ON e.id = q.expense_id
+WHERE q.status = 'imported'
+  AND q.seller_nip IS NOT NULL
+  AND q.community_id IS NOT NULL
+  AND q.expense_id IS NOT NULL
+ORDER BY q.community_id, q.seller_nip, q.created_at DESC
+ON CONFLICT (community_id, seller_nip) DO NOTHING;
