@@ -44,7 +44,8 @@ const BASE: Record<KsefEnvironment, string> = {
 
 export interface KsefInvoiceHeader {
   invoiceId: string
-  kseNumber: string       // np. "KSeF/2026/07/01/0000001"
+  kseNumber: string       // numer referencyjny KSeF (wewnętrzny)
+  invoiceNumber: string   // numer faktury wystawcy (np. "FV/001/2026")
   issueDate: string       // ISO date
   invoiceDate: string     // ISO date (data wystawienia na fakturze)
   sellerName: string
@@ -378,9 +379,16 @@ function mapInvoiceHeader(inv: any): KsefInvoiceHeader {
 
   const dateFromNum = dateFromKsefNumber(kseNumber)
 
+  // Numer faktury wystawcy — KSeF v2 może zwracać go pod różnymi nazwami
+  const invoiceNumber = String(
+    inv.invoiceNumber ?? inv.numerFaktury ?? inv.faNumber ??
+    inv.invoiceNo ?? inv.docNumber ?? inv.documentNumber ?? ''
+  )
+
   return {
     invoiceId:   inv.invoiceId   ?? inv.id ?? '',
     kseNumber,
+    invoiceNumber,
     issueDate:   inv.issueDate   ?? inv.issueDateTime?.slice(0, 10) ?? dateFromNum,
     invoiceDate: inv.invoiceDate ?? inv.issuedAt?.slice(0, 10) ?? dateFromNum,
     sellerName:  inv.sellerName  ?? seller.name ?? '',

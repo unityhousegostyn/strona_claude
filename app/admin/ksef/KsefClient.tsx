@@ -513,7 +513,12 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
                   {queue.map(item => (
                     <tr key={item.id} className="border-t border-[#e5e7eb] dark:border-[#374151]">
                       <td className="px-4 py-2 whitespace-nowrap text-[#374151] dark:text-[#d1d5db]">{fmtDate(item.invoice_date)}</td>
-                      <td className="px-4 py-2 font-mono text-[11px] text-[#6b7280] dark:text-[#9ca3af] max-w-[180px] break-all">{item.ksef_number ?? '—'}</td>
+                      <td className="px-4 py-2 text-sm text-[#111827] dark:text-white max-w-[180px]">
+                        <p>{item.invoice_number || '—'}</p>
+                        {item.ksef_number && (
+                          <p className="text-[10px] font-mono text-[#9ca3af] break-all">{item.ksef_number}</p>
+                        )}
+                      </td>
                       <td className="px-4 py-2">
                         <p className="font-medium text-[#111827] dark:text-white">{item.seller_name ?? '—'}</p>
                         <p className="text-[11px] text-[#9ca3af]">NIP: {item.seller_nip ?? '—'}</p>

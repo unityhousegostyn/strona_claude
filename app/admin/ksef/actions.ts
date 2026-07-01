@@ -345,6 +345,7 @@ export async function getSyncLog(): Promise<SyncLogEntry[]> {
 export interface QueueItem {
   id: string
   ksef_number: string | null
+  invoice_number: string | null
   invoice_date: string | null
   issue_date: string | null
   seller_name: string | null
@@ -565,6 +566,7 @@ export async function runKsefSync(): Promise<{
 
       const { error: insertErr } = await admin.from('ksef_invoice_queue').insert({
         ksef_number,
+        invoice_number: inv.invoiceNumber || null,
         invoice_date: inv.invoiceDate || null,
         issue_date: inv.issueDate || null,
         seller_name: inv.sellerName || null,
