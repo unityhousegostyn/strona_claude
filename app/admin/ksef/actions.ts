@@ -307,9 +307,11 @@ export async function runKsefSync(): Promise<{
     // Uwierzytelnienie
     const auth2 = await ksefAuth(settings.nip, settings.ksef_token, settings.environment)
 
-    // Zakres dat: sync_from_date jako dolna granica (zawsze), teraz jako górna.
+    // Zakres dat: sync_from_date jako dolna granica (zawsze), jutro jako górna.
+    // dateTo = jutro: KSeF traktuje 'to' jako exclusive, więc +1 dzień żeby zawrzeć dzisiejsze faktury.
     // API KSeF v2 ogranicza zapytanie do max 3 miesięcy — dzielimy na okna 89-dniowe.
     const dateTo = new Date()
+    dateTo.setDate(dateTo.getDate() + 1)
     const syncFromDate = settings.sync_from_date ? new Date(settings.sync_from_date) : null
     let windowStart: Date
     if (syncFromDate) {
