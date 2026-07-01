@@ -5,6 +5,45 @@ import { getAuthProfileAction } from '@/lib/getAuthProfile'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import { ksefAuth, ksefQueryInvoices, guessCategory, type KsefEnvironment } from '@/lib/ksef'
 
+// ── Diagnostyka API KSeF ─────────────────────────────────────────────────────
+
+export async function diagnoseKsefApi(env: 'prod' | 'test' = 'prod'): Promise<{
+  results: { url: string; status: number; contentType: string; preview: string }[]
+}> {
+  const base = env === 'prod'
+    ? 'https://api.ksef.mf.gov.pl/api/v2'
+    : 'https://api-test.ksef.mf.gov.pl/api/v2'
+
+  // Próbujemy pobrać swagger/openapi spec i kilka innych endpointów
+  const targets = [
+    `${base}/swagger/v1/swagger.json`,
+    `${base}/swagger.json`,
+    `${base}/openapi.json`,
+    `${base}/api-docs`,
+    `${base}/`,
+    `${base}/auth`,
+    `https://api.ksef.mf.gov.pl/swagger/v1/swagger.json`,
+    `https://api.ksef.mf.gov.pl/api/swagger/v1/swagger.json`,
+  ]
+
+  const results = await Promise.all(targets.map(async url => {
+    try {
+      const res = await fetch(url, {
+        headers: { Accept: 'application/json, text/html' },
+        signal: AbortSignal.timeout(8000),
+      })
+      const text = await res.text()
+      const contentType = res.headers.get('content-type') ?? ''
+      const preview = text.slice(0, 300)
+      return { url, status: res.status, contentType, preview }
+    } catch (e: any) {
+      return { url, status: 0, contentType: 'error', preview: e?.message ?? String(e) }
+    }
+  }))
+
+  return { results }
+}
+
 // ── Auth helper ───────────────────────────────────────────────────────────────
 
 async function requireSuperAdmin() {

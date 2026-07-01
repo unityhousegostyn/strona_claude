@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { saveKsefSettings, runKsefSync, importQueueItem, skipQueueItem, getKsefQueue as fetchQueue } from './actions'
+import { saveKsefSettings, runKsefSync, importQueueItem, skipQueueItem, getKsefQueue as fetchQueue, diagnoseKsefApi } from './actions'
 import type { KsefSettings, SyncLogEntry, QueueItem } from './actions'
 
 type Tab = 'ustawienia' | 'sync' | 'kolejka'
@@ -81,6 +81,18 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
   const [log, setLog] = useState<SyncLogEntry[]>(initialLog)
   const [syncMsg, setSyncMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const [syncing, setSyncing] = useState(false)
+  const [diagResults, setDiagResults] = useState<{ url: string; status: number; contentType: string; preview: string }[] | null>(null)
+  const [diagLoading, setDiagLoading] = useState(false)
+
+  function handleDiagnose() {
+    setDiagLoading(true)
+    setDiagResults(null)
+    startTransition(async () => {
+      const { results } = await diagnoseKsefApi(form.environment as 'prod' | 'test')
+      setDiagResults(results)
+      setDiagLoading(false)
+    })
+  }
 
   function handleSync() {
     setSyncing(true)
@@ -306,13 +318,47 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
                 {syncMsg.text}
               </p>
             )}
-            <button
-              onClick={handleSync}
-              disabled={isPending || syncing}
-              className="px-5 py-2 bg-[#0f766e] text-white rounded-lg text-sm font-semibold disabled:opacity-50 hover:bg-[#0d6158] transition-colors"
-            >
-              {syncing ? '⏳ Synchronizuję…' : '🔄 Synchronizuj teraz'}
-            </button>
+            <div className="flex gap-3 flex-wrap">
+              <button
+                onClick={handleSync}
+                disabled={isPending || syncing}
+                className="px-5 py-2 bg-[#0f766e] text-white rounded-lg text-sm font-semibold disabled:opacity-50 hover:bg-[#0d6158] transition-colors"
+              >
+                {syncing ? '⏳ Synchronizuję…' : '🔄 Synchronizuj teraz'}
+              </button>
+              <button
+                onClick={handleDiagnose}
+                disabled={isPending || diagLoading}
+                className="px-4 py-2 bg-[#f3f4f6] dark:bg-[#374151] text-[#374151] dark:text-[#d1d5db] rounded-lg text-sm hover:bg-[#e5e7eb] disabled:opacity-50"
+              >
+                {diagLoading ? '⏳ Diagnozy…' : '🔍 Diagnostyka API'}
+              </button>
+            </div>
+
+            {/* Wyniki diagnostyki */}
+            {diagResults && (
+              <div className="mt-4 rounded-xl border border-[#e5e7eb] dark:border-[#374151] overflow-hidden">
+                <p className="text-xs font-semibold text-[#6b7280] px-4 py-2 bg-[#f9fafb] dark:bg-[#111827] border-b border-[#e5e7eb] dark:border-[#374151]">
+                  Wyniki diagnostyki API KSeF
+                </p>
+                <div className="divide-y divide-[#e5e7eb] dark:divide-[#374151]">
+                  {diagResults.map((r, i) => (
+                    <div key={i} className="px-4 py-2 text-xs">
+                      <div className="flex gap-2 items-center mb-1">
+                        <span className={`font-mono font-bold ${r.status === 200 ? 'text-teal-600' : r.status === 0 ? 'text-red-500' : 'text-orange-500'}`}>
+                          {r.status || 'ERR'}
+                        </span>
+                        <span className="text-[#6b7280] break-all">{r.url}</span>
+                        <span className="text-[#9ca3af] ml-auto shrink-0">{r.contentType.slice(0, 30)}</span>
+                      </div>
+                      <pre className="text-[10px] text-[#374151] dark:text-[#d1d5db] bg-[#f9fafb] dark:bg-[#1f2937] rounded p-2 overflow-x-auto whitespace-pre-wrap break-all">
+                        {r.preview}
+                      </pre>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Historia */}
