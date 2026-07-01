@@ -257,10 +257,14 @@ export async function ksefAuth(
 // ── Pobieranie faktur ─────────────────────────────────────────────────────────
 
 /**
- * Zapytanie o listę faktur (stronicowanie).
- * subjectType: 'buyer' — faktury, na których jesteśmy nabywcą
+ * Pobieranie metadanych faktur (stronicowanie).
  *
- * Dokumentacja: POST /api/v2/invoices/query
+ * Dokumentacja oficjalna MF: POST /invoices/query/metadata
+ *   - subjectType: "Subject2" = nabywca (my jesteśmy odbiorcą faktury)
+ *   - dateRange.dateType: "Issue" = data wystawienia
+ *   - pageOffset / pageSize = query params (nie body!)
+ *
+ * Nie używamy /invoices/exports (wymaga szyfrowania AES + ZIP).
  */
 export async function ksefQueryInvoices(
   accessToken: string,
@@ -270,36 +274,44 @@ export async function ksefQueryInvoices(
 ): Promise<KsefInvoiceHeader[]> {
   const base = BASE[env]
   const results: KsefInvoiceHeader[] = []
+  const PAGE_SIZE = 100
 
-  let pageToken: string | null = null
-  let page = 0
+  const body = {
+    subjectType: 'Subject2',   // Subject2 = nabywca (odbiorca faktury)
+    dateRange: {
+      from: dateFrom.toISOString(),
+      to: dateTo.toISOString(),
+      dateType: 'Issue',       // data wystawienia
+    },
+  }
+
+  let pageOffset = 0
+  let totalCount: number | null = null
 
   do {
-    const body: Record<string, any> = {
-      dateFrom: dateFrom.toISOString(),
-      dateTo: dateTo.toISOString(),
-      subjectType: 'buyer',
-      pageSize: 100,
-    }
-    if (pageToken) body.pageToken = pageToken
-
-    const res = await kfetch(`${base}/invoices/query`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${accessToken}` },
-      body: JSON.stringify(body),
-    })
+    const res = await kfetch(
+      `${base}/invoices/query/metadata?pageOffset=${pageOffset}&pageSize=${PAGE_SIZE}`,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify(body),
+      },
+    )
 
     const data = res?.data ?? res
-    const invoices: any[] = data?.invoices ?? []
-    pageToken = data?.nextPageToken ?? null
+    const invoices: any[] = data?.items ?? data?.invoices ?? data?.metadata ?? []
+    const total: number = data?.totalCount ?? data?.total ?? invoices.length
+
+    if (totalCount === null) totalCount = total
 
     for (const inv of invoices) {
       results.push(mapInvoiceHeader(inv))
     }
 
-    page++
-    if (page > 50) break // zabezpieczenie przed nieskończoną pętlą
-  } while (pageToken)
+    pageOffset += PAGE_SIZE
+    if (invoices.length < PAGE_SIZE) break // ostatnia strona
+    if (pageOffset > 5000) break          // bezpiecznik anty-loop
+  } while (totalCount !== null && pageOffset < totalCount)
 
   return results
 }
