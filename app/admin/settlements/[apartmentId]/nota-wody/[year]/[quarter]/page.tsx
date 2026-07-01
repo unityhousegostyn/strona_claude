@@ -54,7 +54,7 @@ export default async function NotaWodyPage({
   if (!aptRes.data) notFound()
   const apartment = aptRes.data
 
-  if (profile.role === 'user' && apartment.owner_id !== user.id) redirect('/admin/settlements')
+  if (profile.role === 'user' && apartment.owner_id !== user.id && profile.apartment_id !== apartmentId) redirect('/admin/settlements')
   if (profile.role === 'admin' && apartment.community_id !== profile.community_id) redirect('/admin/settlements')
   if (profile.role !== 'super_admin' && profile.role !== 'admin' && profile.role !== 'user') redirect('/admin/dashboard')
 
