@@ -66,11 +66,15 @@ async function kfetch(url: string, opts: RequestInit = {}): Promise<any> {
       ...(opts.headers ?? {}),
     },
   })
+  const body = await res.text()
   if (!res.ok) {
-    const body = await res.text()
-    throw new Error(`KSeF HTTP ${res.status}: ${body.slice(0, 300)}`)
+    throw new Error(`KSeF HTTP ${res.status}: ${body.slice(0, 400)}`)
   }
-  return res.json()
+  // Jeśli zwróciło HTML zamiast JSON (strona błędu portalu)
+  if (body.trimStart().startsWith('<')) {
+    throw new Error(`KSeF zwrócił HTML zamiast JSON (${res.status}) — prawdopodobnie zły URL`)
+  }
+  return JSON.parse(body)
 }
 
 /**
@@ -111,39 +115,30 @@ export async function ksefAuth(
   //   2 = PESEL
   // Próbujemy kolejno do pierwszego sukcesu.
   let challengeData: any
+  // Kolejne próby z różnymi wariantami body (v2 różne enum types, v1)
+  // .NET enum AuthenticationContextIdentifierType — próbujemy: int 1, "Onip" (PascalCase), "onip", "nip"
   const challengeAttempts = [
-    // v2 z integer type
-    { url: `${base}/auth/challenge`,
-      body: { contextIdentifier: { type: 1, identifier: nip } } },
-    // v2 z "nip" string
-    { url: `${base}/auth/challenge`,
-      body: { contextIdentifier: { type: 'nip', identifier: nip } } },
-    // v2 bez contextIdentifier
-    { url: `${base}/auth/challenge`,
-      body: { nip } },
-    // v1 fallback
-    { url: `${BASE_V1[env]}/online/Session/AuthorisationChallenge`,
-      body: { contextIdentifier: { type: 'onip', identifier: nip } } },
+    { url: `${base}/auth/challenge`, body: { contextIdentifier: { type: 1, identifier: nip } } },
+    { url: `${base}/auth/challenge`, body: { contextIdentifier: { type: 'Onip', identifier: nip } } },
+    { url: `${base}/auth/challenge`, body: { contextIdentifier: { type: 2, identifier: nip } } },
+    { url: `${base}/auth/challenge`, body: {} },
+    { url: `${BASE_V1[env]}/online/Session/AuthorisationChallenge`, body: { contextIdentifier: { type: 'onip', identifier: nip } } },
   ]
 
   let lastChallengeError = ''
   for (const attempt of challengeAttempts) {
     try {
-      challengeData = await kfetch(attempt.url, {
-        method: 'POST',
-        body: JSON.stringify(attempt.body),
-      })
-      break // sukces
+      challengeData = await kfetch(attempt.url, { method: 'POST', body: JSON.stringify(attempt.body) })
+      break // sukces — mamy challengeData
     } catch (e: any) {
       lastChallengeError = e?.message ?? String(e)
-      // Kontynuuj tylko przy błędach walidacji/składni, nie przy auth
-      if (!lastChallengeError.includes('400') && !lastChallengeError.includes('404') &&
-          !lastChallengeError.includes('422') && !lastChallengeError.includes('502')) {
-        throw e
-      }
+      // Kontynuuj próby dla wszystkich błędów HTTP/parsowania
+      // Przerywaj tylko dla błędów sieciowych (nie HTTP)
+      const isHttpOrParseError = /KSeF HTTP|zwrócił HTML|JSON/.test(lastChallengeError)
+      if (!isHttpOrParseError) throw e
     }
   }
-  if (!challengeData) throw new Error(`KSeF /auth/challenge wszystkie próby nieudane. Ostatni błąd: ${lastChallengeError}`)
+  if (!challengeData) throw new Error(`KSeF /auth/challenge — wszystkie próby nieudane. Ostatni błąd: ${lastChallengeError}`)
 
   // Próbujemy wielu możliwych nazw pól (v2 i v1 KSeF używają różnych)
   const challengeKey = pick(challengeData,
@@ -162,13 +157,12 @@ export async function ksefAuth(
   // Próbujemy różnych struktur body (v2 integer type, v2 string, v1)
   let authData: any
   const authAttempts = [
-    // v2 — integer type + authorisationToken
     { url: `${base}/auth/ksef-token`,
       body: { contextIdentifier: { type: 1, identifier: nip }, authorisationToken: token, challenge: challengeKey } },
-    // v2 — bez contextIdentifier
     { url: `${base}/auth/ksef-token`,
-      body: { nip, token, challenge: challengeKey } },
-    // v1 — onip string
+      body: { contextIdentifier: { type: 'Onip', identifier: nip }, authorisationToken: token, challenge: challengeKey } },
+    { url: `${base}/auth/ksef-token`,
+      body: { nip, authorisationToken: token, challenge: challengeKey } },
     { url: `${BASE_V1[env]}/online/Session/InitToken`,
       body: { contextIdentifier: { type: 'onip', identifier: nip }, token: { challenge: challengeKey, value: token } } },
   ]
@@ -176,17 +170,12 @@ export async function ksefAuth(
   let lastAuthError = ''
   for (const attempt of authAttempts) {
     try {
-      authData = await kfetch(attempt.url, {
-        method: 'POST',
-        body: JSON.stringify(attempt.body),
-      })
+      authData = await kfetch(attempt.url, { method: 'POST', body: JSON.stringify(attempt.body) })
       break
     } catch (e: any) {
       lastAuthError = e?.message ?? String(e)
-      if (!lastAuthError.includes('400') && !lastAuthError.includes('404') &&
-          !lastAuthError.includes('422') && !lastAuthError.includes('502')) {
-        throw e
-      }
+      const isHttpOrParseError = /KSeF HTTP|zwrócił HTML|JSON/.test(lastAuthError)
+      if (!isHttpOrParseError) throw e
     }
   }
   if (!authData) throw new Error(`KSeF /auth/ksef-token wszystkie próby nieudane. Ostatni błąd: ${lastAuthError}`)
