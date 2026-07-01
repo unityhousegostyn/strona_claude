@@ -30,20 +30,14 @@
 export type KsefEnvironment = 'prod' | 'test'
 
 /**
- * KSeF API 2.0 base URLs (MF).
- * Jeśli API odpowiada 404 na /auth/challenge, sprawdź aktualne URL w Swaggerze:
- *   prod: https://api.ksef.mf.gov.pl/api/v2/docs
- *   test: https://api-test.ksef.mf.gov.pl/api/v2/docs
+ * KSeF API 2.0 base URLs — zweryfikowane z OpenAPI spec (openapi.json):
+ *   "servers": [{ "url": "https://api-test.ksef.mf.gov.pl/v2" }]
+ *
+ * WAŻNE: ścieżka to /v2 (NIE /api/v2) — /api/v2 zwraca 404!
  */
 const BASE: Record<KsefEnvironment, string> = {
-  prod: 'https://api.ksef.mf.gov.pl/api/v2',
-  test: 'https://api-test.ksef.mf.gov.pl/api/v2',
-}
-
-/** Fallback URLs jeśli powyższe nie odpowiadają (starsza v1 KSeF) */
-const BASE_V1: Record<KsefEnvironment, string> = {
-  prod: 'https://ksef.mf.gov.pl/api',
-  test: 'https://ksef-test.mf.gov.pl/api',
+  prod: 'https://api.ksef.mf.gov.pl/v2',
+  test: 'https://api-test.ksef.mf.gov.pl/v2',
 }
 
 // ── Typy ─────────────────────────────────────────────────────────────────────
@@ -120,17 +114,19 @@ export async function ksefAuth(
 ): Promise<KsefAuthResult> {
   const base = BASE[env]
 
-  // ── Krok 1: POST /auth/challenge → {challenge, timestampMs} ──────────────
-  // Uwaga: API wymaga contextIdentifier z NIP w body (type=1 = NIP organizacji)
-  // Potwierdzone diagnostyką: bez body lub z {type:'Nip'} → 404/400
+  // ── Krok 1: POST /auth/challenge → {challenge, timestamp} ───────────────
+  // Oficjalne docs (C#/Java): GetAuthChallengeAsync() — brak body, brak NIP.
+  // NIP przekazywany jest dopiero w kroku 4 (/auth/ksef-token → contextIdentifier).
   const challengeData = await kfetch(`${base}/auth/challenge`, {
     method: 'POST',
-    body: JSON.stringify({ contextIdentifier: { type: 1, identifier: nip } }),
   })
 
   const challenge: string = challengeData?.challenge ?? challengeData?.Challenge
-  const timestampMs: number = challengeData?.timestampMs ?? challengeData?.TimestampMs
-                             ?? new Date(challengeData?.timestamp ?? Date.now()).getTime()
+  // Oficjalne docs: pole to `timestamp` (ISO datetime), przeliczamy na ms
+  // C#: `long timestampMs = challenge.Timestamp.ToUnixTimeMilliseconds()`
+  const rawTs = challengeData?.timestamp ?? challengeData?.Timestamp
+                ?? challengeData?.timestampMs ?? challengeData?.TimestampMs
+  const timestampMs: number = typeof rawTs === 'number' ? rawTs : new Date(rawTs ?? Date.now()).getTime()
 
   if (!challenge) {
     throw new Error(

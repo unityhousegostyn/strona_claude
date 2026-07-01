@@ -10,9 +10,10 @@ import { ksefAuth, ksefQueryInvoices, guessCategory, type KsefEnvironment } from
 export async function diagnoseKsefApi(env: 'prod' | 'test' = 'prod'): Promise<{
   results: { url: string; method: string; status: number; contentType: string; preview: string }[]
 }> {
+  // WAŻNE: base URL to /v2 (NIE /api/v2) — zweryfikowane z OpenAPI spec
   const base = env === 'prod'
-    ? 'https://api.ksef.mf.gov.pl/api/v2'
-    : 'https://api-test.ksef.mf.gov.pl/api/v2'
+    ? 'https://api.ksef.mf.gov.pl/v2'
+    : 'https://api-test.ksef.mf.gov.pl/v2'
 
   type Target = { url: string; method: string; body?: string; headers?: Record<string, string> }
 
