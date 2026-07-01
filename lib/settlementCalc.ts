@@ -33,6 +33,8 @@ export interface SettlementRate {
   // 'ryczalt' = stała m³/mies, 'meter' = odczyt licznika,
   // 'zaliczka' = woda wyliczana z wpłaty mieszkańca (wpłacono − pozostałe opłaty = kwota za wodę)
   water_billing_type: 'ryczalt' | 'meter' | 'zaliczka'
+  // Okres rozliczenia wody w miesiącach (dzielnik 12: 1,2,3,4,6,12). Domyślnie: 3
+  water_reconciliation_months?: number
 }
 
 export interface SettlementEntry {

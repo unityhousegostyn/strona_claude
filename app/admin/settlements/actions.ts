@@ -130,6 +130,7 @@ export async function createRates(data: {
   manager_fee_type: 'per_m2' | 'fixed'
   manager_fee_value: number
   water_billing_type: 'ryczalt' | 'meter' | 'zaliczka'
+  water_reconciliation_months: number
 }): Promise<{ error?: string }> {
   const auth = await requireAdminOrAbove()
   if (auth.error !== null) return { error: auth.error }
@@ -156,6 +157,7 @@ export async function updateRates(id: string, data: {
   manager_fee_type: 'per_m2' | 'fixed'
   manager_fee_value: number
   water_billing_type: 'ryczalt' | 'meter' | 'zaliczka'
+  water_reconciliation_months: number
 }): Promise<{ error?: string }> {
   const auth = await requireAdminOrAbove()
   if (auth.error !== null) return { error: auth.error }

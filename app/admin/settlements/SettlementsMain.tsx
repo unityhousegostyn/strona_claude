@@ -28,6 +28,7 @@ const EMPTY_RATES = {
   garbage_per_person: '', renovation_rate_m2: '', operating_rate_m2: '',
   manager_fee_type: 'per_m2' as 'per_m2' | 'fixed', manager_fee_value: '',
   water_billing_type: 'ryczalt' as 'ryczalt' | 'meter' | 'zaliczka',
+  water_reconciliation_months: '3',
 }
 
 export default function SettlementsMain({ communities, selectedCommunityId, apartments, rates, entries = [], isAdmin = false }: Props) {
@@ -143,6 +144,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
         manager_fee_type: ratesForm.manager_fee_type,
         manager_fee_value: parseFloat(ratesForm.manager_fee_value) || 0,
         water_billing_type: ratesForm.water_billing_type,
+        water_reconciliation_months: parseInt(ratesForm.water_reconciliation_months) || 3,
       })
       if (result.error) { setError(result.error); return }
       setRatesForm(EMPTY_RATES)
@@ -171,6 +173,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
       manager_fee_type: r.manager_fee_type,
       manager_fee_value: String(r.manager_fee_value),
       water_billing_type: r.water_billing_type ?? 'ryczalt',
+      water_reconciliation_months: String(r.water_reconciliation_months ?? 3),
     })
     setError(null)
   }
@@ -189,6 +192,7 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
         manager_fee_type: editRateForm.manager_fee_type,
         manager_fee_value: parseFloat(editRateForm.manager_fee_value) || 0,
         water_billing_type: editRateForm.water_billing_type,
+        water_reconciliation_months: parseInt(editRateForm.water_reconciliation_months) || 3,
       })
       if (result.error) { setError(result.error); return }
       setEditRateId(null)
@@ -443,6 +447,20 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                         <option value="zaliczka">Zaliczka mieszkańca (woda = wpłata − pozostałe opłaty)</option>
                       </select>
                     </div>
+                    {ratesForm.water_billing_type !== 'meter' && (
+                      <div className="sm:col-span-2 lg:col-span-3">
+                        <label className="block text-xs text-[#0f766e] mb-1">Okres rozliczenia wody</label>
+                        <select className="input w-full max-w-xs" value={ratesForm.water_reconciliation_months}
+                          onChange={e => setRatesForm(p => ({ ...p, water_reconciliation_months: e.target.value }))}>
+                          <option value="1">Miesięczne (co miesiąc)</option>
+                          <option value="2">Co 2 miesiące</option>
+                          <option value="3">Kwartalne (co 3 miesiące)</option>
+                          <option value="4">Co 4 miesiące</option>
+                          <option value="6">Półroczne (co 6 miesięcy)</option>
+                          <option value="12">Roczne</option>
+                        </select>
+                      </div>
+                    )}
                     {[
                       { key: 'water_price_m3', label: 'Cena wody (zł/m³)' },
                       ...(ratesForm.water_billing_type === 'ryczalt' ? [{ key: 'water_ryczalt_m3', label: 'Ryczałt wody (m³/mies.)' }] : []),
@@ -532,6 +550,20 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                                 <option value="zaliczka">Zaliczka mieszkańca (woda = wpłata − pozostałe opłaty)</option>
                               </select>
                             </div>
+                            {editRateForm.water_billing_type !== 'meter' && (
+                              <div className="sm:col-span-2 lg:col-span-3">
+                                <label className="block text-xs text-[#0f766e] mb-1">Okres rozliczenia wody</label>
+                                <select className="input w-full max-w-xs" value={editRateForm.water_reconciliation_months}
+                                  onChange={e => setEditRateForm(p => ({ ...p, water_reconciliation_months: e.target.value }))}>
+                                  <option value="1">Miesięczne (co miesiąc)</option>
+                                  <option value="2">Co 2 miesiące</option>
+                                  <option value="3">Kwartalne (co 3 miesiące)</option>
+                                  <option value="4">Co 4 miesiące</option>
+                                  <option value="6">Półroczne (co 6 miesięcy)</option>
+                                  <option value="12">Roczne</option>
+                                </select>
+                              </div>
+                            )}
                             {[
                               { key: 'water_price_m3', label: 'Cena wody (zł/m³)' },
                               ...(editRateForm.water_billing_type === 'ryczalt' ? [{ key: 'water_ryczalt_m3', label: 'Ryczałt wody (m³/mies.)' }] : []),
@@ -579,6 +611,13 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                               (r.water_billing_type ?? 'ryczalt') === 'meter' ? `Licznik m³`
                               : (r.water_billing_type ?? 'ryczalt') === 'zaliczka' ? `Zaliczka mieszkańca`
                               : `Ryczałt ${r.water_ryczalt_m3} m³/mies.` },
+                            ...((r.water_billing_type ?? 'ryczalt') !== 'meter' ? [{
+                              label: 'Okres rozliczenia',
+                              value: (() => {
+                                const m = r.water_reconciliation_months ?? 3
+                                return m === 1 ? 'Miesięczne' : m === 2 ? 'Co 2 miesiące' : m === 3 ? 'Kwartalne' : m === 4 ? 'Co 4 miesiące' : m === 6 ? 'Półroczne' : 'Roczne'
+                              })()
+                            }] : []),
                             { label: 'Śmieci', value: `${r.garbage_per_person} zł/os.` },
                             { label: 'Fund. remontowy', value: `${r.renovation_rate_m2} zł/m²` },
                             { label: 'Fund. eksploat.', value: `${r.operating_rate_m2} zł/m²` },

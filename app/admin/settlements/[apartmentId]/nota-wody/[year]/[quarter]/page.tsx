@@ -9,7 +9,25 @@ import DocumentHeader from '@/components/print/DocumentHeader'
 import DocumentFooter from '@/components/print/DocumentFooter'
 import PrintClient from '../../../print/PrintClient'
 
-const QUARTER_LABELS = ['I kwartał (styczeń–marzec)', 'II kwartał (kwiecień–czerwiec)', 'III kwartał (lipiec–wrzesień)', 'IV kwartał (październik–grudzień)']
+const MONTHS_SHORT = ['sty','lut','mar','kwi','maj','cze','lip','sie','wrz','paź','lis','gru']
+const MONTHS_FULL  = ['styczeń','luty','marzec','kwiecień','maj','czerwiec','lipiec','sierpień','wrzesień','październik','listopad','grudzień']
+const ROMAN = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII']
+
+function getPeriodTag(q: number, months: number): string {
+  const startM = (q - 1) * months + 1
+  const endM = startM + months - 1
+  return months === 1
+    ? `${ROMAN[q - 1]} (${MONTHS_FULL[startM - 1]})`
+    : `${ROMAN[q - 1]} (${MONTHS_FULL[startM - 1]}–${MONTHS_FULL[endM - 1]})`
+}
+
+function getPeriodShort(q: number, months: number): string {
+  const startM = (q - 1) * months + 1
+  const endM = startM + months - 1
+  return months === 1
+    ? MONTHS_FULL[startM - 1]
+    : `${MONTHS_SHORT[startM - 1]}–${MONTHS_SHORT[endM - 1]}`
+}
 
 function pln(v: number): string {
   return v.toLocaleString('pl-PL', { style: 'currency', currency: 'PLN' })
@@ -27,7 +45,8 @@ export default async function NotaWodyPage({
   const { apartmentId, year: yearStr, quarter: quarterStr } = await params
   const year = parseInt(yearStr, 10)
   const quarter = parseInt(quarterStr, 10)
-  if (!year || quarter < 1 || quarter > 4) notFound()
+  // Wstępna walidacja zakresu (maks. 12 okresów przy rozliczeniu miesięcznym)
+  if (!year || quarter < 1 || quarter > 12) notFound()
 
   const admin = getSupabaseAdminClient()
 
@@ -53,9 +72,18 @@ export default async function NotaWodyPage({
   const rec = recRes.data
   const rates: SettlementRate[] = ratesRes.data ?? []
 
-  const startMonth = (quarter - 1) * 3 + 1
+  // Okresy rozliczenia — dynamiczne na podstawie stawek
+  const sortedRates = [...rates].sort((a, b) => b.effective_from.localeCompare(a.effective_from))
+  const reconMonths = sortedRates[0]?.water_reconciliation_months ?? 3
+  const numPeriods = Math.floor(12 / reconMonths)
+  if (quarter > numPeriods) notFound()
+
+  const startMonth = (quarter - 1) * reconMonths + 1
   const rate = getRatesForMonth(rates, year, startMonth) ?? rates[0] ?? null
   const waterPrice = rate?.water_price_m3 ?? 0
+
+  const periodTag = getPeriodTag(quarter, reconMonths)
+  const periodShort = getPeriodShort(quarter, reconMonths)
 
   const actualCost = Math.round(rec.actual_m3 * waterPrice * 100) / 100
   const paidForWater = Math.round(rec.ryczalt_m3 * waterPrice * 100) / 100
@@ -75,7 +103,7 @@ export default async function NotaWodyPage({
           communityName={community.name}
           communityAddress={community.address}
           meta={[{ label: 'Dnia', value: generatedAt }]}
-          tag={QUARTER_LABELS[quarter - 1]}
+          tag={periodTag}
         />
 
         <div className="text-right mb-8">
@@ -86,7 +114,7 @@ export default async function NotaWodyPage({
 
         <p className="mb-6 leading-relaxed text-[#374151]">
           Informujemy o wyniku rozliczenia rzeczywistego zużycia wody na podstawie zdalnego odczytu licznika
-          za <strong>{QUARTER_LABELS[quarter - 1].toLowerCase()} {year} r.</strong>
+          za <strong>{periodShort} {year} r.</strong>
         </p>
 
         <table className="w-full text-sm border-collapse mb-6">
