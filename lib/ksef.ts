@@ -17,9 +17,21 @@
 
 export type KsefEnvironment = 'prod' | 'test'
 
+/**
+ * KSeF API 2.0 base URLs (MF).
+ * Jeśli API odpowiada 404 na /auth/challenge, sprawdź aktualne URL w Swaggerze:
+ *   prod: https://api.ksef.mf.gov.pl/api/v2/docs
+ *   test: https://api-test.ksef.mf.gov.pl/api/v2/docs
+ */
 const BASE: Record<KsefEnvironment, string> = {
   prod: 'https://api.ksef.mf.gov.pl/api/v2',
   test: 'https://api-test.ksef.mf.gov.pl/api/v2',
+}
+
+/** Fallback URLs jeśli powyższe nie odpowiadają (starsza v1 KSeF) */
+const BASE_V1: Record<KsefEnvironment, string> = {
+  prod: 'https://ksef.mf.gov.pl/api',
+  test: 'https://ksef-test.mf.gov.pl/api',
 }
 
 // ── Typy ─────────────────────────────────────────────────────────────────────
@@ -62,11 +74,29 @@ async function kfetch(url: string, opts: RequestInit = {}): Promise<any> {
 }
 
 /**
+ * Wyciąga wartość pola z obiektu próbując wielu wariantów nazw.
+ * Przydatne gdy nie znamy dokładnej struktury odpowiedzi API.
+ */
+function pick(obj: any, ...keys: string[]): string | undefined {
+  for (const k of keys) {
+    const val = obj?.[k] ?? obj?.data?.[k]
+    if (val !== undefined && val !== null && val !== '') return String(val)
+  }
+  return undefined
+}
+
+/**
  * Uwierzytelnianie tokenem KSeF (bez certyfikatu kwalifikowanego).
  * Token generowany w portalu KSeF → Ustawienia → Tokeny API.
  *
- * Jeśli dokumentacja API 2.0 zmieni nazwy pól, dostosuj nazwy poniżej
- * do odpowiedzi z: GET {base}/docs/v2 (Swagger UI).
+ * Flow (v2):
+ *   POST /auth/challenge        → challengeKey / challenge / referenceNumber
+ *   POST /auth/ksef-token       → authCode / referenceNumber
+ *   POST /auth/token/redeem     → accessToken
+ *
+ * Przy błędzie "Brak X w odpowiedzi", sprawdź raw response w komunikacie
+ * błędu i zaktualizuj nazwy pól wg aktualnego Swaggera:
+ *   https://api.ksef.mf.gov.pl/api/v2/docs
  */
 export async function ksefAuth(
   nip: string,
@@ -75,36 +105,87 @@ export async function ksefAuth(
 ): Promise<KsefAuthResult> {
   const base = BASE[env]
 
-  // Krok 1: pobranie challenge
-  const challengeData = await kfetch(`${base}/auth/challenge`, { method: 'POST', body: '{}' })
-  const challengeKey: string = challengeData?.data?.challengeKey ?? challengeData?.challengeKey
+  // ── Krok 1: challenge ─────────────────────────────────────────────────────
+  let challengeData: any
+  try {
+    challengeData = await kfetch(`${base}/auth/challenge`, {
+      method: 'POST',
+      body: JSON.stringify({ contextIdentifier: { type: 'onip', identifier: nip } }),
+    })
+  } catch (e: any) {
+    // Jeśli v2 niedostępne, próbuj v1
+    if (e?.message?.includes('404') || e?.message?.includes('502') || e?.message?.includes('503')) {
+      const baseV1 = BASE_V1[env]
+      challengeData = await kfetch(`${baseV1}/online/Session/AuthorisationChallenge`, {
+        method: 'POST',
+        body: JSON.stringify({ contextIdentifier: { type: 'onip', identifier: nip } }),
+      })
+    } else throw e
+  }
 
-  if (!challengeKey) throw new Error('Brak challengeKey w odpowiedzi KSeF /auth/challenge')
+  // Próbujemy wielu możliwych nazw pól (v2 i v1 KSeF używają różnych)
+  const challengeKey = pick(challengeData,
+    'challengeKey', 'challenge', 'referenceNumber',
+    'Challenge', 'ChallengeKey', 'ReferenceNumber',
+  )
 
-  // Krok 2: uwierzytelnianie tokenem
+  if (!challengeKey) {
+    throw new Error(
+      `Brak challenge w odpowiedzi KSeF /auth/challenge. ` +
+      `Odpowiedź API: ${JSON.stringify(challengeData).slice(0, 500)}`,
+    )
+  }
+
+  // ── Krok 2: uwierzytelnianie tokenem ─────────────────────────────────────
   const authData = await kfetch(`${base}/auth/ksef-token`, {
     method: 'POST',
     body: JSON.stringify({
       contextIdentifier: { type: 'onip', identifier: nip },
       authorisationToken: token,
       challenge: challengeKey,
+      // v1 KSeF używa innej struktury:
+      token: { challenge: challengeKey, value: token },
     }),
   })
-  const authCode: string = authData?.data?.authCode ?? authData?.authCode
-  if (!authCode) throw new Error('Brak authCode w odpowiedzi KSeF /auth/ksef-token')
 
-  // Krok 3: wymiana na accessToken
+  const authCode = pick(authData,
+    'authCode', 'referenceNumber', 'ReferenceNumber',
+    'AuthCode', 'sessionToken', 'token',
+  )
+
+  if (!authCode) {
+    throw new Error(
+      `Brak authCode w odpowiedzi KSeF /auth/ksef-token. ` +
+      `Odpowiedź API: ${JSON.stringify(authData).slice(0, 500)}`,
+    )
+  }
+
+  // ── Krok 3: wymiana na accessToken ────────────────────────────────────────
   const tokenData = await kfetch(`${base}/auth/token/redeem`, {
     method: 'POST',
     body: JSON.stringify({ authCode }),
   })
-  const d = tokenData?.data ?? tokenData
-  const accessToken: string = d?.accessToken
-  const refreshToken: string = d?.refreshToken ?? ''
-  const expiresAt: string = d?.tokenExpiresAt ?? d?.expiresAt ?? ''
 
-  if (!accessToken) throw new Error('Brak accessToken w odpowiedzi KSeF /auth/token/redeem')
-  return { accessToken, refreshToken, expiresAt }
+  const d = tokenData?.data ?? tokenData
+  const accessToken =
+    d?.accessToken ??
+    d?.sessionToken?.token ??
+    d?.token ??
+    d?.access_token ??
+    // v1 KSeF: status endpoint zamiast redeem
+    d?.sessionToken
+
+  const refreshToken: string = d?.refreshToken ?? d?.refresh_token ?? ''
+  const expiresAt: string = d?.tokenExpiresAt ?? d?.expiresAt ?? d?.expires_at ?? ''
+
+  if (!accessToken) {
+    throw new Error(
+      `Brak accessToken w odpowiedzi KSeF /auth/token/redeem. ` +
+      `Odpowiedź API: ${JSON.stringify(tokenData).slice(0, 500)}`,
+    )
+  }
+
+  return { accessToken: String(accessToken), refreshToken, expiresAt }
 }
 
 // ── Pobieranie faktur ─────────────────────────────────────────────────────────
