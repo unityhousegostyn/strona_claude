@@ -180,7 +180,8 @@ export async function ksefAuth(
       ksefTokenResponse = await kfetch(`${base}/auth/ksef-token`, {
         method: 'POST',
         body: JSON.stringify({
-          contextIdentifier: { type: t, identifier: nip },
+          // WAŻNE: pole to 'value', NIE 'identifier' (błąd diagnostyki: "contextIdentifier.value must not be empty")
+          contextIdentifier: { type: t, value: nip },
           authorisationToken: token,
           challenge: challengeKey,
         }),
@@ -234,10 +235,12 @@ export async function ksefAuth(
   let tokenData: any
   let lastTokenError = ''
 
+  // DIAGNOZA: GET /auth/token/{ref} → 404 (path param nie istnieje!)
+  //           GET /auth/token?referenceNumber={ref} → 401 JSON (poprawny format!)
   const tokenEndpoints = [
-    `${base}/auth/token/${encodeURIComponent(referenceNumber)}`,
     `${base}/auth/token?referenceNumber=${encodeURIComponent(referenceNumber)}`,
-    `${base}/auth/session/${encodeURIComponent(referenceNumber)}`,
+    `${base}/auth/token?reference=${encodeURIComponent(referenceNumber)}`,
+    `${base}/auth/token?authCode=${encodeURIComponent(referenceNumber)}`,
     `${BASE_V1[env]}/online/Session/Status/${encodeURIComponent(referenceNumber)}`,
   ]
 
