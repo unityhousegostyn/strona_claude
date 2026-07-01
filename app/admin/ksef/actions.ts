@@ -5,6 +5,15 @@ import { getAuthProfileAction } from '@/lib/getAuthProfile'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import { ksefAuth, ksefQueryInvoices, guessCategory, type KsefEnvironment } from '@/lib/ksef'
 
+// ── Auth helper ───────────────────────────────────────────────────────────────
+
+async function requireSuperAdmin() {
+  const auth = await getAuthProfileAction()
+  if (auth.error !== null) return { error: auth.error as string, user: null }
+  if (auth.profile.role !== 'super_admin') return { error: 'Tylko super_admin', user: null }
+  return { error: null, user: auth.user }
+}
+
 // ── Diagnostyka API KSeF ─────────────────────────────────────────────────────
 
 export async function diagnoseKsefApi(env: 'prod' | 'test' = 'prod'): Promise<{
@@ -14,41 +23,25 @@ export async function diagnoseKsefApi(env: 'prod' | 'test' = 'prod'): Promise<{
   // L1-FIX: brak auth w poprzedniej wersji — każdy mógł wywołać ten Server Action
   const auth = await requireSuperAdmin()
   if (auth.error) return { results: [], error: auth.error }
-  // WAŻNE: base URL to /v2 (NIE /api/v2) — zweryfikowane z OpenAPI spec
+
   const base = env === 'prod'
     ? 'https://api.ksef.mf.gov.pl/v2'
     : 'https://api-test.ksef.mf.gov.pl/v2'
 
   type Target = { url: string; method: string; body?: string; headers?: Record<string, string> }
 
-  // Testujemy zarówno POST jak i GET na endpointach tokenowych
-  // (Diagnostyka z poprzedniej sesji: POST → 405 [Allow: GET], więc testujemy GET)
   const dummyNip = '0000000000'
   const dummyChallenge = 'test-challenge'
   const dummyToken = 'test-token'
-  const dummyBody = JSON.stringify({ contextIdentifier: { type: 1, identifier: dummyNip }, authorisationToken: dummyToken, challenge: dummyChallenge })
-  const qCh = encodeURIComponent(dummyChallenge)
-  const qTok = encodeURIComponent(dummyToken)
-  const qNip = encodeURIComponent(dummyNip)
-
-  // Klucz: type musi być STRING 'Nip', nie integer 1 (dla /auth/ksef-token)
-  const dummyBodyNip = JSON.stringify({ contextIdentifier: { type: 'Nip',  identifier: dummyNip }, authorisationToken: dummyToken, challenge: dummyChallenge })
-  const dummyBodyInt = JSON.stringify({ contextIdentifier: { type: 1,     identifier: dummyNip }, authorisationToken: dummyToken, challenge: dummyChallenge })
   const dummyRef = 'test-ref-12345'
   const qRef = encodeURIComponent(dummyRef)
 
   const targets: Target[] = [
-    // ── Health ──
     { url: `${base}/`, method: 'GET' },
-    // ── KROK 1: challenge (bez body — per oficjalne docs) ──
     { url: `${base}/auth/challenge`, method: 'POST' },
-    // ── KROK 2: certyfikaty klucza publicznego (kluczowe dla szyfrowania) ──
     { url: `${base}/security/public-key-certificates`, method: 'GET' },
-    // ── KROK 4: ksef-token z type: 'Nip' ──
     { url: `${base}/auth/ksef-token`, method: 'POST', body: JSON.stringify({ challenge: dummyChallenge, contextIdentifier: { type: 'Nip', value: dummyNip }, encryptedToken: 'dummyEncrypted==', publicKeyId: 'dummyKeyId' }) },
-    // ── KROK 5: status auth ──
     { url: `${base}/auth/${qRef}`, method: 'GET', headers: { Authorization: `Bearer ${dummyToken}` } },
-    // ── KROK 6: redeem ──
     { url: `${base}/auth/token/redeem`, method: 'POST', headers: { Authorization: `Bearer ${dummyToken}` } },
   ]
 
@@ -67,7 +60,6 @@ export async function diagnoseKsefApi(env: 'prod' | 'test' = 'prod'): Promise<{
       })
       const text = await res.text()
       const contentType = res.headers.get('content-type') ?? ''
-      // Pobierz Allow header dla OPTIONS
       const allow = res.headers.get('allow') ?? ''
       const preview = (allow ? `[Allow: ${allow}] ` : '') + text.slice(0, 250)
       return { url: t.url, method: t.method, status: res.status, contentType, preview }
@@ -81,7 +73,7 @@ export async function diagnoseKsefApi(env: 'prod' | 'test' = 'prod'): Promise<{
 
 // ── Diagnostyka zapytań o faktury ─────────────────────────────────────────────
 
-export async function diagnoseKsefQuery(): Promise<{
+export async function diagnoseKsefQuery(communityId: string): Promise<{
   error?: string
   nip?: string
   rows: { subjectType: string; dateType: string; count: number; samples: string[]; error?: string }[]
@@ -91,8 +83,8 @@ export async function diagnoseKsefQuery(): Promise<{
   if (auth.error) return { error: auth.error, rows: [] }
 
   const admin = getSupabaseAdminClient()
-  const { data: settings } = await admin.from('ksef_settings').select('*').maybeSingle()
-  if (!settings?.ksef_token || !settings?.nip) return { error: 'Brak konfiguracji KSeF', rows: [] }
+  const { data: settings } = await admin.from('ksef_settings').select('*').eq('community_id', communityId).maybeSingle()
+  if (!settings?.ksef_token || !settings?.nip) return { error: 'Brak konfiguracji KSeF dla tej wspólnoty', rows: [] }
 
   let accessToken: string
   try {
@@ -106,7 +98,6 @@ export async function diagnoseKsefQuery(): Promise<{
     ? 'https://api.ksef.mf.gov.pl/v2'
     : 'https://api-test.ksef.mf.gov.pl/v2'
 
-  // Diagnostyka używa OSTATNICH 89 dni (limit KSeF: max 3 mies. per zapytanie)
   const dateTo = new Date()
   const dateFrom89 = new Date(dateTo)
   dateFrom89.setDate(dateFrom89.getDate() - 89)
@@ -135,7 +126,6 @@ export async function diagnoseKsefQuery(): Promise<{
       const json = JSON.parse(text)
       const invoices: any[] = json?.invoices ?? json?.data?.invoices ?? []
       const total: number = json?.totalCount ?? json?.total ?? invoices.length
-      // Zapisz surowe pola pierwszej faktury żeby wiedzieć co API zwraca
       if (!rawFirstInvoice && invoices.length > 0) {
         rawFirstInvoice = JSON.stringify(invoices[0], null, 2).slice(0, 1500)
       }
@@ -154,19 +144,11 @@ export async function diagnoseKsefQuery(): Promise<{
   return { nip: settings.nip, rows, rawFirstInvoice: rawFirstInvoice ?? undefined }
 }
 
-// ── Auth helper ───────────────────────────────────────────────────────────────
-
-async function requireSuperAdmin() {
-  const auth = await getAuthProfileAction()
-  if (auth.error !== null) return { error: auth.error as string, user: null }
-  if (auth.profile.role !== 'super_admin') return { error: 'Tylko super_admin', user: null }
-  return { error: null, user: auth.user }
-}
-
 // ── Ustawienia KSeF ───────────────────────────────────────────────────────────
 
 export interface KsefSettings {
   id: string
+  community_id: string | null
   nip: string
   ksef_token: string
   environment: KsefEnvironment
@@ -177,15 +159,26 @@ export interface KsefSettings {
   enabled: boolean
 }
 
-export async function getKsefSettings(): Promise<{ settings: KsefSettings | null; error?: string }> {
+/** Wszystkie konfiguracje KSeF (per wspólnota) */
+export async function getAllKsefSettings(): Promise<{ settings: KsefSettings[]; error?: string }> {
+  const auth = await requireSuperAdmin()
+  if (auth.error) return { settings: [], error: auth.error }
+  const admin = getSupabaseAdminClient()
+  const { data } = await admin.from('ksef_settings').select('*').not('community_id', 'is', null)
+  return { settings: (data ?? []) as KsefSettings[] }
+}
+
+/** Konfiguracja KSeF dla konkretnej wspólnoty */
+export async function getKsefSettings(communityId: string): Promise<{ settings: KsefSettings | null; error?: string }> {
   const auth = await requireSuperAdmin()
   if (auth.error) return { settings: null, error: auth.error }
   const admin = getSupabaseAdminClient()
-  const { data } = await admin.from('ksef_settings').select('*').maybeSingle()
+  const { data } = await admin.from('ksef_settings').select('*').eq('community_id', communityId).maybeSingle()
   return { settings: data as KsefSettings | null }
 }
 
 export async function saveKsefSettings(data: {
+  community_id: string
   nip: string
   ksef_token: string
   environment: KsefEnvironment
@@ -198,9 +191,10 @@ export async function saveKsefSettings(data: {
   if (data.nip && !/^\d{10}$/.test(data.nip)) return { error: 'NIP musi mieć dokładnie 10 cyfr' }
 
   const admin = getSupabaseAdminClient()
-  const { data: existing } = await admin.from('ksef_settings').select('id').maybeSingle()
+  const { data: existing } = await admin.from('ksef_settings').select('id').eq('community_id', data.community_id).maybeSingle()
 
   const payload = {
+    community_id: data.community_id,
     nip: data.nip.trim(),
     ksef_token: data.ksef_token.trim(),
     environment: data.environment,
@@ -221,9 +215,9 @@ export async function saveKsefSettings(data: {
   return {}
 }
 
-// ── Uzupełnij invoice_number dla istniejących wierszy w kolejce ───────────────
+// ── Uzupełnij invoice_number dla istniejących wierszy ────────────────────────
 
-export async function refreshInvoiceNumbers(): Promise<{
+export async function refreshInvoiceNumbers(communityId: string): Promise<{
   error?: string
   updated?: number
   skipped?: number
@@ -232,10 +226,9 @@ export async function refreshInvoiceNumbers(): Promise<{
   if (auth.error) return { error: auth.error }
 
   const admin = getSupabaseAdminClient()
-  const { data: settings } = await admin.from('ksef_settings').select('*').maybeSingle()
-  if (!settings?.ksef_token || !settings?.nip) return { error: 'Brak konfiguracji KSeF' }
+  const { data: settings } = await admin.from('ksef_settings').select('*').eq('community_id', communityId).maybeSingle()
+  if (!settings?.ksef_token || !settings?.nip) return { error: 'Brak konfiguracji KSeF dla tej wspólnoty' }
 
-  // Pobierz wiersze bez invoice_number ale z ksef_number
   const { data: rows } = await admin
     .from('ksef_invoice_queue')
     .select('id, ksef_number')
@@ -252,7 +245,6 @@ export async function refreshInvoiceNumbers(): Promise<{
     return { error: `Auth failed: ${e?.message}` }
   }
 
-  // Pobierz wszystkie faktury od sync_from_date do dziś (max 89-dniowe okna)
   const dateTo = new Date()
   const windowStart = settings.sync_from_date ? new Date(settings.sync_from_date) : (() => {
     const d = new Date(); d.setDate(d.getDate() - 89); return d
@@ -260,16 +252,12 @@ export async function refreshInvoiceNumbers(): Promise<{
 
   const allInvoices = await ksefQueryInvoices(accessToken, settings.environment, windowStart, dateTo)
 
-  // Zbuduj mapę ksefNumber → invoiceNumber
   const numMap = new Map<string, string>()
   for (const inv of allInvoices) {
-    if (inv.kseNumber && inv.invoiceNumber) {
-      numMap.set(inv.kseNumber, inv.invoiceNumber)
-    }
+    if (inv.kseNumber && inv.invoiceNumber) numMap.set(inv.kseNumber, inv.invoiceNumber)
   }
 
-  let updated = 0
-  let skipped = 0
+  let updated = 0, skipped = 0
   for (const row of rows) {
     const invoiceNumber = row.ksef_number ? numMap.get(row.ksef_number) : undefined
     if (invoiceNumber) {
@@ -284,9 +272,9 @@ export async function refreshInvoiceNumbers(): Promise<{
   return { updated, skipped }
 }
 
-// ── Skan konkretnego zakresu dat — do debugowania brakujących faktur ──────────
+// ── Skan konkretnego zakresu dat ──────────────────────────────────────────────
 
-export async function scanKsefDateRange(daysBack: number = 7): Promise<{  // L4-FIX: clamp poniżej
+export async function scanKsefDateRange(daysBack: number = 7, communityId: string): Promise<{
   error?: string
   nip?: string
   dateFrom?: string
@@ -306,8 +294,8 @@ export async function scanKsefDateRange(daysBack: number = 7): Promise<{  // L4-
   if (auth.error) return { error: auth.error, invoices: [] }
 
   const admin = getSupabaseAdminClient()
-  const { data: settings } = await admin.from('ksef_settings').select('*').maybeSingle()
-  if (!settings?.ksef_token || !settings?.nip) return { error: 'Brak konfiguracji KSeF', invoices: [] }
+  const { data: settings } = await admin.from('ksef_settings').select('*').eq('community_id', communityId).maybeSingle()
+  if (!settings?.ksef_token || !settings?.nip) return { error: 'Brak konfiguracji KSeF dla tej wspólnoty', invoices: [] }
 
   let accessToken: string
   try {
@@ -323,7 +311,6 @@ export async function scanKsefDateRange(daysBack: number = 7): Promise<{  // L4-
 
   const dateTo = new Date()
   const dateFrom = new Date(dateTo)
-  // L4-FIX: clamp do max 89 dni (limit API KSeF) i min 1 dzień
   const safeDaysBack = Math.min(Math.max(1, Math.floor(daysBack)), 89)
   dateFrom.setDate(dateFrom.getDate() - safeDaysBack)
   const fmt = (d: Date) => d.toISOString().slice(0, 10)
@@ -333,7 +320,6 @@ export async function scanKsefDateRange(daysBack: number = 7): Promise<{  // L4-
 
   for (const st of subjectTypes) {
     try {
-      // Użyj pageSize=100 żeby zobaczyć WSZYSTKIE faktury, nie tylko 10
       const res = await fetch(
         `${base}/invoices/query/metadata?pageOffset=0&pageSize=100`,
         {
@@ -349,7 +335,6 @@ export async function scanKsefDateRange(daysBack: number = 7): Promise<{  // L4-
     } catch { /* ignore */ }
   }
 
-  // Deduplikacja po kseNumber / referenceNumber
   const seen = new Set<string>()
   const unique = allRaw.filter(inv => {
     const key = inv.kseNumber ?? inv.ksefNumber ?? inv.referenceNumber ?? Math.random().toString()
@@ -358,7 +343,6 @@ export async function scanKsefDateRange(daysBack: number = 7): Promise<{  // L4-
     return true
   })
 
-  // Sprawdź które są już w bazie
   const kseNumbers = unique.map(i => i.kseNumber ?? i.ksefNumber ?? i.referenceNumber ?? '').filter(Boolean)
   const { data: dbRows } = await admin
     .from('ksef_invoice_queue')
@@ -385,18 +369,14 @@ export async function scanKsefDateRange(daysBack: number = 7): Promise<{  // L4-
     }
   }).sort((a, b) => (b.invoiceDate || b.issueDate).localeCompare(a.invoiceDate || a.issueDate))
 
-  return {
-    nip: settings.nip,
-    dateFrom: fmt(dateFrom),
-    dateTo: fmt(dateTo),
-    invoices,
-  }
+  return { nip: settings.nip, dateFrom: fmt(dateFrom), dateTo: fmt(dateTo), invoices }
 }
 
-// ── Historia syncronizacji ────────────────────────────────────────────────────
+// ── Historia synchronizacji ───────────────────────────────────────────────────
 
 export interface SyncLogEntry {
   id: string
+  community_id: string | null
   started_at: string
   finished_at: string | null
   status: string
@@ -406,13 +386,15 @@ export interface SyncLogEntry {
   error_message: string | null
 }
 
-export async function getSyncLog(): Promise<SyncLogEntry[]> {
+export async function getSyncLog(communityId?: string): Promise<SyncLogEntry[]> {
   const admin = getSupabaseAdminClient()
-  const { data } = await admin
+  let q = admin
     .from('ksef_sync_log')
     .select('*')
     .order('started_at', { ascending: false })
     .limit(20)
+  if (communityId) q = q.eq('community_id', communityId)
+  const { data } = await q
   return (data ?? []) as SyncLogEntry[]
 }
 
@@ -455,10 +437,6 @@ export async function getKsefQueue(
   return { items: (data ?? []) as QueueItem[] }
 }
 
-/**
- * Importuje fakturę z kolejki jako community_expense.
- * Tworzy wpis w community_expenses i oznacza queue item jako 'imported'.
- */
 export async function importQueueItem(
   queueId: string,
   communityId: string,
@@ -479,7 +457,6 @@ export async function importQueueItem(
   if (!item) return { error: 'Faktura nie istnieje w kolejce' }
   if (item.status === 'imported') return { error: 'Faktura została już zaimportowana' }
 
-  // Utwórz community_expense
   const { data: expense, error: expErr } = await admin.from('community_expenses').insert({
     community_id: communityId,
     category,
@@ -493,7 +470,6 @@ export async function importQueueItem(
 
   if (expErr) return { error: expErr.message }
 
-  // Zaktualizuj status w kolejce
   await admin.from('ksef_invoice_queue').update({
     status: 'imported',
     community_id: communityId,
@@ -536,7 +512,7 @@ export async function restoreQueueItem(queueId: string): Promise<{ error?: strin
 
 // ── Ręczna synchronizacja ─────────────────────────────────────────────────────
 
-export async function runKsefSync(): Promise<{
+export async function runKsefSync(communityId: string): Promise<{
   error?: string
   imported?: number
   fetched?: number
@@ -550,52 +526,40 @@ export async function runKsefSync(): Promise<{
 
   const admin = getSupabaseAdminClient()
 
-  // Pobierz ustawienia
-  const { data: settings } = await admin.from('ksef_settings').select('*').maybeSingle()
+  const { data: settings } = await admin.from('ksef_settings').select('*').eq('community_id', communityId).maybeSingle()
   if (!settings) return { error: 'Brak konfiguracji KSeF. Skonfiguruj token w zakładce Ustawienia.' }
   if (!settings.enabled) return { error: 'Integracja KSeF jest wyłączona w ustawieniach.' }
   if (!settings.ksef_token || !settings.nip) return { error: 'Uzupełnij NIP i token KSeF.' }
 
-  // Utwórz log entry
   const { data: logEntry } = await admin.from('ksef_sync_log').insert({
     status: 'running',
+    community_id: communityId,
   }).select('id').single()
   const logId = logEntry?.id
 
-  let fetched = 0
-  let imported = 0
-  let skipped = 0
-  let windowStartISO = ''
-  let dateToISO = ''
+  let fetched = 0, imported = 0, skipped = 0
+  let windowStartISO = '', dateToISO = ''
   let insertErrorsOut: string[] = []
 
   try {
-    // Uwierzytelnienie
     const auth2 = await ksefAuth(settings.nip, settings.ksef_token, settings.environment)
 
-    // Zakres dat: sync_from_date jako dolna granica (zawsze), dziś jako górna.
-    // UWAGA: KSeF odrzuca daty w przyszłości (HTTP 400) — używamy dzisiejszej daty.
-    // API KSeF v2 ogranicza zapytanie do max 3 miesięcy — dzielimy na okna 89-dniowe.
     const dateTo = new Date()
     const syncFromDate = settings.sync_from_date ? new Date(settings.sync_from_date) : null
     let windowStart: Date
     if (syncFromDate) {
-      // Zawsze startujemy od sync_from_date — dedulikacja przez UNIQUE ksef_number
       windowStart = syncFromDate
     } else if (settings.last_sync_at) {
-      // Fallback: jeśli brak sync_from_date, cofnij się 1h przed ostatnim synciem
       const fromLastSync = new Date(settings.last_sync_at)
       fromLastSync.setHours(fromLastSync.getHours() - 1)
       windowStart = fromLastSync
     } else {
-      // Ostateczny fallback: ostatnie 30 dni
       windowStart = new Date()
       windowStart.setDate(windowStart.getDate() - 30)
     }
     windowStartISO = windowStart.toISOString().slice(0, 10)
     dateToISO = dateTo.toISOString().slice(0, 10)
 
-    // Podziel zakres na okna max 90 dni (limit API KSeF)
     const MAX_WINDOW_DAYS = 89
     const allInvoices: Awaited<ReturnType<typeof ksefQueryInvoices>> = []
     let cursor = new Date(windowStart)
@@ -605,29 +569,21 @@ export async function runKsefSync(): Promise<{
       if (windowEnd > dateTo) windowEnd.setTime(dateTo.getTime())
       const chunk = await ksefQueryInvoices(auth2.accessToken, settings.environment, cursor, windowEnd)
       allInvoices.push(...chunk)
-      // Cofnij się o 1 dzień względem końca okna — jeśli KSeF traktuje 'from' jako exclusive,
-      // faktura z ostatniego dnia poprzedniego okna nie wypadnie w luce.
-      // Duplikaty obsługuje check przed insertem.
       cursor.setDate(cursor.getDate() + MAX_WINDOW_DAYS)
     }
 
-    const invoices = allInvoices
-    fetched = invoices.length
+    fetched = allInvoices.length
 
-    // Pobierz listę NIP-ów wspólnot dla automatycznego dopasowania
     const { data: communities } = await admin.from('communities').select('id, nip')
-    const nipMap = new Map<string, string>() // nip → community_id
+    const nipMap = new Map<string, string>()
     for (const c of communities ?? []) {
       if (c.nip) nipMap.set(c.nip, c.id)
     }
 
-    // Przetwórz faktury — dodaj do kolejki (pomiń duplikaty)
     const insertErrors: string[] = []
-    for (const inv of invoices) {
-      // Pomiń jeśli brak numeru KSeF (nie możemy sprawdzić duplikatów bez unikalnego klucza)
+    for (const inv of allInvoices) {
       const ksef_number = inv.kseNumber || null
 
-      // Sprawdź duplikat tylko jeśli mamy numer KSeF
       if (ksef_number) {
         const { data: dup } = await admin
           .from('ksef_invoice_queue')
@@ -637,8 +593,7 @@ export async function runKsefSync(): Promise<{
         if (dup) { skipped++; continue }
       }
 
-      const communityId = nipMap.get(inv.buyerNip) ?? null
-      const suggestedCategory = guessCategory(inv.sellerName)
+      const invCommunityId = nipMap.get(inv.buyerNip) ?? null
 
       const { error: insertErr } = await admin.from('ksef_invoice_queue').insert({
         ksef_number,
@@ -651,8 +606,8 @@ export async function runKsefSync(): Promise<{
         net_amount: inv.netAmount,
         vat_amount: inv.vatAmount,
         gross_amount: inv.grossAmount,
-        suggested_category: suggestedCategory,
-        community_id: communityId,
+        suggested_category: guessCategory(inv.sellerName),
+        community_id: invCommunityId,
         status: 'pending',
         sync_log_id: logId,
       })
@@ -667,13 +622,11 @@ export async function runKsefSync(): Promise<{
     insertErrorsOut = insertErrors
     if (insertErrors.length > 0) {
       console.error('[KSeF] Błędy insertów:', insertErrors.join('; '))
-      // Aktualizuj log z błędami insertów żeby były widoczne
       await admin.from('ksef_sync_log').update({
         error_message: `Błędy insertów: ${insertErrors.slice(0, 3).join('; ')}${insertErrors.length > 3 ? ` (+${insertErrors.length - 3} więcej)` : ''}`,
       }).eq('id', logId)
     }
 
-    // Zaktualizuj log i last_sync_at
     await admin.from('ksef_sync_log').update({
       finished_at: new Date().toISOString(),
       status: 'success',

@@ -1,65 +1,90 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { saveKsefSettings, runKsefSync, importQueueItem, skipQueueItem, restoreQueueItem, refreshInvoiceNumbers, getKsefQueue as fetchQueue, diagnoseKsefApi, diagnoseKsefQuery } from './actions'
+import { useState, useTransition, useEffect } from 'react'
+import {
+  saveKsefSettings, runKsefSync, importQueueItem, skipQueueItem, restoreQueueItem,
+  refreshInvoiceNumbers, getKsefQueue as fetchQueue, diagnoseKsefApi, diagnoseKsefQuery,
+  getSyncLog,
+} from './actions'
 import type { KsefSettings, SyncLogEntry, QueueItem } from './actions'
 
 type Tab = 'ustawienia' | 'sync' | 'kolejka'
 
 const CATEGORIES = [
-  { value: 'fundusz_remontowy',       label: 'Fundusz remontowy' },
-  { value: 'fundusz_eksploatacyjny',  label: 'Fundusz eksploatacyjny' },
-  { value: 'wynagrodzenie_zarządcy',  label: 'Wynagrodzenie zarządcy' },
-  { value: 'koszty_administracji',    label: 'Koszty administracji' },
-  { value: 'woda',                    label: 'Woda / kanalizacja' },
-  { value: 'śmieci',                  label: 'Odpady / śmieci' },
-  { value: 'sprzątanie',              label: 'Sprzątanie' },
-  { value: 'opłaty_bankowe',          label: 'Opłaty bankowe' },
-  { value: 'przeglądy_budynków',      label: 'Przeglądy budynków' },
-  { value: 'remonty',                 label: 'Remonty / naprawy' },
-  { value: 'ubezpieczenie',           label: 'Ubezpieczenie' },
-  { value: 'energia',                 label: 'Energia / gaz' },
-  { value: 'najem',                   label: 'Najem (fundusz eksploatacyjny)' },
-  { value: 'podatek_od_nieruchomości',label: 'Podatek od nieruchomości' },
-  { value: 'zarząd',                  label: 'Zarządzanie (inne)' },
-  { value: 'inne',                    label: 'Inne' },
+  { value: 'fundusz_remontowy',        label: 'Fundusz remontowy' },
+  { value: 'fundusz_eksploatacyjny',   label: 'Fundusz eksploatacyjny' },
+  { value: 'wynagrodzenie_zarządcy',   label: 'Wynagrodzenie zarządcy' },
+  { value: 'koszty_administracji',     label: 'Koszty administracji' },
+  { value: 'woda',                     label: 'Woda / kanalizacja' },
+  { value: 'śmieci',                   label: 'Odpady / śmieci' },
+  { value: 'sprzątanie',               label: 'Sprzątanie' },
+  { value: 'opłaty_bankowe',           label: 'Opłaty bankowe' },
+  { value: 'przeglądy_budynków',       label: 'Przeglądy budynków' },
+  { value: 'remonty',                  label: 'Remonty / naprawy' },
+  { value: 'ubezpieczenie',            label: 'Ubezpieczenie' },
+  { value: 'energia',                  label: 'Energia / gaz' },
+  { value: 'najem',                    label: 'Najem (fundusz eksploatacyjny)' },
+  { value: 'podatek_od_nieruchomości', label: 'Podatek od nieruchomości' },
+  { value: 'zarząd',                   label: 'Zarządzanie (inne)' },
+  { value: 'inne',                     label: 'Inne' },
 ]
 
 function pln(v: number | null) {
   if (v == null) return '—'
   return v.toLocaleString('pl-PL', { style: 'currency', currency: 'PLN' })
 }
-
 function fmtDate(s: string | null) {
   if (!s) return '—'
   return s.slice(0, 10)
 }
-
 function fmtDateTime(s: string | null) {
   if (!s) return '—'
   return new Date(s).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })
 }
 
 interface Props {
-  settings: KsefSettings | null
+  allSettings: KsefSettings[]
   syncLog: SyncLogEntry[]
   initialQueue: QueueItem[]
   communities: { id: string; name: string; nip: string | null }[]
 }
 
-export default function KsefClient({ settings, syncLog: initialLog, initialQueue, communities }: Props) {
+export default function KsefClient({ allSettings, syncLog: initialLog, initialQueue, communities }: Props) {
   const [tab, setTab] = useState<Tab>('ustawienia')
   const [isPending, startTransition] = useTransition()
 
+  // ── Community selector ─────────────────────────────────────────────────────
+  const [selectedCommunityId, setSelectedCommunityId] = useState<string>(communities[0]?.id ?? '')
+  const currentSettings = allSettings.find(s => s.community_id === selectedCommunityId) ?? null
+  const selectedCommunityName = communities.find(c => c.id === selectedCommunityId)?.name ?? ''
+
   // ── Settings form ──────────────────────────────────────────────────────────
   const [form, setForm] = useState({
-    nip:            settings?.nip ?? '',
-    ksef_token:     settings?.ksef_token ?? '',
-    environment:    settings?.environment ?? 'prod',
-    sync_from_date: settings?.sync_from_date ?? '',
-    enabled:        settings?.enabled ?? false,
+    nip:            currentSettings?.nip ?? '',
+    ksef_token:     currentSettings?.ksef_token ?? '',
+    environment:    (currentSettings?.environment ?? 'prod') as 'prod' | 'test',
+    sync_from_date: currentSettings?.sync_from_date ?? '',
+    enabled:        currentSettings?.enabled ?? false,
   })
   const [settingsMsg, setSettingsMsg] = useState<{ ok: boolean; text: string } | null>(null)
+
+  // Reset form when community changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const s = allSettings.find(x => x.community_id === selectedCommunityId) ?? null
+    setForm({
+      nip:            s?.nip ?? '',
+      ksef_token:     s?.ksef_token ?? '',
+      environment:    (s?.environment ?? 'prod') as 'prod' | 'test',
+      sync_from_date: s?.sync_from_date ?? '',
+      enabled:        s?.enabled ?? false,
+    })
+    setSettingsMsg(null)
+    setSyncMsg(null)
+    setDiagResults(null)
+    setQueryDiag(null)
+    setRefreshMsg(null)
+  }, [selectedCommunityId])
 
   function handleFormChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value, type } = e.target
@@ -72,9 +97,10 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
   function handleSaveSettings() {
     startTransition(async () => {
       const res = await saveKsefSettings({
+        community_id: selectedCommunityId,
         nip: form.nip,
         ksef_token: form.ksef_token,
-        environment: form.environment as 'prod' | 'test',
+        environment: form.environment,
         sync_from_date: form.sync_from_date,
         enabled: form.enabled,
       })
@@ -84,6 +110,8 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
 
   // ── Sync ───────────────────────────────────────────────────────────────────
   const [log, setLog] = useState<SyncLogEntry[]>(initialLog)
+  const filteredLog = log.filter(l => !selectedCommunityId || l.community_id === selectedCommunityId)
+
   const [syncMsg, setSyncMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const [syncing, setSyncing] = useState(false)
   const [diagResults, setDiagResults] = useState<{ url: string; method: string; status: number; contentType: string; preview: string }[] | null>(null)
@@ -97,7 +125,7 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
     setDiagLoading(true)
     setDiagResults(null)
     startTransition(async () => {
-      const { results } = await diagnoseKsefApi(form.environment as 'prod' | 'test')
+      const { results } = await diagnoseKsefApi(form.environment)
       setDiagResults(results)
       setDiagLoading(false)
     })
@@ -107,7 +135,7 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
     setQueryDiagLoading(true)
     setQueryDiag(null)
     startTransition(async () => {
-      const res = await diagnoseKsefQuery()
+      const res = await diagnoseKsefQuery(selectedCommunityId)
       setQueryDiag(res)
       setQueryDiagLoading(false)
     })
@@ -117,7 +145,7 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
     setRefreshing(true)
     setRefreshMsg(null)
     startTransition(async () => {
-      const res = await refreshInvoiceNumbers()
+      const res = await refreshInvoiceNumbers(selectedCommunityId)
       if (res.error) {
         setRefreshMsg({ ok: false, text: res.error })
       } else {
@@ -133,7 +161,7 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
     setSyncing(true)
     setSyncMsg(null)
     startTransition(async () => {
-      const res = await runKsefSync()
+      const res = await runKsefSync(selectedCommunityId)
       if (res.error) {
         setSyncMsg({ ok: false, text: res.error })
       } else {
@@ -141,10 +169,14 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
         const skippedInfo = res.skipped ? `, pominięto ${res.skipped} duplikatów` : ''
         const errInfo = res.insertErrors?.length ? ` ⚠ błędy insertów (${res.insertErrors.length}): ${res.insertErrors[0]}` : ''
         setSyncMsg({ ok: !res.insertErrors?.length, text: `Pobrano ${res.fetched} faktur z KSeF${range}, dodano ${res.imported} do kolejki${skippedInfo}.${errInfo}` })
-        // Odśwież kolejkę po syncu — użytkownik nie musi klikać ręcznie
-        const { items } = await fetchQueue('pending')
+        // Odśwież kolejkę i log
+        const [{ items }, newLog] = await Promise.all([
+          fetchQueue('pending'),
+          getSyncLog(selectedCommunityId),
+        ])
         setQueue(items)
         setQueueFilter('pending')
+        setLog(newLog)
       }
       setSyncing(false)
     })
@@ -153,7 +185,6 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
   // ── Queue ──────────────────────────────────────────────────────────────────
   const [queue, setQueue] = useState<QueueItem[]>(initialQueue)
   const [queueFilter, setQueueFilter] = useState<'pending' | 'imported' | 'skipped' | 'all'>('pending')
-  // Kategoria per faktura — edytowalna inline w tabeli
   const [categoryMap, setCategoryMap] = useState<Record<string, string>>({})
   function getCategory(item: QueueItem) {
     return categoryMap[item.id] ?? item.suggested_category ?? 'pozostałe'
@@ -181,7 +212,7 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
     setImportModal(item)
     setImportForm({
       communityId: item.community_id ?? communities[0]?.id ?? '',
-      category: getCategory(item),   // używa kategorii wybranej w dropdownie tabeli
+      category: getCategory(item),
       description: item.seller_name ?? '',
       expenseDate: item.invoice_date ?? new Date().toISOString().slice(0, 10),
     })
@@ -224,18 +255,37 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
     })
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // ──────────────────────────────────────────────────────────────────────────
 
   const tabs: { id: Tab; label: string; badge?: number }[] = [
     { id: 'ustawienia', label: '⚙️ Ustawienia' },
-    { id: 'sync',       label: '🔄 Synchronizacja', badge: log.filter(l => l.status === 'error').length || undefined },
+    { id: 'sync',       label: '🔄 Synchronizacja', badge: filteredLog.filter(l => l.status === 'error').length || undefined },
     { id: 'kolejka',    label: '📥 Kolejka', badge: queue.filter(q => q.status === 'pending').length || undefined },
   ]
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold text-[#111827] dark:text-white mb-1">Integracja KSeF</h1>
-      <p className="text-sm text-[#6b7280] mb-6">Krajowy System e-Faktur — automatyczne pobieranie faktur</p>
+      <p className="text-sm text-[#6b7280] mb-4">Krajowy System e-Faktur — automatyczne pobieranie faktur</p>
+
+      {/* Community selector */}
+      <div className="bg-white dark:bg-[#1f2937] rounded-xl shadow px-4 py-3 mb-4 flex items-center gap-3 flex-wrap">
+        <label className="text-sm font-semibold text-[#374151] dark:text-[#d1d5db] shrink-0">Wspólnota:</label>
+        <select
+          value={selectedCommunityId}
+          onChange={e => setSelectedCommunityId(e.target.value)}
+          className="rounded-lg border border-[#e5e7eb] dark:border-[#374151] bg-white dark:bg-[#111827] text-[#111827] dark:text-white px-3 py-1.5 text-sm flex-1 max-w-sm"
+        >
+          {communities.map(c => (
+            <option key={c.id} value={c.id}>{c.name}{c.nip ? ` — NIP: ${c.nip}` : ''}</option>
+          ))}
+        </select>
+        {currentSettings ? (
+          <span className="text-xs text-teal-600 font-medium">✓ Skonfigurowano</span>
+        ) : (
+          <span className="text-xs text-amber-600 font-medium">⚠ Brak konfiguracji KSeF</span>
+        )}
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-[#f3f4f6] dark:bg-[#1f2937] rounded-xl p-1">
@@ -262,11 +312,13 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
       {/* ── Ustawienia ──────────────────────────────────────────────────────── */}
       {tab === 'ustawienia' && (
         <div className="bg-white dark:bg-[#1f2937] rounded-2xl shadow p-6 space-y-5">
+          <p className="text-sm text-[#6b7280]">
+            Konfiguracja KSeF dla: <span className="font-semibold text-[#111827] dark:text-white">{selectedCommunityName}</span>
+          </p>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-[#374151] dark:text-[#d1d5db] mb-1">
-                NIP organizacji (10 cyfr)
-              </label>
+              <label className="block text-xs font-semibold text-[#374151] dark:text-[#d1d5db] mb-1">NIP organizacji (10 cyfr)</label>
               <input
                 name="nip"
                 value={form.nip}
@@ -278,9 +330,7 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#374151] dark:text-[#d1d5db] mb-1">
-                Środowisko KSeF
-              </label>
+              <label className="block text-xs font-semibold text-[#374151] dark:text-[#d1d5db] mb-1">Środowisko KSeF</label>
               <select
                 name="environment"
                 value={form.environment}
@@ -293,9 +343,7 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-[#374151] dark:text-[#d1d5db] mb-1">
-                Token KSeF
-              </label>
+              <label className="block text-xs font-semibold text-[#374151] dark:text-[#d1d5db] mb-1">Token KSeF</label>
               <input
                 name="ksef_token"
                 value={form.ksef_token}
@@ -304,15 +352,11 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
                 placeholder="Token z portalu KSeF → Ustawienia → Tokeny API"
                 className="w-full rounded-lg border border-[#e5e7eb] dark:border-[#374151] bg-white dark:bg-[#111827] text-[#111827] dark:text-white px-3 py-2 text-sm font-mono"
               />
-              <p className="text-[11px] text-[#9ca3af] mt-1">
-                Wygeneruj token w portalu KSeF: https://ksef.mf.gov.pl → Moje konto → Tokeny
-              </p>
+              <p className="text-[11px] text-[#9ca3af] mt-1">Wygeneruj token w portalu KSeF: https://ksef.mf.gov.pl → Moje konto → Tokeny</p>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#374151] dark:text-[#d1d5db] mb-1">
-                Synchronizuj od daty
-              </label>
+              <label className="block text-xs font-semibold text-[#374151] dark:text-[#d1d5db] mb-1">Synchronizuj od daty</label>
               <input
                 name="sync_from_date"
                 value={form.sync_from_date ?? ''}
@@ -332,9 +376,7 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
                 onChange={handleFormChange}
                 className="w-4 h-4 accent-[#0f766e]"
               />
-              <label htmlFor="enabled" className="text-sm font-medium text-[#111827] dark:text-white">
-                Integracja aktywna
-              </label>
+              <label htmlFor="enabled" className="text-sm font-medium text-[#111827] dark:text-white">Integracja aktywna</label>
             </div>
           </div>
 
@@ -352,12 +394,11 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
             {isPending ? 'Zapisuję…' : 'Zapisz ustawienia'}
           </button>
 
-          {/* Status ostatniego synca */}
-          {settings?.last_sync_at && (
+          {currentSettings?.last_sync_at && (
             <div className="border-t border-[#e5e7eb] dark:border-[#374151] pt-4 text-sm text-[#6b7280]">
-              <p>Ostatnia sync: <span className="font-medium text-[#111827] dark:text-white">{fmtDateTime(settings.last_sync_at)}</span></p>
-              <p>Status: <span className={`font-medium ${settings.last_sync_status === 'success' ? 'text-teal-600' : 'text-red-500'}`}>{settings.last_sync_status}</span></p>
-              {settings.last_sync_count != null && <p>Dodano do kolejki: <span className="font-medium">{settings.last_sync_count}</span></p>}
+              <p>Ostatnia sync: <span className="font-medium text-[#111827] dark:text-white">{fmtDateTime(currentSettings.last_sync_at)}</span></p>
+              <p>Status: <span className={`font-medium ${currentSettings.last_sync_status === 'success' ? 'text-teal-600' : 'text-red-500'}`}>{currentSettings.last_sync_status}</span></p>
+              {currentSettings.last_sync_count != null && <p>Dodano do kolejki: <span className="font-medium">{currentSettings.last_sync_count}</span></p>}
             </div>
           )}
         </div>
@@ -367,19 +408,27 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
       {tab === 'sync' && (
         <div className="space-y-6">
           <div className="bg-white dark:bg-[#1f2937] rounded-2xl shadow p-6">
-            <h2 className="font-semibold text-[#111827] dark:text-white mb-3">Ręczna synchronizacja</h2>
+            <h2 className="font-semibold text-[#111827] dark:text-white mb-1">Ręczna synchronizacja</h2>
             <p className="text-sm text-[#6b7280] mb-4">
-              Automatyczny sync uruchamia się codziennie o 02:00. Możesz też uruchomić go ręcznie.
+              Wspólnota: <span className="font-medium text-[#111827] dark:text-white">{selectedCommunityName}</span> · Automatyczny sync codziennie o 02:00.
             </p>
+
+            {!currentSettings && (
+              <p className="text-sm text-amber-700 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-lg mb-4">
+                ⚠ Brak konfiguracji KSeF dla tej wspólnoty. Przejdź do zakładki Ustawienia.
+              </p>
+            )}
+
             {syncMsg && (
               <p className={`text-sm px-3 py-2 rounded-lg mb-4 ${syncMsg.ok ? 'bg-teal-50 text-teal-700' : 'bg-red-50 text-red-700'}`}>
                 {syncMsg.text}
               </p>
             )}
+
             <div className="flex gap-3 flex-wrap">
               <button
                 onClick={handleSync}
-                disabled={isPending || syncing}
+                disabled={isPending || syncing || !currentSettings?.enabled}
                 className="px-5 py-2 bg-[#0f766e] text-white rounded-lg text-sm font-semibold disabled:opacity-50 hover:bg-[#0d6158] transition-colors"
               >
                 {syncing ? '⏳ Synchronizuję…' : '🔄 Synchronizuj teraz'}
@@ -393,14 +442,14 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
               </button>
               <button
                 onClick={handleQueryDiagnose}
-                disabled={isPending || queryDiagLoading}
+                disabled={isPending || queryDiagLoading || !currentSettings}
                 className="px-4 py-2 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-lg text-sm hover:bg-amber-200 disabled:opacity-50"
               >
                 {queryDiagLoading ? '⏳ Sprawdzam…' : '🧪 Ile faktur per zapytanie?'}
               </button>
               <button
                 onClick={handleRefreshNumbers}
-                disabled={isPending || refreshing}
+                disabled={isPending || refreshing || !currentSettings}
                 className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-lg text-sm hover:bg-blue-200 disabled:opacity-50"
               >
                 {refreshing ? '⏳ Uzupełniam…' : '🔢 Uzupełnij numery faktur'}
@@ -408,16 +457,16 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
             </div>
 
             {refreshMsg && (
-              <p className={`text-sm px-3 py-2 rounded-lg ${refreshMsg.ok ? 'bg-blue-50 text-blue-700' : 'bg-red-50 text-red-700'}`}>
+              <p className={`mt-3 text-sm px-3 py-2 rounded-lg ${refreshMsg.ok ? 'bg-blue-50 text-blue-700' : 'bg-red-50 text-red-700'}`}>
                 {refreshMsg.text}
               </p>
             )}
 
-            {/* Wyniki diagnostyki zapytań */}
+            {/* Diagnostyka zapytań */}
             {queryDiag && (
               <div className="mt-4 rounded-xl border border-amber-200 dark:border-amber-800 overflow-hidden">
                 <p className="text-xs font-semibold text-amber-700 dark:text-amber-300 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800">
-                  Diagnostyka zapytań KSeF — NIP: {queryDiag.nip ?? '?'} — zakres: ostatnie 89 dni{queryDiag.error ? ` — BŁĄD: ${queryDiag.error}` : ''}
+                  Diagnostyka KSeF — NIP: {queryDiag.nip ?? '?'} — ostatnie 89 dni{queryDiag.error ? ` — BŁĄD: ${queryDiag.error}` : ''}
                 </p>
                 <div className="divide-y divide-amber-100 dark:divide-amber-900">
                   {queryDiag.rows?.map((r, i) => (
@@ -437,11 +486,10 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
               </div>
             )}
 
-            {/* Raw dump pierwszej faktury — do debugowania nazw pól */}
             {queryDiag?.rawFirstInvoice && (
               <div className="mt-3 rounded-xl border border-blue-200 dark:border-blue-800 overflow-hidden">
                 <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800">
-                  Raw JSON pierwszej faktury (wszystkie pola zwracane przez KSeF API)
+                  Raw JSON pierwszej faktury
                 </p>
                 <pre className="px-4 py-3 text-[10px] font-mono text-[#374151] dark:text-[#d1d5db] overflow-x-auto whitespace-pre-wrap break-all bg-[#f9fafb] dark:bg-[#111827]">
                   {queryDiag.rawFirstInvoice}
@@ -449,7 +497,6 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
               </div>
             )}
 
-            {/* Wyniki diagnostyki */}
             {diagResults && (
               <div className="mt-4 rounded-xl border border-[#e5e7eb] dark:border-[#374151] overflow-hidden">
                 <p className="text-xs font-semibold text-[#6b7280] px-4 py-2 bg-[#f9fafb] dark:bg-[#111827] border-b border-[#e5e7eb] dark:border-[#374151]">
@@ -479,10 +526,12 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
           {/* Historia */}
           <div className="bg-white dark:bg-[#1f2937] rounded-2xl shadow overflow-hidden">
             <div className="px-6 py-4 border-b border-[#e5e7eb] dark:border-[#374151]">
-              <h2 className="font-semibold text-[#111827] dark:text-white">Historia synchronizacji</h2>
+              <h2 className="font-semibold text-[#111827] dark:text-white">
+                Historia synchronizacji — {selectedCommunityName}
+              </h2>
             </div>
-            {log.length === 0 ? (
-              <p className="text-sm text-[#6b7280] px-6 py-4">Brak historii.</p>
+            {filteredLog.length === 0 ? (
+              <p className="text-sm text-[#6b7280] px-6 py-4">Brak historii dla tej wspólnoty.</p>
             ) : (
               <table className="w-full text-sm">
                 <thead className="bg-[#f9fafb] dark:bg-[#111827]">
@@ -493,7 +542,7 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
                   </tr>
                 </thead>
                 <tbody>
-                  {log.map(l => (
+                  {filteredLog.map(l => (
                     <tr key={l.id} className="border-t border-[#e5e7eb] dark:border-[#374151]">
                       <td className="px-4 py-2 text-[#111827] dark:text-white whitespace-nowrap">{fmtDateTime(l.started_at)}</td>
                       <td className="px-4 py-2">
@@ -521,7 +570,6 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
       {/* ── Kolejka ─────────────────────────────────────────────────────────── */}
       {tab === 'kolejka' && (
         <div className="space-y-4">
-          {/* Filter */}
           <div className="flex gap-2">
             {(['pending', 'imported', 'skipped', 'all'] as const).map(f => (
               <button
