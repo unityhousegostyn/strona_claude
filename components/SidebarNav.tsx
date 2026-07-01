@@ -62,6 +62,7 @@ function useNavEntries(role: string): NavEntry[] {
       subItems: [
         { href: '/admin/finanse/przychody', label: t('nav.przychody'), icon: '💰' },
         { href: '/admin/finanse/koszty', label: t('nav.koszty'), icon: '💸' },
+        { href: '/admin/finanse/budzet', label: t('nav.budzet'), icon: '📋' },
         { href: '/admin/finanse/lokaty', label: t('nav.lokaty'), icon: '🏦' },
         { href: '/admin/finanse/raporty', label: t('nav.raporty'), icon: '📊' },
       ],
