@@ -665,3 +665,57 @@ function featureTile(icon: string, title: string, desc: string) {
     <p style="margin:0;font-size:12px;color:#4d7a5f;line-height:1.5;">${desc}</p>
   </div>`
 }
+
+// ── KSeF: powiadomienie o nowych fakturach ────────────────────────────────────
+
+export async function sendKsefSyncEmail(params: {
+  to: string | string[]
+  results: Array<{
+    communityName: string
+    imported: number
+    fetched: number
+    dateFrom: string
+    dateTo: string
+  }>
+}) {
+  const total = params.results.reduce((s, r) => s + r.imported, 0)
+  if (total === 0) return
+
+  const rows = params.results
+    .filter(r => r.imported > 0)
+    .map(r => `
+      <tr>
+        <td style="padding:10px 16px;font-size:14px;color:#1e293b;border-bottom:1px solid #f1f5f9;">${r.communityName}</td>
+        <td style="padding:10px 16px;font-size:14px;color:#0f766e;font-weight:700;text-align:center;border-bottom:1px solid #f1f5f9;">${r.imported}</td>
+        <td style="padding:10px 16px;font-size:13px;color:#64748b;border-bottom:1px solid #f1f5f9;">${r.dateFrom} – ${r.dateTo}</td>
+      </tr>`)
+    .join('')
+
+  await sendMail({
+    to: params.to,
+    subject: `KSeF: ${total} nowych faktur w kolejce`,
+    html: layout(`
+      <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#0f766e;">Nowe faktury z KSeF</h1>
+      <p style="margin:0 0 24px;font-size:14px;color:#64748b;">Automatyczna synchronizacja pobrała <strong>${total}</strong> faktur do kolejki.</p>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:24px;">
+        <thead>
+          <tr style="background:#f8fafc;">
+            <th style="padding:10px 16px;font-size:12px;font-weight:600;color:#64748b;text-align:left;border-bottom:1px solid #e2e8f0;">Wspólnota</th>
+            <th style="padding:10px 16px;font-size:12px;font-weight:600;color:#64748b;text-align:center;border-bottom:1px solid #e2e8f0;">Nowych</th>
+            <th style="padding:10px 16px;font-size:12px;font-weight:600;color:#64748b;border-bottom:1px solid #e2e8f0;">Zakres dat</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+
+      <div style="text-align:center;margin:24px 0;">
+        ${btn(`${APP_URL}/admin/ksef`, 'Przejdź do kolejki KSeF →')}
+      </div>
+
+      <p style="font-size:12px;color:#94a3b8;margin-top:24px;border-top:1px solid #f1f5f9;padding-top:16px;">
+        Wiadomość wysłana automatycznie przez cron synchronizacji KSeF.
+      </p>
+    `),
+  })
+}

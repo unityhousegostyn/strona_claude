@@ -65,6 +65,7 @@ export default function KsefClient({ allSettings, syncLog: initialLog, initialQu
     environment:    (currentSettings?.environment ?? 'prod') as 'prod' | 'test',
     sync_from_date: currentSettings?.sync_from_date ?? '',
     enabled:        currentSettings?.enabled ?? false,
+    auto_import:    currentSettings?.auto_import ?? false,
   })
   const [settingsMsg, setSettingsMsg] = useState<{ ok: boolean; text: string } | null>(null)
 
@@ -78,6 +79,7 @@ export default function KsefClient({ allSettings, syncLog: initialLog, initialQu
       environment:    (s?.environment ?? 'prod') as 'prod' | 'test',
       sync_from_date: s?.sync_from_date ?? '',
       enabled:        s?.enabled ?? false,
+      auto_import:    s?.auto_import ?? false,
     })
     setSettingsMsg(null)
     setSyncMsg(null)
@@ -103,6 +105,7 @@ export default function KsefClient({ allSettings, syncLog: initialLog, initialQu
         environment: form.environment,
         sync_from_date: form.sync_from_date,
         enabled: form.enabled,
+        auto_import: form.auto_import,
       })
       setSettingsMsg(res.error ? { ok: false, text: res.error } : { ok: true, text: 'Zapisano.' })
     })
@@ -367,16 +370,32 @@ export default function KsefClient({ allSettings, syncLog: initialLog, initialQu
               <p className="text-[11px] text-[#9ca3af] mt-1">Dla pierwszej synchronizacji — później używana jest data ostatniego synca.</p>
             </div>
 
-            <div className="flex items-center gap-3 pt-6">
-              <input
-                type="checkbox"
-                id="enabled"
-                name="enabled"
-                checked={form.enabled}
-                onChange={handleFormChange}
-                className="w-4 h-4 accent-[#0f766e]"
-              />
-              <label htmlFor="enabled" className="text-sm font-medium text-[#111827] dark:text-white">Integracja aktywna</label>
+            <div className="flex flex-col gap-3 pt-6">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="enabled"
+                  name="enabled"
+                  checked={form.enabled}
+                  onChange={handleFormChange}
+                  className="w-4 h-4 accent-[#0f766e]"
+                />
+                <label htmlFor="enabled" className="text-sm font-medium text-[#111827] dark:text-white">Integracja aktywna</label>
+              </div>
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="auto_import"
+                  name="auto_import"
+                  checked={form.auto_import}
+                  onChange={handleFormChange}
+                  className="w-4 h-4 accent-[#0f766e] mt-0.5"
+                />
+                <div>
+                  <label htmlFor="auto_import" className="text-sm font-medium text-[#111827] dark:text-white">Auto-import po NIP</label>
+                  <p className="text-[11px] text-[#9ca3af] mt-0.5">Faktury z buyer NIP = NIP wspólnoty trafiają automatycznie do kosztów (bez ręcznego importu z kolejki).</p>
+                </div>
+              </div>
             </div>
           </div>
 

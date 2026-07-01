@@ -157,6 +157,7 @@ export interface KsefSettings {
   last_sync_status: string | null
   last_sync_count: number
   enabled: boolean
+  auto_import: boolean
 }
 
 /** Wszystkie konfiguracje KSeF (per wspólnota) */
@@ -184,6 +185,7 @@ export async function saveKsefSettings(data: {
   environment: KsefEnvironment
   sync_from_date: string
   enabled: boolean
+  auto_import: boolean
 }): Promise<{ error?: string }> {
   const auth = await requireSuperAdmin()
   if (auth.error) return { error: auth.error }
@@ -200,6 +202,7 @@ export async function saveKsefSettings(data: {
     environment: data.environment,
     sync_from_date: data.sync_from_date || null,
     enabled: data.enabled,
+    auto_import: data.auto_import,
     updated_at: new Date().toISOString(),
   }
 
@@ -537,7 +540,7 @@ export async function runKsefSync(communityId: string): Promise<{
   }).select('id').single()
   const logId = logEntry?.id
 
-  let fetched = 0, imported = 0, skipped = 0
+  let fetched = 0, imported = 0, autoImported = 0, skipped = 0
   let windowStartISO = '', dateToISO = ''
   let insertErrorsOut: string[] = []
 
@@ -594,6 +597,45 @@ export async function runKsefSync(communityId: string): Promise<{
       }
 
       const invCommunityId = nipMap.get(inv.buyerNip) ?? null
+      const category = guessCategory(inv.sellerName)
+
+      // Auto-import: gdy włączony i buyer NIP pasuje do NIP wspólnoty
+      if (settings.auto_import && inv.buyerNip && inv.buyerNip === settings.nip) {
+        const expenseDate = inv.invoiceDate ?? inv.issueDate ?? new Date().toISOString().slice(0, 10)
+        const { error: expErr } = await admin.from('community_expenses').insert({
+          community_id: communityId,
+          category,
+          description: inv.sellerName ?? 'Faktura KSeF',
+          amount: inv.grossAmount ?? 0,
+          expense_date: expenseDate,
+          invoice_number: ksef_number ?? undefined,
+          is_renovation_fund: category === 'fundusz_remontowy',
+          created_by: null,
+        })
+
+        if (!expErr) {
+          // Zapisz w kolejce jako 'imported' (dla audytu)
+          await admin.from('ksef_invoice_queue').insert({
+            ksef_number,
+            invoice_number: inv.invoiceNumber || null,
+            invoice_date: inv.invoiceDate || null,
+            issue_date: inv.issueDate || null,
+            seller_name: inv.sellerName || null,
+            seller_nip: String(inv.sellerNip ?? '').slice(0, 10) || null,
+            buyer_nip:  String(inv.buyerNip  ?? '').slice(0, 10) || null,
+            net_amount: inv.netAmount,
+            vat_amount: inv.vatAmount,
+            gross_amount: inv.grossAmount,
+            suggested_category: category,
+            community_id: communityId,
+            status: 'imported',
+            sync_log_id: logId,
+          })
+          autoImported++
+          continue
+        }
+        // fallback: jeśli insert expense się nie udał — dodaj do kolejki pending
+      }
 
       const { error: insertErr } = await admin.from('ksef_invoice_queue').insert({
         ksef_number,
@@ -606,7 +648,7 @@ export async function runKsefSync(communityId: string): Promise<{
         net_amount: inv.netAmount,
         vat_amount: inv.vatAmount,
         gross_amount: inv.grossAmount,
-        suggested_category: guessCategory(inv.sellerName),
+        suggested_category: category,
         community_id: invCommunityId,
         status: 'pending',
         sync_log_id: logId,
@@ -631,14 +673,14 @@ export async function runKsefSync(communityId: string): Promise<{
       finished_at: new Date().toISOString(),
       status: 'success',
       invoices_fetched: fetched,
-      invoices_imported: imported,
+      invoices_imported: imported + autoImported,
       invoices_skipped: skipped,
     }).eq('id', logId)
 
     await admin.from('ksef_settings').update({
       last_sync_at: new Date().toISOString(),
       last_sync_status: 'success',
-      last_sync_count: imported,
+      last_sync_count: imported + autoImported,
     }).eq('id', settings.id)
 
   } catch (e: any) {
@@ -663,5 +705,5 @@ export async function runKsefSync(communityId: string): Promise<{
 
   revalidatePath('/admin/ksef')
   revalidatePath('/admin/finanse/koszty')
-  return { fetched, imported, skipped, dateFrom: windowStartISO, dateTo: dateToISO, insertErrors: insertErrorsOut }
+  return { fetched, imported: imported + autoImported, skipped, dateFrom: windowStartISO, dateTo: dateToISO, insertErrors: insertErrorsOut }
 }
