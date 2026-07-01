@@ -77,6 +77,7 @@ function useNavEntries(role: string): NavEntry[] {
     entries.push({ href: '/admin/messages', label: t('nav.messages'), icon: '✉️' })
     if (role === 'super_admin') {
       entries.push({ href: '/admin/audit', label: t('nav.audit'), icon: '🔍' })
+      entries.push({ href: '/admin/ksef', label: 'KSeF', icon: '🧾' })
     }
   }
 

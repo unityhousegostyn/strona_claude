@@ -7,6 +7,7 @@ export interface Community {
   created_at: string
   bank_account?: string | null
   legal_basis?: string | null
+  nip?: string | null
   opening_balance_eksploatacyjny?: number | null
   opening_balance_remont?: number | null
   opening_balance_date?: string | null
