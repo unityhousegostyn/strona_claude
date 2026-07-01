@@ -300,17 +300,22 @@ export async function runKsefSync(): Promise<{
     // Uwierzytelnienie
     const auth2 = await ksefAuth(settings.nip, settings.ksef_token, settings.environment)
 
-    // Zakres dat: od last_sync_at lub sync_from_date, do teraz
+    // Zakres dat: od last_sync_at lub sync_from_date, do teraz.
+    // WAŻNE: sync_from_date jest DOLNĄ GRANICĄ — nigdy nie cofamy się wcześniej.
+    // Bug: każdy sync (nawet 0 faktur) ustawiał last_sync_at = teraz, więc
+    // następny sync pytał tylko o faktury z ostatniej godziny, ignorując sync_from_date.
     const dateTo = new Date()
+    const syncFromDate = settings.sync_from_date ? new Date(settings.sync_from_date) : null
     let dateFrom: Date
     if (settings.last_sync_at) {
-      dateFrom = new Date(settings.last_sync_at)
-      // Cofnij o 1 godzinę żeby nie pominąć faktur przy chwilowym opóźnieniu
-      dateFrom.setHours(dateFrom.getHours() - 1)
-    } else if (settings.sync_from_date) {
-      dateFrom = new Date(settings.sync_from_date)
+      const fromLastSync = new Date(settings.last_sync_at)
+      fromLastSync.setHours(fromLastSync.getHours() - 1)
+      // Użyj wcześniejszej z dat: nie cofaj się dalej niż sync_from_date
+      // ale też nie "skracaj" okna jeśli last_sync nie miał pełnego zakresu
+      dateFrom = syncFromDate && syncFromDate < fromLastSync ? syncFromDate : fromLastSync
+    } else if (syncFromDate) {
+      dateFrom = syncFromDate
     } else {
-      // Domyślnie: ostatnie 30 dni
       dateFrom = new Date()
       dateFrom.setDate(dateFrom.getDate() - 30)
     }

@@ -290,7 +290,7 @@ export async function ksefQueryInvoices(
     dateRange: {
       from: fmt(dateFrom),
       to:   fmt(dateTo),
-      // dateType pominięty — "Issue" nie dawało wyników mimo istniejących faktur
+      dateType: 'Issue',       // wymagane przez API; data wystawienia faktury
     },
   }
 
