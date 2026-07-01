@@ -7,9 +7,18 @@ import { BUDGET_CATEGORIES } from './constants'
 
 async function requireAdminPlus() {
   const auth = await getAuthProfileAction()
-  if (auth.error !== null) return { error: auth.error as string }
-  if (!['super_admin', 'admin'].includes(auth.profile.role)) return { error: 'Brak dostępu' }
+  if (auth.error !== null) return { error: auth.error as string, profile: null as never }
+  if (!['super_admin', 'admin'].includes(auth.profile.role)) return { error: 'Brak dostępu', profile: null as never }
   return { error: null, profile: auth.profile }
+}
+
+/** requireAdminPlus + izolacja wspólnoty: admin widzi/edytuje tylko swoją */
+async function requireAdminPlusForCommunity(communityId: string) {
+  const result = await requireAdminPlus()
+  if (result.error) return result
+  if (result.profile.role === 'admin' && result.profile.community_id !== communityId)
+    return { error: 'Brak dostępu do tej wspólnoty', profile: null as never }
+  return result
 }
 
 export interface BudgetItem {
@@ -35,7 +44,8 @@ export async function getBudget(communityId: string, year: number): Promise<{
   data: BudgetData | null
   error?: string
 }> {
-  const auth = await requireAdminPlus()
+  // requireAdminPlus bez izolacji = admin mógł czytać budżety obcych wspólnot
+  const auth = await requireAdminPlusForCommunity(communityId)
   if (auth.error) return { data: null, error: auth.error }
 
   const admin = getSupabaseAdminClient()
@@ -108,7 +118,7 @@ export async function saveBudgetItems(
   year: number,
   items: { category: string; planned_amount: number }[],
 ): Promise<{ error?: string }> {
-  const auth = await requireAdminPlus()
+  const auth = await requireAdminPlusForCommunity(communityId)
   if (auth.error) return { error: auth.error }
 
   const admin = getSupabaseAdminClient()
@@ -133,7 +143,7 @@ export async function seedBudgetFromExpenses(
   communityId: string,
   year: number,
 ): Promise<{ seeded: number; error?: string }> {
-  const auth = await requireAdminPlus()
+  const auth = await requireAdminPlusForCommunity(communityId)
   if (auth.error) return { seeded: 0, error: auth.error }
 
   const admin = getSupabaseAdminClient()
@@ -175,6 +185,9 @@ export async function seedBudgetFromExpenses(
 }
 
 export async function getAvailableYears(communityId: string): Promise<number[]> {
+  // Brak auth check = dowolny zalogowany user mógł odczytać lata kosztów wspólnoty
+  const auth = await requireAdminPlusForCommunity(communityId)
+  if (auth.error) return [new Date().getFullYear()]
   const admin = getSupabaseAdminClient()
   const { data } = await admin
     .from('community_expenses')

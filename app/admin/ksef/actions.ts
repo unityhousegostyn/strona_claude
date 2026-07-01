@@ -387,6 +387,9 @@ export interface SellerMapping {
 }
 
 export async function getSellerMappings(communityId: string): Promise<SellerMapping[]> {
+  // Brak auth check = dowolny zalogowany user mógł odczytać NIPy sprzedawców (IDOR)
+  const auth = await requireSuperAdmin()
+  if (auth.error) return []
   const admin = getSupabaseAdminClient()
   const { data } = await admin
     .from('ksef_seller_mapping')
@@ -397,6 +400,9 @@ export async function getSellerMappings(communityId: string): Promise<SellerMapp
 }
 
 export async function getAllSellerMappings(): Promise<SellerMapping[]> {
+  // Brak auth check = dowolny zalogowany user mógł odczytać WSZYSTKIE NIPy
+  const auth = await requireSuperAdmin()
+  if (auth.error) return []
   const admin = getSupabaseAdminClient()
   const { data } = await admin
     .from('ksef_seller_mapping')
@@ -443,6 +449,9 @@ export interface SyncLogEntry {
 }
 
 export async function getSyncLog(communityId?: string): Promise<SyncLogEntry[]> {
+  // Brak auth check = dowolny zalogowany user mógł odczytać historię synchronizacji KSeF
+  const auth = await requireSuperAdmin()
+  if (auth.error) return []
   const admin = getSupabaseAdminClient()
   let q = admin
     .from('ksef_sync_log')
@@ -479,6 +488,9 @@ export interface QueueItem {
 export async function getKsefQueue(
   status: 'pending' | 'imported' | 'skipped' | 'all' = 'pending',
 ): Promise<{ items: QueueItem[]; error?: string }> {
+  // Brak auth check = dowolny zalogowany user mógł odczytać faktury (NIPy, kwoty)
+  const auth = await requireSuperAdmin()
+  if (auth.error) return { items: [], error: auth.error }
   const admin = getSupabaseAdminClient()
   let q = admin
     .from('ksef_invoice_queue')
