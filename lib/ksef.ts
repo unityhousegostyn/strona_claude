@@ -331,11 +331,10 @@ export async function ksefQueryInvoices(
 ): Promise<KsefInvoiceHeader[]> {
   const base = BASE[env]
   const subjectTypes = ['Subject1', 'Subject2', 'SubjectAuthorized'] as const
-  const dateTypes    = ['Issue', 'Receipt'] as const
 
-  // 6 zapytań równolegle: 3 subjectType × 2 dateType
-  const queries = subjectTypes.flatMap(st =>
-    dateTypes.map(dt => ksefQueryBySubjectType(accessToken, base, st, dateFrom, dateTo, dt))
+  // 3 zapytania równolegle — dateType: Issue (jedyny akceptowany przez KSeF)
+  const queries = subjectTypes.map(st =>
+    ksefQueryBySubjectType(accessToken, base, st, dateFrom, dateTo, 'Issue')
   )
 
   const settled = await Promise.allSettled(queries)

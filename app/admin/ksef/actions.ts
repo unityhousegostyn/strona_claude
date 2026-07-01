@@ -102,16 +102,13 @@ export async function diagnoseKsefQuery(): Promise<{
     : 'https://api-test.ksef.mf.gov.pl/v2'
 
   const dateFrom = settings.sync_from_date ?? '2026-01-01'
-  const dateTo = new Date(); dateTo.setDate(dateTo.getDate() + 1)
+  const dateTo = new Date()   // KSeF odrzuca daty w przyszłości
   const fmt = (d: Date | string) => typeof d === 'string' ? d : d.toISOString().slice(0, 10)
 
   const combos = [
-    { subjectType: 'Subject1',          dateType: 'Issue'   },
-    { subjectType: 'Subject1',          dateType: 'Receipt' },
-    { subjectType: 'Subject2',          dateType: 'Issue'   },
-    { subjectType: 'Subject2',          dateType: 'Receipt' },
-    { subjectType: 'SubjectAuthorized', dateType: 'Issue'   },
-    { subjectType: 'SubjectAuthorized', dateType: 'Receipt' },
+    { subjectType: 'Subject1',          dateType: 'Issue' },
+    { subjectType: 'Subject2',          dateType: 'Issue' },
+    { subjectType: 'SubjectAuthorized', dateType: 'Issue' },
   ]
 
   const rows = await Promise.all(combos.map(async ({ subjectType, dateType }) => {
@@ -376,11 +373,10 @@ export async function runKsefSync(): Promise<{
     // Uwierzytelnienie
     const auth2 = await ksefAuth(settings.nip, settings.ksef_token, settings.environment)
 
-    // Zakres dat: sync_from_date jako dolna granica (zawsze), jutro jako górna.
-    // dateTo = jutro: KSeF traktuje 'to' jako exclusive, więc +1 dzień żeby zawrzeć dzisiejsze faktury.
+    // Zakres dat: sync_from_date jako dolna granica (zawsze), dziś jako górna.
+    // UWAGA: KSeF odrzuca daty w przyszłości (HTTP 400) — używamy dzisiejszej daty.
     // API KSeF v2 ogranicza zapytanie do max 3 miesięcy — dzielimy na okna 89-dniowe.
     const dateTo = new Date()
-    dateTo.setDate(dateTo.getDate() + 1)
     const syncFromDate = settings.sync_from_date ? new Date(settings.sync_from_date) : null
     let windowStart: Date
     if (syncFromDate) {
