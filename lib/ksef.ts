@@ -271,32 +271,30 @@ export async function ksefAuth(
  *
  * Nie używamy /invoices/exports (wymaga szyfrowania AES + ZIP).
  */
-export async function ksefQueryInvoices(
+/**
+ * Pobiera faktury dla jednego subjectType ze stronicowaniem.
+ */
+async function ksefQueryBySubjectType(
   accessToken: string,
-  env: KsefEnvironment,
+  base: string,
+  subjectType: 'Subject1' | 'Subject2' | 'SubjectAuthorized',
   dateFrom: Date,
   dateTo: Date,
 ): Promise<KsefInvoiceHeader[]> {
-  const base = BASE[env]
   const results: KsefInvoiceHeader[] = []
   const PAGE_SIZE = 100
-
-  // KSeF v2 — struktura potwierdzona: dateRange na poziomie głównym (nie w filters)
-  // Format daty: YYYY-MM-DD (nie ISO datetime)
   const fmt = (d: Date) => d.toISOString().slice(0, 10)
 
   const body = {
-    subjectType: 'Subject2',   // Subject2 = nabywca (odbiorca faktury)
+    subjectType,
     dateRange: {
       from: fmt(dateFrom),
       to:   fmt(dateTo),
-      dateType: 'Issue',       // wymagane przez API; data wystawienia faktury
+      dateType: 'Issue',
     },
   }
 
   let pageOffset = 0
-  let totalCount: number | null = null
-
   do {
     const res = await kfetch(
       `${base}/invoices/query/metadata?pageOffset=${pageOffset}&pageSize=${PAGE_SIZE}`,
@@ -306,25 +304,53 @@ export async function ksefQueryInvoices(
         body: JSON.stringify(body),
       },
     )
-
-    // Odpowiedź: {hasMore, isTruncated, invoices: [...]}
     const invoices: any[] = res?.invoices ?? res?.data?.invoices ?? res?.data?.items ?? res?.items ?? []
-    const total: number = res?.totalCount ?? res?.data?.totalCount ?? res?.total ?? invoices.length
-
-    if (totalCount === null) totalCount = total
-
-    for (const inv of invoices) {
-      results.push(mapInvoiceHeader(inv))
-    }
-
+    for (const inv of invoices) results.push(mapInvoiceHeader(inv))
     pageOffset += PAGE_SIZE
-    // API zwraca hasMore:true jeśli jest kolejna strona
     if (!res?.hasMore) break
-    if (invoices.length < PAGE_SIZE) break  // ostatnia strona
-    if (pageOffset > 5000) break            // bezpiecznik anty-loop
+    if (invoices.length < PAGE_SIZE) break
+    if (pageOffset > 5000) break
   } while (true)
 
   return results
+}
+
+/**
+ * Pobieranie metadanych faktur — odpytuje Subject1, Subject2 i SubjectAuthorized,
+ * łączy wyniki i deduplikuje po kseNumber.
+ *
+ * KSeF portal pokazuje faktury ze wszystkich typów podmiotów,
+ * dlatego musimy zapytać o każdy typ osobno.
+ */
+export async function ksefQueryInvoices(
+  accessToken: string,
+  env: KsefEnvironment,
+  dateFrom: Date,
+  dateTo: Date,
+): Promise<KsefInvoiceHeader[]> {
+  const base = BASE[env]
+
+  // Odpytaj równolegle wszystkie trzy typy podmiotów
+  const [s1, s2, sa] = await Promise.allSettled([
+    ksefQueryBySubjectType(accessToken, base, 'Subject1',         dateFrom, dateTo),
+    ksefQueryBySubjectType(accessToken, base, 'Subject2',         dateFrom, dateTo),
+    ksefQueryBySubjectType(accessToken, base, 'SubjectAuthorized', dateFrom, dateTo),
+  ])
+
+  const all: KsefInvoiceHeader[] = [
+    ...(s1.status === 'fulfilled' ? s1.value : []),
+    ...(s2.status === 'fulfilled' ? s2.value : []),
+    ...(sa.status === 'fulfilled' ? sa.value : []),
+  ]
+
+  // Deduplikacja po kseNumber (ten sam numer może pojawić się w wielu typach)
+  const seen = new Set<string>()
+  return all.filter(inv => {
+    if (!inv.kseNumber) return true   // brak numeru — zachowaj
+    if (seen.has(inv.kseNumber)) return false
+    seen.add(inv.kseNumber)
+    return true
+  })
 }
 
 /**
