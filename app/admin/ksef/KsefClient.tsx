@@ -103,6 +103,10 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
         setSyncMsg({ ok: false, text: res.error })
       } else {
         setSyncMsg({ ok: true, text: `Pobrano ${res.fetched} faktur, dodano ${res.imported} do kolejki.` })
+        // Odśwież kolejkę po syncu — użytkownik nie musi klikać ręcznie
+        const { items } = await fetchQueue('pending')
+        setQueue(items)
+        setQueueFilter('pending')
       }
       setSyncing(false)
     })
