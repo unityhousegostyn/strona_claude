@@ -280,6 +280,7 @@ async function ksefQueryBySubjectType(
   subjectType: 'Subject1' | 'Subject2' | 'SubjectAuthorized',
   dateFrom: Date,
   dateTo: Date,
+  dateType: 'Issue' | 'Receipt' = 'Issue',
 ): Promise<KsefInvoiceHeader[]> {
   const results: KsefInvoiceHeader[] = []
   const PAGE_SIZE = 100
@@ -290,7 +291,7 @@ async function ksefQueryBySubjectType(
     dateRange: {
       from: fmt(dateFrom),
       to:   fmt(dateTo),
-      dateType: 'Issue',
+      dateType,
     },
   }
 
@@ -316,11 +317,11 @@ async function ksefQueryBySubjectType(
 }
 
 /**
- * Pobieranie metadanych faktur — odpytuje Subject1, Subject2 i SubjectAuthorized,
+ * Pobieranie metadanych faktur — odpytuje wszystkie kombinacje subjectType × dateType,
  * łączy wyniki i deduplikuje po kseNumber.
  *
- * KSeF portal pokazuje faktury ze wszystkich typów podmiotów,
- * dlatego musimy zapytać o każdy typ osobno.
+ * KSeF portal pokazuje faktury ze wszystkich typów podmiotów i obu typów dat,
+ * dlatego musimy zapytać o każdą kombinację osobno.
  */
 export async function ksefQueryInvoices(
   accessToken: string,
@@ -329,24 +330,25 @@ export async function ksefQueryInvoices(
   dateTo: Date,
 ): Promise<KsefInvoiceHeader[]> {
   const base = BASE[env]
+  const subjectTypes = ['Subject1', 'Subject2', 'SubjectAuthorized'] as const
+  const dateTypes    = ['Issue', 'Receipt'] as const
 
-  // Odpytaj równolegle wszystkie trzy typy podmiotów
-  const [s1, s2, sa] = await Promise.allSettled([
-    ksefQueryBySubjectType(accessToken, base, 'Subject1',         dateFrom, dateTo),
-    ksefQueryBySubjectType(accessToken, base, 'Subject2',         dateFrom, dateTo),
-    ksefQueryBySubjectType(accessToken, base, 'SubjectAuthorized', dateFrom, dateTo),
-  ])
+  // 6 zapytań równolegle: 3 subjectType × 2 dateType
+  const queries = subjectTypes.flatMap(st =>
+    dateTypes.map(dt => ksefQueryBySubjectType(accessToken, base, st, dateFrom, dateTo, dt))
+  )
 
-  const all: KsefInvoiceHeader[] = [
-    ...(s1.status === 'fulfilled' ? s1.value : []),
-    ...(s2.status === 'fulfilled' ? s2.value : []),
-    ...(sa.status === 'fulfilled' ? sa.value : []),
-  ]
+  const settled = await Promise.allSettled(queries)
 
-  // Deduplikacja po kseNumber (ten sam numer może pojawić się w wielu typach)
+  const all: KsefInvoiceHeader[] = []
+  for (const r of settled) {
+    if (r.status === 'fulfilled') all.push(...r.value)
+  }
+
+  // Deduplikacja po kseNumber
   const seen = new Set<string>()
   return all.filter(inv => {
-    if (!inv.kseNumber) return true   // brak numeru — zachowaj
+    if (!inv.kseNumber) return true
     if (seen.has(inv.kseNumber)) return false
     seen.add(inv.kseNumber)
     return true
