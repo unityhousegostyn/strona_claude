@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition, useCallback } from 'react'
-import { getBudget, saveBudgetItems, getAvailableYears } from './actions'
+import { getBudget, saveBudgetItems, getAvailableYears, seedBudgetFromExpenses } from './actions'
 import type { BudgetData } from './actions'
 import { BUDGET_CATEGORIES } from './constants'
 
@@ -81,6 +81,18 @@ export default function BudzetClient({ communities, initialBudget, initialYears,
     })
   }
 
+  function handleSeed() {
+    startTransition(async () => {
+      const res = await seedBudgetFromExpenses(communityId, year)
+      if (res.error) {
+        setSaveMsg({ ok: false, text: res.error })
+      } else {
+        setSaveMsg({ ok: true, text: `Zasilono plan z ${res.seeded} kategorii kosztów.` })
+        reload(communityId, year)
+      }
+    })
+  }
+
   // Excel export
   function handleExcelExport() {
     if (!budget) return
@@ -129,16 +141,26 @@ export default function BudzetClient({ communities, initialBudget, initialYears,
         </div>
         <div className="flex gap-2 flex-wrap">
           {isSuperAdmin && (
-            <button
-              onClick={() => { setEditMode(e => !e); setSaveMsg(null) }}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                editMode
-                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
-                  : 'bg-[#f3f4f6] dark:bg-[#374151] text-[#374151] dark:text-[#d1d5db]'
-              }`}
-            >
-              {editMode ? '✏️ Tryb edycji (aktywny)' : '✏️ Edytuj plan'}
-            </button>
+            <>
+              <button
+                onClick={handleSeed}
+                disabled={isPending}
+                title="Ustaw plan = suma rzeczywistych kosztów z wybranego roku"
+                className="px-4 py-2 bg-[#f3f4f6] dark:bg-[#374151] text-[#374151] dark:text-[#d1d5db] rounded-lg text-sm hover:bg-[#e5e7eb] disabled:opacity-50"
+              >
+                {isPending ? '⏳ Zasilam…' : '⚡ Zasilij z kosztów'}
+              </button>
+              <button
+                onClick={() => { setEditMode(e => !e); setSaveMsg(null) }}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                  editMode
+                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                    : 'bg-[#f3f4f6] dark:bg-[#374151] text-[#374151] dark:text-[#d1d5db]'
+                }`}
+              >
+                {editMode ? '✏️ Tryb edycji (aktywny)' : '✏️ Edytuj plan'}
+              </button>
+            </>
           )}
           <button
             onClick={handleExcelExport}

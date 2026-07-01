@@ -129,6 +129,51 @@ export async function saveBudgetItems(
   return {}
 }
 
+export async function seedBudgetFromExpenses(
+  communityId: string,
+  year: number,
+): Promise<{ seeded: number; error?: string }> {
+  const auth = await requireAdminPlus()
+  if (auth.error) return { seeded: 0, error: auth.error }
+
+  const admin = getSupabaseAdminClient()
+
+  // Pobierz wszystkie koszty danej wspólnoty za rok
+  const { data: expenses, error: fetchErr } = await admin
+    .from('community_expenses')
+    .select('category, amount')
+    .eq('community_id', communityId)
+    .gte('expense_date', `${year}-01-01`)
+    .lte('expense_date', `${year}-12-31`)
+    .not('expense_date', 'is', null)
+
+  if (fetchErr) return { seeded: 0, error: fetchErr.message }
+  if (!expenses?.length) return { seeded: 0, error: 'Brak kosztów dla wybranego roku.' }
+
+  // Suma per kategoria
+  const sumMap = new Map<string, number>()
+  for (const e of expenses) {
+    const cat = (e.category?.trim() || 'pozostałe')
+    sumMap.set(cat, (sumMap.get(cat) ?? 0) + Number(e.amount))
+  }
+
+  const rows = Array.from(sumMap.entries()).map(([category, total]) => ({
+    community_id: communityId,
+    year,
+    category,
+    planned_amount: Math.round(total * 100) / 100,
+    updated_at: new Date().toISOString(),
+  }))
+
+  const { error: upsertErr } = await admin
+    .from('community_budgets')
+    .upsert(rows, { onConflict: 'community_id,year,category' })
+
+  if (upsertErr) return { seeded: 0, error: upsertErr.message }
+  revalidatePath('/admin/finanse/budzet')
+  return { seeded: rows.length }
+}
+
 export async function getAvailableYears(communityId: string): Promise<number[]> {
   const admin = getSupabaseAdminClient()
   const { data } = await admin
