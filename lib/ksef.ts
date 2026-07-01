@@ -121,10 +121,11 @@ export async function ksefAuth(
   const base = BASE[env]
 
   // ── Krok 1: POST /auth/challenge → {challenge, timestampMs} ──────────────
-  // Challenge jest niezależne od NIP — nie wymaga body (lub puste {})
+  // Uwaga: API wymaga contextIdentifier z NIP w body (type=1 = NIP organizacji)
+  // Potwierdzone diagnostyką: bez body lub z {type:'Nip'} → 404/400
   const challengeData = await kfetch(`${base}/auth/challenge`, {
     method: 'POST',
-    body: JSON.stringify({}),
+    body: JSON.stringify({ contextIdentifier: { type: 1, identifier: nip } }),
   })
 
   const challenge: string = challengeData?.challenge ?? challengeData?.Challenge
