@@ -4,9 +4,9 @@ import { useState, useTransition, useEffect } from 'react'
 import {
   saveKsefSettings, runKsefSync, importQueueItem, skipQueueItem, restoreQueueItem,
   refreshInvoiceNumbers, getKsefQueue as fetchQueue, diagnoseKsefApi, diagnoseKsefQuery,
-  getSyncLog,
+  getSyncLog, getSellerMappings, updateSellerMapping, deleteSellerMapping,
 } from './actions'
-import type { KsefSettings, SyncLogEntry, QueueItem } from './actions'
+import type { KsefSettings, SyncLogEntry, QueueItem, SellerMapping } from './actions'
 
 type Tab = 'ustawienia' | 'sync' | 'kolejka'
 
@@ -47,9 +47,10 @@ interface Props {
   syncLog: SyncLogEntry[]
   initialQueue: QueueItem[]
   communities: { id: string; name: string; nip: string | null }[]
+  sellerMappings: SellerMapping[]
 }
 
-export default function KsefClient({ allSettings, syncLog: initialLog, initialQueue, communities }: Props) {
+export default function KsefClient({ allSettings, syncLog: initialLog, initialQueue, communities, sellerMappings: initialMappings }: Props) {
   const [tab, setTab] = useState<Tab>('ustawienia')
   const [isPending, startTransition] = useTransition()
 
@@ -68,6 +69,12 @@ export default function KsefClient({ allSettings, syncLog: initialLog, initialQu
     auto_import:    currentSettings?.auto_import ?? false,
   })
   const [settingsMsg, setSettingsMsg] = useState<{ ok: boolean; text: string } | null>(null)
+
+  // Pamięć sprzedawców
+  const [mappings, setMappings] = useState<SellerMapping[]>(initialMappings)
+  const filteredMappings = mappings.filter(m => m.community_id === selectedCommunityId)
+  const [editingMappingId, setEditingMappingId] = useState<string | null>(null)
+  const [editingCategory, setEditingCategory] = useState('')
 
   // Reset form when community changes
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -314,6 +321,7 @@ export default function KsefClient({ allSettings, syncLog: initialLog, initialQu
 
       {/* ── Ustawienia ──────────────────────────────────────────────────────── */}
       {tab === 'ustawienia' && (
+        <div className="space-y-6">
         <div className="bg-white dark:bg-[#1f2937] rounded-2xl shadow p-6 space-y-5">
           <p className="text-sm text-[#6b7280]">
             Konfiguracja KSeF dla: <span className="font-semibold text-[#111827] dark:text-white">{selectedCommunityName}</span>
@@ -420,6 +428,95 @@ export default function KsefClient({ allSettings, syncLog: initialLog, initialQu
               {currentSettings.last_sync_count != null && <p>Dodano do kolejki: <span className="font-medium">{currentSettings.last_sync_count}</span></p>}
             </div>
           )}
+        </div>
+
+        {/* Pamięć kontrahentów */}
+        <div className="bg-white dark:bg-[#1f2937] rounded-2xl shadow p-6 space-y-3">
+          <div>
+            <h2 className="font-semibold text-[#111827] dark:text-white">Zapamiętane kategorie kontrahentów</h2>
+            <p className="text-xs text-[#9ca3af] mt-0.5">
+              Wypełniane automatycznie przy ręcznym imporcie z kolejki. Używane przy auto-imporcie zamiast heurystyki.
+            </p>
+          </div>
+
+          {filteredMappings.length === 0 ? (
+            <p className="text-sm text-[#6b7280]">Brak zapamiętanych kontrahentów. Importuj pierwsze faktury ręcznie — kategorie zostaną zapamiętane.</p>
+          ) : (
+            <div className="overflow-x-auto rounded-xl border border-[#e5e7eb] dark:border-[#374151]">
+              <table className="w-full text-sm">
+                <thead className="bg-[#f9fafb] dark:bg-[#111827]">
+                  <tr>
+                    {['NIP sprzedawcy', 'Nazwa', 'Kategoria', ''].map(h => (
+                      <th key={h} className="px-4 py-2 text-left text-xs font-semibold text-[#6b7280]">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredMappings.map(m => (
+                    <tr key={m.id} className="border-t border-[#e5e7eb] dark:border-[#374151]">
+                      <td className="px-4 py-2 font-mono text-xs text-[#374151] dark:text-[#d1d5db] whitespace-nowrap">{m.seller_nip}</td>
+                      <td className="px-4 py-2 text-[#111827] dark:text-white max-w-[200px] truncate">{m.seller_name ?? '—'}</td>
+                      <td className="px-4 py-2">
+                        {editingMappingId === m.id ? (
+                          <select
+                            value={editingCategory}
+                            onChange={e => setEditingCategory(e.target.value)}
+                            className="text-xs rounded-lg border border-[#e5e7eb] dark:border-[#374151] bg-white dark:bg-[#111827] text-[#111827] dark:text-white px-2 py-1"
+                          >
+                            {CATEGORIES.map(c => (
+                              <option key={c.value} value={c.value}>{c.label}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className="text-xs text-[#374151] dark:text-[#d1d5db]">
+                            {CATEGORIES.find(c => c.value === m.category)?.label ?? m.category}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-2 whitespace-nowrap">
+                        {editingMappingId === m.id ? (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                startTransition(async () => {
+                                  await updateSellerMapping(m.id, editingCategory)
+                                  const updated = await getSellerMappings(selectedCommunityId)
+                                  setMappings(prev => [...prev.filter(x => x.community_id !== selectedCommunityId), ...updated])
+                                  setEditingMappingId(null)
+                                })
+                              }}
+                              className="px-2 py-1 bg-[#0f766e] text-white rounded text-xs"
+                            >Zapisz</button>
+                            <button
+                              onClick={() => setEditingMappingId(null)}
+                              className="px-2 py-1 bg-[#f3f4f6] dark:bg-[#374151] text-[#374151] dark:text-[#d1d5db] rounded text-xs"
+                            >Anuluj</button>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => { setEditingMappingId(m.id); setEditingCategory(m.category) }}
+                              className="px-2 py-1 bg-[#f3f4f6] dark:bg-[#374151] text-[#374151] dark:text-[#d1d5db] rounded text-xs hover:bg-[#e5e7eb]"
+                            >✏️ Edytuj</button>
+                            <button
+                              onClick={() => {
+                                startTransition(async () => {
+                                  await deleteSellerMapping(m.id)
+                                  setMappings(prev => prev.filter(x => x.id !== m.id))
+                                })
+                              }}
+                              className="px-2 py-1 bg-red-50 text-red-600 rounded text-xs hover:bg-red-100"
+                            >🗑</button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
         </div>
       )}
 

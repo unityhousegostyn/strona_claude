@@ -375,6 +375,59 @@ export async function scanKsefDateRange(daysBack: number = 7, communityId: strin
   return { nip: settings.nip, dateFrom: fmt(dateFrom), dateTo: fmt(dateTo), invoices }
 }
 
+// ── Pamięć kategorii sprzedawców ─────────────────────────────────────────────
+
+export interface SellerMapping {
+  id: string
+  community_id: string
+  seller_nip: string
+  seller_name: string | null
+  category: string
+  updated_at: string
+}
+
+export async function getSellerMappings(communityId: string): Promise<SellerMapping[]> {
+  const admin = getSupabaseAdminClient()
+  const { data } = await admin
+    .from('ksef_seller_mapping')
+    .select('*')
+    .eq('community_id', communityId)
+    .order('seller_name', { ascending: true })
+  return (data ?? []) as SellerMapping[]
+}
+
+export async function getAllSellerMappings(): Promise<SellerMapping[]> {
+  const admin = getSupabaseAdminClient()
+  const { data } = await admin
+    .from('ksef_seller_mapping')
+    .select('*')
+    .order('seller_name', { ascending: true })
+  return (data ?? []) as SellerMapping[]
+}
+
+export async function updateSellerMapping(id: string, category: string): Promise<{ error?: string }> {
+  const auth = await requireSuperAdmin()
+  if (auth.error) return { error: auth.error }
+  const admin = getSupabaseAdminClient()
+  const { error } = await admin
+    .from('ksef_seller_mapping')
+    .update({ category, updated_at: new Date().toISOString() })
+    .eq('id', id)
+  if (error) return { error: error.message }
+  revalidatePath('/admin/ksef')
+  return {}
+}
+
+export async function deleteSellerMapping(id: string): Promise<{ error?: string }> {
+  const auth = await requireSuperAdmin()
+  if (auth.error) return { error: auth.error }
+  const admin = getSupabaseAdminClient()
+  const { error } = await admin.from('ksef_seller_mapping').delete().eq('id', id)
+  if (error) return { error: error.message }
+  revalidatePath('/admin/ksef')
+  return {}
+}
+
 // ── Historia synchronizacji ───────────────────────────────────────────────────
 
 export interface SyncLogEntry {
@@ -480,6 +533,17 @@ export async function importQueueItem(
     updated_at: new Date().toISOString(),
   }).eq('id', queueId)
 
+  // Zapamiętaj kategorię dla tego sprzedawcy (pamięć kontrahentów)
+  if (item.seller_nip) {
+    await admin.from('ksef_seller_mapping').upsert({
+      community_id: communityId,
+      seller_nip: item.seller_nip,
+      seller_name: item.seller_name ?? undefined,
+      category,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'community_id,seller_nip' })
+  }
+
   revalidatePath('/admin/ksef')
   revalidatePath('/admin/finanse/koszty')
   return {}
@@ -583,6 +647,16 @@ export async function runKsefSync(communityId: string): Promise<{
       if (c.nip) nipMap.set(c.nip, c.id)
     }
 
+    // Załaduj pamięć kategorii kontrahentów dla tej wspólnoty
+    const { data: sellerMappings } = await admin
+      .from('ksef_seller_mapping')
+      .select('seller_nip, category')
+      .eq('community_id', communityId)
+    const sellerCategoryMap = new Map<string, string>()
+    for (const m of sellerMappings ?? []) {
+      sellerCategoryMap.set(m.seller_nip, m.category)
+    }
+
     const insertErrors: string[] = []
     for (const inv of allInvoices) {
       const ksef_number = inv.kseNumber || null
@@ -597,7 +671,8 @@ export async function runKsefSync(communityId: string): Promise<{
       }
 
       const invCommunityId = nipMap.get(inv.buyerNip) ?? null
-      const category = guessCategory(inv.sellerName)
+      const sellerNipClean = String(inv.sellerNip ?? '').slice(0, 10)
+      const category = sellerCategoryMap.get(sellerNipClean) ?? guessCategory(inv.sellerName)
 
       // Auto-import: gdy włączony i buyer NIP pasuje do NIP wspólnoty
       if (settings.auto_import && inv.buyerNip && inv.buyerNip === settings.nip) {
@@ -643,7 +718,7 @@ export async function runKsefSync(communityId: string): Promise<{
         invoice_date: inv.invoiceDate || null,
         issue_date: inv.issueDate || null,
         seller_name: inv.sellerName || null,
-        seller_nip: String(inv.sellerNip ?? '').slice(0, 10) || null,
+        seller_nip: sellerNipClean || null,
         buyer_nip:  String(inv.buyerNip  ?? '').slice(0, 10) || null,
         net_amount: inv.netAmount,
         vat_amount: inv.vatAmount,

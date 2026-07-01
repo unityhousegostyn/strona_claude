@@ -112,6 +112,16 @@ export async function GET(request: Request) {
       })
       fetched = invoices.length
 
+      // Załaduj pamięć kategorii kontrahentów dla tej wspólnoty
+      const { data: sellerMappings } = await admin
+        .from('ksef_seller_mapping')
+        .select('seller_nip, category')
+        .eq('community_id', settings.community_id)
+      const sellerCategoryMap = new Map<string, string>()
+      for (const m of sellerMappings ?? []) {
+        sellerCategoryMap.set(m.seller_nip, m.category)
+      }
+
       for (const inv of invoices) {
         // Pomiń duplikaty
         if (inv.kseNumber) {
@@ -124,7 +134,8 @@ export async function GET(request: Request) {
         }
 
         const invCommunityId = nipMap.get(inv.buyerNip) ?? null
-        const category = guessCategory(inv.sellerName)
+        const sellerNipClean = String(inv.sellerNip ?? '').slice(0, 10)
+        const category = sellerCategoryMap.get(sellerNipClean) ?? guessCategory(inv.sellerName)
 
         // Auto-import: gdy włączony i faktura jest dla tej wspólnoty
         if (settings.auto_import && inv.buyerNip && inv.buyerNip === settings.nip) {
