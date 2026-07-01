@@ -340,36 +340,49 @@ export async function runKsefSync(): Promise<{
     }
 
     // Przetwórz faktury — dodaj do kolejki (pomiń duplikaty)
+    const insertErrors: string[] = []
     for (const inv of invoices) {
-      // Sprawdź duplikat
-      const { data: dup } = await admin
-        .from('ksef_invoice_queue')
-        .select('id')
-        .eq('ksef_number', inv.kseNumber)
-        .maybeSingle()
+      // Pomiń jeśli brak numeru KSeF (nie możemy sprawdzić duplikatów bez unikalnego klucza)
+      const ksef_number = inv.kseNumber || null
 
-      if (dup) { skipped++; continue }
+      // Sprawdź duplikat tylko jeśli mamy numer KSeF
+      if (ksef_number) {
+        const { data: dup } = await admin
+          .from('ksef_invoice_queue')
+          .select('id')
+          .eq('ksef_number', ksef_number)
+          .maybeSingle()
+        if (dup) { skipped++; continue }
+      }
 
       const communityId = nipMap.get(inv.buyerNip) ?? null
       const suggestedCategory = guessCategory(inv.sellerName)
 
-      await admin.from('ksef_invoice_queue').insert({
-        ksef_number: inv.kseNumber,
+      const { error: insertErr } = await admin.from('ksef_invoice_queue').insert({
+        ksef_number,
         invoice_date: inv.invoiceDate || null,
         issue_date: inv.issueDate || null,
-        seller_name: inv.sellerName,
-        seller_nip: inv.sellerNip,
-        buyer_nip: inv.buyerNip,
+        seller_name: inv.sellerName || null,
+        seller_nip: (inv.sellerNip || '').slice(0, 10) || null,
+        buyer_nip:  (inv.buyerNip  || '').slice(0, 10) || null,
         net_amount: inv.netAmount,
         vat_amount: inv.vatAmount,
         gross_amount: inv.grossAmount,
         suggested_category: suggestedCategory,
-        // Jeśli NIP pasuje do wspólnoty, ustaw ją od razu
         community_id: communityId,
         status: 'pending',
         sync_log_id: logId,
       })
-      imported++
+
+      if (insertErr) {
+        insertErrors.push(`${ksef_number ?? '(brak nr)'}: ${insertErr.message}`)
+      } else {
+        imported++
+      }
+    }
+
+    if (insertErrors.length > 0) {
+      console.error('[KSeF] Błędy insertów:', insertErrors.join('; '))
     }
 
     // Zaktualizuj log i last_sync_at
