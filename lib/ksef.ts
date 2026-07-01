@@ -106,22 +106,44 @@ export async function ksefAuth(
   const base = BASE[env]
 
   // ── Krok 1: challenge ─────────────────────────────────────────────────────
+  // KSeF v2 używa integer enum dla contextIdentifier.type:
+  //   1 = NIP organizacji (dawniej "onip" w v1)
+  //   2 = PESEL
+  // Próbujemy kolejno do pierwszego sukcesu.
   let challengeData: any
-  try {
-    challengeData = await kfetch(`${base}/auth/challenge`, {
-      method: 'POST',
-      body: JSON.stringify({ contextIdentifier: { type: 'onip', identifier: nip } }),
-    })
-  } catch (e: any) {
-    // Jeśli v2 niedostępne, próbuj v1
-    if (e?.message?.includes('404') || e?.message?.includes('502') || e?.message?.includes('503')) {
-      const baseV1 = BASE_V1[env]
-      challengeData = await kfetch(`${baseV1}/online/Session/AuthorisationChallenge`, {
+  const challengeAttempts = [
+    // v2 z integer type
+    { url: `${base}/auth/challenge`,
+      body: { contextIdentifier: { type: 1, identifier: nip } } },
+    // v2 z "nip" string
+    { url: `${base}/auth/challenge`,
+      body: { contextIdentifier: { type: 'nip', identifier: nip } } },
+    // v2 bez contextIdentifier
+    { url: `${base}/auth/challenge`,
+      body: { nip } },
+    // v1 fallback
+    { url: `${BASE_V1[env]}/online/Session/AuthorisationChallenge`,
+      body: { contextIdentifier: { type: 'onip', identifier: nip } } },
+  ]
+
+  let lastChallengeError = ''
+  for (const attempt of challengeAttempts) {
+    try {
+      challengeData = await kfetch(attempt.url, {
         method: 'POST',
-        body: JSON.stringify({ contextIdentifier: { type: 'onip', identifier: nip } }),
+        body: JSON.stringify(attempt.body),
       })
-    } else throw e
+      break // sukces
+    } catch (e: any) {
+      lastChallengeError = e?.message ?? String(e)
+      // Kontynuuj tylko przy błędach walidacji/składni, nie przy auth
+      if (!lastChallengeError.includes('400') && !lastChallengeError.includes('404') &&
+          !lastChallengeError.includes('422') && !lastChallengeError.includes('502')) {
+        throw e
+      }
+    }
   }
+  if (!challengeData) throw new Error(`KSeF /auth/challenge wszystkie próby nieudane. Ostatni błąd: ${lastChallengeError}`)
 
   // Próbujemy wielu możliwych nazw pól (v2 i v1 KSeF używają różnych)
   const challengeKey = pick(challengeData,
@@ -137,16 +159,37 @@ export async function ksefAuth(
   }
 
   // ── Krok 2: uwierzytelnianie tokenem ─────────────────────────────────────
-  const authData = await kfetch(`${base}/auth/ksef-token`, {
-    method: 'POST',
-    body: JSON.stringify({
-      contextIdentifier: { type: 'onip', identifier: nip },
-      authorisationToken: token,
-      challenge: challengeKey,
-      // v1 KSeF używa innej struktury:
-      token: { challenge: challengeKey, value: token },
-    }),
-  })
+  // Próbujemy różnych struktur body (v2 integer type, v2 string, v1)
+  let authData: any
+  const authAttempts = [
+    // v2 — integer type + authorisationToken
+    { url: `${base}/auth/ksef-token`,
+      body: { contextIdentifier: { type: 1, identifier: nip }, authorisationToken: token, challenge: challengeKey } },
+    // v2 — bez contextIdentifier
+    { url: `${base}/auth/ksef-token`,
+      body: { nip, token, challenge: challengeKey } },
+    // v1 — onip string
+    { url: `${BASE_V1[env]}/online/Session/InitToken`,
+      body: { contextIdentifier: { type: 'onip', identifier: nip }, token: { challenge: challengeKey, value: token } } },
+  ]
+
+  let lastAuthError = ''
+  for (const attempt of authAttempts) {
+    try {
+      authData = await kfetch(attempt.url, {
+        method: 'POST',
+        body: JSON.stringify(attempt.body),
+      })
+      break
+    } catch (e: any) {
+      lastAuthError = e?.message ?? String(e)
+      if (!lastAuthError.includes('400') && !lastAuthError.includes('404') &&
+          !lastAuthError.includes('422') && !lastAuthError.includes('502')) {
+        throw e
+      }
+    }
+  }
+  if (!authData) throw new Error(`KSeF /auth/ksef-token wszystkie próby nieudane. Ostatni błąd: ${lastAuthError}`)
 
   const authCode = pick(authData,
     'authCode', 'referenceNumber', 'ReferenceNumber',
