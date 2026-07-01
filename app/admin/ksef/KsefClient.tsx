@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { saveKsefSettings, runKsefSync, importQueueItem, skipQueueItem, getKsefQueue as fetchQueue, diagnoseKsefApi, diagnoseKsefQuery } from './actions'
+import { saveKsefSettings, runKsefSync, importQueueItem, skipQueueItem, restoreQueueItem, getKsefQueue as fetchQueue, diagnoseKsefApi, diagnoseKsefQuery } from './actions'
 import type { KsefSettings, SyncLogEntry, QueueItem } from './actions'
 
 type Tab = 'ustawienia' | 'sync' | 'kolejka'
@@ -195,6 +195,13 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
   function handleSkip(id: string) {
     startTransition(async () => {
       await skipQueueItem(id)
+      loadQueue(queueFilter)
+    })
+  }
+
+  function handleRestore(id: string) {
+    startTransition(async () => {
+      await restoreQueueItem(id)
       loadQueue(queueFilter)
     })
   }
@@ -537,22 +544,32 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
                         </span>
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap">
-                        {item.status === 'pending' && (
-                          <div className="flex gap-2">
+                        <div className="flex gap-2">
+                          {item.status === 'pending' && (
+                            <>
+                              <button
+                                onClick={() => openImport(item)}
+                                className="px-3 py-1 bg-[#0f766e] text-white rounded-lg text-xs font-semibold hover:bg-[#0d6158]"
+                              >
+                                Importuj
+                              </button>
+                              <button
+                                onClick={() => handleSkip(item.id)}
+                                className="px-3 py-1 bg-[#f3f4f6] dark:bg-[#374151] text-[#374151] dark:text-[#d1d5db] rounded-lg text-xs hover:bg-[#e5e7eb]"
+                              >
+                                Pomiń
+                              </button>
+                            </>
+                          )}
+                          {(item.status === 'skipped' || item.status === 'imported') && (
                             <button
-                              onClick={() => openImport(item)}
-                              className="px-3 py-1 bg-[#0f766e] text-white rounded-lg text-xs font-semibold hover:bg-[#0d6158]"
+                              onClick={() => handleRestore(item.id)}
+                              className="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-lg text-xs hover:bg-amber-200"
                             >
-                              Importuj
+                              ↩ Przywróć
                             </button>
-                            <button
-                              onClick={() => handleSkip(item.id)}
-                              className="px-3 py-1 bg-[#f3f4f6] dark:bg-[#374151] text-[#374151] dark:text-[#d1d5db] rounded-lg text-xs hover:bg-[#e5e7eb]"
-                            >
-                              Pomiń
-                            </button>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

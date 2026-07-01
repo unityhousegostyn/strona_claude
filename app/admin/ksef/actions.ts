@@ -210,6 +210,113 @@ export async function saveKsefSettings(data: {
   return {}
 }
 
+// ── Skan konkretnego zakresu dat — do debugowania brakujących faktur ──────────
+
+export async function scanKsefDateRange(daysBack: number = 7): Promise<{
+  error?: string
+  nip?: string
+  dateFrom?: string
+  dateTo?: string
+  invoices: {
+    kseNumber: string
+    invoiceDate: string
+    issueDate: string
+    sellerName: string
+    sellerNip: string
+    buyerNip: string
+    inDatabase: boolean
+    dbStatus?: string
+  }[]
+}> {
+  const auth = await requireSuperAdmin()
+  if (auth.error) return { error: auth.error, invoices: [] }
+
+  const admin = getSupabaseAdminClient()
+  const { data: settings } = await admin.from('ksef_settings').select('*').maybeSingle()
+  if (!settings?.ksef_token || !settings?.nip) return { error: 'Brak konfiguracji KSeF', invoices: [] }
+
+  let accessToken: string
+  try {
+    const a = await ksefAuth(settings.nip, settings.ksef_token, settings.environment)
+    accessToken = a.accessToken
+  } catch (e: any) {
+    return { error: `Auth failed: ${e?.message}`, invoices: [] }
+  }
+
+  const base = settings.environment === 'prod'
+    ? 'https://api.ksef.mf.gov.pl/v2'
+    : 'https://api-test.ksef.mf.gov.pl/v2'
+
+  const dateTo = new Date()
+  const dateFrom = new Date(dateTo)
+  dateFrom.setDate(dateFrom.getDate() - daysBack)
+  const fmt = (d: Date) => d.toISOString().slice(0, 10)
+
+  const subjectTypes = ['Subject1', 'Subject2', 'SubjectAuthorized'] as const
+  const allRaw: any[] = []
+
+  for (const st of subjectTypes) {
+    try {
+      // Użyj pageSize=100 żeby zobaczyć WSZYSTKIE faktury, nie tylko 10
+      const res = await fetch(
+        `${base}/invoices/query/metadata?pageOffset=0&pageSize=100`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}`, Accept: 'application/json' },
+          body: JSON.stringify({ subjectType: st, dateRange: { from: fmt(dateFrom), to: fmt(dateTo), dateType: 'Issue' } }),
+        },
+      )
+      if (!res.ok) continue
+      const json = await res.json()
+      const invoices: any[] = json?.invoices ?? json?.data?.invoices ?? json?.items ?? []
+      for (const inv of invoices) allRaw.push({ ...inv, _subjectType: st })
+    } catch { /* ignore */ }
+  }
+
+  // Deduplikacja po kseNumber / referenceNumber
+  const seen = new Set<string>()
+  const unique = allRaw.filter(inv => {
+    const key = inv.kseNumber ?? inv.ksefNumber ?? inv.referenceNumber ?? Math.random().toString()
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+
+  // Sprawdź które są już w bazie
+  const kseNumbers = unique.map(i => i.kseNumber ?? i.ksefNumber ?? i.referenceNumber ?? '').filter(Boolean)
+  const { data: dbRows } = await admin
+    .from('ksef_invoice_queue')
+    .select('ksef_number, status')
+    .in('ksef_number', kseNumbers.length > 0 ? kseNumbers : ['__none__'])
+
+  const dbMap = new Map<string, string>()
+  for (const row of dbRows ?? []) {
+    if (row.ksef_number) dbMap.set(row.ksef_number, row.status)
+  }
+
+  const invoices = unique.map(inv => {
+    const kseNumber = String(inv.kseNumber ?? inv.ksefNumber ?? inv.referenceNumber ?? '')
+    const status = dbMap.get(kseNumber)
+    return {
+      kseNumber,
+      invoiceDate: String(inv.invoiceDate ?? inv.issuedAt ?? ''),
+      issueDate:   String(inv.issueDate ?? inv.issueDateTime?.slice(0,10) ?? ''),
+      sellerName:  String(inv.sellerName ?? inv.seller?.name ?? ''),
+      sellerNip:   String(inv.sellerNip ?? inv.seller?.identifier ?? ''),
+      buyerNip:    String(inv.buyerNip  ?? inv.buyer?.identifier ?? ''),
+      inDatabase:  dbMap.has(kseNumber),
+      dbStatus:    status,
+    }
+  }).sort((a, b) => (b.invoiceDate || b.issueDate).localeCompare(a.invoiceDate || a.issueDate))
+
+  return {
+    nip: settings.nip,
+    dateFrom: fmt(dateFrom),
+    dateTo: fmt(dateTo),
+    invoices,
+  }
+}
+
 // ── Historia syncronizacji ────────────────────────────────────────────────────
 
 export interface SyncLogEntry {
@@ -336,6 +443,20 @@ export async function skipQueueItem(queueId: string): Promise<{ error?: string }
   return {}
 }
 
+export async function restoreQueueItem(queueId: string): Promise<{ error?: string }> {
+  const auth = await requireSuperAdmin()
+  if (auth.error) return { error: auth.error }
+
+  const admin = getSupabaseAdminClient()
+  await admin.from('ksef_invoice_queue').update({
+    status: 'pending',
+    updated_at: new Date().toISOString(),
+  }).eq('id', queueId)
+
+  revalidatePath('/admin/ksef')
+  return {}
+}
+
 // ── Ręczna synchronizacja ─────────────────────────────────────────────────────
 
 export async function runKsefSync(): Promise<{
@@ -407,7 +528,10 @@ export async function runKsefSync(): Promise<{
       if (windowEnd > dateTo) windowEnd.setTime(dateTo.getTime())
       const chunk = await ksefQueryInvoices(auth2.accessToken, settings.environment, cursor, windowEnd)
       allInvoices.push(...chunk)
-      cursor.setDate(cursor.getDate() + MAX_WINDOW_DAYS + 1)
+      // Cofnij się o 1 dzień względem końca okna — jeśli KSeF traktuje 'from' jako exclusive,
+      // faktura z ostatniego dnia poprzedniego okna nie wypadnie w luce.
+      // Duplikaty obsługuje check przed insertem.
+      cursor.setDate(cursor.getDate() + MAX_WINDOW_DAYS)
     }
 
     const invoices = allInvoices
