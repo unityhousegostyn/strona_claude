@@ -36,20 +36,16 @@ export async function diagnoseKsefApi(env: 'prod' | 'test' = 'prod'): Promise<{
   const targets: Target[] = [
     // ── Health ──
     { url: `${base}/`, method: 'GET' },
-    // ── KROK 1: challenge ──
-    { url: `${base}/auth/challenge`, method: 'POST',    body: JSON.stringify({ contextIdentifier: { type: 1, identifier: dummyNip } }) },
-    // ── KROK 2: ksef-token z type: 'Nip' (STRING) ──
-    { url: `${base}/auth/ksef-token`, method: 'POST',   body: dummyBodyNip },
-    { url: `${base}/auth/ksef-token`, method: 'POST',   body: dummyBodyInt },
-    // ── KROK 3: GET /auth/token/{referenceNumber} (path param) ──
-    { url: `${base}/auth/token/${qRef}`,                method: 'GET' },
-    { url: `${base}/auth/token?referenceNumber=${qRef}`,method: 'GET', headers: { Accept: 'application/json' } },
-    { url: `${base}/auth/session/${qRef}`,              method: 'GET' },
-    // ── Starsze warianty (potwierdzenie 405/401) ──
-    { url: `${base}/auth/token?challenge=${qCh}&nip=${qNip}`, method: 'GET', headers: { Authorization: `Bearer ${dummyToken}` } },
-    { url: `${base}/auth/token`,  method: 'POST', body: dummyBodyNip },
-    // ── OPTIONS ──
-    { url: `${base}/auth/challenge`, method: 'OPTIONS' },
+    // ── KROK 1: challenge (bez body — per oficjalne docs) ──
+    { url: `${base}/auth/challenge`, method: 'POST' },
+    // ── KROK 2: certyfikaty klucza publicznego (kluczowe dla szyfrowania) ──
+    { url: `${base}/security/public-key-certificates`, method: 'GET' },
+    // ── KROK 4: ksef-token z type: 'Nip' ──
+    { url: `${base}/auth/ksef-token`, method: 'POST', body: JSON.stringify({ challenge: dummyChallenge, contextIdentifier: { type: 'Nip', value: dummyNip }, encryptedToken: 'dummyEncrypted==', publicKeyId: 'dummyKeyId' }) },
+    // ── KROK 5: status auth ──
+    { url: `${base}/auth/${qRef}`, method: 'GET', headers: { Authorization: `Bearer ${dummyToken}` } },
+    // ── KROK 6: redeem ──
+    { url: `${base}/auth/token/redeem`, method: 'POST', headers: { Authorization: `Bearer ${dummyToken}` } },
   ]
 
   const results = await Promise.all(targets.map(async t => {

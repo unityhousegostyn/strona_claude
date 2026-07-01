@@ -77,7 +77,7 @@ async function kfetch(url: string, opts: RequestInit & { headers?: Record<string
   })
   const body = await res.text()
   if (!res.ok) {
-    throw new Error(`KSeF HTTP ${res.status}: ${body.slice(0, 400)}`)
+    throw new Error(`KSeF HTTP ${res.status} [${url}]: ${body.slice(0, 400)}`)
   }
   // Jeśli zwróciło HTML zamiast JSON (strona błędu portalu)
   if (body.trimStart().startsWith('<')) {
