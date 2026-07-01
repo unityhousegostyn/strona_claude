@@ -156,15 +156,24 @@ export async function ksefAuth(
   // ── Krok 2: uwierzytelnianie tokenem ─────────────────────────────────────
   // Próbujemy różnych struktur body (v2 integer type, v2 string, v1)
   let authData: any
+  // Krok 2: wysłanie tokena wraz z challenge.
+  // W v2 endpoint może się nazywać /auth/token, /auth/init-token, /auth/authorise
+  // — próbujemy kolejno.
+  const tokenBody1 = { contextIdentifier: { type: 1, identifier: nip }, authorisationToken: token, challenge: challengeKey }
+  const tokenBody2 = { contextIdentifier: { type: 'Onip', identifier: nip }, authorisationToken: token, challenge: challengeKey }
+  const tokenBodySimple = { nip, authorisationToken: token, challenge: challengeKey }
+  const tokenBodyV1 = { contextIdentifier: { type: 'onip', identifier: nip }, token: { challenge: challengeKey, value: token } }
+
   const authAttempts = [
-    { url: `${base}/auth/ksef-token`,
-      body: { contextIdentifier: { type: 1, identifier: nip }, authorisationToken: token, challenge: challengeKey } },
-    { url: `${base}/auth/ksef-token`,
-      body: { contextIdentifier: { type: 'Onip', identifier: nip }, authorisationToken: token, challenge: challengeKey } },
-    { url: `${base}/auth/ksef-token`,
-      body: { nip, authorisationToken: token, challenge: challengeKey } },
-    { url: `${BASE_V1[env]}/online/Session/InitToken`,
-      body: { contextIdentifier: { type: 'onip', identifier: nip }, token: { challenge: challengeKey, value: token } } },
+    // v2 — najbardziej prawdopodobne nazwy endpointu
+    { url: `${base}/auth/token`,          body: tokenBody1 },
+    { url: `${base}/auth/init-token`,     body: tokenBody1 },
+    { url: `${base}/auth/ksef-token`,     body: tokenBody1 },
+    { url: `${base}/auth/authorise`,      body: tokenBody1 },
+    { url: `${base}/auth/token`,          body: tokenBody2 },
+    { url: `${base}/auth/token`,          body: tokenBodySimple },
+    // v1 fallback
+    { url: `${BASE_V1[env]}/online/Session/InitToken`, body: tokenBodyV1 },
   ]
 
   let lastAuthError = ''
@@ -178,25 +187,56 @@ export async function ksefAuth(
       if (!isHttpOrParseError) throw e
     }
   }
-  if (!authData) throw new Error(`KSeF /auth/ksef-token wszystkie próby nieudane. Ostatni błąd: ${lastAuthError}`)
+  if (!authData) throw new Error(`KSeF auth/token wszystkie próby nieudane. Ostatni błąd: ${lastAuthError}`)
+
+  // Sprawdź czy krok 2 zwrócił od razu accessToken (niektóre v2 API łączą kroki 2+3)
+  const directAccessToken = pick(authData, 'accessToken', 'access_token', 'sessionToken')
+  if (directAccessToken) {
+    return {
+      accessToken: directAccessToken,
+      refreshToken: pick(authData, 'refreshToken', 'refresh_token') ?? '',
+      expiresAt: pick(authData, 'tokenExpiresAt', 'expiresAt', 'expires_at') ?? '',
+    }
+  }
 
   const authCode = pick(authData,
-    'authCode', 'referenceNumber', 'ReferenceNumber',
-    'AuthCode', 'sessionToken', 'token',
+    'authCode', 'AuthCode',
+    'referenceNumber', 'ReferenceNumber',
+    'sessionToken', 'token',
   )
 
   if (!authCode) {
     throw new Error(
-      `Brak authCode w odpowiedzi KSeF /auth/ksef-token. ` +
+      `Brak authCode w odpowiedzi KSeF auth/token. ` +
       `Odpowiedź API: ${JSON.stringify(authData).slice(0, 500)}`,
     )
   }
 
-  // ── Krok 3: wymiana na accessToken ────────────────────────────────────────
-  const tokenData = await kfetch(`${base}/auth/token/redeem`, {
-    method: 'POST',
-    body: JSON.stringify({ authCode }),
-  })
+  // ── Krok 3: wymiana authCode na accessToken ───────────────────────────────
+  // W v2 endpoint redeem może być w innym miejscu
+  let tokenData: any
+  const redeemAttempts = [
+    { url: `${base}/auth/token/redeem`, body: { authCode } },
+    { url: `${base}/auth/redeem`,       body: { authCode } },
+    { url: `${base}/auth/session`,      body: { authCode } },
+    { url: `${BASE_V1[env]}/online/Session/Status/${authCode}`, body: null, method: 'GET' as const },
+  ]
+
+  let lastRedeemError = ''
+  for (const attempt of redeemAttempts) {
+    try {
+      tokenData = await kfetch(attempt.url, {
+        method: attempt.method ?? 'POST',
+        body: attempt.body != null ? JSON.stringify(attempt.body) : undefined,
+      })
+      break
+    } catch (e: any) {
+      lastRedeemError = e?.message ?? String(e)
+      const isHttpOrParseError = /KSeF HTTP|zwrócił HTML|JSON/.test(lastRedeemError)
+      if (!isHttpOrParseError) throw e
+    }
+  }
+  if (!tokenData) throw new Error(`KSeF auth/token/redeem wszystkie próby nieudane. Ostatni błąd: ${lastRedeemError}`)
 
   const d = tokenData?.data ?? tokenData
   const accessToken =
@@ -204,7 +244,6 @@ export async function ksefAuth(
     d?.sessionToken?.token ??
     d?.token ??
     d?.access_token ??
-    // v1 KSeF: status endpoint zamiast redeem
     d?.sessionToken
 
   const refreshToken: string = d?.refreshToken ?? d?.refresh_token ?? ''
