@@ -300,28 +300,36 @@ export async function runKsefSync(): Promise<{
     // Uwierzytelnienie
     const auth2 = await ksefAuth(settings.nip, settings.ksef_token, settings.environment)
 
-    // Zakres dat: od last_sync_at lub sync_from_date, do teraz.
-    // WAŻNE: sync_from_date jest DOLNĄ GRANICĄ — nigdy nie cofamy się wcześniej.
-    // Bug: każdy sync (nawet 0 faktur) ustawiał last_sync_at = teraz, więc
-    // następny sync pytał tylko o faktury z ostatniej godziny, ignorując sync_from_date.
+    // Zakres dat: sync_from_date jako dolna granica, teraz jako górna.
+    // API KSeF v2 ogranicza zapytanie do max 3 miesięcy — dzielimy na okna 90-dniowe.
     const dateTo = new Date()
     const syncFromDate = settings.sync_from_date ? new Date(settings.sync_from_date) : null
-    let dateFrom: Date
+    let windowStart: Date
     if (settings.last_sync_at) {
       const fromLastSync = new Date(settings.last_sync_at)
       fromLastSync.setHours(fromLastSync.getHours() - 1)
-      // Użyj wcześniejszej z dat: nie cofaj się dalej niż sync_from_date
-      // ale też nie "skracaj" okna jeśli last_sync nie miał pełnego zakresu
-      dateFrom = syncFromDate && syncFromDate < fromLastSync ? syncFromDate : fromLastSync
+      windowStart = syncFromDate && syncFromDate < fromLastSync ? syncFromDate : fromLastSync
     } else if (syncFromDate) {
-      dateFrom = syncFromDate
+      windowStart = syncFromDate
     } else {
-      dateFrom = new Date()
-      dateFrom.setDate(dateFrom.getDate() - 30)
+      windowStart = new Date()
+      windowStart.setDate(windowStart.getDate() - 30)
     }
 
-    // Pobierz listę faktur
-    const invoices = await ksefQueryInvoices(auth2.accessToken, settings.environment, dateFrom, dateTo)
+    // Podziel zakres na okna max 90 dni (limit API KSeF)
+    const MAX_WINDOW_DAYS = 89
+    const allInvoices: Awaited<ReturnType<typeof ksefQueryInvoices>> = []
+    let cursor = new Date(windowStart)
+    while (cursor < dateTo) {
+      const windowEnd = new Date(cursor)
+      windowEnd.setDate(windowEnd.getDate() + MAX_WINDOW_DAYS)
+      if (windowEnd > dateTo) windowEnd.setTime(dateTo.getTime())
+      const chunk = await ksefQueryInvoices(auth2.accessToken, settings.environment, cursor, windowEnd)
+      allInvoices.push(...chunk)
+      cursor.setDate(cursor.getDate() + MAX_WINDOW_DAYS + 1)
+    }
+
+    const invoices = allInvoices
     fetched = invoices.length
 
     // Pobierz listę NIP-ów wspólnot dla automatycznego dopasowania
