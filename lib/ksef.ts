@@ -2,17 +2,29 @@
  * Klient KSeF API 2.0 — Krajowy System e-Faktur
  *
  * Dokumentacja oficjalna MF:
- *   https://api.ksef.mf.gov.pl/docs/v2          (produkcja)
- *   https://api-test.ksef.mf.gov.pl/docs/v2     (testy)
  *   https://github.com/CIRFMF/ksef-docs          (przewodnik + scenariusze)
+ *   https://api-test.ksef.mf.gov.pl/docs/v2      (Swagger test)
  *
- * Flow uwierzytelniania tokenem KSeF:
- *   1. POST /auth/challenge              → challengeKey
- *   2. POST /auth/ksef-token             → authCode
- *   3. POST /auth/token/redeem           → accessToken + refreshToken
+ * Flow uwierzytelniania tokenem KSeF v2 (ZWERYFIKOWANY z oficjalną dokumentacją):
+ *   1. POST /auth/challenge
+ *        → {challenge, timestampMs}
+ *   2. GET /security/public-key-certificates
+ *        → certyfikat X.509 (usage: KsefTokenEncryption)
+ *   3. Szyfrowanie: RSA-OAEP SHA-256( "{ksefToken}|{timestampMs}", klucz_publiczny_KSeF )
+ *        → Base64(encryptedToken)
+ *   4. POST /auth/ksef-token
+ *        body: {challenge, contextIdentifier: {type:"Nip", value: nip}, encryptedToken, publicKeyId}
+ *        → {authenticationToken: {token: "JWT"}, referenceNumber}
+ *   5. GET /auth/{referenceNumber}
+ *        header: Authorization: Bearer {authenticationToken.token}
+ *        → poll aż status ≠ Processing
+ *   6. POST /auth/token/redeem
+ *        header: Authorization: Bearer {authenticationToken.token}
+ *        → {accessToken: "JWT", refreshToken}
  *
  * UWAGA: ksef_token to token generowany przez użytkownika w portalu KSeF
- * (Ustawienia → Tokeny). Jest to ciąg znaków, nie certyfikat.
+ * (Ustawienia → Tokeny). Jest to ciąg znaków (tajny klucz), nie certyfikat X.509.
+ * Przed wysłaniem musi być zaszyfrowany kluczem publicznym KSeF.
  */
 
 export type KsefEnvironment = 'prod' | 'test'
@@ -59,11 +71,12 @@ export interface KsefAuthResult {
 
 async function kfetch(url: string, opts: RequestInit & { headers?: Record<string, string> } = {}): Promise<any> {
   const isGet = !opts.method || opts.method === 'GET'
+  const hasBody = opts.body !== undefined && opts.body !== null
   const res = await fetch(url, {
     ...opts,
     headers: {
-      // GET nie wysyła Content-Type — unikamy problemów z 415 Unsupported Media Type
-      ...(isGet ? {} : { 'Content-Type': 'application/json' }),
+      // Dodaj Content-Type tylko gdy wysyłamy body (nie dla GET, nie dla POST bez body)
+      ...(!isGet && hasBody ? { 'Content-Type': 'application/json' } : {}),
       'Accept': 'application/json',
       ...(opts.headers ?? {}),
     },
@@ -93,17 +106,12 @@ function pick(obj: any, ...keys: string[]): string | undefined {
 }
 
 /**
- * Uwierzytelnianie tokenem KSeF (bez certyfikatu kwalifikowanego).
- * Token generowany w portalu KSeF → Ustawienia → Tokeny API.
+ * Uwierzytelnianie tokenem KSeF — ZWERYFIKOWANY flow z oficjalnej dokumentacji MF.
+ * Źródło: https://github.com/CIRFMF/ksef-docs/blob/main/uwierzytelnianie.md
  *
- * Flow (v2):
- *   POST /auth/challenge        → challengeKey / challenge / referenceNumber
- *   POST /auth/ksef-token       → authCode / referenceNumber
- *   POST /auth/token/redeem     → accessToken
- *
- * Przy błędzie "Brak X w odpowiedzi", sprawdź raw response w komunikacie
- * błędu i zaktualizuj nazwy pól wg aktualnego Swaggera:
- *   https://api.ksef.mf.gov.pl/api/v2/docs
+ * KRYTYCZNE: ksef_token MUSI być zaszyfrowany kluczem publicznym KSeF
+ * algorytmem RSA-OAEP SHA-256 PRZED wysłaniem do API!
+ * Format przed szyfrowaniem: "{ksefToken}|{timestampMs}"
  */
 export async function ksefAuth(
   nip: string,
@@ -112,179 +120,137 @@ export async function ksefAuth(
 ): Promise<KsefAuthResult> {
   const base = BASE[env]
 
-  // ── Krok 1: challenge ─────────────────────────────────────────────────────
-  // KSeF v2 używa integer enum dla contextIdentifier.type:
-  //   1 = NIP organizacji (dawniej "onip" w v1)
-  //   2 = PESEL
-  // Próbujemy kolejno do pierwszego sukcesu.
-  let challengeData: any
-  // Kolejne próby z różnymi wariantami body (v2 różne enum types, v1)
-  // .NET enum AuthenticationContextIdentifierType — próbujemy: int 1, "Onip" (PascalCase), "onip", "nip"
-  const challengeAttempts = [
-    { url: `${base}/auth/challenge`, body: { contextIdentifier: { type: 1, identifier: nip } } },
-    { url: `${base}/auth/challenge`, body: { contextIdentifier: { type: 'Onip', identifier: nip } } },
-    { url: `${base}/auth/challenge`, body: { contextIdentifier: { type: 2, identifier: nip } } },
-    { url: `${base}/auth/challenge`, body: {} },
-    { url: `${BASE_V1[env]}/online/Session/AuthorisationChallenge`, body: { contextIdentifier: { type: 'onip', identifier: nip } } },
-  ]
+  // ── Krok 1: POST /auth/challenge → {challenge, timestampMs} ──────────────
+  // Challenge jest niezależne od NIP — nie wymaga body (lub puste {})
+  const challengeData = await kfetch(`${base}/auth/challenge`, {
+    method: 'POST',
+    body: JSON.stringify({}),
+  })
 
-  let lastChallengeError = ''
-  for (const attempt of challengeAttempts) {
-    try {
-      challengeData = await kfetch(attempt.url, { method: 'POST', body: JSON.stringify(attempt.body) })
-      break // sukces — mamy challengeData
-    } catch (e: any) {
-      lastChallengeError = e?.message ?? String(e)
-      // Kontynuuj próby dla wszystkich błędów HTTP/parsowania
-      // Przerywaj tylko dla błędów sieciowych (nie HTTP)
-      const isHttpOrParseError = /KSeF HTTP|zwrócił HTML|JSON/.test(lastChallengeError)
-      if (!isHttpOrParseError) throw e
-    }
+  const challenge: string = challengeData?.challenge ?? challengeData?.Challenge
+  const timestampMs: number = challengeData?.timestampMs ?? challengeData?.TimestampMs
+                             ?? new Date(challengeData?.timestamp ?? Date.now()).getTime()
+
+  if (!challenge) {
+    throw new Error(
+      `Brak pola 'challenge' w odpowiedzi KSeF /auth/challenge. ` +
+      `Odpowiedź: ${JSON.stringify(challengeData).slice(0, 400)}`,
+    )
   }
-  if (!challengeData) throw new Error(`KSeF /auth/challenge — wszystkie próby nieudane. Ostatni błąd: ${lastChallengeError}`)
 
-  // Próbujemy wielu możliwych nazw pól (v2 i v1 KSeF używają różnych)
-  const challengeKey = pick(challengeData,
-    'challengeKey', 'challenge', 'referenceNumber',
-    'Challenge', 'ChallengeKey', 'ReferenceNumber',
+  // ── Krok 2: GET /security/public-key-certificates → klucz publiczny KSeF ─
+  // Wybierz certyfikat usage=KsefTokenEncryption z najpóźniejszym validFrom
+  const certsRes = await kfetch(`${base}/security/public-key-certificates`, { method: 'GET' })
+  const certs: any[] = Array.isArray(certsRes)
+    ? certsRes
+    : (certsRes?.certificates ?? certsRes?.data ?? certsRes?.items ?? [])
+
+  const encCert = certs
+    .filter((c: any) => {
+      const u = c?.usage
+      return Array.isArray(u) ? u.includes('KsefTokenEncryption') : u === 'KsefTokenEncryption'
+    })
+    .sort((a: any, b: any) =>
+      new Date(b.validFrom ?? 0).getTime() - new Date(a.validFrom ?? 0).getTime(),
+    )[0]
+
+  if (!encCert) {
+    throw new Error(
+      `Brak certyfikatu KsefTokenEncryption w /security/public-key-certificates. ` +
+      `Odpowiedź: ${JSON.stringify(certsRes).slice(0, 400)}`,
+    )
+  }
+
+  // ── Krok 3: szyfrowanie tokena RSA-OAEP SHA-256 ───────────────────────────
+  // Format: "{ksefToken}|{timestampMs}" → szyfrowanie → Base64
+  const { X509Certificate, publicEncrypt, constants: C } = await import('crypto')
+
+  const certDer = Buffer.from(encCert.certificate, 'base64')
+  const x509 = new X509Certificate(certDer)
+  const encryptedBuf = publicEncrypt(
+    {
+      key: x509.publicKey,
+      padding: C.RSA_PKCS1_OAEP_PADDING,
+      oaepHash: 'sha256',
+    },
+    Buffer.from(`${token}|${timestampMs}`, 'utf8'),
   )
+  const encryptedToken = encryptedBuf.toString('base64')
 
-  if (!challengeKey) {
+  // ── Krok 4: POST /auth/ksef-token ─────────────────────────────────────────
+  // Wysyłamy zaszyfrowany token + NIP + challenge + publicKeyId
+  // contextIdentifier.type: "Nip" (string enum, nie integer!)
+  const ksefTokenRes = await kfetch(`${base}/auth/ksef-token`, {
+    method: 'POST',
+    body: JSON.stringify({
+      challenge,
+      contextIdentifier: { type: 'Nip', value: nip },
+      encryptedToken,
+      publicKeyId: encCert.publicKeyId,
+    }),
+  })
+
+  // Odpowiedź: {authenticationToken: {token: "JWT"}, referenceNumber: "..."}
+  const authJwt: string =
+    ksefTokenRes?.authenticationToken?.token ??
+    ksefTokenRes?.authentication_token?.token ??
+    ksefTokenRes?.authToken?.token
+
+  const refNum: string =
+    ksefTokenRes?.referenceNumber ??
+    ksefTokenRes?.sessionToken?.referenceNumber
+
+  if (!authJwt) {
     throw new Error(
-      `Brak challenge w odpowiedzi KSeF /auth/challenge. ` +
-      `Odpowiedź API: ${JSON.stringify(challengeData).slice(0, 500)}`,
+      `Brak authenticationToken w odpowiedzi /auth/ksef-token. ` +
+      `Odpowiedź: ${JSON.stringify(ksefTokenRes).slice(0, 500)}`,
     )
   }
 
-  // ── Krok 2: POST /auth/ksef-token ────────────────────────────────────────
-  // Diagnostyka wykazała:
-  //   POST /auth/token     → 405 [Allow: GET]  (to endpoint do POBIERANIA tokena)
-  //   POST /auth/ksef-token → 400 JSON          (endpoint istnieje, błąd: zły typ)
-  //   GET  /auth/token?... → 401 JSON           (endpoint istnieje, zła autentykacja)
-  //
-  // Właściwy flow KSeF v2:
-  //   1. POST /auth/challenge → {challenge}
-  //   2. POST /auth/ksef-token z type: 'Nip' → {sessionToken: {referenceNumber}}
-  //   3. GET  /auth/token/{referenceNumber}  → {sessionToken: {token: "ACCESS_TOKEN"}}
-  //
-  // UWAGA: type musi być STRING "Nip", nie integer 1 (odróżnić od /auth/challenge!)
-
-  // Warianty type dla /auth/ksef-token — próbujemy kolejno:
-  const kseTokenTypes = ['Nip', 'Onip', 'OnipType', 'nip', 'onip', 1, 2]
-
-  let ksefTokenResponse: any
-  let lastKsefTokenError = ''
-
-  for (const t of kseTokenTypes) {
-    try {
-      ksefTokenResponse = await kfetch(`${base}/auth/ksef-token`, {
-        method: 'POST',
-        body: JSON.stringify({
-          // WAŻNE: pole to 'value', NIE 'identifier' (błąd diagnostyki: "contextIdentifier.value must not be empty")
-          contextIdentifier: { type: t, value: nip },
-          authorisationToken: token,
-          challenge: challengeKey,
-        }),
-      })
-      break
-    } catch (e: any) {
-      lastKsefTokenError = e?.message ?? String(e)
-      if (!/KSeF HTTP|zwrócił HTML|JSON/.test(lastKsefTokenError)) throw e
-    }
-  }
-
-  if (!ksefTokenResponse) {
-    throw new Error(`KSeF /auth/ksef-token wszystkie próby nieudane. Ostatni błąd: ${lastKsefTokenError}`)
-  }
-
-  // Sprawdź czy krok 2 zwrócił od razu accessToken (flow 2-krokowy)
-  const directToken =
-    ksefTokenResponse?.accessToken ??
-    ksefTokenResponse?.access_token ??
-    ksefTokenResponse?.sessionToken?.token ??
-    ksefTokenResponse?.data?.sessionToken?.token
-
-  if (directToken) {
-    const s = ksefTokenResponse?.sessionToken ?? ksefTokenResponse?.data?.sessionToken ?? ksefTokenResponse
-    return {
-      accessToken: String(directToken),
-      refreshToken: s?.refreshToken ?? s?.refresh_token ?? '',
-      expiresAt: s?.tokenExpiresAt ?? s?.expiresAt ?? s?.expires_at ?? '',
-    }
-  }
-
-  // Pobierz referenceNumber z odpowiedzi /auth/ksef-token
-  const referenceNumber: string | undefined =
-    ksefTokenResponse?.sessionToken?.referenceNumber ??
-    ksefTokenResponse?.data?.sessionToken?.referenceNumber ??
-    ksefTokenResponse?.referenceNumber ??
-    ksefTokenResponse?.data?.referenceNumber ??
-    pick(ksefTokenResponse, 'referenceNumber', 'ReferenceNumber', 'authCode', 'AuthCode')
-
-  if (!referenceNumber) {
-    throw new Error(
-      `Brak referenceNumber w odpowiedzi KSeF /auth/ksef-token. ` +
-      `Odpowiedź API: ${JSON.stringify(ksefTokenResponse).slice(0, 500)}`,
-    )
-  }
-
-  // ── Krok 3: GET /auth/token/{referenceNumber} ─────────────────────────────
-  // Endpoint /auth/token akceptuje GET (POST → 405) — pobieramy sesję po referenceNumber.
-  // Może wymagać krótkiego poll (status = Processing → ponów).
-
-  let tokenData: any
-  let lastTokenError = ''
-
-  // DIAGNOZA: GET /auth/token/{ref} → 404 (path param nie istnieje!)
-  //           GET /auth/token?referenceNumber={ref} → 401 JSON (poprawny format!)
-  const tokenEndpoints = [
-    `${base}/auth/token?referenceNumber=${encodeURIComponent(referenceNumber)}`,
-    `${base}/auth/token?reference=${encodeURIComponent(referenceNumber)}`,
-    `${base}/auth/token?authCode=${encodeURIComponent(referenceNumber)}`,
-    `${BASE_V1[env]}/online/Session/Status/${encodeURIComponent(referenceNumber)}`,
-  ]
-
-  // Spróbuj 3 razy dla każdego endpointu (polling — API może być async)
-  for (const url of tokenEndpoints) {
-    for (let attempt = 0; attempt < 3; attempt++) {
+  // ── Krok 5: poll GET /auth/{referenceNumber} ──────────────────────────────
+  // Uwierzytelnianie jest asynchroniczne — odpytujemy do skutku.
+  // Endpoint: GET /auth/{referenceNumber} + Authorization: Bearer {authenticationToken}
+  if (refNum) {
+    for (let i = 0; i < 15; i++) {
       try {
-        const res = await kfetch(url, { method: 'GET' })
-        // Sprawdź czy status = "Processing" (trzeba poczekać)
-        const status = res?.status ?? res?.processingCode ?? res?.sessionToken?.processingCode
-        if (String(status).toLowerCase() === 'processing' || status === 202) {
-          await new Promise(r => setTimeout(r, 1500))
-          continue
-        }
-        tokenData = res
-        break
-      } catch (e: any) {
-        lastTokenError = e?.message ?? String(e)
-        if (!/KSeF HTTP|zwrócił HTML|JSON/.test(lastTokenError)) throw e
-        break // przejdź do kolejnego endpointu
+        const statusRes = await kfetch(`${base}/auth/${encodeURIComponent(refNum)}`, {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${authJwt}` },
+        })
+        const code = String(statusRes?.processingCode ?? statusRes?.status ?? statusRes?.code ?? '')
+        const codeLower = code.toLowerCase()
+        // Zakończ poll gdy status wskazuje sukces lub nieznany (nie Processing/Pending)
+        if (codeLower !== 'processing' && codeLower !== 'pending' && code !== '202') break
+      } catch {
+        // Poll może na początku zwrócić błąd — kontynuuj
+        if (i >= 5) break
       }
+      await new Promise(r => setTimeout(r, 1500))
     }
-    if (tokenData) break
   }
 
-  if (!tokenData) {
-    throw new Error(`KSeF GET /auth/token/{ref} wszystkie próby nieudane. Ostatni błąd: ${lastTokenError}`)
-  }
+  // ── Krok 6: POST /auth/token/redeem → {accessToken, refreshToken} ─────────
+  // Wymień jednorazowo authenticationToken na docelowy accessToken JWT.
+  // Authorization: Bearer {authenticationToken.token}
+  const redeemRes = await kfetch(`${base}/auth/token/redeem`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${authJwt}` },
+    // brak body — autentykacja przez header
+  })
 
-  const d = tokenData?.data ?? tokenData
   const accessToken =
-    d?.sessionToken?.token ??
-    d?.accessToken ??
-    d?.token ??
-    d?.access_token ??
-    d?.sessionToken
+    redeemRes?.accessToken ??
+    redeemRes?.access_token ??
+    redeemRes?.sessionToken?.token ??
+    redeemRes?.token
 
-  const refreshToken: string = d?.sessionToken?.refreshToken ?? d?.refreshToken ?? d?.refresh_token ?? ''
-  const expiresAt: string = d?.sessionToken?.tokenExpiresAt ?? d?.tokenExpiresAt ?? d?.expiresAt ?? d?.expires_at ?? ''
+  const refreshToken: string = redeemRes?.refreshToken ?? redeemRes?.refresh_token ?? ''
+  const expiresAt: string = redeemRes?.expiresAt ?? redeemRes?.tokenExpiresAt ?? ''
 
   if (!accessToken) {
     throw new Error(
-      `Brak accessToken w odpowiedzi KSeF GET /auth/token/{ref}. ` +
-      `Odpowiedź API: ${JSON.stringify(tokenData).slice(0, 500)}`,
+      `Brak accessToken w odpowiedzi POST /auth/token/redeem. ` +
+      `Odpowiedź: ${JSON.stringify(redeemRes).slice(0, 500)}`,
     )
   }
 
