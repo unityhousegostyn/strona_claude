@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { saveKsefSettings, runKsefSync, importQueueItem, skipQueueItem, restoreQueueItem, getKsefQueue as fetchQueue, diagnoseKsefApi, diagnoseKsefQuery } from './actions'
+import { saveKsefSettings, runKsefSync, importQueueItem, skipQueueItem, restoreQueueItem, refreshInvoiceNumbers, getKsefQueue as fetchQueue, diagnoseKsefApi, diagnoseKsefQuery } from './actions'
 import type { KsefSettings, SyncLogEntry, QueueItem } from './actions'
 
 type Tab = 'ustawienia' | 'sync' | 'kolejka'
@@ -90,6 +90,8 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
   const [diagLoading, setDiagLoading] = useState(false)
   const [queryDiag, setQueryDiag] = useState<Awaited<ReturnType<typeof diagnoseKsefQuery>> | null>(null)
   const [queryDiagLoading, setQueryDiagLoading] = useState(false)
+  const [refreshMsg, setRefreshMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
 
   function handleDiagnose() {
     setDiagLoading(true)
@@ -108,6 +110,22 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
       const res = await diagnoseKsefQuery()
       setQueryDiag(res)
       setQueryDiagLoading(false)
+    })
+  }
+
+  function handleRefreshNumbers() {
+    setRefreshing(true)
+    setRefreshMsg(null)
+    startTransition(async () => {
+      const res = await refreshInvoiceNumbers()
+      if (res.error) {
+        setRefreshMsg({ ok: false, text: res.error })
+      } else {
+        setRefreshMsg({ ok: true, text: `Uzupełniono ${res.updated} numerów faktur (pominięto ${res.skipped} bez dopasowania).` })
+        const { items } = await fetchQueue(queueFilter)
+        setQueue(items)
+      }
+      setRefreshing(false)
     })
   }
 
@@ -380,7 +398,20 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
               >
                 {queryDiagLoading ? '⏳ Sprawdzam…' : '🧪 Ile faktur per zapytanie?'}
               </button>
+              <button
+                onClick={handleRefreshNumbers}
+                disabled={isPending || refreshing}
+                className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-lg text-sm hover:bg-blue-200 disabled:opacity-50"
+              >
+                {refreshing ? '⏳ Uzupełniam…' : '🔢 Uzupełnij numery faktur'}
+              </button>
             </div>
+
+            {refreshMsg && (
+              <p className={`text-sm px-3 py-2 rounded-lg ${refreshMsg.ok ? 'bg-blue-50 text-blue-700' : 'bg-red-50 text-red-700'}`}>
+                {refreshMsg.text}
+              </p>
+            )}
 
             {/* Wyniki diagnostyki zapytań */}
             {queryDiag && (

@@ -217,6 +217,69 @@ export async function saveKsefSettings(data: {
   return {}
 }
 
+// ── Uzupełnij invoice_number dla istniejących wierszy w kolejce ───────────────
+
+export async function refreshInvoiceNumbers(): Promise<{
+  error?: string
+  updated?: number
+  skipped?: number
+}> {
+  const auth = await requireSuperAdmin()
+  if (auth.error) return { error: auth.error }
+
+  const admin = getSupabaseAdminClient()
+  const { data: settings } = await admin.from('ksef_settings').select('*').maybeSingle()
+  if (!settings?.ksef_token || !settings?.nip) return { error: 'Brak konfiguracji KSeF' }
+
+  // Pobierz wiersze bez invoice_number ale z ksef_number
+  const { data: rows } = await admin
+    .from('ksef_invoice_queue')
+    .select('id, ksef_number')
+    .is('invoice_number', null)
+    .not('ksef_number', 'is', null)
+
+  if (!rows?.length) return { updated: 0, skipped: 0 }
+
+  let accessToken: string
+  try {
+    const a = await ksefAuth(settings.nip, settings.ksef_token, settings.environment)
+    accessToken = a.accessToken
+  } catch (e: any) {
+    return { error: `Auth failed: ${e?.message}` }
+  }
+
+  // Pobierz wszystkie faktury od sync_from_date do dziś (max 89-dniowe okna)
+  const dateTo = new Date()
+  const windowStart = settings.sync_from_date ? new Date(settings.sync_from_date) : (() => {
+    const d = new Date(); d.setDate(d.getDate() - 89); return d
+  })()
+
+  const allInvoices = await ksefQueryInvoices(accessToken, settings.environment, windowStart, dateTo)
+
+  // Zbuduj mapę ksefNumber → invoiceNumber
+  const numMap = new Map<string, string>()
+  for (const inv of allInvoices) {
+    if (inv.kseNumber && inv.invoiceNumber) {
+      numMap.set(inv.kseNumber, inv.invoiceNumber)
+    }
+  }
+
+  let updated = 0
+  let skipped = 0
+  for (const row of rows) {
+    const invoiceNumber = row.ksef_number ? numMap.get(row.ksef_number) : undefined
+    if (invoiceNumber) {
+      await admin.from('ksef_invoice_queue').update({ invoice_number: invoiceNumber }).eq('id', row.id)
+      updated++
+    } else {
+      skipped++
+    }
+  }
+
+  revalidatePath('/admin/ksef')
+  return { updated, skipped }
+}
+
 // ── Skan konkretnego zakresu dat — do debugowania brakujących faktur ──────────
 
 export async function scanKsefDateRange(daysBack: number = 7): Promise<{
