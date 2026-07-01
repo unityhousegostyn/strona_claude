@@ -115,6 +115,15 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
   // ── Queue ──────────────────────────────────────────────────────────────────
   const [queue, setQueue] = useState<QueueItem[]>(initialQueue)
   const [queueFilter, setQueueFilter] = useState<'pending' | 'imported' | 'skipped' | 'all'>('pending')
+  // Kategoria per faktura — edytowalna inline w tabeli
+  const [categoryMap, setCategoryMap] = useState<Record<string, string>>({})
+  function getCategory(item: QueueItem) {
+    return categoryMap[item.id] ?? item.suggested_category ?? 'pozostałe'
+  }
+  function setCategory(id: string, cat: string) {
+    setCategoryMap(prev => ({ ...prev, [id]: cat }))
+  }
+
   const [importModal, setImportModal] = useState<QueueItem | null>(null)
   const [importForm, setImportForm] = useState({
     communityId: communities[0]?.id ?? '',
@@ -134,7 +143,7 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
     setImportModal(item)
     setImportForm({
       communityId: item.community_id ?? communities[0]?.id ?? '',
-      category: item.suggested_category ?? 'pozostałe',
+      category: getCategory(item),   // używa kategorii wybranej w dropdownie tabeli
       description: item.seller_name ?? '',
       expenseDate: item.invoice_date ?? new Date().toISOString().slice(0, 10),
     })
@@ -452,7 +461,21 @@ export default function KsefClient({ settings, syncLog: initialLog, initialQueue
                         {item.ksef_number && <p className="text-[10px] text-[#9ca3af] font-mono">{item.ksef_number}</p>}
                       </td>
                       <td className="px-4 py-2 font-semibold text-[#111827] dark:text-white whitespace-nowrap">{pln(item.gross_amount)}</td>
-                      <td className="px-4 py-2 text-xs text-[#6b7280]">{item.suggested_category ?? '—'}</td>
+                      <td className="px-4 py-2">
+                        {item.status === 'pending' ? (
+                          <select
+                            value={getCategory(item)}
+                            onChange={e => setCategory(item.id, e.target.value)}
+                            className="text-xs rounded-lg border border-[#e5e7eb] dark:border-[#374151] bg-white dark:bg-[#1f2937] text-[#111827] dark:text-white px-2 py-1 w-full"
+                          >
+                            {CATEGORIES.map(c => (
+                              <option key={c.value} value={c.value}>{c.label}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className="text-xs text-[#6b7280]">{item.suggested_category ?? '—'}</span>
+                        )}
+                      </td>
                       <td className="px-4 py-2">
                         <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
                           item.status === 'imported' ? 'bg-teal-100 text-teal-700'
