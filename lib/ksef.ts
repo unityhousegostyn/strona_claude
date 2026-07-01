@@ -57,11 +57,13 @@ export interface KsefAuthResult {
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 
-async function kfetch(url: string, opts: RequestInit = {}): Promise<any> {
+async function kfetch(url: string, opts: RequestInit & { headers?: Record<string, string> } = {}): Promise<any> {
+  const isGet = !opts.method || opts.method === 'GET'
   const res = await fetch(url, {
     ...opts,
     headers: {
-      'Content-Type': 'application/json',
+      // GET nie wysyła Content-Type — unikamy problemów z 415 Unsupported Media Type
+      ...(isGet ? {} : { 'Content-Type': 'application/json' }),
       'Accept': 'application/json',
       ...(opts.headers ?? {}),
     },
@@ -74,6 +76,7 @@ async function kfetch(url: string, opts: RequestInit = {}): Promise<any> {
   if (body.trimStart().startsWith('<')) {
     throw new Error(`KSeF zwrócił HTML zamiast JSON (${res.status}) — prawdopodobnie zły URL`)
   }
+  if (!body.trim()) return {}
   return JSON.parse(body)
 }
 
@@ -154,32 +157,53 @@ export async function ksefAuth(
   }
 
   // ── Krok 2: uwierzytelnianie tokenem ─────────────────────────────────────
-  // Próbujemy różnych struktur body (v2 integer type, v2 string, v1)
-  let authData: any
-  // Krok 2: wysłanie tokena wraz z challenge.
-  // W v2 endpoint może się nazywać /auth/token, /auth/init-token, /auth/authorise
-  // — próbujemy kolejno.
-  const tokenBody1 = { contextIdentifier: { type: 1, identifier: nip }, authorisationToken: token, challenge: challengeKey }
-  const tokenBody2 = { contextIdentifier: { type: 'Onip', identifier: nip }, authorisationToken: token, challenge: challengeKey }
-  const tokenBodySimple = { nip, authorisationToken: token, challenge: challengeKey }
-  const tokenBodyV1 = { contextIdentifier: { type: 'onip', identifier: nip }, token: { challenge: challengeKey, value: token } }
+  // DIAGNOZA: POST /auth/token → 405 [Allow: GET], podobnie /auth/authorise, /auth/session itd.
+  // Endpointy tokenowe w KSeF v2.6.1 WYMAGAJĄ GET, nie POST.
+  // Przekazujemy challenge + token przez query params i/lub Authorization header.
 
-  const authAttempts = [
-    // v2 — najbardziej prawdopodobne nazwy endpointu
-    { url: `${base}/auth/token`,          body: tokenBody1 },
-    { url: `${base}/auth/init-token`,     body: tokenBody1 },
-    { url: `${base}/auth/ksef-token`,     body: tokenBody1 },
-    { url: `${base}/auth/authorise`,      body: tokenBody1 },
-    { url: `${base}/auth/token`,          body: tokenBody2 },
-    { url: `${base}/auth/token`,          body: tokenBodySimple },
-    // v1 fallback
-    { url: `${BASE_V1[env]}/online/Session/InitToken`, body: tokenBodyV1 },
+  type AuthAttempt = {
+    url: string
+    method: 'GET' | 'POST'
+    body?: Record<string, any>
+    authHeader?: string
+  }
+
+  const tokenBodyPost = { contextIdentifier: { type: 1, identifier: nip }, authorisationToken: token, challenge: challengeKey }
+  const tokenBodyV1 = { contextIdentifier: { type: 'onip', identifier: nip }, token: { challenge: challengeKey, value: token } }
+  const ch = encodeURIComponent(challengeKey)
+  const tok = encodeURIComponent(token)
+  const nip_ = encodeURIComponent(nip)
+
+  const authAttempts: AuthAttempt[] = [
+    // ── GET: challenge + NIP w query, Bearer token w headerze (najprawdopodobniejsze) ──
+    { method: 'GET', url: `${base}/auth/token?challenge=${ch}&nip=${nip_}`,            authHeader: token },
+    { method: 'GET', url: `${base}/auth/token?challenge=${ch}`,                        authHeader: token },
+    // ── GET: authorisationToken w query (fallback) ──
+    { method: 'GET', url: `${base}/auth/token?challenge=${ch}&authorisationToken=${tok}&nip=${nip_}` },
+    { method: 'GET', url: `${base}/auth/token?challenge=${ch}&token=${tok}&nip=${nip_}` },
+    // ── GET na innych endpointach tokenowych ──
+    { method: 'GET', url: `${base}/auth/authorise?challenge=${ch}&nip=${nip_}`,        authHeader: token },
+    { method: 'GET', url: `${base}/auth/authorize?challenge=${ch}&nip=${nip_}`,        authHeader: token },
+    { method: 'GET', url: `${base}/auth/session?challenge=${ch}&nip=${nip_}`,          authHeader: token },
+    { method: 'GET', url: `${base}/auth/init?challenge=${ch}&nip=${nip_}`,             authHeader: token },
+    // ── POST: endpoint /auth/ksef-token (v2, nie testowany w diagnostyce) ──
+    { method: 'POST', url: `${base}/auth/ksef-token`, body: tokenBodyPost },
+    // ── v1 fallback (POST) ──
+    { method: 'POST', url: `${BASE_V1[env]}/online/Session/InitToken`, body: tokenBodyV1 },
   ]
 
   let lastAuthError = ''
+  let authData: any
   for (const attempt of authAttempts) {
     try {
-      authData = await kfetch(attempt.url, { method: 'POST', body: JSON.stringify(attempt.body) })
+      const extraHeaders: Record<string, string> = attempt.authHeader
+        ? { Authorization: `Bearer ${attempt.authHeader}` }
+        : {}
+      authData = await kfetch(attempt.url, {
+        method: attempt.method,
+        headers: extraHeaders,
+        body: attempt.body != null ? JSON.stringify(attempt.body) : undefined,
+      })
       break
     } catch (e: any) {
       lastAuthError = e?.message ?? String(e)

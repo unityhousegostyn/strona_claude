@@ -14,39 +14,50 @@ export async function diagnoseKsefApi(env: 'prod' | 'test' = 'prod'): Promise<{
     ? 'https://api.ksef.mf.gov.pl/api/v2'
     : 'https://api-test.ksef.mf.gov.pl/api/v2'
 
-  type Target = { url: string; method: string; body?: string }
+  type Target = { url: string; method: string; body?: string; headers?: Record<string, string> }
 
-  // POST do potencjalnych endpointów tokenowych — szukamy który zwraca JSON (nawet 400)
+  // Testujemy zarówno POST jak i GET na endpointach tokenowych
+  // (Diagnostyka z poprzedniej sesji: POST → 405 [Allow: GET], więc testujemy GET)
   const dummyNip = '0000000000'
-  const dummyBody = JSON.stringify({ contextIdentifier: { type: 1, identifier: dummyNip }, authorisationToken: 'test', challenge: 'test' })
+  const dummyChallenge = 'test-challenge'
+  const dummyToken = 'test-token'
+  const dummyBody = JSON.stringify({ contextIdentifier: { type: 1, identifier: dummyNip }, authorisationToken: dummyToken, challenge: dummyChallenge })
+  const qCh = encodeURIComponent(dummyChallenge)
+  const qTok = encodeURIComponent(dummyToken)
+  const qNip = encodeURIComponent(dummyNip)
 
   const targets: Target[] = [
     // GET — health / struktura
     { url: `${base}/`, method: 'GET' },
     { url: `${base}/auth`, method: 'GET' },
-    { url: `${base}/swagger`, method: 'GET' },
     { url: `${base}/swagger/index.html`, method: 'GET' },
-    // POST — możliwe endpointy step-2 auth
+    // GET — challenge endpoint (zwraca challengeKey)
+    { url: `${base}/auth/challenge`, method: 'GET' },
+    // GET — token endpoints z challenge+NIP w query i Bearer w headerze
+    { url: `${base}/auth/token?challenge=${qCh}&nip=${qNip}`,       method: 'GET', headers: { Authorization: `Bearer ${dummyToken}`, Accept: 'application/json' } },
+    { url: `${base}/auth/authorise?challenge=${qCh}&nip=${qNip}`,   method: 'GET', headers: { Authorization: `Bearer ${dummyToken}`, Accept: 'application/json' } },
+    { url: `${base}/auth/authorize?challenge=${qCh}&nip=${qNip}`,   method: 'GET', headers: { Authorization: `Bearer ${dummyToken}`, Accept: 'application/json' } },
+    // GET — token w query params (bez Bearer)
+    { url: `${base}/auth/token?challenge=${qCh}&authorisationToken=${qTok}&nip=${qNip}`, method: 'GET' },
+    // POST — ksef-token (nie testowany wcześniej)
+    { url: `${base}/auth/ksef-token`,  method: 'POST', body: dummyBody },
+    { url: `${base}/auth/init-token`,  method: 'POST', body: dummyBody },
+    // POST — stare próby (potwierdzenie 405)
     { url: `${base}/auth/token`,       method: 'POST', body: dummyBody },
     { url: `${base}/auth/authorise`,   method: 'POST', body: dummyBody },
-    { url: `${base}/auth/authorize`,   method: 'POST', body: dummyBody },
-    { url: `${base}/auth/session`,     method: 'POST', body: dummyBody },
-    { url: `${base}/auth/init`,        method: 'POST', body: dummyBody },
-    { url: `${base}/auth/login`,       method: 'POST', body: dummyBody },
-    { url: `${base}/session`,          method: 'POST', body: dummyBody },
-    { url: `${base}/session/token`,    method: 'POST', body: dummyBody },
-    { url: `${base}/token`,            method: 'POST', body: dummyBody },
-    // OPTIONS — co pozwala challenge
+    // OPTIONS — challenge
     { url: `${base}/auth/challenge`, method: 'OPTIONS' },
   ]
 
   const results = await Promise.all(targets.map(async t => {
     try {
+      const isGet = t.method === 'GET' || t.method === 'OPTIONS'
       const res = await fetch(t.url, {
         method: t.method,
         headers: {
-          'Content-Type': 'application/json',
+          ...(isGet ? {} : { 'Content-Type': 'application/json' }),
           'Accept': 'application/json, text/html',
+          ...(t.headers ?? {}),
         },
         body: t.body,
         signal: AbortSignal.timeout(8000),
