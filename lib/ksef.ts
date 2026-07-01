@@ -281,12 +281,14 @@ export async function ksefQueryInvoices(
   const results: KsefInvoiceHeader[] = []
   const PAGE_SIZE = 100
 
+  // KSeF v2 oczekuje dat w formacie YYYY-MM-DD (nie ISO datetime z czasem i strefą)
+  const fmt = (d: Date) => d.toISOString().slice(0, 10)
+
   const body = {
     subjectType: 'Subject2',   // Subject2 = nabywca (odbiorca faktury)
     dateRange: {
-      from: dateFrom.toISOString(),
-      to: dateTo.toISOString(),
-      dateType: 'Issue',       // data wystawienia
+      startDate: fmt(dateFrom),
+      endDate: fmt(dateTo),
     },
   }
 
@@ -303,17 +305,9 @@ export async function ksefQueryInvoices(
       },
     )
 
-    const data = res?.data ?? res
-    const invoices: any[] = data?.items ?? data?.invoices ?? data?.metadata ?? []
-    const total: number = data?.totalCount ?? data?.total ?? invoices.length
-
-    // Debug — rzuć wyjątek z surową odpowiedzią jeśli pierwsze wywołanie zwróciło 0
-    if (pageOffset === 0 && invoices.length === 0) {
-      throw new Error(
-        `KSeF /invoices/query/metadata zwróciło 0 faktur. ` +
-        `Surowa odpowiedź: ${JSON.stringify(res).slice(0, 600)}`
-      )
-    }
+    // Odpowiedź: {hasMore, isTruncated, invoices: [...]}
+    const invoices: any[] = res?.invoices ?? res?.data?.invoices ?? res?.data?.items ?? res?.items ?? []
+    const total: number = res?.totalCount ?? res?.data?.totalCount ?? res?.total ?? invoices.length
 
     if (totalCount === null) totalCount = total
 
@@ -322,9 +316,11 @@ export async function ksefQueryInvoices(
     }
 
     pageOffset += PAGE_SIZE
-    if (invoices.length < PAGE_SIZE) break // ostatnia strona
-    if (pageOffset > 5000) break          // bezpiecznik anty-loop
-  } while (totalCount !== null && pageOffset < totalCount)
+    // API zwraca hasMore:true jeśli jest kolejna strona
+    if (!res?.hasMore) break
+    if (invoices.length < PAGE_SIZE) break  // ostatnia strona
+    if (pageOffset > 5000) break            // bezpiecznik anty-loop
+  } while (true)
 
   return results
 }
