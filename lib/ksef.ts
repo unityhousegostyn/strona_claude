@@ -335,11 +335,27 @@ function mapInvoiceHeader(inv: any): KsefInvoiceHeader {
   const seller = inv.seller ?? inv.sellerIdentifier ?? {}
   const buyer  = inv.buyer  ?? inv.buyerIdentifier  ?? {}
 
+  const kseNumber = String(inv.kseNumber ?? inv.ksefNumber ?? inv.referenceNumber ?? inv.ksefReferenceNumber ?? '')
+
+  // Data zakodowana w numerze KSeF: NIP–YYYYMMDD–ID–suffix (jeśli API nie zwraca osobnego pola)
+  function dateFromKsefNumber(n: string): string {
+    const seg = n.split(/[-–]/)
+    for (const s of seg) {
+      if (/^\d{8}$/.test(s)) {
+        const y = s.slice(0, 4), m = s.slice(4, 6), d = s.slice(6, 8)
+        if (+m >= 1 && +m <= 12 && +d >= 1 && +d <= 31) return `${y}-${m}-${d}`
+      }
+    }
+    return ''
+  }
+
+  const dateFromNum = dateFromKsefNumber(kseNumber)
+
   return {
     invoiceId:   inv.invoiceId   ?? inv.id ?? '',
-    kseNumber:   inv.kseNumber   ?? inv.ksefNumber ?? inv.referenceNumber ?? '',
-    issueDate:   inv.issueDate   ?? inv.issueDateTime?.slice(0, 10) ?? '',
-    invoiceDate: inv.invoiceDate ?? inv.issuedAt?.slice(0, 10) ?? '',
+    kseNumber,
+    issueDate:   inv.issueDate   ?? inv.issueDateTime?.slice(0, 10) ?? dateFromNum,
+    invoiceDate: inv.invoiceDate ?? inv.issuedAt?.slice(0, 10) ?? dateFromNum,
     sellerName:  inv.sellerName  ?? seller.name ?? '',
     sellerNip:   String(inv.sellerNip   ?? seller.identifier ?? seller.nip ?? ''),
     buyerNip:    String(inv.buyerNip    ?? buyer.identifier  ?? buyer.nip  ?? ''),
