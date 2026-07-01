@@ -284,11 +284,18 @@ export async function ksefQueryInvoices(
   // KSeF v2 oczekuje dat w formacie YYYY-MM-DD (nie ISO datetime z czasem i strefą)
   const fmt = (d: Date) => d.toISOString().slice(0, 10)
 
+  // Struktura zweryfikowana z błędu API 400:
+  //   "filters.dateRange.dateType must not be empty"
+  //   "filters.dateRange.from must not be empty"
+  // → dateRange musi być zagnieżdżone w filters
   const body = {
     subjectType: 'Subject2',   // Subject2 = nabywca (odbiorca faktury)
-    dateRange: {
-      startDate: fmt(dateFrom),
-      endDate: fmt(dateTo),
+    filters: {
+      dateRange: {
+        from: fmt(dateFrom),
+        to: fmt(dateTo),
+        dateType: 'Issue',     // data wystawienia (required)
+      },
     },
   }
 
