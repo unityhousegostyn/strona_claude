@@ -394,16 +394,19 @@ export async function ksefGetInvoiceXml(
 // ── Heurystyczne dopasowanie kategorii z nazwy sprzedawcy/opisu ─────────────
 
 const CATEGORY_HINTS: [RegExp, string][] = [
-  [/woda|wodociąg|oczyszczal/i,       'woda'],
-  [/śmiec|odpad|komunaln/i,            'śmieci'],
-  [/gaz|pgnig/i,                       'gaz'],
-  [/prąd|energi|elektr|tauron|pge/i,  'energia_elektryczna'],
-  [/remontow|moderniz|renow|budow/i,   'fundusz_remontowy'],
-  [/zarząd|zarządz|obsług/i,           'wynagrodzenie_zarządcy'],
-  [/ubezpiecz|polisa/i,                'ubezpieczenie'],
-  [/ochrona|monitoring/i,              'ochrona'],
-  [/sprzątani|cleaning/i,              'sprzątanie'],
-  [/winduk|dźwig|winda/i,              'winda'],
+  [/woda|wodociąg|oczyszczal|kanalizac/i, 'woda'],
+  [/śmiec|odpad|komunaln/i,               'śmieci'],
+  [/gaz|pgnig|energa|enea|tauron|pge|prąd|elektr/i, 'energia'],
+  [/remontow|moderniz|renow/i,             'fundusz_remontowy'],
+  [/zarząd|zarządz|obsług|administr/i,    'wynagrodzenie_zarządcy'],
+  [/ubezpiecz|polisa/i,                   'ubezpieczenie'],
+  [/sprzątani|cleaning|porządkow/i,       'sprzątanie'],
+  [/przegl|inspekcj|kontrola|kominiarz/i, 'przeglądy_budynków'],
+  [/bank|prowizj|opłata bank/i,           'opłaty_bankowe'],
+  [/podatek|nieruchom/i,                  'podatek_od_nieruchomości'],
+  [/najem|dzierżaw/i,                     'najem'],
+  [/remont|napraw|uster/i,                'remonty'],
+  [/poczta|pocztow/i,                     'koszty_administracji'],
 ]
 
 export function guessCategory(sellerName: string, description?: string): string {

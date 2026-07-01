@@ -7,17 +7,22 @@ import type { KsefSettings, SyncLogEntry, QueueItem } from './actions'
 type Tab = 'ustawienia' | 'sync' | 'kolejka'
 
 const CATEGORIES = [
-  { value: 'woda',                  label: 'Woda' },
-  { value: 'śmieci',                label: 'Śmieci' },
-  { value: 'gaz',                   label: 'Gaz' },
-  { value: 'energia_elektryczna',   label: 'Energia elektryczna' },
-  { value: 'fundusz_remontowy',     label: 'Fundusz remontowy' },
-  { value: 'wynagrodzenie_zarządcy',label: 'Wynagrodzenie zarządcy' },
-  { value: 'ubezpieczenie',         label: 'Ubezpieczenie' },
-  { value: 'ochrona',               label: 'Ochrona' },
-  { value: 'sprzątanie',            label: 'Sprzątanie' },
-  { value: 'winda',                 label: 'Winda' },
-  { value: 'pozostałe',             label: 'Pozostałe' },
+  { value: 'fundusz_remontowy',       label: 'Fundusz remontowy' },
+  { value: 'fundusz_eksploatacyjny',  label: 'Fundusz eksploatacyjny' },
+  { value: 'wynagrodzenie_zarządcy',  label: 'Wynagrodzenie zarządcy' },
+  { value: 'koszty_administracji',    label: 'Koszty administracji' },
+  { value: 'woda',                    label: 'Woda / kanalizacja' },
+  { value: 'śmieci',                  label: 'Odpady / śmieci' },
+  { value: 'sprzątanie',              label: 'Sprzątanie' },
+  { value: 'opłaty_bankowe',          label: 'Opłaty bankowe' },
+  { value: 'przeglądy_budynków',      label: 'Przeglądy budynków' },
+  { value: 'remonty',                 label: 'Remonty / naprawy' },
+  { value: 'ubezpieczenie',           label: 'Ubezpieczenie' },
+  { value: 'energia',                 label: 'Energia / gaz' },
+  { value: 'najem',                   label: 'Najem (fundusz eksploatacyjny)' },
+  { value: 'podatek_od_nieruchomości',label: 'Podatek od nieruchomości' },
+  { value: 'zarząd',                  label: 'Zarządzanie (inne)' },
+  { value: 'inne',                    label: 'Inne' },
 ]
 
 function pln(v: number | null) {
