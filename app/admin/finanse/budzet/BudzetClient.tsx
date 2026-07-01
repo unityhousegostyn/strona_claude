@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useTransition, useCallback } from 'react'
-import { getBudget, saveBudgetItems, getAvailableYears, BUDGET_CATEGORIES } from './actions'
+import { getBudget, saveBudgetItems, getAvailableYears } from './actions'
 import type { BudgetData } from './actions'
+import { BUDGET_CATEGORIES } from './constants'
 
 function pln(v: number) {
   return v.toLocaleString('pl-PL', { style: 'currency', currency: 'PLN' })

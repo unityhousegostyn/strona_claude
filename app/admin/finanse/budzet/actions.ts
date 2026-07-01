@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { getAuthProfileAction } from '@/lib/getAuthProfile'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
+import { BUDGET_CATEGORIES } from './constants'
 
 async function requireAdminPlus() {
   const auth = await getAuthProfileAction()
@@ -29,27 +30,6 @@ export interface BudgetData {
   totalVariance: number
 }
 
-const CATEGORIES: { value: string; label: string }[] = [
-  { value: 'fundusz_remontowy',        label: 'Fundusz remontowy' },
-  { value: 'fundusz_eksploatacyjny',   label: 'Fundusz eksploatacyjny' },
-  { value: 'wynagrodzenie_zarządcy',   label: 'Wynagrodzenie zarządcy' },
-  { value: 'koszty_administracji',     label: 'Koszty administracji' },
-  { value: 'woda',                     label: 'Woda / kanalizacja' },
-  { value: 'śmieci',                   label: 'Odpady / śmieci' },
-  { value: 'sprzątanie',               label: 'Sprzątanie' },
-  { value: 'opłaty_bankowe',           label: 'Opłaty bankowe' },
-  { value: 'przeglądy_budynków',       label: 'Przeglądy budynków' },
-  { value: 'remonty',                  label: 'Remonty / naprawy' },
-  { value: 'ubezpieczenie',            label: 'Ubezpieczenie' },
-  { value: 'energia',                  label: 'Energia / gaz' },
-  { value: 'najem',                    label: 'Najem (fundusz eksploatacyjny)' },
-  { value: 'podatek_od_nieruchomości', label: 'Podatek od nieruchomości' },
-  { value: 'zarząd',                   label: 'Zarządzanie (inne)' },
-  { value: 'pozostałe',                label: 'Pozostałe' },
-  { value: 'inne',                     label: 'Inne' },
-]
-
-export { CATEGORIES as BUDGET_CATEGORIES }
 
 export async function getBudget(communityId: string, year: number): Promise<{
   data: BudgetData | null
@@ -89,7 +69,7 @@ export async function getBudget(communityId: string, year: number): Promise<{
   // Połącz wszystkie kategorie (z planu + z rzeczywistych)
   const allCats = new Set([...planMap.keys(), ...actualMap.keys()])
 
-  const items: BudgetItem[] = CATEGORIES
+  const items: BudgetItem[] = BUDGET_CATEGORIES
     .filter(c => allCats.has(c.value) || planMap.has(c.value))
     .map(c => {
       const planned = planMap.get(c.value) ?? 0
@@ -99,9 +79,9 @@ export async function getBudget(communityId: string, year: number): Promise<{
       return { category: c.value, planned, actual, variance, pct, overBudget: pct > 110 && planned > 0 }
     })
 
-  // Dodaj kategorie z kosztów które nie ma w CATEGORIES
+  // Dodaj kategorie z kosztów które nie ma w BUDGET_CATEGORIES
   for (const cat of actualMap.keys()) {
-    if (!CATEGORIES.find(c => c.value === cat) && !items.find(i => i.category === cat)) {
+    if (!BUDGET_CATEGORIES.find(c => c.value === cat) && !items.find(i => i.category === cat)) {
       const actual = actualMap.get(cat) ?? 0
       const planned = planMap.get(cat) ?? 0
       items.push({ category: cat, planned, actual, variance: actual - planned, pct: planned > 0 ? Math.round((actual/planned)*100) : 999, overBudget: false })
