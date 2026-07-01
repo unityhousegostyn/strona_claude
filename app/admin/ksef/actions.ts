@@ -101,9 +101,11 @@ export async function diagnoseKsefQuery(): Promise<{
     ? 'https://api.ksef.mf.gov.pl/v2'
     : 'https://api-test.ksef.mf.gov.pl/v2'
 
-  const dateFrom = settings.sync_from_date ?? '2026-01-01'
-  const dateTo = new Date()   // KSeF odrzuca daty w przyszłości
-  const fmt = (d: Date | string) => typeof d === 'string' ? d : d.toISOString().slice(0, 10)
+  // Diagnostyka używa OSTATNICH 89 dni (limit KSeF: max 3 mies. per zapytanie)
+  const dateTo = new Date()
+  const dateFrom89 = new Date(dateTo)
+  dateFrom89.setDate(dateFrom89.getDate() - 89)
+  const fmt = (d: Date) => d.toISOString().slice(0, 10)
 
   const combos = [
     { subjectType: 'Subject1',          dateType: 'Issue' },
@@ -118,11 +120,11 @@ export async function diagnoseKsefQuery(): Promise<{
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}`, Accept: 'application/json' },
-          body: JSON.stringify({ subjectType, dateRange: { from: fmt(dateFrom), to: fmt(dateTo), dateType } }),
+          body: JSON.stringify({ subjectType, dateRange: { from: fmt(dateFrom89), to: fmt(dateTo), dateType } }),
         },
       )
       const text = await res.text()
-      if (!res.ok) return { subjectType, dateType, count: 0, samples: [], error: `HTTP ${res.status}: ${text.slice(0, 120)}` }
+      if (!res.ok) return { subjectType, dateType, count: 0, samples: [], error: `HTTP ${res.status}: ${text.slice(0, 400)}` }
       const json = JSON.parse(text)
       const invoices: any[] = json?.invoices ?? json?.data?.invoices ?? []
       const total: number = json?.totalCount ?? json?.total ?? invoices.length
