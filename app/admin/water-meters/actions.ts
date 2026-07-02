@@ -5,6 +5,108 @@ import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { logActivity } from '@/lib/audit'
 
+// ── IMPORT ZBIORCZY Z XLSX (tylko super_admin) ────────────────────────────────
+
+export interface ImportWaterRow {
+  community_id: string
+  apt_number: string        // np. "1", "4a", "4b"
+  reading_value: number
+  reading_date: string      // YYYY-MM-DD
+  note: string | null
+  meter_serial: string | null
+}
+
+export async function importWaterReadingsAdmin(
+  rows: ImportWaterRow[]
+): Promise<{ imported: number; skipped: Array<{ apt: string; reason: string }> }> {
+  const empty = (reason: string) => ({ imported: 0, skipped: [{ apt: '—', reason }] })
+
+  const auth = await getAuthProfileAction()
+  if (auth.error !== null) return empty(auth.error)
+  if (auth.profile.role !== 'super_admin') return empty('Tylko super_admin może importować zbiorczo')
+  if (!rows.length) return { imported: 0, skipped: [] }
+  if (rows.length > 200) return empty('Za dużo wierszy (max 200)')
+
+  const dateRx = /^\d{4}-\d{2}-\d{2}$/
+  for (const r of rows) {
+    if (!dateRx.test(r.reading_date)) return empty(`Nieprawidłowa data: ${r.reading_date}`)
+    if (r.reading_value <= 0 || r.reading_value > 999999) return empty(`Nieprawidłowa wartość m³ dla lokalu ${r.apt_number}`)
+  }
+
+  const admin = getSupabaseAdminClient()
+  const skipped: Array<{ apt: string; reason: string }> = []
+
+  const communityIds = [...new Set(rows.map(r => r.community_id))]
+  const month = rows[0].reading_date.slice(0, 7) // YYYY-MM
+
+  // Pobierz wszystkie aktywne lokale dla tych wspólnot
+  const { data: allApts } = await admin
+    .from('settlement_apartments')
+    .select('id, number, community_id')
+    .in('community_id', communityIds)
+    .eq('active', true)
+
+  const aptMap = new Map<string, string>() // `${community_id}:${number}` → apartment_id
+  for (const apt of allApts ?? []) {
+    aptMap.set(`${apt.community_id}:${String(apt.number).trim()}`, apt.id)
+  }
+
+  // Sprawdź istniejące odczyty w tym miesiącu
+  const aptIdsToCheck = rows
+    .map(r => aptMap.get(`${r.community_id}:${r.apt_number.trim()}`))
+    .filter(Boolean) as string[]
+
+  const { data: existingReadings } = aptIdsToCheck.length
+    ? await admin
+        .from('water_meter_readings')
+        .select('apartment_id')
+        .in('apartment_id', aptIdsToCheck)
+        .like('reading_date', `${month}%`)
+        .in('status', ['pending', 'confirmed'])
+    : { data: [] }
+
+  const existingSet = new Set((existingReadings ?? []).map(r => r.apartment_id))
+
+  const insertRows: object[] = []
+  const now = new Date().toISOString()
+
+  for (const row of rows) {
+    const key = `${row.community_id}:${row.apt_number.trim()}`
+    const aptId = aptMap.get(key)
+    if (!aptId) {
+      skipped.push({ apt: row.apt_number, reason: 'Nie znaleziono lokalu w systemie' })
+      continue
+    }
+    if (existingSet.has(aptId)) {
+      skipped.push({ apt: row.apt_number, reason: 'Odczyt za ten miesiąc już istnieje' })
+      continue
+    }
+
+    const noteParts = [row.note, row.meter_serial ? `[wodomierz: ${row.meter_serial}]` : null].filter(Boolean)
+    insertRows.push({
+      user_id: auth.user.id,
+      apartment_id: aptId,
+      community_id: row.community_id,
+      reading_value: row.reading_value,
+      reading_date: row.reading_date,
+      note: noteParts.length ? noteParts.join(' · ') : null,
+      status: 'confirmed',
+      confirmed_at: now,
+      confirmed_by: auth.user.id,
+    })
+  }
+
+  if (!insertRows.length) return { imported: 0, skipped }
+
+  const { error } = await admin.from('water_meter_readings').insert(insertRows)
+  if (error) return empty(error.message)
+
+  await logActivity({ userId: auth.user.id, action: 'import_water_readings', targetType: 'water_meter', targetId: 'bulk' })
+  revalidatePath('/admin/water-meters')
+
+  return { imported: insertRows.length, skipped }
+}
+
 export async function submitWaterReading(data: {
   apartment_id: string
   reading_value: number

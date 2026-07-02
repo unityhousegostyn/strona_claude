@@ -4,6 +4,9 @@ import { useState, useTransition } from 'react'
 import { confirmReading, rejectReading } from './actions'
 import { useToast } from '@/components/ToastContext'
 import BackButton from '@/components/BackButton'
+import WaterImportPanel from './WaterImportPanel'
+
+interface Community { id: string; name: string }
 
 interface Reading {
   id: string
@@ -19,10 +22,19 @@ interface Reading {
   user: { full_name: string | null; email: string | null } | null
 }
 
-export default function WaterMetersClient({ readings, isSuperAdmin }: { readings: Reading[]; isSuperAdmin: boolean }) {
+export default function WaterMetersClient({
+  readings,
+  isSuperAdmin,
+  communities,
+}: {
+  readings: Reading[]
+  isSuperAdmin: boolean
+  communities: Community[]
+}) {
   const [filter, setFilter] = useState<'pending' | 'confirmed' | 'rejected' | 'all'>('pending')
   const [rejectId, setRejectId] = useState<string | null>(null)
   const [rejectReason, setRejectReason] = useState('')
+  const [showImport, setShowImport] = useState(false)
   const [, startTransition] = useTransition()
   const { showToast } = useToast()
 
@@ -59,7 +71,18 @@ export default function WaterMetersClient({ readings, isSuperAdmin }: { readings
 
   return (
     <div className="space-y-4">
-      <BackButton />
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <BackButton />
+        {isSuperAdmin && (
+          <button
+            onClick={() => setShowImport(true)}
+            className="text-sm bg-[#0f2d2a] hover:bg-[#0f3d38] border border-[#0f766e]/30 text-[#99f6e4] font-medium px-3 py-1.5 rounded-lg transition flex items-center gap-1.5"
+          >
+            📥 Import XLSX
+          </button>
+        )}
+      </div>
+
       {/* Filtry */}
       <div className="flex gap-1 bg-[#081918] rounded-lg p-1 w-fit flex-wrap">
         {(['pending','confirmed','rejected','all'] as const).map(f => (
@@ -116,6 +139,11 @@ export default function WaterMetersClient({ readings, isSuperAdmin }: { readings
             )
           })}
         </div>
+      )}
+
+      {/* Modal importu XLSX */}
+      {showImport && (
+        <WaterImportPanel communities={communities} onClose={() => setShowImport(false)} />
       )}
 
       {/* Modal odrzucenia */}
