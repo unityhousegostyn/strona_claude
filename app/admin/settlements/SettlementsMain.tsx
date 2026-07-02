@@ -688,7 +688,8 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                   </div>
                 </div>
 
-                {/* Filtr */}
+                {/* Przelicz + Filtr */}
+                <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex gap-2">
                   {(['all', 'debt', 'overpay'] as const).map(f => (
                     <button key={f} onClick={() => setReportFilter(f)}
@@ -702,6 +703,14 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                       {f === 'all' ? `Wszystkie (${reportRows.length})` : f === 'debt' ? `⚠ Zaległości (${debtCount})` : `✓ Nadpłaty (${overpayCount})`}
                     </button>
                   ))}
+                </div>
+                  <button
+                    onClick={() => startTransition(() => router.refresh())}
+                    disabled={isPending}
+                    className="text-xs px-3 py-1.5 rounded-lg border border-[#0f2d2a] text-[#0f766e] hover:text-[#99f6e4] hover:border-teal-700 transition disabled:opacity-40"
+                  >
+                    {isPending ? '⏳ Przeliczam…' : '🔄 Przelicz'}
+                  </button>
                 </div>
 
                 {/* Tabela */}
