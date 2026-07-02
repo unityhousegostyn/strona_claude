@@ -377,6 +377,11 @@ export async function copyExpenses(
     const { profile, user } = await getActor()
     if (profile.role === 'user' || profile.role === 'najemca') return { copied: 0, error: 'Brak uprawnień' }
     if (!ids.length) return { copied: 0, error: 'Brak zaznaczonych wpisów' }
+    if (ids.length > 500) return { copied: 0, error: 'Zbyt wiele wpisów (max 500)' }
+    if (targetMonth < 1 || targetMonth > 12 || !Number.isInteger(targetMonth))
+      return { copied: 0, error: 'Nieprawidłowy miesiąc' }
+    if (targetYear < 2000 || targetYear > 2100 || !Number.isInteger(targetYear))
+      return { copied: 0, error: 'Nieprawidłowy rok' }
 
     const admin = getSupabaseAdminClient()
 

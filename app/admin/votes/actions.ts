@@ -5,8 +5,9 @@ import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import { getAuthProfileAction } from '@/lib/getAuthProfile'
 import { verifyPin } from '@/lib/pin'
 import { checkPinRateLimit, clearPinRateLimit, remainingPinAttempts } from '@/lib/pin-rate-limit'
-import { sendNewVoteEmail, sendVoteClosedEmail } from '@/lib/email'
+import { sendNewVoteEmail } from '@/lib/email'
 import { logActivity } from '@/lib/audit'
+import { closeVoteAndNotify } from '@/lib/votes/close-vote'
 
 async function getActor() {
   const auth = await getAuthProfileAction()
@@ -435,97 +436,8 @@ export async function reopenVote(voteId: string): Promise<{ error?: string; dead
   return { deadlineCleared: deadlinePassed }
 }
 
-/**
- * Właściwa logika zamknięcia głosowania (zapis statusu + e-mail z wynikami),
- * bez sprawdzania uprawnień zalogowanego użytkownika — używana przez:
- *  - closeVote() (akcja z panelu, sprawdza rolę przed wywołaniem),
- *  - cron /api/cron/close-votes (autoryzacja przez CRON_SECRET, brak sesji usera).
- */
-export async function closeVoteAndNotify(voteId: string): Promise<{ error?: string }> {
-  const admin = getSupabaseAdminClient()
-  const { error } = await admin.from('votes')
-    .update({ status: 'closed', closed_at: new Date().toISOString() })
-    .eq('id', voteId)
-
-  if (error) return { error: error.message }
-  revalidatePath('/admin/votes')
-  revalidatePath(`/admin/votes/${voteId}`)
-
-  // Wyślij email z wynikami do adminów i super_adminów wspólnoty
-  try {
-    const { data: vote } = await admin
-      .from('votes')
-      .select('title, community_id, voting_method, resolution_number, created_at, choices:vote_choices(choice, share_value, apartment_id)')
-      .eq('id', voteId)
-      .single()
-
-    if (vote) {
-      const choices = (vote.choices ?? []) as any[]
-      const byShare = vote.voting_method === 'by_share'
-      const yes     = choices.filter(c => c.choice === 'yes').reduce((s: number, c: any) => s + (byShare ? c.share_value : 1), 0)
-      const no      = choices.filter(c => c.choice === 'no').reduce((s: number, c: any) => s + (byShare ? c.share_value : 1), 0)
-      const abstain = choices.filter(c => c.choice === 'abstain').reduce((s: number, c: any) => s + (byShare ? c.share_value : 1), 0)
-      const total   = yes + no + abstain
-
-      const votedApts = new Set(choices.map((c: any) => c.apartment_id).filter(Boolean)).size
-
-      const { count: aptCountNum } = await admin
-        .from('settlement_apartments')
-        .select('*', { count: 'exact', head: true })
-        .eq('community_id', vote.community_id)
-      const totalApts = aptCountNum ?? 0
-
-      // Bez minimum 50% frekwencji (udziałów przy głosowaniu wg udziałów, lub
-      // lokali przy "1 lokal = 1 głos") uchwała jest nierozstrzygnięta —
-      // niezależnie od rozkładu głosów wśród tych, co zagłosowali.
-      const frekwencjaFrac = byShare ? total : (totalApts > 0 ? votedApts / totalApts : 0)
-      const quorumMet = frekwencjaFrac >= 0.5
-      const passed = (!quorumMet || total === 0) ? null : yes > total / 2
-
-      const { data: community } = await admin.from('communities').select('name').eq('id', vote.community_id).single()
-
-      // Pobierz emaile adminów i super_adminów
-      const { data: adminProfiles } = await admin
-        .from('profiles')
-        .select('id, email')
-        .eq('community_id', vote.community_id)
-        .in('role', ['admin', 'super_admin'])
-        .in('status', ['active'])
-
-      const missingIds = (adminProfiles ?? []).filter(u => !u.email).map(u => u.id)
-      let authEmailMap: Record<string, string> = {}
-      if (missingIds.length > 0) {
-        const { data: authList } = await admin.auth.admin.listUsers({ perPage: 1000 })
-        for (const u of authList?.users ?? []) {
-          if (missingIds.includes(u.id) && u.email) authEmailMap[u.id] = u.email
-        }
-      }
-      const emails = (adminProfiles ?? [])
-        .map(u => u.email || authEmailMap[u.id] || null)
-        .filter(Boolean) as string[]
-
-      const year = new Date(vote.created_at).getFullYear()
-      const resolutionNumber = vote.resolution_number ? `${vote.resolution_number}/${year}` : '—'
-
-      if (emails.length > 0) {
-        await sendVoteClosedEmail({
-          to: emails,
-          voteTitle: vote.title,
-          communityName: community?.name ?? '',
-          voteId,
-          resolutionNumber,
-          yes, no, abstain,
-          totalApts,
-          votedApts,
-          passed,
-          byShare,
-        })
-      }
-    }
-  } catch {}
-
-  return {}
-}
+// closeVoteAndNotify lives in lib/votes/close-vote.ts (NIE 'use server').
+// Cron route importuje bezpośrednio z lib — NIE przez ten plik.
 
 // ── EDYCJA UCHWAŁY ────────────────────────────────────────────────────────────
 

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
-import { closeVoteAndNotify } from '@/app/admin/votes/actions'
+import { closeVoteAndNotify } from '@/lib/votes/close-vote'
 
 export const runtime = 'nodejs'
 
