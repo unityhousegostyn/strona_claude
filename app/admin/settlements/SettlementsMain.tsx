@@ -244,22 +244,31 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
 
       {selectedCommunityId && (
         <>
-          {/* Zakładki */}
-          <div className="flex gap-1 bg-[#081918] rounded-xl p-1 w-fit border border-[#0f2d2a]">
-            {(['apartments', 'rates', 'report', 'import'] as const).map(t => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                  tab === t ? 'bg-[#0c2220] text-[#f0fdfa]' : 'text-[#115e59] hover:text-[#99f6e4]'
-                }`}
-              >
-                {t === 'apartments' ? `🏠 Lokale (${apartments.length})`
-                  : t === 'rates' ? '📊 Stawki'
-                  : t === 'report' ? '📋 Raport'
-                  : '📥 Import'}
-              </button>
-            ))}
+          {/* Zakładki + Przelicz */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex gap-1 bg-[#081918] rounded-xl p-1 border border-[#0f2d2a]">
+              {(['apartments', 'rates', 'report', 'import'] as const).map(t => (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                    tab === t ? 'bg-[#0c2220] text-[#f0fdfa]' : 'text-[#115e59] hover:text-[#99f6e4]'
+                  }`}
+                >
+                  {t === 'apartments' ? `🏠 Lokale (${apartments.length})`
+                    : t === 'rates' ? '📊 Stawki'
+                    : t === 'report' ? '📋 Raport'
+                    : '📥 Import'}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => startTransition(() => router.refresh())}
+              disabled={isPending}
+              className="text-xs px-3 py-1.5 rounded-lg border border-[#0f2d2a] text-[#0f766e] hover:text-[#99f6e4] hover:border-teal-700 transition disabled:opacity-40"
+            >
+              {isPending ? '⏳ Przeliczam…' : '🔄 Przelicz'}
+            </button>
           </div>
 
           {/* Error */}
@@ -688,9 +697,8 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                   </div>
                 </div>
 
-                {/* Przelicz + Filtr */}
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex gap-2">
+                {/* Filtr */}
+                <div className="flex gap-2 flex-wrap">
                   {(['all', 'debt', 'overpay'] as const).map(f => (
                     <button key={f} onClick={() => setReportFilter(f)}
                       className={`text-xs px-3 py-1.5 rounded-lg font-medium transition border ${
@@ -703,14 +711,6 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                       {f === 'all' ? `Wszystkie (${reportRows.length})` : f === 'debt' ? `⚠ Zaległości (${debtCount})` : `✓ Nadpłaty (${overpayCount})`}
                     </button>
                   ))}
-                </div>
-                  <button
-                    onClick={() => startTransition(() => router.refresh())}
-                    disabled={isPending}
-                    className="text-xs px-3 py-1.5 rounded-lg border border-[#0f2d2a] text-[#0f766e] hover:text-[#99f6e4] hover:border-teal-700 transition disabled:opacity-40"
-                  >
-                    {isPending ? '⏳ Przeliczam…' : '🔄 Przelicz'}
-                  </button>
                 </div>
 
                 {/* Tabela */}
