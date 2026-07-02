@@ -3,6 +3,7 @@ import { getAuthProfile, canAccessApartment } from '@/lib/getAuthProfile'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import MonthlyTable from './MonthlyTable'
+import RefreshButton from './RefreshButton'
 
 export default async function ApartmentSettlementPage({
   params,
@@ -101,6 +102,7 @@ export default async function ApartmentSettlementPage({
         >
           🖨️ Pobierz PDF
         </Link>
+        <RefreshButton />
       </div>
 
       {/* Rok */}
