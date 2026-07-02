@@ -29,7 +29,7 @@ export async function getApartmentNumbers(
 
 export interface ImportWaterRow {
   community_id: string
-  apt_number: string        // np. "1", "4a", "4b"
+  apt_number: string        // pełny ID: "7/1", "7a/1", "7/4a"
   reading_value: number
   reading_date: string      // YYYY-MM-DD
   note: string | null
@@ -57,7 +57,7 @@ export async function importWaterReadingsAdmin(
   const skipped: Array<{ apt: string; reason: string }> = []
 
   const communityIds = [...new Set(rows.map(r => r.community_id))]
-  const month = rows[0].reading_date.slice(0, 7) // YYYY-MM
+  const months = [...new Set(rows.map(r => r.reading_date.slice(0, 7)))] // wszystkie YYYY-MM w batchu
 
   // Pobierz wszystkie aktywne lokale dla tych wspólnot
   const { data: allApts } = await admin
@@ -71,34 +71,47 @@ export async function importWaterReadingsAdmin(
     aptMap.set(`${apt.community_id}:${String(apt.number).trim()}`, apt.id)
   }
 
-  // Sprawdź istniejące odczyty w tym miesiącu
+  // Sprawdź istniejące odczyty dla wszystkich miesięcy w batchu (z fallbackiem dla sub-liczników)
   const aptIdsToCheck = rows
-    .map(r => aptMap.get(`${r.community_id}:${r.apt_number.trim()}`))
+    .map(r => {
+      const n = r.apt_number.trim()
+      return aptMap.get(`${r.community_id}:${n}`) ??
+        (/[a-z]$/i.test(n) ? aptMap.get(`${r.community_id}:${n.replace(/[a-z]$/i, '')}`) : undefined)
+    })
     .filter(Boolean) as string[]
 
-  const { data: existingReadings } = aptIdsToCheck.length
-    ? await admin
+  // Pobierz istniejące odczyty dla każdego miesiąca osobno (Supabase nie ma OR na like)
+  const existingSet = new Set<string>()
+  if (aptIdsToCheck.length) {
+    for (const m of months) {
+      const { data: ex } = await admin
         .from('water_meter_readings')
         .select('apartment_id')
         .in('apartment_id', aptIdsToCheck)
-        .like('reading_date', `${month}%`)
+        .like('reading_date', `${m}%`)
         .in('status', ['pending', 'confirmed'])
-    : { data: [] }
-
-  const existingSet = new Set((existingReadings ?? []).map(r => r.apartment_id))
+      for (const r of ex ?? []) existingSet.add(`${m}:${r.apartment_id}`)
+    }
+  }
 
   const insertRows: object[] = []
   const now = new Date().toISOString()
 
   for (const row of rows) {
-    const key = `${row.community_id}:${row.apt_number.trim()}`
-    const aptId = aptMap.get(key)
+    const aptNum = row.apt_number.trim()
+    let aptId = aptMap.get(`${row.community_id}:${aptNum}`)
+    // Fallback: jeśli lokal "7/4a" nie istnieje, spróbuj "7/4" (sub-licznik → lokal)
+    if (!aptId && /[a-z]$/i.test(aptNum)) {
+      const stripped = aptNum.replace(/[a-z]$/i, '')
+      aptId = aptMap.get(`${row.community_id}:${stripped}`)
+    }
     if (!aptId) {
-      skipped.push({ apt: row.apt_number, reason: 'Nie znaleziono lokalu w systemie' })
+      skipped.push({ apt: aptNum, reason: 'Nie znaleziono lokalu w systemie' })
       continue
     }
-    if (existingSet.has(aptId)) {
-      skipped.push({ apt: row.apt_number, reason: 'Odczyt za ten miesiąc już istnieje' })
+    const monthKey = `${row.reading_date.slice(0, 7)}:${aptId}`
+    if (existingSet.has(monthKey)) {
+      skipped.push({ apt: aptNum, reason: 'Odczyt za ten miesiąc już istnieje' })
       continue
     }
 
