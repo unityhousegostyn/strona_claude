@@ -414,9 +414,9 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                                 )}
                                 {!meterLoading && meterReading && meterReading.m3 !== null && (
                                   <p className="text-xs text-teal-400 mt-1">
-                                    💧 z licznika: {meterReading.m3.toFixed(3)} m³
+                                    💧 z licznika: {Math.round(meterReading.m3)} m³
                                     <span className="text-[#115e59] ml-1">
-                                      ({meterReading.previous?.toFixed(3)} → {meterReading.current?.toFixed(3)})
+                                      ({Math.round(meterReading.previous ?? 0)} → {Math.round(meterReading.current ?? 0)})
                                     </span>
                                     {editWaterM3 !== String(meterReading.m3) && (
                                       <button
@@ -454,7 +454,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                                     <>
                                       <p className="w-44 text-sm text-[#99f6e4] py-1.5">
                                         {waterZl.toFixed(2)} zł
-                                        <span className="text-[#115e59] text-xs ml-1">≈ {waterM3.toFixed(2)} m³</span>
+                                        <span className="text-[#115e59] text-xs ml-1">≈ {Math.round(waterM3)} m³</span>
                                       </p>
                                       {arrears > 0 && (
                                         <p className="text-[10px] text-amber-400 mt-0.5">
@@ -592,10 +592,10 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                       {rec ? (
                         <div className="flex flex-wrap items-center gap-4 text-xs">
                           <span className="text-[#0f766e]">
-                            Odczyt: {rec.meter_reading_start} → {rec.meter_reading_end} m³
+                            Odczyt: {Math.round(rec.meter_reading_start)} → {Math.round(rec.meter_reading_end)} m³
                           </span>
-                          <span className="text-[#0f766e]">Zużycie: {rec.actual_m3} m³</span>
-                          <span className="text-[#0f766e]">{isZaliczkaBilling ? 'Z wpłat' : 'Ryczałt'}: {rec.ryczalt_m3} m³</span>
+                          <span className="text-[#0f766e]">Zużycie: {Math.round(rec.actual_m3)} m³</span>
+                          <span className="text-[#0f766e]">{isZaliczkaBilling ? 'Z wpłat' : 'Ryczałt'}: {Math.round(rec.ryczalt_m3)} m³</span>
                           <span className={`font-semibold ${rec.correction_amount >= 0 ? 'text-red-400' : 'text-teal-400'}`}>
                             {rec.correction_amount >= 0 ? 'Dopłata' : 'Nadpłata'}: {pln(Math.abs(rec.correction_amount))}
                           </span>
@@ -643,7 +643,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                         />
                         {!qMeterLoading && qMeterHint?.start != null && (
                           <p className="text-xs text-teal-400 mt-1">
-                            💧 {qMeterHint.start.toFixed(3)}
+                            💧 {Math.round(qMeterHint.start)}
                             {qStart !== String(qMeterHint.start) && (
                               <button type="button" onClick={() => setQStart(String(qMeterHint!.start))} className="ml-1 underline hover:text-teal-300">użyj</button>
                             )}
@@ -665,7 +665,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                         />
                         {!qMeterLoading && qMeterHint?.end != null && (
                           <p className="text-xs text-teal-400 mt-1">
-                            💧 {qMeterHint.end.toFixed(3)}
+                            💧 {Math.round(qMeterHint.end)}
                             {qEnd !== String(qMeterHint.end) && (
                               <button type="button" onClick={() => setQEnd(String(qMeterHint!.end))} className="ml-1 underline hover:text-teal-300">użyj</button>
                             )}
@@ -695,7 +695,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                       {qError && <span className="text-red-400 text-xs">{qError}</span>}
                       {qStart && qEnd && ratesForPeriod(q) && !isZaliczkaBilling && (() => {
                         const pr = ratesForPeriod(q)!
-                        const corrM3 = Math.round((parseFloat(qEnd) - parseFloat(qStart) - pr.water_ryczalt_m3 * reconMonths) * 100) / 100
+                        const corrM3 = Math.round(parseFloat(qEnd) - parseFloat(qStart) - pr.water_ryczalt_m3 * reconMonths)
                         return (
                           <span className="text-xs text-[#0f766e]">
                             Korekta: {corrM3} m³ = {pln(Math.round(corrM3 * pr.water_price_m3 * 100) / 100)}
@@ -705,11 +705,11 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                       {qStart && qEnd && ratesForPeriod(q) && isZaliczkaBilling && (() => {
                         const pr = ratesForPeriod(q)!
                         const baseline = quarterPaidWaterM3(q)
-                        const correctionM3 = Math.round((parseFloat(qEnd) - parseFloat(qStart) - baseline) * 1000) / 1000
+                        const correctionM3 = Math.round(parseFloat(qEnd) - parseFloat(qStart) - baseline)
                         const correctionZl = Math.round(correctionM3 * pr.water_price_m3 * 100) / 100
                         return (
                           <span className="text-xs text-[#0f766e]">
-                            Zużycie: {(parseFloat(qEnd) - parseFloat(qStart)).toFixed(3)} m³, wpłacono za wodę: {baseline.toFixed(3)} m³ ({pln(baseline * pr.water_price_m3)})
+                            Zużycie: {Math.round(parseFloat(qEnd) - parseFloat(qStart))} m³, wpłacono za wodę: {Math.round(baseline)} m³ ({pln(Math.round(baseline) * pr.water_price_m3)})
                             <br />
                             {correctionZl >= 0 ? 'Dopłata' : 'Nadpłata'}: {pln(Math.abs(correctionZl))}
                           </span>

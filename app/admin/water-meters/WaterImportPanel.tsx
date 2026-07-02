@@ -277,7 +277,7 @@ export default function WaterImportPanel({
                             <td className="px-3 py-1.5 text-[#f0fdfa] font-mono">{r.fullAptId}</td>
                             <td className="px-3 py-1.5 text-[#99f6e4]">{r.name}</td>
                             <td className="px-3 py-1.5 text-right font-bold text-[#f0fdfa]">
-                              {val != null ? val.toFixed(3) : <span className="text-red-400">brak</span>}
+                              {val != null ? Math.round(val) : <span className="text-red-400">brak</span>}
                             </td>
                             <td className="px-3 py-1.5 text-[#0f766e] italic">{r.note ?? ''}</td>
                           </tr>

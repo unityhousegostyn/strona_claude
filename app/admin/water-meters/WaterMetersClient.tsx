@@ -139,7 +139,7 @@ export default function WaterMetersClient({
                       <span className="text-xs text-[#115e59]">Lokal {r.apartment?.number ?? '—'}</span>
                     </div>
                     <div className="flex items-baseline gap-3">
-                      <span className="text-2xl font-bold text-[#f0fdfa]">{r.reading_value} m³</span>
+                      <span className="text-2xl font-bold text-[#f0fdfa]">{Math.round(r.reading_value)} m³</span>
                       <span className="text-sm text-[#0f766e]">{new Date(r.reading_date).toLocaleDateString('pl-PL')}</span>
                     </div>
                     <p className="text-xs text-[#115e59]">

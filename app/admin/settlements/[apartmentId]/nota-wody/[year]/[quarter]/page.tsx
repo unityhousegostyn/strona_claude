@@ -33,7 +33,7 @@ function pln(v: number): string {
   return v.toLocaleString('pl-PL', { style: 'currency', currency: 'PLN' })
 }
 function fmtM3(v: number): string {
-  return v.toLocaleString('pl-PL', { minimumFractionDigits: 3, maximumFractionDigits: 3 })
+  return Math.round(v).toLocaleString('pl-PL')
 }
 
 export default async function NotaWodyPage({
