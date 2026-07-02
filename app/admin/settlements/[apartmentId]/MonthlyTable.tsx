@@ -271,8 +271,8 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
 
   return (
     <div className="space-y-6">
-      {/* Saldo początkowe */}
-      <div className="flex items-center gap-3">
+      {/* Saldo początkowe + przelicz */}
+      <div className="flex items-center gap-3 flex-wrap">
         <span className="text-sm text-[#0f766e]">Saldo na 1 stycznia {year}:</span>
         {showBalanceInput ? (
           <div className="flex items-center gap-2">
@@ -308,6 +308,12 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
             {pln(initialBalance)} (kliknij aby zmienić)
           </button>
         )}
+        <button
+          onClick={() => router.refresh()}
+          className="ml-auto text-xs px-3 py-1.5 rounded-lg border border-[#0f2d2a] text-[#0f766e] hover:text-[#99f6e4] hover:border-teal-700 transition"
+        >
+          🔄 Przelicz
+        </button>
       </div>
 
       {/* Tabela miesięczna */}
