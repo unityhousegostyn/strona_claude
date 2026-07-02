@@ -43,7 +43,7 @@ export default async function DashboardPage() {
       admin.from('board_posts').select('id, content, created_at, author_id, community_id')
         .order('created_at', { ascending: false }).limit(4),
       admin.from('profiles').select('id, full_name, email'),
-      admin.from('settlement_apartments').select('id, community_id').eq('active', true),
+      admin.from('settlement_apartments').select('id, community_id, persons_count').eq('active', true),
       admin.from('votes').select('id, community_id, status, title, deadline, created_at').order('created_at', { ascending: false }),
       admin.from('settlement_entries').select('paid, apartment:settlement_apartments!inner(community_id)'),
       admin.from('profiles').select('id, community_id').eq('role', 'user').eq('status', 'active'),
@@ -62,14 +62,17 @@ export default async function DashboardPage() {
     }
 
     // Per-community stats
-    interface CommStats { apartments: number; users: number; openTickets: number; openVotes: number; totalPaid: number; totalExpenses: number; totalIncome: number; totalDeposits: number; openingBalance: number }
+    interface CommStats { apartments: number; residents: number; users: number; openTickets: number; openVotes: number; totalPaid: number; totalExpenses: number; totalIncome: number; totalDeposits: number; openingBalance: number }
     const commStats: Record<string, CommStats> = {}
     for (const c of communities.data ?? []) {
       const cc = c as any
-      commStats[c.id] = { apartments: 0, users: 0, openTickets: 0, openVotes: 0, totalPaid: 0, totalExpenses: 0, totalIncome: 0, totalDeposits: 0, openingBalance: (cc.opening_balance_eksploatacyjny ?? 0) + (cc.opening_balance_remont ?? 0) }
+      commStats[c.id] = { apartments: 0, residents: 0, users: 0, openTickets: 0, openVotes: 0, totalPaid: 0, totalExpenses: 0, totalIncome: 0, totalDeposits: 0, openingBalance: (cc.opening_balance_eksploatacyjny ?? 0) + (cc.opening_balance_remont ?? 0) }
     }
     for (const a of allApartments.data ?? []) {
-      if (commStats[a.community_id]) commStats[a.community_id].apartments++
+      if (commStats[a.community_id]) {
+        commStats[a.community_id].apartments++
+        commStats[a.community_id].residents += (a as any).persons_count ?? 0
+      }
     }
     for (const u of activeUsers.data ?? []) {
       if (u.community_id && commStats[u.community_id]) commStats[u.community_id].users++
@@ -209,6 +212,7 @@ export default async function DashboardPage() {
                     <tr className="border-b border-[#0f2d2a]">
                       <th className="text-left px-5 py-2 text-[10px] font-medium text-[#133835] uppercase tracking-wider">Wspólnota</th>
                       <th className="text-center px-3 py-2 text-[10px] font-medium text-[#133835] uppercase tracking-wider">Lokale</th>
+                      <th className="text-center px-3 py-2 text-[10px] font-medium text-[#133835] uppercase tracking-wider">Mieszk.</th>
                       <th className="text-center px-3 py-2 text-[10px] font-medium text-[#133835] uppercase tracking-wider">Zgłosz.</th>
                       <th className="text-center px-3 py-2 text-[10px] font-medium text-[#133835] uppercase tracking-wider">Głosowan.</th>
                       <th className="text-right px-5 py-2 text-[10px] font-medium text-[#133835] uppercase tracking-wider">Saldo</th>
@@ -224,9 +228,15 @@ export default async function DashboardPage() {
                         <tr key={c.id} className="hover:bg-[#051210] transition-colors">
                           <td className="px-5 py-3">
                             <p className="font-semibold text-[#f0fdfa]">{c.name}</p>
-                            <p className="text-[10px] text-[#133835] mt-0.5">{s.users} mieszkańców</p>
+                            <p className="text-[10px] text-[#133835] mt-0.5">{s.users} kont</p>
                           </td>
                           <td className="px-3 py-3 text-center text-[#99f6e4]">{s.apartments}</td>
+                          <td className="px-3 py-3 text-center">
+                            {s.residents > 0
+                              ? <span className="font-semibold text-[#99f6e4]">{s.residents}</span>
+                              : <span className="text-[#133835]">—</span>
+                            }
+                          </td>
                           <td className="px-3 py-3 text-center">
                             {s.openTickets > 0
                               ? <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-yellow-950/40 text-yellow-400 border border-yellow-900/40">{s.openTickets}</span>
