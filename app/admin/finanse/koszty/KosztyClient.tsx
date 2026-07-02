@@ -3,7 +3,7 @@ import BackButton from '@/components/BackButton'
 
 import { useState, useTransition, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { addExpense, updateExpense, deleteExpense, importExpensesCSV, bulkUpdateCategory, bulkDeleteExpenses, getReconciliation } from './actions'
+import { addExpense, updateExpense, deleteExpense, importExpensesCSV, bulkUpdateCategory, bulkDeleteExpenses, copyExpenses, getReconciliation } from './actions'
 import type { ExpenseCategory } from './categories'
 import { exportToExcel } from '@/lib/exportExcel'
 import Pagination from '@/components/Pagination'
@@ -53,6 +53,9 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [bulkCat, setBulkCat] = useState<ExpenseCategory>('remonty')
   const [bulkResult, setBulkResult] = useState<string | null>(null)
+  const [showCopyPanel, setShowCopyPanel] = useState(false)
+  const [copyTargetYear, setCopyTargetYear] = useState(currentYear)
+  const [copyTargetMonth, setCopyTargetMonth] = useState(new Date().getMonth() + 1)
 
   const [importResult, setImportResult] = useState<{ imported: number; errors: string[] } | null>(null)
   const [importComm, setImportComm] = useState(isSuperAdmin ? '' : defaultCommunityId)
@@ -167,6 +170,18 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
       if (res.error) { setBulkResult('❌ ' + res.error); return }
       setBulkResult(`✓ Usunięto ${res.deleted} wpisów`)
       setSelectedIds(new Set())
+      router.refresh()
+    })
+  }
+  const handleCopy = () => {
+    if (!selectedIds.size) return
+    setBulkResult(null)
+    startTransition(async () => {
+      const res = await copyExpenses(Array.from(selectedIds), copyTargetYear, copyTargetMonth)
+      if (res.error) { setBulkResult('❌ ' + res.error); return }
+      setBulkResult(`✓ Skopiowano ${res.copied} wpisów do ${MONTHS[copyTargetMonth - 1]} ${copyTargetYear}`)
+      setSelectedIds(new Set())
+      setShowCopyPanel(false)
       router.refresh()
     })
   }
@@ -352,10 +367,49 @@ export default function KosztyClient({ expenses, communities, commMap, incomeMap
                   <button onClick={handleBulkDelete} disabled={isPending} className="bg-red-900/40 hover:bg-red-900/60 border border-red-800 text-red-400 text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-50 transition">
                     {isPending ? '...' : `🗑️ Usuń zaznaczone (${selectedIds.size})`}
                   </button>
+                  <span className="text-[#0f2d2a]">|</span>
+                  <button
+                    onClick={() => { setShowCopyPanel(p => !p); setBulkResult(null) }}
+                    className="bg-[#0c2220] hover:bg-[#0a1f1d] border border-[#0f2d2a] text-[#99f6e4] text-xs font-semibold px-3 py-1.5 rounded-lg transition"
+                  >
+                    📋 Kopiuj do miesiąca
+                  </button>
                   <button onClick={() => setSelectedIds(new Set())} className="text-xs text-[#115e59] hover:text-[#99f6e4]">Odznacz</button>
                 </div>
               )}
               {bulkResult && <span className={`text-xs ml-2 ${bulkResult.startsWith('✓') ? 'text-teal-400' : 'text-red-400'}`}>{bulkResult}</span>}
+            </div>
+          )}
+
+          {/* Panel kopiowania */}
+          {showCopyPanel && selectedIds.size > 0 && (
+            <div className="mb-3 bg-[#081918] border border-teal-800 rounded-xl p-4 flex flex-wrap items-center gap-3">
+              <span className="text-xs font-semibold text-[#99f6e4]">📋 Kopiuj {selectedIds.size} wpisów do:</span>
+              <select
+                className="input text-sm py-1"
+                value={copyTargetMonth}
+                onChange={e => setCopyTargetMonth(Number(e.target.value))}
+              >
+                {MONTHS.map((m, i) => <option key={i + 1} value={i + 1}>{m}</option>)}
+              </select>
+              <select
+                className="input text-sm py-1"
+                value={copyTargetYear}
+                onChange={e => setCopyTargetYear(Number(e.target.value))}
+              >
+                <option value={currentYear}>{currentYear}</option>
+                <option value={currentYear + 1}>{currentYear + 1}</option>
+                <option value={currentYear - 1}>{currentYear - 1}</option>
+              </select>
+              <button
+                onClick={handleCopy}
+                disabled={isPending}
+                className="bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold px-4 py-1.5 rounded-lg disabled:opacity-50 transition"
+              >
+                {isPending ? '...' : 'Kopiuj'}
+              </button>
+              <button onClick={() => setShowCopyPanel(false)} className="text-xs text-[#115e59] hover:text-[#99f6e4]">Anuluj</button>
+              <p className="w-full text-xs text-[#115e59] mt-0.5">Daty zostaną przepisane do wybranego miesiąca. Opisy, kwoty i kategorie pozostają bez zmian.</p>
             </div>
           )}
 

@@ -367,6 +367,61 @@ export async function bulkUpdateCategory(
   }
 }
 
+// ── KOPIUJ DO INNEGO MIESIĄCA ────────────────────────────────────
+export async function copyExpenses(
+  ids: string[],
+  targetYear: number,
+  targetMonth: number,
+): Promise<{ copied: number; error?: string }> {
+  try {
+    const { profile, user } = await getActor()
+    if (profile.role === 'user' || profile.role === 'najemca') return { copied: 0, error: 'Brak uprawnień' }
+    if (!ids.length) return { copied: 0, error: 'Brak zaznaczonych wpisów' }
+
+    const admin = getSupabaseAdminClient()
+
+    const { data: rows, error: fetchErr } = await admin
+      .from('community_expenses')
+      .select('community_id, category, description, amount, expense_date, invoice_number, is_renovation_fund')
+      .in('id', ids)
+
+    if (fetchErr) return { copied: 0, error: fetchErr.message }
+    if (!rows?.length) return { copied: 0, error: 'Nie znaleziono wpisów' }
+
+    if (profile.role === 'admin') {
+      const foreign = rows.some(r => r.community_id !== profile.community_id)
+      if (foreign) return { copied: 0, error: 'Brak uprawnień do części wybranych wpisów' }
+    }
+
+    // Zachowaj dzień z oryginału, ale utnij do ostatniego dnia docelowego miesiąca
+    const lastDay = new Date(targetYear, targetMonth, 0).getDate()
+    const newRows = rows.map(r => {
+      const origDay = parseInt(r.expense_date.slice(8, 10), 10)
+      const day = Math.min(origDay, lastDay)
+      const newDate = `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+      return {
+        community_id: r.community_id,
+        category: r.category,
+        description: r.description,
+        amount: r.amount,
+        expense_date: newDate,
+        invoice_number: r.invoice_number,
+        is_renovation_fund: r.is_renovation_fund,
+        created_by: user.id,
+      }
+    })
+
+    const { error: insertErr } = await admin.from('community_expenses').insert(newRows)
+    if (insertErr) return { copied: 0, error: insertErr.message }
+
+    revalidatePath('/admin/finanse/koszty')
+    revalidatePath('/admin/dashboard')
+    return { copied: newRows.length }
+  } catch (e: any) {
+    return { copied: 0, error: e?.message ?? String(e) }
+  }
+}
+
 // ── GRUPOWE USUWANIE ──────────────────────────────────────────────
 export async function bulkDeleteExpenses(ids: string[]): Promise<{ error?: string; deleted?: number }> {
   try {
