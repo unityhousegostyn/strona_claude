@@ -50,6 +50,7 @@ function useNavEntries(role: string): NavEntry[] {
         subItems: [
           { href: '/admin/settlements', label: 'Zestawienie', icon: '📋' },
           { href: '/admin/settlements/zawiadomienia', label: t('nav.zawiadomienia'), icon: '📄' },
+          { href: '/admin/settlements/nota-wody-zbiorczy', label: 'Noty wody', icon: '💧' },
         ],
       },
     ] : []),

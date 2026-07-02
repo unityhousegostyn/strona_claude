@@ -269,12 +269,6 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
             >
               {isPending ? '⏳ Przeliczam…' : '🔄 Przelicz'}
             </button>
-            <Link
-              href={`/admin/settlements/nota-wody-zbiorczy?communityId=${selectedCommunityId}&year=${new Date().getFullYear()}`}
-              className="text-xs px-3 py-1.5 rounded-lg border border-[#0f2d2a] text-[#0f766e] hover:text-[#99f6e4] hover:border-teal-700 transition"
-            >
-              💧 Noty wody
-            </Link>
           </div>
 
           {/* Error */}
