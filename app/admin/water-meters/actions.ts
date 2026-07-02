@@ -4,6 +4,7 @@ import { getAuthProfileAction } from '@/lib/getAuthProfile'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { logActivity } from '@/lib/audit'
+import { buildYearlyTable, type SettlementApartment, type SettlementEntry, type SettlementRate } from '@/lib/settlementCalc'
 
 // ── DIAGNOSTYKA — lista numerów lokali (do debugowania importu) ───────────────
 
@@ -182,7 +183,7 @@ export async function syncWaterToSettlements(
   // 2. Pobierz wszystkie lokale ze wspólnoty (active=true lub NULL — nie wykluczaj NULL)
   const { data: apts } = await admin
     .from('settlement_apartments')
-    .select('id, number, community_id, persons_count')
+    .select('id, number, community_id, area_m2, persons_count, has_meter, share_numerator, share_denominator, owner_id, owner_name, floor, notes, active')
     .eq('community_id', communityId)
     .neq('active', false)
 
@@ -265,9 +266,40 @@ export async function syncWaterToSettlements(
   if (billingType === 'meter' || billingType === 'ryczalt' || billingType === 'zaliczka') {
     const numPeriods = Math.floor(12 / reconMonths)
 
+    // Model zaliczka: potrzebujemy settlement_entries żeby policzyć ile mieszkaniec
+    // faktycznie zapłacił za wodę w każdym okresie (budYearlyTable liczy to narastająco)
+    let allFullRates: SettlementRate[] = []
+    const entriesByApt = new Map<string, SettlementEntry[]>()
+
+    if (billingType === 'zaliczka') {
+      const { data: ratesAll } = await admin
+        .from('settlement_rates')
+        .select('*')
+        .eq('community_id', communityId)
+        .order('effective_from', { ascending: false })
+      allFullRates = (ratesAll ?? []) as SettlementRate[]
+
+      const { data: entriesAll } = await admin
+        .from('settlement_entries')
+        .select('id, apartment_id, year, month, paid, water_correction, water_m3, notes, persons_count')
+        .in('apartment_id', aptIds)
+        .eq('year', year)
+      for (const e of entriesAll ?? []) {
+        if (!entriesByApt.has(e.apartment_id)) entriesByApt.set(e.apartment_id, [])
+        entriesByApt.get(e.apartment_id)!.push(e as unknown as SettlementEntry)
+      }
+    }
+
     for (const apt of apts) {
       const readings = readingsByApt.get(apt.id) ?? []
       const byYM = new Map(readings.map(r => [r.ym, r.value]))
+
+      // Dla modelu zaliczka: wylicz rows raz per lokal
+      let aptRows: ReturnType<typeof buildYearlyTable> | null = null
+      if (billingType === 'zaliczka') {
+        const aptEntries = entriesByApt.get(apt.id) ?? []
+        aptRows = buildYearlyTable(apt as unknown as SettlementApartment, allFullRates, aptEntries, year)
+      }
 
       for (let p = 1; p <= numPeriods; p++) {
         const startM = (p - 1) * reconMonths + 1  // pierwszy miesiąc okresu
@@ -296,7 +328,22 @@ export async function syncWaterToSettlements(
         if (existing && !overwrite) { skipped++; continue }
 
         const actual_m3 = Math.max(0, Math.round((endVal - startVal) * 1000) / 1000)
-        const ryczalt_m3 = (rates.water_ryczalt_m3 ?? 0) * reconMonths
+
+        // ryczalt_m3 dla zaliczki = suma row.water z miesięcy okresu (+1 offset:
+        // wpłata za miesiąc X wpada w rozliczeniu w miesiącu X+1)
+        let ryczalt_m3: number
+        if (billingType === 'zaliczka' && aptRows) {
+          const paidMonthsStart = (p - 1) * reconMonths + 2
+          const sumWaterZl = Array.from({ length: reconMonths }, (_, i) => paidMonthsStart + i)
+            .filter(m => m <= 12)
+            .reduce((s, m) => s + (aptRows!.find(r => r.month === m)?.water ?? 0), 0)
+          ryczalt_m3 = (rates.water_price_m3 ?? 0) > 0
+            ? Math.round(sumWaterZl / rates.water_price_m3 * 1000) / 1000
+            : 0
+        } else {
+          ryczalt_m3 = Math.round((rates.water_ryczalt_m3 ?? 0) * reconMonths * 1000) / 1000
+        }
+
         const correction_m3 = Math.round((actual_m3 - ryczalt_m3) * 1000) / 1000
         const correction_amount = Math.round(correction_m3 * (rates.water_price_m3 ?? 0) * 100) / 100
 

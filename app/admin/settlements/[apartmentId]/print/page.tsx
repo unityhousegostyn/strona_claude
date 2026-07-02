@@ -2,7 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import { getAuthProfile, canAccessApartment } from '@/lib/getAuthProfile'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import {
-  buildYearlyTable, pln, shareStr,
+  buildYearlyTable, getRatesForMonth, pln, shareStr,
   type SettlementApartment, type SettlementRate, type SettlementEntry
 } from '@/lib/settlementCalc'
 import { formatDocDate } from '@/lib/documentBranding'
@@ -46,6 +46,13 @@ export default async function PrintPage({
   const entries: SettlementEntry[] = entriesRes.data ?? []
 
   const rows = buildYearlyTable(apartment as SettlementApartment, rates, entries, year)
+
+  // Nagłówek kolumny wody zależy od modelu rozliczenia
+  const dominantBillingType = getRatesForMonth(rates, year, 6)?.water_billing_type ?? 'ryczalt'
+  const waterColLabel =
+    dominantBillingType === 'zaliczka' ? 'Woda (zaliczka)' :
+    dominantBillingType === 'meter'    ? 'Woda (licznik)'  :
+    'Ryczałt wody'
   const totalPaid = rows.reduce((s, r) => s + r.paid, 0)
   const totalDue  = rows.reduce((s, r) => s + r.total_due, 0)
   const totalRenovation = rows.reduce((s, r) => s + r.renovation, 0)
@@ -97,7 +104,7 @@ export default async function PrintPage({
           <table className="w-full text-xs print:text-[10px] border-collapse">
             <thead>
               <tr className="bg-[#f1f5f4]">
-                {['Miesiąc','Saldo pocz.','Wpłacono','Fund. rem.','Fund. ekspl.','Zarządca','Ryczałt wody','Śmieci','Korekta','Razem','Saldo końc.'].map(h => (
+                {['Miesiąc','Saldo pocz.','Wpłacono','Fund. rem.','Fund. ekspl.','Zarządca',waterColLabel,'Śmieci','Korekta','Razem','Saldo końc.'].map(h => (
                   <th key={h} className="px-2 print:px-1 py-2 print:py-1 text-right first:text-left text-[#374151] font-semibold border border-[#e5e7eb] whitespace-nowrap">
                     {h}
                   </th>
