@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from 'react'
 import * as XLSX from 'xlsx'
-import { importWaterReadingsAdmin, type ImportWaterRow } from './actions'
+import { importWaterReadingsAdmin, getApartmentNumbers, type ImportWaterRow } from './actions'
 import { useToast } from '@/components/ToastContext'
 
 interface Community { id: string; name: string }
@@ -82,6 +82,7 @@ export default function WaterImportPanel({
   })
   // community mapping: address → community_id
   const [communityMap, setCommunityMap] = useState<Record<string, string>>({})
+  const [dbNumbers, setDbNumbers] = useState<string[]>([])
   const [result, setResult] = useState<{ imported: number; skipped: { apt: string; reason: string }[] } | null>(null)
   const [importing, setImporting] = useState(false)
   const [parseError, setParseError] = useState<string | null>(null)
@@ -181,7 +182,14 @@ export default function WaterImportPanel({
                     <span className="text-sm text-[#f0fdfa] min-w-[180px]">{addr}</span>
                     <select
                       value={communityMap[addr] ?? ''}
-                      onChange={e => setCommunityMap(prev => ({ ...prev, [addr]: e.target.value }))}
+                      onChange={async e => {
+                        const cid = e.target.value
+                        setCommunityMap(prev => ({ ...prev, [addr]: cid }))
+                        if (cid) {
+                          const res = await getApartmentNumbers(cid)
+                          setDbNumbers(res.numbers)
+                        }
+                      }}
                       className="input text-sm py-1 px-2 flex-1 min-w-[200px]"
                     >
                       <option value="">— wybierz wspólnotę —</option>
@@ -191,6 +199,14 @@ export default function WaterImportPanel({
                     </select>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Diagnostyka — numery lokali z bazy */}
+            {dbNumbers.length > 0 && (
+              <div className="bg-[#051210] rounded-lg px-3 py-2 text-xs">
+                <p className="text-[#0f766e] mb-1">Numery lokali w bazie ({dbNumbers.length}):</p>
+                <p className="text-[#99f6e4] font-mono break-all">{dbNumbers.join(', ')}</p>
               </div>
             )}
 

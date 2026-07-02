@@ -5,6 +5,26 @@ import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { logActivity } from '@/lib/audit'
 
+// ── DIAGNOSTYKA — lista numerów lokali (do debugowania importu) ───────────────
+
+export async function getApartmentNumbers(
+  communityId: string
+): Promise<{ numbers: string[]; error?: string }> {
+  const auth = await getAuthProfileAction()
+  if (auth.error !== null) return { numbers: [], error: auth.error }
+  if (auth.profile.role !== 'super_admin') return { numbers: [], error: 'Brak uprawnień' }
+
+  const admin = getSupabaseAdminClient()
+  const { data, error } = await admin
+    .from('settlement_apartments')
+    .select('number')
+    .eq('community_id', communityId)
+    .order('number')
+
+  if (error) return { numbers: [], error: error.message }
+  return { numbers: (data ?? []).map(r => r.number) }
+}
+
 // ── IMPORT ZBIORCZY Z XLSX (tylko super_admin) ────────────────────────────────
 
 export interface ImportWaterRow {
