@@ -302,7 +302,6 @@ export async function syncWaterToSettlements(
 
         const { error } = await admin.from('settlement_water_reconciliation').upsert({
           apartment_id: apt.id,
-          community_id: communityId,
           year,
           quarter: p,
           meter_reading_start: startVal,
@@ -311,7 +310,6 @@ export async function syncWaterToSettlements(
           ryczalt_m3,
           correction_m3,
           correction_amount,
-          updated_at: now,
         }, { onConflict: 'apartment_id,year,quarter' })
 
         if (error) { errors.push(`${apt.number}/Q${p}: ${error.message}`); continue }
