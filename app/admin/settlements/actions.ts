@@ -444,3 +444,32 @@ export async function getWaterConsumption(
   const m3 = Math.max(0, Math.round((current - previous) * 1000) / 1000)
   return { m3, current, previous }
 }
+
+// ── ABSOLUTNY ODCZYT LICZNIKA za dany miesiąc (do qStart/qEnd) ───────────────
+
+export async function getWaterReading(
+  apartmentId: string,
+  year: number,
+  month: number,
+): Promise<{ value: number | null; error?: string }> {
+  const auth = await requireAdminOrAbove()
+  if (auth.error !== null) return { value: null, error: auth.error }
+
+  // Poprawna obsługa przełomu roku (miesiąc 0 = grudzień roku poprzedniego)
+  const actualYear = month < 1 ? year - 1 : month > 12 ? year + 1 : year
+  const actualMonth = month < 1 ? 12 : month > 12 ? month - 12 : month
+  const ym = `${actualYear}-${String(actualMonth).padStart(2, '0')}`
+
+  const admin = getSupabaseAdminClient()
+  const { data } = await admin
+    .from('water_meter_readings')
+    .select('reading_value')
+    .eq('apartment_id', apartmentId)
+    .like('reading_date', `${ym}%`)
+    .eq('status', 'confirmed')
+    .order('reading_date', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  return { value: data?.reading_value ?? null }
+}

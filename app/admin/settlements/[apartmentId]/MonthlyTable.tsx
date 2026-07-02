@@ -6,7 +6,7 @@ import {
   buildYearlyTable, pln, type SettlementApartment,
   type SettlementRate, type SettlementEntry, type MonthlyRow
 } from '@/lib/settlementCalc'
-import { upsertEntry, upsertWaterReconciliation, upsertOpeningBalance, getWaterConsumption } from '../actions'
+import { upsertEntry, upsertWaterReconciliation, upsertOpeningBalance, getWaterConsumption, getWaterReading } from '../actions'
 
 interface Reconciliation {
   id: string
@@ -44,6 +44,9 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
   const [saveError, setSaveError] = useState<string | null>(null)
   const [meterReading, setMeterReading] = useState<{ m3: number | null; current: number | null; previous: number | null } | null>(null)
   const [meterLoading, setMeterLoading] = useState(false)
+  // Auto-odczyty dla formularza rozliczenia okresu (qStart/qEnd)
+  const [qMeterLoading, setQMeterLoading] = useState(false)
+  const [qMeterHint, setQMeterHint] = useState<{ start: number | null; end: number | null } | null>(null)
   const [initialBalance, setInitialBalance] = useState(savedOpeningBalance)
   const [showBalanceInput, setShowBalanceInput] = useState(false)
   const [balanceSaving, setBalanceSaving] = useState(false)
@@ -127,13 +130,13 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
     setSaveError(null)
     setMeterReading(null)
 
-    // Jeśli model "licznik" i brak ręcznego wpisu — pobierz deltę z water_meter_readings
-    if (isMeterBilling) {
+    // Auto-fill m³ tylko gdy model "licznik" i rozliczenie MIESIĘCZNE (reconMonths=1)
+    // Dla dłuższych okresów delta idzie do formularza rozliczenia okresu (qStart/qEnd)
+    if (isMeterBilling && reconMonths === 1) {
       setMeterLoading(true)
       const res = await getWaterConsumption(apartment.id, year, row.month)
       setMeterLoading(false)
       setMeterReading({ m3: res.m3, current: res.current, previous: res.previous })
-      // Pre-wypełnij tylko jeśli admin jeszcze nie wpisał własnej wartości
       if (res.m3 !== null && (row.entry?.water_m3 == null || row.entry.water_m3 === 0)) {
         setEditWaterM3(String(res.m3))
       }
@@ -169,13 +172,34 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
     }
   }
 
-  function openQuarter(q: number) {
+  async function openQuarter(q: number) {
     const existing = reconciliations.find(r => r.quarter === q)
     setEditQuarter(q)
     setQStart(existing ? String(existing.meter_reading_start) : '')
     setQEnd(existing ? String(existing.meter_reading_end) : '')
     setQNotes(existing?.notes ?? '')
     setQError(null)
+    setQMeterHint(null)
+
+    // Auto-fill odczytów z bazy gdy brak ręcznego wpisu i reconMonths > 1
+    if (reconMonths > 1) {
+      const startM = (q - 1) * reconMonths + 1  // pierwszy miesiąc okresu
+      const endM = q * reconMonths               // ostatni miesiąc okresu
+      // qStart = odczyt z miesiąca PRZED początkiem okresu (stan na dzień 1 okresu)
+      const prevM = startM - 1  // może być 0 (= grudzień roku poprzedniego — obsługuje getWaterReading)
+      setQMeterLoading(true)
+      const [resStart, resEnd] = await Promise.all([
+        getWaterReading(apartment.id, year, prevM),
+        getWaterReading(apartment.id, year, endM),
+      ])
+      setQMeterLoading(false)
+      setQMeterHint({ start: resStart.value, end: resEnd.value })
+      // Pre-wypełnij jeśli admin jeszcze nic nie wpisał
+      if (!existing) {
+        if (resStart.value !== null) setQStart(String(resStart.value))
+        if (resEnd.value !== null) setQEnd(String(resEnd.value))
+      }
+    }
   }
 
   // Bazowy m³ za kwartał — suma "wody" naliczonej w 3 miesiącach / cena za m³.
@@ -598,6 +622,9 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
 
                   {isEditingQ && (
                     <div className="mt-3 flex flex-wrap items-end gap-3">
+                      {qMeterLoading && (
+                        <p className="w-full text-xs text-[#0f766e]">⏳ pobieranie odczytów z licznika…</p>
+                      )}
                       <div>
                         <label className="text-xs text-[#0f766e] block mb-1">Stan pocz. (m³)</label>
                         <input
@@ -608,6 +635,17 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                           placeholder="0.000"
                           className="w-28 bg-[#0c2220] border border-[#0f2d2a] rounded-lg px-3 py-1.5 text-sm text-[#f0fdfa] focus:outline-none focus:border-green-500"
                         />
+                        {!qMeterLoading && qMeterHint?.start != null && (
+                          <p className="text-xs text-teal-400 mt-1">
+                            💧 {qMeterHint.start.toFixed(3)}
+                            {qStart !== String(qMeterHint.start) && (
+                              <button type="button" onClick={() => setQStart(String(qMeterHint!.start))} className="ml-1 underline hover:text-teal-300">użyj</button>
+                            )}
+                          </p>
+                        )}
+                        {!qMeterLoading && qMeterHint && qMeterHint.start === null && (
+                          <p className="text-xs text-[#115e59] mt-1">brak odczytu</p>
+                        )}
                       </div>
                       <div>
                         <label className="text-xs text-[#0f766e] block mb-1">Stan końc. (m³)</label>
@@ -619,6 +657,17 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                           placeholder="0.000"
                           className="w-28 bg-[#0c2220] border border-[#0f2d2a] rounded-lg px-3 py-1.5 text-sm text-[#f0fdfa] focus:outline-none focus:border-green-500"
                         />
+                        {!qMeterLoading && qMeterHint?.end != null && (
+                          <p className="text-xs text-teal-400 mt-1">
+                            💧 {qMeterHint.end.toFixed(3)}
+                            {qEnd !== String(qMeterHint.end) && (
+                              <button type="button" onClick={() => setQEnd(String(qMeterHint!.end))} className="ml-1 underline hover:text-teal-300">użyj</button>
+                            )}
+                          </p>
+                        )}
+                        {!qMeterLoading && qMeterHint && qMeterHint.end === null && (
+                          <p className="text-xs text-[#115e59] mt-1">brak odczytu</p>
+                        )}
                       </div>
                       <div className="flex-1 min-w-40">
                         <label className="text-xs text-[#0f766e] block mb-1">Uwagi</label>
