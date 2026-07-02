@@ -143,7 +143,7 @@ export async function importWaterReadingsAdmin(
 // ── SYNC ODCZYTÓW → ROZLICZENIA ───────────────────────────────────────────────
 // Dla danej wspólnoty i roku: pobiera stawki, ustala model rozliczenia wody,
 // i automatycznie wypełnia settlement_entries.water_m3 (model miesięczny)
-// lub water_reconciliations (model wielomiesięczny).
+// lub settlement_water_reconciliation (model wielomiesięczny).
 
 export async function syncWaterToSettlements(
   communityId: string,
@@ -286,7 +286,7 @@ export async function syncWaterToSettlements(
 
         // Sprawdź istniejące rozliczenie okresu
         const { data: existing } = await admin
-          .from('water_reconciliations')
+          .from('settlement_water_reconciliation')
           .select('id')
           .eq('apartment_id', apt.id)
           .eq('year', year)
@@ -300,7 +300,7 @@ export async function syncWaterToSettlements(
         const correction_m3 = Math.round((actual_m3 - ryczalt_m3) * 1000) / 1000
         const correction_amount = Math.round(correction_m3 * (rates.water_price_m3 ?? 0) * 100) / 100
 
-        const { error } = await admin.from('water_reconciliations').upsert({
+        const { error } = await admin.from('settlement_water_reconciliation').upsert({
           apartment_id: apt.id,
           community_id: communityId,
           year,
