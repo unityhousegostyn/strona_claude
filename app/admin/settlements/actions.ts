@@ -391,3 +391,56 @@ export async function upsertOpeningBalance(
   revalidatePath(`/admin/settlements/${apartmentId}`)
   return {}
 }
+
+// ── ODCZYT LICZNIKA — delta bieżący − poprzedni miesiąc ──────────────────────
+
+export async function getWaterConsumption(
+  apartmentId: string,
+  year: number,
+  month: number,
+): Promise<{ m3: number | null; current: number | null; previous: number | null; error?: string }> {
+  const auth = await requireAdminOrAbove()
+  if (auth.error !== null) return { m3: null, current: null, previous: null, error: auth.error }
+
+  const admin = getSupabaseAdminClient()
+
+  const { data: apt } = await admin
+    .from('settlement_apartments')
+    .select('community_id')
+    .eq('id', apartmentId)
+    .single()
+  if (!apt) return { m3: null, current: null, previous: null, error: 'Lokal nie istnieje' }
+  const guardErr = guardCommunity(auth, apt.community_id)
+  if (guardErr) return { m3: null, current: null, previous: null, error: guardErr }
+
+  const curYM = `${year}-${String(month).padStart(2, '0')}`
+  const prevYear = month === 1 ? year - 1 : year
+  const prevMonth = month === 1 ? 12 : month - 1
+  const prevYM = `${prevYear}-${String(prevMonth).padStart(2, '0')}`
+
+  const [{ data: curRow }, { data: prevRow }] = await Promise.all([
+    admin.from('water_meter_readings')
+      .select('reading_value')
+      .eq('apartment_id', apartmentId)
+      .like('reading_date', `${curYM}%`)
+      .eq('status', 'confirmed')
+      .order('reading_date', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    admin.from('water_meter_readings')
+      .select('reading_value')
+      .eq('apartment_id', apartmentId)
+      .like('reading_date', `${prevYM}%`)
+      .eq('status', 'confirmed')
+      .order('reading_date', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ])
+
+  const current = curRow?.reading_value ?? null
+  const previous = prevRow?.reading_value ?? null
+  if (current === null || previous === null) return { m3: null, current, previous }
+
+  const m3 = Math.max(0, Math.round((current - previous) * 1000) / 1000)
+  return { m3, current, previous }
+}

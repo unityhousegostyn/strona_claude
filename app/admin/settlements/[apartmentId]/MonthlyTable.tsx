@@ -6,7 +6,7 @@ import {
   buildYearlyTable, pln, type SettlementApartment,
   type SettlementRate, type SettlementEntry, type MonthlyRow
 } from '@/lib/settlementCalc'
-import { upsertEntry, upsertWaterReconciliation, upsertOpeningBalance } from '../actions'
+import { upsertEntry, upsertWaterReconciliation, upsertOpeningBalance, getWaterConsumption } from '../actions'
 
 interface Reconciliation {
   id: string
@@ -42,6 +42,8 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
   const [editPersons, setEditPersons] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [meterReading, setMeterReading] = useState<{ m3: number | null; current: number | null; previous: number | null } | null>(null)
+  const [meterLoading, setMeterLoading] = useState(false)
   const [initialBalance, setInitialBalance] = useState(savedOpeningBalance)
   const [showBalanceInput, setShowBalanceInput] = useState(false)
   const [balanceSaving, setBalanceSaving] = useState(false)
@@ -115,7 +117,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
     return { fixedDue, paid, waterAttributed }
   }
 
-  function openEdit(row: MonthlyRow) {
+  async function openEdit(row: MonthlyRow) {
     setEditMonth(row.month)
     setEditPaid(row.entry?.paid != null ? String(row.entry.paid) : '')
     setEditCorrection(row.entry?.water_correction != null ? String(row.entry.water_correction) : '')
@@ -123,6 +125,19 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
     setEditNotes(row.entry?.notes ?? '')
     setEditPersons(row.entry?.persons_count != null ? String(row.entry.persons_count) : '')
     setSaveError(null)
+    setMeterReading(null)
+
+    // Jeśli model "licznik" i brak ręcznego wpisu — pobierz deltę z water_meter_readings
+    if (isMeterBilling) {
+      setMeterLoading(true)
+      const res = await getWaterConsumption(apartment.id, year, row.month)
+      setMeterLoading(false)
+      setMeterReading({ m3: res.m3, current: res.current, previous: res.previous })
+      // Pre-wypełnij tylko jeśli admin jeszcze nie wpisał własnej wartości
+      if (res.m3 !== null && (row.entry?.water_m3 == null || row.entry.water_m3 === 0)) {
+        setEditWaterM3(String(res.m3))
+      }
+    }
   }
 
   function closeEdit() {
@@ -364,6 +379,29 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                                   placeholder="0.000"
                                   className="w-28 bg-[#0c2220] border border-[#0f2d2a] rounded-lg px-3 py-1.5 text-sm text-[#f0fdfa] focus:outline-none focus:border-green-500"
                                 />
+                                {meterLoading && (
+                                  <p className="text-xs text-[#0f766e] mt-1">⏳ pobieranie z licznika…</p>
+                                )}
+                                {!meterLoading && meterReading && meterReading.m3 !== null && (
+                                  <p className="text-xs text-teal-400 mt-1">
+                                    💧 z licznika: {meterReading.m3.toFixed(3)} m³
+                                    <span className="text-[#115e59] ml-1">
+                                      ({meterReading.previous?.toFixed(3)} → {meterReading.current?.toFixed(3)})
+                                    </span>
+                                    {editWaterM3 !== String(meterReading.m3) && (
+                                      <button
+                                        type="button"
+                                        onClick={() => setEditWaterM3(String(meterReading!.m3))}
+                                        className="ml-2 underline hover:text-teal-300"
+                                      >użyj</button>
+                                    )}
+                                  </p>
+                                )}
+                                {!meterLoading && meterReading && meterReading.m3 === null && (
+                                  <p className="text-xs text-[#115e59] mt-1">
+                                    {meterReading.current === null ? '⚠ brak odczytu za ten miesiąc' : '⚠ brak odczytu za poprzedni miesiąc'}
+                                  </p>
+                                )}
                                 {editWaterM3 && latestRates && (
                                   <p className="text-xs text-[#115e59] mt-1">
                                     = {(parseFloat(editWaterM3 || '0') * latestRates.water_price_m3).toFixed(2)} zł
