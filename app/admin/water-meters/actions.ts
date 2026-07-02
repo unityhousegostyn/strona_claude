@@ -154,8 +154,9 @@ export async function syncWaterToSettlements(
   synced: number
   skipped: number
   errors: string[]
+  debug?: string
 }> {
-  const fail = (msg: string) => ({ model: '?', synced: 0, skipped: 0, errors: [msg] })
+  const fail = (msg: string, debug?: string) => ({ model: '?', synced: 0, skipped: 0, errors: [msg], debug })
 
   const auth = await getAuthProfileAction()
   if (auth.error !== null) return fail(auth.error)
@@ -178,14 +179,14 @@ export async function syncWaterToSettlements(
   const billingType: string = rates.water_billing_type ?? 'ryczalt'
   const reconMonths: number = rates.water_reconciliation_months ?? 3
 
-  // 2. Pobierz wszystkie aktywne lokale ze wspólnoty
+  // 2. Pobierz wszystkie lokale ze wspólnoty (active=true lub NULL — nie wykluczaj NULL)
   const { data: apts } = await admin
     .from('settlement_apartments')
     .select('id, number, community_id, persons_count')
     .eq('community_id', communityId)
-    .eq('active', true)
+    .neq('active', false)
 
-  if (!apts?.length) return fail('Brak lokali w tej wspólnoty')
+  if (!apts?.length) return fail(`Brak lokali w tej wspólnoty (communityId=${communityId})`)
 
   // 3. Pobierz wszystkie potwierdzone odczyty dla tych lokali z zakresu roku
   //    (+1 miesiąc przed i po, żeby mieć granice okresu)
@@ -211,6 +212,7 @@ export async function syncWaterToSettlements(
   let synced = 0
   let skipped = 0
   const errors: string[] = []
+  const debugInfo = `lokale=${apts.length} odczyty=${allReadings?.length ?? 0} model=${billingType}/${reconMonths}mies`
 
   // ── MODEL MIESIĘCZNY (reconMonths === 1) ─────────────────────────────────
   if (billingType === 'meter' && reconMonths === 1) {
@@ -256,7 +258,7 @@ export async function syncWaterToSettlements(
         synced++
       }
     }
-    return { model: 'miesięczny', synced, skipped, errors }
+    return { model: 'miesięczny', synced, skipped, errors, debug: debugInfo }
   }
 
   // ── MODEL WIELOMIESIĘCZNY (kwartalny, półroczny, roczny) ──────────────────
@@ -316,7 +318,7 @@ export async function syncWaterToSettlements(
         synced++
       }
     }
-    return { model: `${reconMonths}-miesięczny`, synced, skipped, errors }
+    return { model: `${reconMonths}-miesięczny`, synced, skipped, errors, debug: debugInfo }
   }
 
   return fail(`Nieobsługiwany model: ${billingType}`)

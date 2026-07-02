@@ -40,7 +40,7 @@ export default function WaterMetersClient({
   const [syncYear, setSyncYear] = useState(new Date().getFullYear())
   const [syncOverwrite, setSyncOverwrite] = useState(false)
   const [syncing, setSyncing] = useState(false)
-  const [syncResult, setSyncResult] = useState<{ model: string; synced: number; skipped: number; errors: string[] } | null>(null)
+  const [syncResult, setSyncResult] = useState<{ model: string; synced: number; skipped: number; errors: string[]; debug?: string } | null>(null)
   const [, startTransition] = useTransition()
   const { showToast } = useToast()
 
@@ -213,6 +213,7 @@ export default function WaterMetersClient({
                 <p className="font-semibold text-[#f0fdfa]">
                   Model: {syncResult.model} · Zsync: {syncResult.synced} · Pominięto: {syncResult.skipped}
                 </p>
+                {syncResult.debug && <p className="text-xs text-[#0f766e] font-mono">{syncResult.debug}</p>}
                 {syncResult.errors.map((e, i) => <p key={i} className="text-xs text-red-300">{e}</p>)}
               </div>
             )}
