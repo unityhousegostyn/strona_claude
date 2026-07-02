@@ -4,7 +4,7 @@ import { getAuthProfileAction } from '@/lib/getAuthProfile'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { logActivity } from '@/lib/audit'
-import { buildYearlyTable, type SettlementApartment, type SettlementEntry, type SettlementRate } from '@/lib/settlementCalc'
+import { buildYearlyTable, getRatesForMonth, type SettlementApartment, type SettlementEntry, type SettlementRate } from '@/lib/settlementCalc'
 
 // ── DIAGNOSTYKA — lista numerów lokali (do debugowania importu) ───────────────
 
@@ -166,19 +166,20 @@ export async function syncWaterToSettlements(
 
   const admin = getSupabaseAdminClient()
 
-  // 1. Pobierz stawki (najnowsze dla tej wspólnoty)
+  // 1. Pobierz WSZYSTKIE stawki — używamy obowiązującej w danym okresie, nie bieżącej
   const { data: ratesRows } = await admin
     .from('settlement_rates')
-    .select('water_billing_type, water_reconciliation_months, water_price_m3, water_ryczalt_m3, effective_from')
+    .select('*')
     .eq('community_id', communityId)
     .order('effective_from', { ascending: false })
-    .limit(1)
 
-  const rates = ratesRows?.[0]
-  if (!rates) return fail('Brak stawek dla tej wspólnoty')
+  if (!ratesRows?.length) return fail('Brak stawek dla tej wspólnoty')
+  const allSyncRates = ratesRows as SettlementRate[]
 
-  const billingType: string = rates.water_billing_type ?? 'ryczalt'
-  const reconMonths: number = rates.water_reconciliation_months ?? 3
+  // Model i okres bierzemy z najnowszej stawki (ustawienie systemowe, nie cenowe)
+  const latestRate = allSyncRates[0]
+  const billingType: string = latestRate.water_billing_type ?? 'ryczalt'
+  const reconMonths: number = latestRate.water_reconciliation_months ?? 3
 
   // 2. Pobierz wszystkie lokale ze wspólnoty (active=true lub NULL — nie wykluczaj NULL)
   const { data: apts } = await admin
@@ -329,6 +330,9 @@ export async function syncWaterToSettlements(
 
         const actual_m3 = Math.max(0, Math.round((endVal - startVal) * 1000) / 1000)
 
+        // Stawka obowiązująca w ostatnim miesiącu okresu
+        const periodRate = getRatesForMonth(allSyncRates, year, endM) ?? latestRate
+
         // ryczalt_m3 dla zaliczki = suma row.water z miesięcy okresu (+1 offset:
         // wpłata za miesiąc X wpada w rozliczeniu w miesiącu X+1)
         let ryczalt_m3: number
@@ -337,15 +341,15 @@ export async function syncWaterToSettlements(
           const sumWaterZl = Array.from({ length: reconMonths }, (_, i) => paidMonthsStart + i)
             .filter(m => m <= 12)
             .reduce((s, m) => s + (aptRows!.find(r => r.month === m)?.water ?? 0), 0)
-          ryczalt_m3 = (rates.water_price_m3 ?? 0) > 0
-            ? Math.round(sumWaterZl / rates.water_price_m3 * 1000) / 1000
+          ryczalt_m3 = (periodRate.water_price_m3 ?? 0) > 0
+            ? Math.round(sumWaterZl / periodRate.water_price_m3 * 1000) / 1000
             : 0
         } else {
-          ryczalt_m3 = Math.round((rates.water_ryczalt_m3 ?? 0) * reconMonths * 1000) / 1000
+          ryczalt_m3 = Math.round((periodRate.water_ryczalt_m3 ?? 0) * reconMonths * 1000) / 1000
         }
 
         const correction_m3 = Math.round((actual_m3 - ryczalt_m3) * 1000) / 1000
-        const correction_amount = Math.round(correction_m3 * (rates.water_price_m3 ?? 0) * 100) / 100
+        const correction_amount = Math.round(correction_m3 * (periodRate.water_price_m3 ?? 0) * 100) / 100
 
         const { error } = await admin.from('settlement_water_reconciliation').upsert({
           apartment_id: apt.id,

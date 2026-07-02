@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  buildYearlyTable, pln, type SettlementApartment,
+  buildYearlyTable, getRatesForMonth, pln, type SettlementApartment,
   type SettlementRate, type SettlementEntry, type MonthlyRow
 } from '@/lib/settlementCalc'
 import { upsertEntry, upsertWaterReconciliation, upsertOpeningBalance, getWaterConsumption, getWaterReading } from '../actions'
@@ -202,6 +202,12 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
     }
   }
 
+  // Stawka obowiązująca w ostatnim miesiącu okresu q
+  function ratesForPeriod(q: number): SettlementRate | null {
+    const endM = q * reconMonths
+    return getRatesForMonth(rates, year, endM)
+  }
+
   // Bazowy m³ za kwartał — suma "wody" naliczonej w 3 miesiącach / cena za m³.
   // Dla modelu 'zaliczka' row.water to już kwota z wpłaty mieszkańca, więc ta
   // suma jest dokładnie m³-odpowiednikiem tego, co faktycznie wpłacił za wodę.
@@ -214,32 +220,32 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
   // roku — liczy się jako 0, czyli ta jedna wpłata zostanie doliczona przy
   // następnym roczniku, gdy admin wpisze ją w styczniu.
   function quarterPaidWaterM3(quarter: number): number {
-    if (!latestRates) return 0
-    // Przesunięcie +1: odczyt licznika za dany okres robiony jest w kolejnym miesiącu
+    const pr = ratesForPeriod(quarter)
+    if (!pr) return 0
     const startM = (quarter - 1) * reconMonths + 2
     const monthsInQ = Array.from({ length: reconMonths }, (_, i) => startM + i)
     const sumWater = monthsInQ.reduce((s, m) => {
       const row = rows.find(r => r.month === m)
       return s + (row?.water ?? 0)
     }, 0)
-    return latestRates.water_price_m3 > 0 ? sumWater / latestRates.water_price_m3 : 0
+    return pr.water_price_m3 > 0 ? sumWater / pr.water_price_m3 : 0
   }
 
   async function saveReconciliation() {
-    if (editQuarter === null || !latestRates) return
+    if (editQuarter === null) return
+    const pr = ratesForPeriod(editQuarter)
+    if (!pr) return
     setQSaving(true)
     setQError(null)
     const startM = (editQuarter - 1) * reconMonths + 1
     const monthsInQ = Array.from({ length: reconMonths }, (_, i) => startM + i)
     const ryczalt = monthsInQ.reduce((s, m) => {
       const row = rows.find(r => r.month === m)
-      return s + (row?.water ?? 0) / (latestRates.water_price_m3 || 1)
+      return s + (row?.water ?? 0) / (pr.water_price_m3 || 1)
     }, 0)
-    // Model 'zaliczka' nie ma ryczałtu jako bazy — zawsze porównujemy do tego,
-    // co faktycznie wpłacono za wodę. Dla 'ryczalt' zachowanie 1:1 jak dotychczas.
     const baseline_m3 = isZaliczkaBilling
       ? quarterPaidWaterM3(editQuarter)
-      : (parseFloat(qStart || '0') === 0 ? latestRates.water_ryczalt_m3 * reconMonths : ryczalt)
+      : (parseFloat(qStart || '0') === 0 ? pr.water_ryczalt_m3 * reconMonths : ryczalt)
 
     const res = await upsertWaterReconciliation({
       apartment_id: apartment.id,
@@ -248,7 +254,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
       meter_reading_start: parseFloat(qStart || '0'),
       meter_reading_end: parseFloat(qEnd || '0'),
       ryczalt_m3: baseline_m3,
-      water_price_m3: latestRates.water_price_m3,
+      water_price_m3: pr.water_price_m3,
       notes: qNotes || null,
     })
     setQSaving(false)
@@ -687,19 +693,23 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                         {qSaving ? 'Zapisuję...' : 'Zapisz'}
                       </button>
                       {qError && <span className="text-red-400 text-xs">{qError}</span>}
-                      {qStart && qEnd && latestRates && !isZaliczkaBilling && (
-                        <span className="text-xs text-[#0f766e]">
-                          Korekta: {Math.round((parseFloat(qEnd) - parseFloat(qStart) - latestRates.water_ryczalt_m3 * reconMonths) * 100) / 100} m³
-                          = {pln(Math.round((parseFloat(qEnd) - parseFloat(qStart) - latestRates.water_ryczalt_m3 * reconMonths) * latestRates.water_price_m3 * 100) / 100)}
-                        </span>
-                      )}
-                      {qStart && qEnd && latestRates && isZaliczkaBilling && (() => {
-                        const baseline = quarterPaidWaterM3(q)
-                        const correctionM3 = Math.round((parseFloat(qEnd) - parseFloat(qStart) - baseline) * 1000) / 1000
-                        const correctionZl = Math.round(correctionM3 * latestRates.water_price_m3 * 100) / 100
+                      {qStart && qEnd && ratesForPeriod(q) && !isZaliczkaBilling && (() => {
+                        const pr = ratesForPeriod(q)!
+                        const corrM3 = Math.round((parseFloat(qEnd) - parseFloat(qStart) - pr.water_ryczalt_m3 * reconMonths) * 100) / 100
                         return (
                           <span className="text-xs text-[#0f766e]">
-                            Zużycie: {(parseFloat(qEnd) - parseFloat(qStart)).toFixed(3)} m³, wpłacono za wodę: {baseline.toFixed(3)} m³ ({pln(baseline * latestRates.water_price_m3)})
+                            Korekta: {corrM3} m³ = {pln(Math.round(corrM3 * pr.water_price_m3 * 100) / 100)}
+                          </span>
+                        )
+                      })()}
+                      {qStart && qEnd && ratesForPeriod(q) && isZaliczkaBilling && (() => {
+                        const pr = ratesForPeriod(q)!
+                        const baseline = quarterPaidWaterM3(q)
+                        const correctionM3 = Math.round((parseFloat(qEnd) - parseFloat(qStart) - baseline) * 1000) / 1000
+                        const correctionZl = Math.round(correctionM3 * pr.water_price_m3 * 100) / 100
+                        return (
+                          <span className="text-xs text-[#0f766e]">
+                            Zużycie: {(parseFloat(qEnd) - parseFloat(qStart)).toFixed(3)} m³, wpłacono za wodę: {baseline.toFixed(3)} m³ ({pln(baseline * pr.water_price_m3)})
                             <br />
                             {correctionZl >= 0 ? 'Dopłata' : 'Nadpłata'}: {pln(Math.abs(correctionZl))}
                           </span>
