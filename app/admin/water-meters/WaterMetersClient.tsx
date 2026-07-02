@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { confirmReading, rejectReading } from './actions'
+import { confirmReading, rejectReading, syncWaterToSettlements } from './actions'
 import { useToast } from '@/components/ToastContext'
 import BackButton from '@/components/BackButton'
 import WaterImportPanel from './WaterImportPanel'
@@ -35,8 +35,27 @@ export default function WaterMetersClient({
   const [rejectId, setRejectId] = useState<string | null>(null)
   const [rejectReason, setRejectReason] = useState('')
   const [showImport, setShowImport] = useState(false)
+  const [showSync, setShowSync] = useState(false)
+  const [syncCommunityId, setSyncCommunityId] = useState(communities[0]?.id ?? '')
+  const [syncYear, setSyncYear] = useState(new Date().getFullYear())
+  const [syncOverwrite, setSyncOverwrite] = useState(false)
+  const [syncing, setSyncing] = useState(false)
+  const [syncResult, setSyncResult] = useState<{ model: string; synced: number; skipped: number; errors: string[] } | null>(null)
   const [, startTransition] = useTransition()
   const { showToast } = useToast()
+
+  const handleSync = () => {
+    if (!syncCommunityId) return
+    setSyncing(true)
+    setSyncResult(null)
+    startTransition(async () => {
+      const res = await syncWaterToSettlements(syncCommunityId, syncYear, syncOverwrite)
+      setSyncing(false)
+      setSyncResult(res)
+      if (res.synced > 0) showToast(`Zsynchronizowano ${res.synced} wpisów`, 'success')
+      else if (res.errors.length) showToast(res.errors[0], 'error')
+    })
+  }
 
   const filtered = readings.filter(r => filter === 'all' ? true : r.status === filter)
 
@@ -74,12 +93,20 @@ export default function WaterMetersClient({
       <div className="flex items-center justify-between flex-wrap gap-2">
         <BackButton />
         {isSuperAdmin && (
-          <button
-            onClick={() => setShowImport(true)}
-            className="text-sm bg-[#0f2d2a] hover:bg-[#0f3d38] border border-[#0f766e]/30 text-[#99f6e4] font-medium px-3 py-1.5 rounded-lg transition flex items-center gap-1.5"
-          >
-            📥 Import XLSX
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowImport(true)}
+              className="text-sm bg-[#0f2d2a] hover:bg-[#0f3d38] border border-[#0f766e]/30 text-[#99f6e4] font-medium px-3 py-1.5 rounded-lg transition"
+            >
+              📥 Import XLSX
+            </button>
+            <button
+              onClick={() => { setShowSync(true); setSyncResult(null) }}
+              className="text-sm bg-[#0f2d2a] hover:bg-[#0f3d38] border border-[#0f766e]/30 text-[#99f6e4] font-medium px-3 py-1.5 rounded-lg transition"
+            >
+              🔄 Sync → Rozliczenia
+            </button>
+          </div>
         )}
       </div>
 
@@ -144,6 +171,58 @@ export default function WaterMetersClient({
       {/* Modal importu XLSX */}
       {showImport && (
         <WaterImportPanel communities={communities} onClose={() => setShowImport(false)} />
+      )}
+
+      {/* Modal sync → rozliczenia */}
+      {showSync && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowSync(false)} />
+          <div className="relative bg-[#081918] border border-[#0f2d2a] rounded-t-2xl sm:rounded-2xl p-6 w-full max-w-md space-y-4 overflow-y-auto max-h-[92dvh]">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-[#f0fdfa]">Sync odczytów → Rozliczenia</h3>
+              <button onClick={() => setShowSync(false)} className="text-[#115e59] hover:text-[#f0fdfa] text-xl leading-none">✕</button>
+            </div>
+            <p className="text-xs text-[#0f766e]">
+              Automatycznie wypełnia rozliczenia wody na podstawie zatwierdzonych odczytów z liczników.
+              Model (miesięczny/kwartalny/…) jest odczytywany ze stawek.
+            </p>
+
+            <div className="space-y-3">
+              {communities.length > 1 && (
+                <div>
+                  <label className="text-xs text-[#0f766e] block mb-1">Wspólnota</label>
+                  <select value={syncCommunityId} onChange={e => setSyncCommunityId(e.target.value)} className="input text-sm py-1.5 px-2 w-full">
+                    {communities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+              )}
+              <div>
+                <label className="text-xs text-[#0f766e] block mb-1">Rok</label>
+                <input type="number" value={syncYear} onChange={e => setSyncYear(parseInt(e.target.value))}
+                  min={2020} max={2099} className="input text-sm py-1.5 px-2 w-28" />
+              </div>
+              <label className="flex items-center gap-2 text-sm text-[#99f6e4] cursor-pointer">
+                <input type="checkbox" checked={syncOverwrite} onChange={e => setSyncOverwrite(e.target.checked)}
+                  className="accent-teal-500" />
+                Nadpisz istniejące wpisy
+              </label>
+            </div>
+
+            {syncResult && (
+              <div className={`rounded-lg px-4 py-3 text-sm space-y-1 ${syncResult.synced > 0 ? 'bg-green-950/40 border border-green-800/40' : 'bg-[#0c2220] border border-[#0f2d2a]'}`}>
+                <p className="font-semibold text-[#f0fdfa]">
+                  Model: {syncResult.model} · Zsync: {syncResult.synced} · Pominięto: {syncResult.skipped}
+                </p>
+                {syncResult.errors.map((e, i) => <p key={i} className="text-xs text-red-300">{e}</p>)}
+              </div>
+            )}
+
+            <button onClick={handleSync} disabled={syncing || !syncCommunityId}
+              className="w-full bg-teal-700 hover:bg-teal-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-xl transition text-sm">
+              {syncing ? 'Synchronizuję…' : '🔄 Uruchom synchronizację'}
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Modal odrzucenia */}

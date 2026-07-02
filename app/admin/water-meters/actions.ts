@@ -140,6 +140,188 @@ export async function importWaterReadingsAdmin(
   return { imported: insertRows.length, skipped }
 }
 
+// ── SYNC ODCZYTÓW → ROZLICZENIA ───────────────────────────────────────────────
+// Dla danej wspólnoty i roku: pobiera stawki, ustala model rozliczenia wody,
+// i automatycznie wypełnia settlement_entries.water_m3 (model miesięczny)
+// lub water_reconciliations (model wielomiesięczny).
+
+export async function syncWaterToSettlements(
+  communityId: string,
+  year: number,
+  overwrite = false,
+): Promise<{
+  model: string
+  synced: number
+  skipped: number
+  errors: string[]
+}> {
+  const fail = (msg: string) => ({ model: '?', synced: 0, skipped: 0, errors: [msg] })
+
+  const auth = await getAuthProfileAction()
+  if (auth.error !== null) return fail(auth.error)
+  if (auth.profile.role !== 'super_admin') return fail('Tylko super_admin')
+  if (year < 2000 || year > 2100) return fail('Nieprawidłowy rok')
+
+  const admin = getSupabaseAdminClient()
+
+  // 1. Pobierz stawki (najnowsze dla tej wspólnoty)
+  const { data: ratesRows } = await admin
+    .from('settlement_rates')
+    .select('water_billing_type, water_reconciliation_months, water_price_m3, water_ryczalt_m3, effective_from')
+    .eq('community_id', communityId)
+    .order('effective_from', { ascending: false })
+    .limit(1)
+
+  const rates = ratesRows?.[0]
+  if (!rates) return fail('Brak stawek dla tej wspólnoty')
+
+  const billingType: string = rates.water_billing_type ?? 'ryczalt'
+  const reconMonths: number = rates.water_reconciliation_months ?? 3
+
+  // 2. Pobierz wszystkie aktywne lokale ze wspólnoty
+  const { data: apts } = await admin
+    .from('settlement_apartments')
+    .select('id, number, community_id, persons_count')
+    .eq('community_id', communityId)
+    .eq('active', true)
+
+  if (!apts?.length) return fail('Brak lokali w tej wspólnoty')
+
+  // 3. Pobierz wszystkie potwierdzone odczyty dla tych lokali z zakresu roku
+  //    (+1 miesiąc przed i po, żeby mieć granice okresu)
+  const aptIds = apts.map(a => a.id)
+  const { data: allReadings } = await admin
+    .from('water_meter_readings')
+    .select('apartment_id, reading_value, reading_date')
+    .in('apartment_id', aptIds)
+    .eq('status', 'confirmed')
+    .gte('reading_date', `${year - 1}-12-01`)
+    .lte('reading_date', `${year}-12-31`)
+    .order('reading_date', { ascending: true })
+
+  // Mapa: aptId → sorted readings array
+  const readingsByApt = new Map<string, { value: number; ym: string }[]>()
+  for (const r of allReadings ?? []) {
+    const ym = (r.reading_date as string).slice(0, 7)
+    if (!readingsByApt.has(r.apartment_id)) readingsByApt.set(r.apartment_id, [])
+    readingsByApt.get(r.apartment_id)!.push({ value: r.reading_value, ym })
+  }
+
+  const now = new Date().toISOString()
+  let synced = 0
+  let skipped = 0
+  const errors: string[] = []
+
+  // ── MODEL MIESIĘCZNY (reconMonths === 1) ─────────────────────────────────
+  if (billingType === 'meter' && reconMonths === 1) {
+    for (const apt of apts) {
+      const readings = readingsByApt.get(apt.id) ?? []
+      const byYM = new Map(readings.map(r => [r.ym, r.value]))
+
+      for (let m = 1; m <= 12; m++) {
+        const curYM = `${year}-${String(m).padStart(2, '0')}`
+        const prevYear = m === 1 ? year - 1 : year
+        const prevM = m === 1 ? 12 : m - 1
+        const prevYM = `${prevYear}-${String(prevM).padStart(2, '0')}`
+
+        const cur = byYM.get(curYM)
+        const prev = byYM.get(prevYM)
+        if (cur == null || prev == null) { skipped++; continue }
+
+        const delta = Math.max(0, Math.round((cur - prev) * 1000) / 1000)
+
+        // Sprawdź istniejący wpis
+        const { data: existing } = await admin
+          .from('settlement_entries')
+          .select('id, water_m3, paid, water_correction')
+          .eq('apartment_id', apt.id)
+          .eq('year', year)
+          .eq('month', m)
+          .maybeSingle()
+
+        if (existing && (existing.water_m3 ?? 0) !== 0 && !overwrite) { skipped++; continue }
+
+        const { error } = await admin.from('settlement_entries').upsert({
+          apartment_id: apt.id,
+          community_id: communityId,
+          year,
+          month: m,
+          paid: existing?.paid ?? 0,
+          water_correction: existing?.water_correction ?? 0,
+          water_m3: delta,
+          updated_at: now,
+        }, { onConflict: 'apartment_id,year,month' })
+
+        if (error) { errors.push(`${apt.number}/${m}: ${error.message}`); continue }
+        synced++
+      }
+    }
+    return { model: 'miesięczny', synced, skipped, errors }
+  }
+
+  // ── MODEL WIELOMIESIĘCZNY (kwartalny, półroczny, roczny) ──────────────────
+  if (billingType === 'meter' || billingType === 'ryczalt' || billingType === 'zaliczka') {
+    const numPeriods = Math.floor(12 / reconMonths)
+
+    for (const apt of apts) {
+      const readings = readingsByApt.get(apt.id) ?? []
+      const byYM = new Map(readings.map(r => [r.ym, r.value]))
+
+      for (let p = 1; p <= numPeriods; p++) {
+        const startM = (p - 1) * reconMonths + 1  // pierwszy miesiąc okresu
+        const endM = p * reconMonths               // ostatni miesiąc okresu
+
+        // Stan na początku okresu = odczyt z miesiąca PRZED okresem
+        const prevM = startM - 1
+        const prevYear = prevM < 1 ? year - 1 : year
+        const prevMonthReal = prevM < 1 ? 12 : prevM
+        const startYM = `${prevYear}-${String(prevMonthReal).padStart(2, '0')}`
+        const endYM = `${year}-${String(endM).padStart(2, '0')}`
+
+        const startVal = byYM.get(startYM)
+        const endVal = byYM.get(endYM)
+        if (startVal == null || endVal == null) { skipped++; continue }
+
+        // Sprawdź istniejące rozliczenie okresu
+        const { data: existing } = await admin
+          .from('water_reconciliations')
+          .select('id')
+          .eq('apartment_id', apt.id)
+          .eq('year', year)
+          .eq('quarter', p)
+          .maybeSingle()
+
+        if (existing && !overwrite) { skipped++; continue }
+
+        const actual_m3 = Math.max(0, Math.round((endVal - startVal) * 1000) / 1000)
+        const ryczalt_m3 = (rates.water_ryczalt_m3 ?? 0) * reconMonths
+        const correction_m3 = Math.round((actual_m3 - ryczalt_m3) * 1000) / 1000
+        const correction_amount = Math.round(correction_m3 * (rates.water_price_m3 ?? 0) * 100) / 100
+
+        const { error } = await admin.from('water_reconciliations').upsert({
+          apartment_id: apt.id,
+          community_id: communityId,
+          year,
+          quarter: p,
+          meter_reading_start: startVal,
+          meter_reading_end: endVal,
+          actual_m3,
+          ryczalt_m3,
+          correction_m3,
+          correction_amount,
+          updated_at: now,
+        }, { onConflict: 'apartment_id,year,quarter' })
+
+        if (error) { errors.push(`${apt.number}/Q${p}: ${error.message}`); continue }
+        synced++
+      }
+    }
+    return { model: `${reconMonths}-miesięczny`, synced, skipped, errors }
+  }
+
+  return fail(`Nieobsługiwany model: ${billingType}`)
+}
+
 export async function submitWaterReading(data: {
   apartment_id: string
   reading_value: number
