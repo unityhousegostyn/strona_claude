@@ -42,6 +42,7 @@ function useNavEntries(role: string): NavEntry[] {
     ...(!isNajemca ? [
       { section: 'Wspólnota' },
       { href: '/admin/votes', label: t('nav.votes'), icon: '🗳️' },
+      { href: '/admin/water-meters', label: 'Liczniki wody', icon: '💧' },
       {
         key: 'rozliczenia',
         group: t('nav.settlements'),

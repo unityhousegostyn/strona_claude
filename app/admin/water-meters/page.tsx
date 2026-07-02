@@ -5,7 +5,7 @@ import WaterMetersClient from './WaterMetersClient'
 
 export default async function WaterMetersPage() {
   const { profile } = await getAuthProfile()
-  if (profile.role !== 'super_admin') redirect('/admin/dashboard')
+  if (profile.role === 'user' || profile.role === 'najemca') redirect('/admin/dashboard')
 
   const admin = getSupabaseAdminClient()
   const isSuperAdmin = profile.role === 'super_admin'
