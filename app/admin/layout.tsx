@@ -112,7 +112,7 @@ export default async function AdminLayout({
   return (
     <I18nProvider>
     <ToastProvider>
-      <div className="print:block flex min-h-screen bg-[#051210] print:bg-white print:min-h-0">
+      <div className="print:block flex min-h-screen bg-[#f0f2f5] print:bg-white print:min-h-0">
         <SidebarNav
           profile={profileWithCommunity}
           userEmail={user.email ?? ''}
@@ -127,13 +127,25 @@ export default async function AdminLayout({
           <AutoRefresh intervalMs={60000} />
         )}
         <div className="print:block flex-1 flex flex-col min-w-0">
-          {/* Topbar z dzwonkiem */}
-          <div className="print:hidden lg:hidden fixed top-0 left-0 right-0 z-20 pointer-events-none" />
-          <div className="print:hidden hidden lg:flex items-center justify-end gap-3 px-6 pt-4 pb-0">
-            {profile.role === 'super_admin' && <SuperAdminRefreshTimer />}
-            <NotificationBell initialUnread={unreadNotifications} />
+          {/* Desktop topbar */}
+          <div className="print:hidden hidden lg:flex items-center gap-4 px-6 py-3 bg-white border-b border-gray-100 sticky top-0 z-10 shadow-sm">
+            <div className="flex-1 max-w-sm">
+              <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-2.5 text-sm text-gray-400 border border-gray-100">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <span>Szukaj modułu, lokalu…</span>
+              </div>
+            </div>
+            <div className="ml-auto flex items-center gap-3">
+              {profile.role === 'super_admin' && <SuperAdminRefreshTimer />}
+              <NotificationBell initialUnread={unreadNotifications} />
+              <div className="text-xs text-gray-400 hidden xl:block">
+                {new Date().toLocaleDateString('pl-PL', { weekday: 'long', month: 'long', day: 'numeric' })}
+              </div>
+            </div>
           </div>
-          <main className="print:p-0 print:overflow-visible flex-1 p-4 lg:p-6 overflow-auto pt-[72px] pb-20 lg:pt-3 lg:pb-6">
+          <main className="print:p-0 print:overflow-visible flex-1 p-4 lg:p-6 overflow-auto pt-[72px] pb-20 lg:pt-6 lg:pb-6">
             {children}
           </main>
         </div>
