@@ -68,8 +68,8 @@ function BarChart({ values, active }: { values: number[]; active: boolean }) {
     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 120, padding: '0 4px' }}>
       {values.map((v, i) => (
         <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%', justifyContent: 'flex-end' }}>
-          <div style={{ width: '100%', background: i === values.length - 1 ? '#0d9488' : i >= values.length - 3 ? 'rgba(13,148,136,.5)' : 'rgba(13,148,136,.18)', borderRadius: '4px 4px 0 0', height: `${(heights[i] / max) * 100}%`, transition: 'height .5s cubic-bezier(.34,1.56,.64,1)' }} />
-          <div style={{ fontSize: 9, color: '#4d7c78', whiteSpace: 'nowrap' }}>{labels[i]}</div>
+          <div style={{ width: '100%', background: i === values.length - 1 ? '#0d9488' : i >= values.length - 3 ? 'rgba(13,148,136,.45)' : 'rgba(13,148,136,.18)', borderRadius: '4px 4px 0 0', height: `${(heights[i] / max) * 100}%`, transition: 'height .5s cubic-bezier(.34,1.56,.64,1)' }} />
+          <div style={{ fontSize: 9, color: '#9ca3af', whiteSpace: 'nowrap' }}>{labels[i]}</div>
         </div>
       ))}
     </div>
@@ -78,45 +78,45 @@ function BarChart({ values, active }: { values: number[]; active: boolean }) {
 
 function ScreenDashboard({ active }: { active: boolean }) {
   return (
-    <div style={{ padding: '20px 24px', overflow: 'auto', height: '100%', background: '#030f0e' }}>
+    <div style={{ padding: '20px 24px', overflow: 'auto', height: '100%', background: '#f8fafc' }}>
       <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 20, fontWeight: 700, color: '#f0fdfa', marginBottom: 4 }}>Dzień dobry, Andrzej 👋</div>
-        <div style={{ fontSize: 13, color: '#4d7c78' }}>Wspólnota Gostyń · czerwiec 2026</div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: '#111827', marginBottom: 4 }}>Dzień dobry, Andrzej 👋</div>
+        <div style={{ fontSize: 13, color: '#9ca3af' }}>Wspólnota Gostyń · czerwiec 2026</div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 20 }}>
         {[
-          { label: 'Saldo konta', val: 48240, suf: ' zł', delta: '↑ fundusz ok', c: '#14b8a6' },
-          { label: 'Przychody (mies.)', val: 12800, suf: ' zł', delta: '↑ +4.2%', c: '#22c55e' },
-          { label: 'Koszty (mies.)', val: 9340, suf: ' zł', delta: '↓ -1.1%', c: '#f59e0b' },
-          { label: 'Otwarte zgłoszenia', val: 4, suf: '', delta: '2 nowe dziś', c: '#60a5fa' },
+          { label: 'Saldo konta', val: 48240, suf: ' zł', delta: '↑ fundusz ok', c: '#0d9488' },
+          { label: 'Przychody (mies.)', val: 12800, suf: ' zł', delta: '↑ +4.2%', c: '#16a34a' },
+          { label: 'Koszty (mies.)', val: 9340, suf: ' zł', delta: '↓ -1.1%', c: '#d97706' },
+          { label: 'Otwarte zgłoszenia', val: 4, suf: '', delta: '2 nowe dziś', c: '#2563eb' },
         ].map(c => (
-          <div key={c.label} style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '14px 16px' }}>
-            <div style={{ fontSize: 11, color: '#4d7c78', marginBottom: 6 }}>{c.label}</div>
+          <div key={c.label} style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '14px 16px' }}>
+            <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 6 }}>{c.label}</div>
             <div style={{ fontSize: 22, fontWeight: 800, color: c.c, lineHeight: 1 }}>
               {active ? <AnimNumber target={c.val} suffix={c.suf} /> : '—'}
             </div>
-            <div style={{ fontSize: 11, color: '#4d7c78', marginTop: 4 }}>{c.delta}</div>
+            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>{c.delta}</div>
           </div>
         ))}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <div style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '16px' }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#99f6e4', marginBottom: 14 }}>Przychody — 2026</div>
+        <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '16px' }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 14 }}>Przychody — 2026</div>
           <BarChart values={[9200,9800,10200,11000,10500,12800,0,0,0,0,0,0].slice(0,6)} active={active} />
         </div>
-        <div style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '16px' }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#99f6e4', marginBottom: 12 }}>Ostatnie zdarzenia</div>
+        <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '16px' }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 12 }}>Ostatnie zdarzenia</div>
           {[
-            { t: 'Uchwała nr 3/2026 przyjęta',        s: 'Głosowanie', d: '✅', c: '#14b8a6' },
-            { t: 'Import wyciągu bankowego — maj',     s: '42 operacje', d: '📥', c: '#60a5fa' },
-            { t: 'Odczyt licznika — lokal 7',          s: '3.24 m³', d: '🌊', c: '#5eead4' },
-            { t: 'Nowe zgłoszenie: przeciek rury',     s: 'kl. B, piętro 2', d: '🎫', c: '#f59e0b' },
+            { t: 'Uchwała nr 3/2026 przyjęta',        s: 'Głosowanie', d: '✅', c: '#0d9488' },
+            { t: 'Import wyciągu bankowego — maj',     s: '42 operacje', d: '📥', c: '#2563eb' },
+            { t: 'Odczyt licznika — lokal 7',          s: '3.24 m³', d: '🌊', c: '#0d9488' },
+            { t: 'Nowe zgłoszenie: przeciek rury',     s: 'kl. B, piętro 2', d: '🎫', c: '#d97706' },
           ].map((r, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: i < 3 ? '1px solid #0f2d2a' : 'none' }}>
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: i < 3 ? '1px solid #f3f4f6' : 'none' }}>
               <div style={{ fontSize: 16 }}>{r.d}</div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 12, color: '#f0fdfa' }}>{r.t}</div>
-                <div style={{ fontSize: 10, color: '#4d7c78' }}>{r.s}</div>
+                <div style={{ fontSize: 12, color: '#111827' }}>{r.t}</div>
+                <div style={{ fontSize: 10, color: '#9ca3af' }}>{r.s}</div>
               </div>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: r.c }} />
             </div>
@@ -129,37 +129,37 @@ function ScreenDashboard({ active }: { active: boolean }) {
 
 function ScreenFinanse({ active }: { active: boolean }) {
   return (
-    <div style={{ padding: '20px 24px', overflow: 'auto', height: '100%', background: '#030f0e' }}>
+    <div style={{ padding: '20px 24px', overflow: 'auto', height: '100%', background: '#f8fafc' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: '#f0fdfa' }}>Finanse wspólnoty</div>
-          <div style={{ fontSize: 13, color: '#4d7c78' }}>Czerwiec 2026</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>Finanse wspólnoty</div>
+          <div style={{ fontSize: 13, color: '#9ca3af' }}>Czerwiec 2026</div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <div style={{ fontSize: 12, padding: '6px 14px', background: '#091918', border: '1px solid #0f2d2a', borderRadius: 8, color: '#99f6e4', cursor: 'pointer' }}>↓ Eksport Excel</div>
+          <div style={{ fontSize: 12, padding: '6px 14px', background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 8, color: '#374151', cursor: 'pointer' }}>↓ Eksport Excel</div>
           <div style={{ fontSize: 12, padding: '6px 14px', background: '#0d9488', borderRadius: 8, color: '#fff', cursor: 'pointer' }}>+ Dodaj koszt</div>
         </div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 20 }}>
         {[
-          { l: 'Fundusz eksploatacyjny', v: 28450, col: '#14b8a6' },
-          { l: 'Fundusz remontowy', v: 19790, col: '#22c55e' },
-          { l: 'Łącznie na kontach', v: 48240, col: '#0d9488' },
+          { l: 'Fundusz eksploatacyjny', v: 28450, col: '#0d9488' },
+          { l: 'Fundusz remontowy', v: 19790, col: '#16a34a' },
+          { l: 'Łącznie na kontach', v: 48240, col: '#0f766e' },
         ].map(c => (
-          <div key={c.l} style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '16px' }}>
-            <div style={{ fontSize: 11, color: '#4d7c78', marginBottom: 6 }}>{c.l}</div>
+          <div key={c.l} style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '16px' }}>
+            <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 6 }}>{c.l}</div>
             <div style={{ fontSize: 26, fontWeight: 800, color: c.col }}>
               {active ? <AnimNumber target={c.v} suffix=" zł" /> : '—'}
             </div>
           </div>
         ))}
       </div>
-      <div style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '16px', marginBottom: 12 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#99f6e4', marginBottom: 14 }}>Ostatnie koszty</div>
+      <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '16px', marginBottom: 12 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 14 }}>Ostatnie koszty</div>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid #0f2d2a' }}>
-              {['Data','Kategoria','Opis','Kwota','Fundusz'].map(h => <th key={h} style={{ fontSize: 11, color: '#4d7c78', padding: '6px 8px', textAlign: 'left', fontWeight: 600 }}>{h}</th>)}
+            <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+              {['Data','Kategoria','Opis','Kwota','Fundusz'].map(h => <th key={h} style={{ fontSize: 11, color: '#9ca3af', padding: '6px 8px', textAlign: 'left', fontWeight: 600 }}>{h}</th>)}
             </tr>
           </thead>
           <tbody>
@@ -169,12 +169,12 @@ function ScreenFinanse({ active }: { active: boolean }) {
               { d: '2026-06-05', k: 'Fundusz rem.', o: 'Malowanie elewacji — zaliczka', kw: '5 200,00 zł', f: 'Remontowy' },
               { d: '2026-05-28', k: 'Ubezpieczenie', o: 'Polisa OC wspólnoty — rata II', kw: '1 100,00 zł', f: 'Eksploatacyjny' },
             ].map((r, i) => (
-              <tr key={i} style={{ borderBottom: '1px solid #0f2d2a', opacity: active ? 1 : 0, transition: `opacity .4s ${i * 0.1}s` }}>
-                <td style={{ fontSize: 12, padding: '8px 8px', color: '#4d7c78' }}>{r.d}</td>
-                <td style={{ fontSize: 12, padding: '8px 8px' }}><span style={{ background: 'rgba(13,148,136,.12)', color: '#14b8a6', padding: '2px 8px', borderRadius: 99, fontSize: 11 }}>{r.k}</span></td>
-                <td style={{ fontSize: 12, padding: '8px 8px', color: '#99f6e4' }}>{r.o}</td>
-                <td style={{ fontSize: 12, padding: '8px 8px', color: '#f0fdfa', fontWeight: 600 }}>{r.kw}</td>
-                <td style={{ fontSize: 12, padding: '8px 8px', color: '#4d7c78' }}>{r.f}</td>
+              <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', opacity: active ? 1 : 0, transition: `opacity .4s ${i * 0.1}s` }}>
+                <td style={{ fontSize: 12, padding: '8px 8px', color: '#9ca3af' }}>{r.d}</td>
+                <td style={{ fontSize: 12, padding: '8px 8px' }}><span style={{ background: 'rgba(13,148,136,.1)', color: '#0d9488', padding: '2px 8px', borderRadius: 99, fontSize: 11 }}>{r.k}</span></td>
+                <td style={{ fontSize: 12, padding: '8px 8px', color: '#374151' }}>{r.o}</td>
+                <td style={{ fontSize: 12, padding: '8px 8px', color: '#111827', fontWeight: 600 }}>{r.kw}</td>
+                <td style={{ fontSize: 12, padding: '8px 8px', color: '#9ca3af' }}>{r.f}</td>
               </tr>
             ))}
           </tbody>
@@ -197,53 +197,53 @@ function ScreenGlosowania({ active }: { active: boolean }) {
   }, [active])
   const total = 18
   return (
-    <div style={{ padding: '20px 24px', overflow: 'auto', height: '100%', background: '#030f0e' }}>
-      <div style={{ fontSize: 20, fontWeight: 700, color: '#f0fdfa', marginBottom: 4 }}>Głosowania nad uchwałami</div>
-      <div style={{ fontSize: 13, color: '#4d7c78', marginBottom: 20 }}>Elektroniczne głosowanie z PINem · zgodne z UoWL</div>
-      <div style={{ background: '#091918', border: '1px solid #0d9488', borderRadius: 14, padding: '20px', marginBottom: 16 }}>
+    <div style={{ padding: '20px 24px', overflow: 'auto', height: '100%', background: '#f8fafc' }}>
+      <div style={{ fontSize: 20, fontWeight: 700, color: '#111827', marginBottom: 4 }}>Głosowania nad uchwałami</div>
+      <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 20 }}>Elektroniczne głosowanie z PINem · zgodne z UoWL</div>
+      <div style={{ background: '#ffffff', border: '1px solid #ccfbf1', borderRadius: 14, padding: '20px', marginBottom: 16 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: '#f0fdfa', marginBottom: 4 }}>Uchwała nr 4/2026</div>
-            <div style={{ fontSize: 13, color: '#99f6e4' }}>Wyrażenie zgody na wymianę instalacji CO w budynku A</div>
-            <div style={{ fontSize: 12, color: '#4d7c78', marginTop: 4 }}>Metoda: udział w nieruchomości · Termin: 30.06.2026</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#111827', marginBottom: 4 }}>Uchwała nr 4/2026</div>
+            <div style={{ fontSize: 13, color: '#374151' }}>Wyrażenie zgody na wymianę instalacji CO w budynku A</div>
+            <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>Metoda: udział w nieruchomości · Termin: 30.06.2026</div>
           </div>
-          <span style={{ fontSize: 12, padding: '4px 12px', background: 'rgba(13,148,136,.15)', color: '#14b8a6', borderRadius: 99, border: '1px solid rgba(13,148,136,.3)', fontWeight: 600 }}>● Otwarte</span>
+          <span style={{ fontSize: 12, padding: '4px 12px', background: 'rgba(13,148,136,.1)', color: '#0d9488', borderRadius: 99, border: '1px solid rgba(13,148,136,.2)', fontWeight: 600 }}>● Otwarte</span>
         </div>
         <div style={{ marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span style={{ fontSize: 13, color: '#99f6e4' }}>Oddano głosów: {yes + no + abstain} z {total} lokali</span>
-            <span style={{ fontSize: 13, color: '#4d7c78' }}>{Math.round(((yes + no + abstain) / total) * 100)}% frekwencja</span>
+            <span style={{ fontSize: 13, color: '#374151' }}>Oddano głosów: {yes + no + abstain} z {total} lokali</span>
+            <span style={{ fontSize: 13, color: '#9ca3af' }}>{Math.round(((yes + no + abstain) / total) * 100)}% frekwencja</span>
           </div>
-          <div style={{ background: '#0f2d2a', borderRadius: 6, height: 8, overflow: 'hidden' }}>
+          <div style={{ background: '#e5e7eb', borderRadius: 6, height: 8, overflow: 'hidden' }}>
             <div style={{ height: '100%', background: '#0d9488', borderRadius: 6, width: `${((yes + no + abstain) / total) * 100}%`, transition: 'width .6s ease' }} />
           </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
-          <div style={{ background: 'rgba(34,197,94,.08)', border: '1px solid rgba(34,197,94,.2)', borderRadius: 10, padding: '12px', textAlign: 'center' }}>
-            <div style={{ fontSize: 28, fontWeight: 800, color: '#22c55e' }}>{yes}</div>
-            <div style={{ fontSize: 12, color: '#4d7c78', marginTop: 4 }}>Za</div>
+          <div style={{ background: 'rgba(22,163,74,.06)', border: '1px solid rgba(22,163,74,.2)', borderRadius: 10, padding: '12px', textAlign: 'center' }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: '#16a34a' }}>{yes}</div>
+            <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>Za</div>
           </div>
-          <div style={{ background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)', borderRadius: 10, padding: '12px', textAlign: 'center' }}>
-            <div style={{ fontSize: 28, fontWeight: 800, color: '#ef4444' }}>{no}</div>
-            <div style={{ fontSize: 12, color: '#4d7c78', marginTop: 4 }}>Przeciw</div>
+          <div style={{ background: 'rgba(220,38,38,.06)', border: '1px solid rgba(220,38,38,.2)', borderRadius: 10, padding: '12px', textAlign: 'center' }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: '#dc2626' }}>{no}</div>
+            <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>Przeciw</div>
           </div>
-          <div style={{ background: 'rgba(245,158,11,.08)', border: '1px solid rgba(245,158,11,.2)', borderRadius: 10, padding: '12px', textAlign: 'center' }}>
-            <div style={{ fontSize: 28, fontWeight: 800, color: '#f59e0b' }}>{abstain}</div>
-            <div style={{ fontSize: 12, color: '#4d7c78', marginTop: 4 }}>Wstrzymało się</div>
+          <div style={{ background: 'rgba(217,119,6,.06)', border: '1px solid rgba(217,119,6,.2)', borderRadius: 10, padding: '12px', textAlign: 'center' }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: '#d97706' }}>{abstain}</div>
+            <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>Wstrzymało się</div>
           </div>
         </div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
         {[
-          { n: 'Uchwała nr 3/2026', t: 'Fundusz remontowy — podwyżka o 0,50 zł/m²', s: 'Przyjęta', sc: '#22c55e', sb: 'rgba(34,197,94,.1)' },
-          { n: 'Uchwała nr 2/2026', t: 'Regulamin porządku domowego — aktualizacja', s: 'Przyjęta', sc: '#22c55e', sb: 'rgba(34,197,94,.1)' },
+          { n: 'Uchwała nr 3/2026', t: 'Fundusz remontowy — podwyżka o 0,50 zł/m²', s: 'Przyjęta', sc: '#16a34a', sb: 'rgba(22,163,74,.08)' },
+          { n: 'Uchwała nr 2/2026', t: 'Regulamin porządku domowego — aktualizacja', s: 'Przyjęta', sc: '#16a34a', sb: 'rgba(22,163,74,.08)' },
         ].map(u => (
-          <div key={u.n} style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '14px' }}>
+          <div key={u.n} style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '14px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-              <div style={{ fontSize: 12, color: '#4d7c78' }}>{u.n}</div>
+              <div style={{ fontSize: 12, color: '#9ca3af' }}>{u.n}</div>
               <span style={{ fontSize: 11, padding: '2px 8px', background: u.sb, color: u.sc, borderRadius: 99 }}>{u.s}</span>
             </div>
-            <div style={{ fontSize: 13, color: '#99f6e4' }}>{u.t}</div>
+            <div style={{ fontSize: 13, color: '#374151' }}>{u.t}</div>
           </div>
         ))}
       </div>
@@ -253,31 +253,31 @@ function ScreenGlosowania({ active }: { active: boolean }) {
 
 function ScreenRozliczenia({ active }: { active: boolean }) {
   return (
-    <div style={{ padding: '20px 24px', overflow: 'auto', height: '100%', background: '#030f0e' }}>
-      <div style={{ fontSize: 20, fontWeight: 700, color: '#f0fdfa', marginBottom: 4 }}>Rozliczenia — Lokal 12</div>
-      <div style={{ fontSize: 13, color: '#4d7c78', marginBottom: 20 }}>ul. Różana 4 · Kowalski Jan · 58.4 m² · udział 4/100</div>
+    <div style={{ padding: '20px 24px', overflow: 'auto', height: '100%', background: '#f8fafc' }}>
+      <div style={{ fontSize: 20, fontWeight: 700, color: '#111827', marginBottom: 4 }}>Rozliczenia — Lokal 12</div>
+      <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 20 }}>ul. Różana 4 · Kowalski Jan · 58.4 m² · udział 4/100</div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 20 }}>
         {[
-          { l: 'Opłata miesięczna', v: 485, c: '#14b8a6', s: ' zł' },
-          { l: 'Wpłacono (YTD)', v: 2910, c: '#22c55e', s: ' zł' },
-          { l: 'Zaległość', v: 0, c: '#4d7c78', s: ' zł' },
-          { l: 'Saldo otwarcia', v: 120, c: '#60a5fa', s: ' zł' },
+          { l: 'Opłata miesięczna', v: 485, c: '#0d9488', s: ' zł' },
+          { l: 'Wpłacono (YTD)', v: 2910, c: '#16a34a', s: ' zł' },
+          { l: 'Zaległość', v: 0, c: '#6b7280', s: ' zł' },
+          { l: 'Saldo otwarcia', v: 120, c: '#2563eb', s: ' zł' },
         ].map(c => (
-          <div key={c.l} style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '14px' }}>
-            <div style={{ fontSize: 10, color: '#4d7c78', marginBottom: 6 }}>{c.l}</div>
+          <div key={c.l} style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '14px' }}>
+            <div style={{ fontSize: 10, color: '#9ca3af', marginBottom: 6 }}>{c.l}</div>
             <div style={{ fontSize: 22, fontWeight: 800, color: c.c }}>{active ? <AnimNumber target={c.v} suffix={c.s} /> : '—'}</div>
           </div>
         ))}
       </div>
-      <div style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '16px' }}>
+      <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#99f6e4' }}>Historia wpłat — 2026</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>Historia wpłat — 2026</div>
           <div style={{ fontSize: 12, color: '#0d9488', cursor: 'pointer' }}>↓ Pobierz PDF</div>
         </div>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid #0f2d2a' }}>
-              {['Miesiąc','Naliczono','Wpłacono','Woda','Saldo'].map(h => <th key={h} style={{ fontSize: 11, color: '#4d7c78', padding: '6px 8px', textAlign: 'left', fontWeight: 600 }}>{h}</th>)}
+            <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+              {['Miesiąc','Naliczono','Wpłacono','Woda','Saldo'].map(h => <th key={h} style={{ fontSize: 11, color: '#9ca3af', padding: '6px 8px', textAlign: 'left', fontWeight: 600 }}>{h}</th>)}
             </tr>
           </thead>
           <tbody>
@@ -289,12 +289,12 @@ function ScreenRozliczenia({ active }: { active: boolean }) {
               ['Maj 2026',      '485,00 zł', '485,00 zł', '3.4 m³',  '0,00 zł'],
               ['Czerwiec 2026', '485,00 zł', '485,00 zł', '3.2 m³',  '0,00 zł'],
             ].map((r, i) => (
-              <tr key={i} style={{ borderBottom: '1px solid #0f2d2a', opacity: active ? 1 : 0, transition: `opacity .35s ${i * 0.08}s` }}>
-                <td style={{ fontSize: 12, padding: '7px 8px', color: '#99f6e4' }}>{r[0]}</td>
-                <td style={{ fontSize: 12, padding: '7px 8px', color: '#f0fdfa' }}>{r[1]}</td>
-                <td style={{ fontSize: 12, padding: '7px 8px', color: '#22c55e' }}>{r[2]}</td>
-                <td style={{ fontSize: 12, padding: '7px 8px', color: '#5eead4' }}>{r[3]}</td>
-                <td style={{ fontSize: 12, padding: '7px 8px' }}><span style={{ color: '#4d7c78' }}>{r[4]}</span></td>
+              <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', opacity: active ? 1 : 0, transition: `opacity .35s ${i * 0.08}s` }}>
+                <td style={{ fontSize: 12, padding: '7px 8px', color: '#374151' }}>{r[0]}</td>
+                <td style={{ fontSize: 12, padding: '7px 8px', color: '#111827' }}>{r[1]}</td>
+                <td style={{ fontSize: 12, padding: '7px 8px', color: '#16a34a' }}>{r[2]}</td>
+                <td style={{ fontSize: 12, padding: '7px 8px', color: '#0d9488' }}>{r[3]}</td>
+                <td style={{ fontSize: 12, padding: '7px 8px' }}><span style={{ color: '#9ca3af' }}>{r[4]}</span></td>
               </tr>
             ))}
           </tbody>
@@ -316,41 +316,41 @@ function ScreenLiczniki({ active }: { active: boolean }) {
     { l: 'Lokal 12', m: '3.1',  s: 'confirmed', d: '2026-06-02' },
   ]
   const statusStyle: Record<string, { bg: string; color: string; label: string }> = {
-    confirmed: { bg: 'rgba(34,197,94,.1)',  color: '#22c55e', label: 'Zatwierdzony' },
-    pending:   { bg: 'rgba(245,158,11,.1)', color: '#f59e0b', label: 'Oczekuje' },
-    missing:   { bg: 'rgba(239,68,68,.1)',  color: '#ef4444', label: 'Brak odczytu' },
+    confirmed: { bg: 'rgba(22,163,74,.08)',  color: '#16a34a', label: 'Zatwierdzony' },
+    pending:   { bg: 'rgba(217,119,6,.08)',  color: '#d97706', label: 'Oczekuje' },
+    missing:   { bg: 'rgba(220,38,38,.08)',  color: '#dc2626', label: 'Brak odczytu' },
   }
   return (
-    <div style={{ padding: '20px 24px', overflow: 'auto', height: '100%', background: '#030f0e' }}>
+    <div style={{ padding: '20px 24px', overflow: 'auto', height: '100%', background: '#f8fafc' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: '#f0fdfa' }}>Liczniki wody</div>
-          <div style={{ fontSize: 13, color: '#4d7c78' }}>Czerwiec 2026 · 7 z 8 odczytów zgłoszonych</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>Liczniki wody</div>
+          <div style={{ fontSize: 13, color: '#9ca3af' }}>Czerwiec 2026 · 7 z 8 odczytów zgłoszonych</div>
         </div>
         <div style={{ fontSize: 12, padding: '6px 14px', background: '#0d9488', borderRadius: 8, color: '#fff', cursor: 'pointer' }}>Nota kwartalna →</div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 20 }}>
         {[
-          { l: 'Odczytów zatwierdzonych', v: active ? 6 : 0, c: '#22c55e' },
-          { l: 'Oczekuje na zatw.',        v: active ? 1 : 0, c: '#f59e0b' },
-          { l: 'Brak odczytu',             v: active ? 1 : 0, c: '#ef4444' },
+          { l: 'Odczytów zatwierdzonych', v: active ? 6 : 0, c: '#16a34a' },
+          { l: 'Oczekuje na zatw.',        v: active ? 1 : 0, c: '#d97706' },
+          { l: 'Brak odczytu',             v: active ? 1 : 0, c: '#dc2626' },
         ].map(c => (
-          <div key={c.l} style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '14px', textAlign: 'center' }}>
+          <div key={c.l} style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '14px', textAlign: 'center' }}>
             <div style={{ fontSize: 28, fontWeight: 800, color: c.c, transition: 'color .4s' }}>{c.v}</div>
-            <div style={{ fontSize: 11, color: '#4d7c78', marginTop: 4 }}>{c.l}</div>
+            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>{c.l}</div>
           </div>
         ))}
       </div>
-      <div style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '16px' }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#99f6e4', marginBottom: 12 }}>Odczyty lokali</div>
+      <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '16px' }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 12 }}>Odczyty lokali</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8 }}>
           {readings.map((r, i) => {
             const st = statusStyle[r.s]
             return (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: '#030f0e', borderRadius: 8, border: '1px solid #0f2d2a', opacity: active ? 1 : 0, transition: `opacity .3s ${i * 0.07}s` }}>
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: '#f8fafc', borderRadius: 8, border: '1px solid #f3f4f6', opacity: active ? 1 : 0, transition: `opacity .3s ${i * 0.07}s` }}>
                 <div>
-                  <div style={{ fontSize: 12, color: '#f0fdfa', fontWeight: 600 }}>{r.l}</div>
-                  <div style={{ fontSize: 11, color: '#4d7c78' }}>{r.m !== '—' ? `${r.m} m³ · ${r.d}` : r.d}</div>
+                  <div style={{ fontSize: 12, color: '#111827', fontWeight: 600 }}>{r.l}</div>
+                  <div style={{ fontSize: 11, color: '#9ca3af' }}>{r.m !== '—' ? `${r.m} m³ · ${r.d}` : r.d}</div>
                 </div>
                 <span style={{ fontSize: 10, padding: '2px 8px', background: st.bg, color: st.color, borderRadius: 99, whiteSpace: 'nowrap' }}>{st.label}</span>
               </div>
@@ -372,26 +372,26 @@ function ScreenDokumenty({ active }: { active: boolean }) {
     { n: 'Regulamin głosowań elektronicznych', t: 'PDF', d: '2025-12-01', s: 'Wszystkie wspólnoty', sz: '190 KB' },
   ]
   return (
-    <div style={{ padding: '20px 24px', overflow: 'auto', height: '100%', background: '#030f0e' }}>
+    <div style={{ padding: '20px 24px', overflow: 'auto', height: '100%', background: '#f8fafc' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: '#f0fdfa' }}>Dokumenty wspólnoty</div>
-          <div style={{ fontSize: 13, color: '#4d7c78' }}>Regulaminy, uchwały, sprawozdania</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>Dokumenty wspólnoty</div>
+          <div style={{ fontSize: 13, color: '#9ca3af' }}>Regulaminy, uchwały, sprawozdania</div>
         </div>
         <div style={{ fontSize: 12, padding: '6px 14px', background: '#0d9488', borderRadius: 8, color: '#fff', cursor: 'pointer' }}>+ Dodaj dokument</div>
       </div>
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         {['Wszystkie','PDF','DOCX','Uchwały'].map((f, i) => (
-          <div key={f} style={{ fontSize: 12, padding: '5px 14px', background: i === 0 ? '#0d9488' : '#091918', color: i === 0 ? '#fff' : '#4d7c78', borderRadius: 99, border: '1px solid #0f2d2a', cursor: 'pointer' }}>{f}</div>
+          <div key={f} style={{ fontSize: 12, padding: '5px 14px', background: i === 0 ? '#0d9488' : '#ffffff', color: i === 0 ? '#fff' : '#6b7280', borderRadius: 99, border: '1px solid ' + (i === 0 ? '#0d9488' : '#e5e7eb'), cursor: 'pointer' }}>{f}</div>
         ))}
       </div>
-      <div style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '8px' }}>
+      <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '8px' }}>
         {docs.map((d, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderBottom: i < docs.length - 1 ? '1px solid #0f2d2a' : 'none', opacity: active ? 1 : 0, transition: `opacity .3s ${i * 0.08}s` }}>
-            <div style={{ width: 36, height: 36, borderRadius: 8, background: d.t === 'PDF' ? 'rgba(239,68,68,.12)' : 'rgba(59,130,246,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: d.t === 'PDF' ? '#ef4444' : '#60a5fa', flexShrink: 0 }}>{d.t}</div>
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderBottom: i < docs.length - 1 ? '1px solid #f3f4f6' : 'none', opacity: active ? 1 : 0, transition: `opacity .3s ${i * 0.08}s` }}>
+            <div style={{ width: 36, height: 36, borderRadius: 8, background: d.t === 'PDF' ? 'rgba(220,38,38,.08)' : 'rgba(37,99,235,.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: d.t === 'PDF' ? '#dc2626' : '#2563eb', flexShrink: 0 }}>{d.t}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, color: '#f0fdfa', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.n}</div>
-              <div style={{ fontSize: 11, color: '#4d7c78' }}>{d.d} · {d.s} · {d.sz}</div>
+              <div style={{ fontSize: 13, color: '#111827', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.n}</div>
+              <div style={{ fontSize: 11, color: '#9ca3af' }}>{d.d} · {d.s} · {d.sz}</div>
             </div>
             <div style={{ fontSize: 12, color: '#0d9488', cursor: 'pointer', flexShrink: 0 }}>↓ Pobierz</div>
           </div>
@@ -413,30 +413,30 @@ function ScreenBudzet({ active }: { active: boolean }) {
   const totalPlan = categories.reduce((s, c) => s + c.plan, 0)
   const totalExec = categories.reduce((s, c) => s + c.exec, 0)
   return (
-    <div style={{ padding: '20px 24px', overflow: 'auto', height: '100%', background: '#030f0e' }}>
+    <div style={{ padding: '20px 24px', overflow: 'auto', height: '100%', background: '#f8fafc' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: '#f0fdfa' }}>Budżet 2026</div>
-          <div style={{ fontSize: 13, color: '#4d7c78' }}>Plan vs. wykonanie · stan na czerwiec</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>Budżet 2026</div>
+          <div style={{ fontSize: 13, color: '#9ca3af' }}>Plan vs. wykonanie · stan na czerwiec</div>
         </div>
-        <div style={{ fontSize: 12, padding: '6px 14px', background: '#091918', border: '1px solid #0f2d2a', borderRadius: 8, color: '#99f6e4', cursor: 'pointer' }}>↓ Eksport Excel</div>
+        <div style={{ fontSize: 12, padding: '6px 14px', background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 8, color: '#374151', cursor: 'pointer' }}>↓ Eksport Excel</div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 20 }}>
         {[
-          { l: 'Plan roczny', v: totalPlan, c: '#60a5fa' },
-          { l: 'Wykonanie YTD', v: totalExec, c: '#14b8a6' },
-          { l: 'Pozostało', v: totalPlan - totalExec, c: '#22c55e' },
+          { l: 'Plan roczny', v: totalPlan, c: '#2563eb' },
+          { l: 'Wykonanie YTD', v: totalExec, c: '#0d9488' },
+          { l: 'Pozostało', v: totalPlan - totalExec, c: '#16a34a' },
         ].map(c => (
-          <div key={c.l} style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '14px' }}>
-            <div style={{ fontSize: 11, color: '#4d7c78', marginBottom: 6 }}>{c.l}</div>
+          <div key={c.l} style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '14px' }}>
+            <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 6 }}>{c.l}</div>
             <div style={{ fontSize: 22, fontWeight: 800, color: c.c }}>
               {active ? <AnimNumber target={c.v} suffix=" zł" /> : '—'}
             </div>
           </div>
         ))}
       </div>
-      <div style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '16px' }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#99f6e4', marginBottom: 14 }}>Kategorie — plan vs. wykonanie</div>
+      <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '16px' }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 14 }}>Kategorie — plan vs. wykonanie</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {categories.map((cat, i) => {
             const pct = Math.round((cat.exec / cat.plan) * 100)
@@ -444,13 +444,13 @@ function ScreenBudzet({ active }: { active: boolean }) {
             return (
               <div key={i} style={{ opacity: active ? 1 : 0, transition: `opacity .3s ${i * 0.08}s` }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: 12, color: '#f0fdfa' }}>{cat.name}</span>
-                  <span style={{ fontSize: 11, color: over ? '#ef4444' : '#4d7c78' }}>
-                    {cat.exec.toLocaleString('pl-PL')} / {cat.plan.toLocaleString('pl-PL')} zł · <span style={{ color: over ? '#ef4444' : '#22c55e' }}>{pct}%</span>
+                  <span style={{ fontSize: 12, color: '#374151' }}>{cat.name}</span>
+                  <span style={{ fontSize: 11, color: over ? '#dc2626' : '#9ca3af' }}>
+                    {cat.exec.toLocaleString('pl-PL')} / {cat.plan.toLocaleString('pl-PL')} zł · <span style={{ color: over ? '#dc2626' : '#16a34a' }}>{pct}%</span>
                   </span>
                 </div>
-                <div style={{ background: '#0f2d2a', borderRadius: 4, height: 6, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', borderRadius: 4, background: over ? '#ef4444' : pct > 80 ? '#f59e0b' : '#0d9488', width: `${Math.min(pct, 100)}%`, transition: 'width .6s ease' }} />
+                <div style={{ background: '#f3f4f6', borderRadius: 4, height: 6, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', borderRadius: 4, background: over ? '#dc2626' : pct > 80 ? '#d97706' : '#0d9488', width: `${Math.min(pct, 100)}%`, transition: 'width .6s ease' }} />
                 </div>
               </div>
             )
@@ -469,37 +469,37 @@ function ScreenWezwania({ active }: { active: boolean }) {
     { l: 'Lokal 17', n: 'Kaczmarek Anna',    debt: 560 },
   ]
   return (
-    <div style={{ padding: '20px 24px', overflow: 'auto', height: '100%', background: '#030f0e' }}>
+    <div style={{ padding: '20px 24px', overflow: 'auto', height: '100%', background: '#f8fafc' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: '#f0fdfa' }}>⚠️ Wezwania do zapłaty</div>
-          <div style={{ fontSize: 13, color: '#4d7c78' }}>Rok 2026 · min. zadłużenie: 100 zł</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>⚠️ Wezwania do zapłaty</div>
+          <div style={{ fontSize: 13, color: '#9ca3af' }}>Rok 2026 · min. zadłużenie: 100 zł</div>
         </div>
-        <div style={{ fontSize: 12, padding: '6px 14px', background: '#ef4444', borderRadius: 8, color: '#fff', cursor: 'pointer' }}>🖨 Drukuj wszystkie (4)</div>
+        <div style={{ fontSize: 12, padding: '6px 14px', background: '#dc2626', borderRadius: 8, color: '#fff', cursor: 'pointer' }}>🖨 Drukuj wszystkie (4)</div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 20 }}>
         {[
-          { l: 'Dłużnicy', v: active ? 4 : 0, c: '#ef4444' },
-          { l: 'Łączne zadłużenie', v: active ? 6110 : 0, c: '#ef4444', s: ' zł' },
-          { l: 'Wszystkich lokali', v: active ? 18 : 0, c: '#f0fdfa' },
+          { l: 'Dłużnicy', v: active ? 4 : 0, c: '#dc2626' },
+          { l: 'Łączne zadłużenie', v: active ? 6110 : 0, c: '#dc2626', s: ' zł' },
+          { l: 'Wszystkich lokali', v: active ? 18 : 0, c: '#111827' },
         ].map(c => (
-          <div key={c.l} style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '14px' }}>
-            <div style={{ fontSize: 11, color: '#4d7c78', marginBottom: 6 }}>{c.l}</div>
+          <div key={c.l} style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '14px' }}>
+            <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 6 }}>{c.l}</div>
             <div style={{ fontSize: 24, fontWeight: 800, color: c.c }}><AnimNumber target={c.v} suffix={c.s ?? ''} /></div>
           </div>
         ))}
       </div>
-      <div style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '16px' }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#ef4444', marginBottom: 12 }}>🔴 Lokale z niedopłatą</div>
+      <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '16px' }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#dc2626', marginBottom: 12 }}>🔴 Lokale z niedopłatą</div>
         {debtors.map((d, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: i < debtors.length - 1 ? '1px solid #0f2d2a' : 'none', opacity: active ? 1 : 0, transition: `opacity .3s ${i * 0.1}s` }}>
+          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: i < debtors.length - 1 ? '1px solid #f3f4f6' : 'none', opacity: active ? 1 : 0, transition: `opacity .3s ${i * 0.1}s` }}>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#f0fdfa' }}>{d.l} · {d.n}</div>
-              <div style={{ fontSize: 11, color: '#4d7c78', marginTop: 2 }}>Rok 2026</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{d.l} · {d.n}</div>
+              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>Rok 2026</div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#ef4444' }}>{d.debt.toLocaleString('pl-PL')} zł</div>
-              <div style={{ fontSize: 11, padding: '4px 10px', background: 'rgba(239,68,68,.1)', color: '#ef4444', borderRadius: 8, cursor: 'pointer', border: '1px solid rgba(239,68,68,.2)' }}>🖨 Wezwanie</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#dc2626' }}>{d.debt.toLocaleString('pl-PL')} zł</div>
+              <div style={{ fontSize: 11, padding: '4px 10px', background: 'rgba(220,38,38,.08)', color: '#dc2626', borderRadius: 8, cursor: 'pointer', border: '1px solid rgba(220,38,38,.15)' }}>🖨 Wezwanie</div>
             </div>
           </div>
         ))}
@@ -510,54 +510,50 @@ function ScreenWezwania({ active }: { active: boolean }) {
 
 function ScreenMieszkanie({ active }: { active: boolean }) {
   const months = ['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru']
-  const paid =   [485, 485, 485, 485, 485, 485, 0, 0, 0, 0, 0, 0]
-  const due =    [485, 485, 485, 485, 485, 485, 0, 0, 0, 0, 0, 0]
   const water =  [3.2, 2.8, 3.5, 3.1, 3.4, 3.2, 0, 0, 0, 0, 0, 0]
   const maxW = 4
   return (
-    <div style={{ padding: '20px 24px', overflow: 'auto', height: '100%', background: '#030f0e' }}>
-      <div style={{ fontSize: 20, fontWeight: 700, color: '#f0fdfa', marginBottom: 4 }}>💳 Moje konto</div>
-      <div style={{ fontSize: 13, color: '#4d7c78', marginBottom: 20 }}>Lokal 12 · Kowalski Jan · Wspólnota Gostyń</div>
+    <div style={{ padding: '20px 24px', overflow: 'auto', height: '100%', background: '#f8fafc' }}>
+      <div style={{ fontSize: 20, fontWeight: 700, color: '#111827', marginBottom: 4 }}>💳 Moje konto</div>
+      <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 20 }}>Lokal 12 · Kowalski Jan · Wspólnota Gostyń</div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 20 }}>
         {[
-          { l: 'Saldo 2026', v: 120, col: '#14b8a6', suf: ' zł', note: '✓ Nadpłata' },
-          { l: 'Saldo otwarcia', v: 120, col: '#99f6e4', suf: ' zł', note: 'z 2025' },
-          { l: 'Naliczono 2026', v: 2910, col: '#f0fdfa', suf: ' zł', note: 'łącznie' },
-          { l: 'Wpłacono 2026', v: 2910, col: '#22c55e', suf: ' zł', note: 'łącznie' },
+          { l: 'Saldo 2026', v: 120, col: '#0d9488', suf: ' zł', note: '✓ Nadpłata' },
+          { l: 'Saldo otwarcia', v: 120, col: '#374151', suf: ' zł', note: 'z 2025' },
+          { l: 'Naliczono 2026', v: 2910, col: '#111827', suf: ' zł', note: 'łącznie' },
+          { l: 'Wpłacono 2026', v: 2910, col: '#16a34a', suf: ' zł', note: 'łącznie' },
         ].map(c => (
-          <div key={c.l} style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '14px' }}>
-            <div style={{ fontSize: 10, color: '#4d7c78', marginBottom: 6 }}>{c.l}</div>
+          <div key={c.l} style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '14px' }}>
+            <div style={{ fontSize: 10, color: '#9ca3af', marginBottom: 6 }}>{c.l}</div>
             <div style={{ fontSize: 20, fontWeight: 800, color: c.col }}>{active ? <AnimNumber target={c.v} suffix={c.suf} /> : '—'}</div>
-            <div style={{ fontSize: 10, color: '#4d7c78', marginTop: 3 }}>{c.note}</div>
+            <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 3 }}>{c.note}</div>
           </div>
         ))}
       </div>
-      {/* Water chart */}
-      <div style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '16px', marginBottom: 12 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#99f6e4', marginBottom: 12 }}>🚿 Zużycie wody — 2026</div>
+      <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '16px', marginBottom: 12 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 12 }}>🚿 Zużycie wody — 2026</div>
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 60 }}>
           {water.map((w, i) => (
             <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, height: '100%', justifyContent: 'flex-end' }}>
-              <div style={{ width: '100%', background: w > 0 ? 'rgba(96,165,250,.65)' : '#0c1a1a', borderRadius: '4px 4px 0 0', height: w > 0 ? `${(w / maxW) * 54}px` : '2px', transition: 'height .5s .2s ease' }} title={w > 0 ? `${w} m³` : ''} />
-              <div style={{ fontSize: 9, color: '#4d7c78' }}>{months[i]}</div>
+              <div style={{ width: '100%', background: w > 0 ? 'rgba(37,99,235,.55)' : '#f3f4f6', borderRadius: '4px 4px 0 0', height: w > 0 ? `${(w / maxW) * 54}px` : '2px', transition: 'height .5s .2s ease' }} title={w > 0 ? `${w} m³` : ''} />
+              <div style={{ fontSize: 9, color: '#9ca3af' }}>{months[i]}</div>
             </div>
           ))}
         </div>
-        <div style={{ fontSize: 11, color: '#4d7c78', marginTop: 10 }}>
-          Łącznie: <span style={{ color: '#60a5fa', fontWeight: 600 }}>{water.reduce((s,v)=>s+v,0).toFixed(1)} m³</span> · Noty: Q1 · Q2 · Q3 · Q4
+        <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 10 }}>
+          Łącznie: <span style={{ color: '#2563eb', fontWeight: 600 }}>{water.reduce((s,v)=>s+v,0).toFixed(1)} m³</span> · Noty: Q1 · Q2 · Q3 · Q4
         </div>
       </div>
-      {/* Mini table */}
-      <div style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '12px 16px' }}>
+      <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '12px 16px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 0 }}>
           {['Miesiąc','Naliczono','Wpłacono','Saldo'].map(h => (
-            <div key={h} style={{ fontSize: 10, color: '#4d7c78', padding: '4px 8px', fontWeight: 600 }}>{h}</div>
+            <div key={h} style={{ fontSize: 10, color: '#9ca3af', padding: '4px 8px', fontWeight: 600 }}>{h}</div>
           ))}
           {['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec'].map((m, i) => [
-            <div key={`m${i}`} style={{ fontSize: 11, color: '#99f6e4', padding: '5px 8px', borderTop: '1px solid #0f2d2a', opacity: active ? 1 : 0, transition: `opacity .3s ${i*0.06}s` }}>{m}</div>,
-            <div key={`d${i}`} style={{ fontSize: 11, color: '#f0fdfa', padding: '5px 8px', borderTop: '1px solid #0f2d2a', opacity: active ? 1 : 0, transition: `opacity .3s ${i*0.06}s` }}>485,00 zł</div>,
-            <div key={`p${i}`} style={{ fontSize: 11, color: '#22c55e', padding: '5px 8px', borderTop: '1px solid #0f2d2a', opacity: active ? 1 : 0, transition: `opacity .3s ${i*0.06}s` }}>485,00 zł</div>,
-            <div key={`s${i}`} style={{ fontSize: 11, color: '#14b8a6', padding: '5px 8px', borderTop: '1px solid #0f2d2a', opacity: active ? 1 : 0, transition: `opacity .3s ${i*0.06}s` }}>0,00 zł</div>,
+            <div key={`m${i}`} style={{ fontSize: 11, color: '#374151', padding: '5px 8px', borderTop: '1px solid #f3f4f6', opacity: active ? 1 : 0, transition: `opacity .3s ${i*0.06}s` }}>{m}</div>,
+            <div key={`d${i}`} style={{ fontSize: 11, color: '#111827', padding: '5px 8px', borderTop: '1px solid #f3f4f6', opacity: active ? 1 : 0, transition: `opacity .3s ${i*0.06}s` }}>485,00 zł</div>,
+            <div key={`p${i}`} style={{ fontSize: 11, color: '#16a34a', padding: '5px 8px', borderTop: '1px solid #f3f4f6', opacity: active ? 1 : 0, transition: `opacity .3s ${i*0.06}s` }}>485,00 zł</div>,
+            <div key={`s${i}`} style={{ fontSize: 11, color: '#0d9488', padding: '5px 8px', borderTop: '1px solid #f3f4f6', opacity: active ? 1 : 0, transition: `opacity .3s ${i*0.06}s` }}>0,00 zł</div>,
           ])}
         </div>
       </div>
@@ -605,51 +601,51 @@ export default function DemoPage() {
   return (
     <>
       <style>{`
-        .demo-wrap { min-height: 100vh; background: #030f0e; color: #f0fdfa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; }
-        .demo-top { background: rgba(3,15,14,.95); backdrop-filter: blur(12px); border-bottom: 1px solid #0f2d2a; padding: 0 24px; position: sticky; top: 0; z-index: 100; }
+        .demo-wrap { min-height: 100vh; background: #f8fafc; color: #111827; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; }
+        .demo-top { background: rgba(255,255,255,.95); backdrop-filter: blur(12px); border-bottom: 1px solid #e5e7eb; padding: 0 24px; position: sticky; top: 0; z-index: 100; }
         .demo-top-inner { max-width: 1160px; margin: 0 auto; height: 58px; display: flex; align-items: center; justify-content: space-between; }
-        .demo-logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 16px; }
+        .demo-logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 16px; color: #111827; }
         .demo-logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, #0f766e, #0d9488); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-        .demo-badge { font-size: 11px; padding: 2px 10px; background: rgba(13,148,136,.12); border: 1px solid rgba(13,148,136,.3); color: #14b8a6; border-radius: 99px; margin-left: 10px; }
+        .demo-badge { font-size: 11px; padding: 2px 10px; background: rgba(13,148,136,.1); border: 1px solid rgba(13,148,136,.2); color: #0d9488; border-radius: 99px; margin-left: 10px; font-weight: 600; }
         .demo-cta-btn { font-size: 13px; font-weight: 600; padding: 8px 18px; background: #0d9488; color: #fff; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: background .2s; }
         .demo-cta-btn:hover { background: #0f766e; color: #fff; }
         .demo-hero { text-align: center; padding: 48px 24px 32px; }
-        .demo-hero h1 { font-size: clamp(28px,5vw,46px); font-weight: 900; letter-spacing: -.03em; line-height: 1.1; margin-bottom: 14px; }
-        .demo-hero p { font-size: 16px; color: #4d7c78; max-width: 480px; margin: 0 auto 8px; }
-        .demo-note { font-size: 12px; color: #4d7c78; margin-top: 8px; }
-        .demo-note span { color: #14b8a6; }
+        .demo-hero h1 { font-size: clamp(28px,5vw,46px); font-weight: 900; letter-spacing: -.03em; line-height: 1.1; margin-bottom: 14px; color: #0f172a; }
+        .demo-hero p { font-size: 16px; color: #64748b; max-width: 480px; margin: 0 auto 8px; }
+        .demo-note { font-size: 12px; color: #94a3b8; margin-top: 8px; }
+        .demo-note span { color: #0d9488; font-weight: 600; }
         .panel-wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px 60px; }
         .panel-tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
-        .panel-tab { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 7px 14px; border-radius: 8px; cursor: pointer; border: 1px solid #0f2d2a; background: #091918; color: #4d7c78; transition: all .2s; white-space: nowrap; }
+        .panel-tab { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 7px 14px; border-radius: 8px; cursor: pointer; border: 1px solid #e5e7eb; background: #ffffff; color: #6b7280; transition: all .2s; white-space: nowrap; }
         .panel-tab.active { background: #0d9488; border-color: #0d9488; color: #fff; font-weight: 600; }
-        .panel-tab:hover:not(.active) { color: #99f6e4; border-color: #133835; }
-        .panel-progress { height: 2px; background: #0f2d2a; border-radius: 1px; margin-bottom: 4px; overflow: hidden; }
+        .panel-tab:hover:not(.active) { color: #374151; border-color: #d1d5db; background: #f9fafb; }
+        .panel-progress { height: 2px; background: #e5e7eb; border-radius: 1px; margin-bottom: 4px; overflow: hidden; }
         .panel-progress-bar { height: 100%; background: #0d9488; border-radius: 1px; transition: width .05s linear; }
-        .panel-hint { font-size: 11px; color: #4d7c78; text-align: right; margin-bottom: 12px; }
-        .panel-hint span { color: #0d9488; cursor: pointer; }
-        .panel-chrome { background: #091918; border: 1px solid #0f2d2a; border-radius: 16px; overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,.7); }
-        .panel-chrome-bar { background: #071514; border-bottom: 1px solid #0f2d2a; padding: 10px 16px; display: flex; align-items: center; gap: 8px; }
+        .panel-hint { font-size: 11px; color: #94a3b8; text-align: right; margin-bottom: 12px; }
+        .panel-hint span { color: #0d9488; cursor: pointer; font-weight: 600; }
+        .panel-chrome { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04); }
+        .panel-chrome-bar { background: #f8fafc; border-bottom: 1px solid #e5e7eb; padding: 10px 16px; display: flex; align-items: center; gap: 8px; }
         .dot { width: 10px; height: 10px; border-radius: 50%; } .dr { background: #ef4444; } .dy { background: #f59e0b; } .dg { background: #22c55e; }
-        .chrome-url { flex: 1; background: rgba(13,148,136,.06); border-radius: 6px; border: 1px solid #0f2d2a; height: 24px; margin: 0 12px; display: flex; align-items: center; padding: 0 10px; gap: 6px; }
+        .chrome-url { flex: 1; background: #ffffff; border-radius: 6px; border: 1px solid #e5e7eb; height: 24px; margin: 0 12px; display: flex; align-items: center; padding: 0 10px; gap: 6px; }
         .chrome-url-dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; }
-        .chrome-url span { font-size: 11px; color: #4d7c78; }
+        .chrome-url span { font-size: 11px; color: #94a3b8; }
         .panel-body { display: flex; height: 520px; }
-        .panel-sidebar { width: 200px; background: #051110; border-right: 1px solid #0f2d2a; padding: 14px 10px; flex-shrink: 0; overflow: hidden; }
-        .ps-logo { font-size: 13px; font-weight: 700; color: #f0fdfa; padding: 4px 8px 12px; border-bottom: 1px solid #0f2d2a; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-        .ps-icon { width: 22px; height: 22px; background: #0d9488; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
-        .ps-section { font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #1a4a45; padding: 10px 8px 3px; }
-        .ps-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 7px; font-size: 12px; color: #4d7c78; margin-bottom: 1px; cursor: pointer; transition: background .15s, color .15s; }
-        .ps-item.active { background: rgba(13,148,136,.15); color: #14b8a6; font-weight: 600; }
-        .ps-item:hover:not(.active) { background: rgba(13,148,136,.07); color: #99f6e4; }
+        .panel-sidebar { width: 200px; background: #ffffff; border-right: 1px solid #e5e7eb; padding: 14px 10px; flex-shrink: 0; overflow: hidden; }
+        .ps-logo { font-size: 13px; font-weight: 700; color: #111827; padding: 4px 8px 12px; border-bottom: 1px solid #f3f4f6; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .ps-icon { width: 22px; height: 22px; background: linear-gradient(135deg, #0f766e, #0d9488); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+        .ps-section { font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #cbd5e1; padding: 10px 8px 3px; }
+        .ps-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 7px; font-size: 12px; color: #6b7280; margin-bottom: 1px; cursor: pointer; transition: background .15s, color .15s; }
+        .ps-item.active { background: rgba(13,148,136,.1); color: #0d9488; font-weight: 600; }
+        .ps-item:hover:not(.active) { background: #f8fafc; color: #374151; }
         .panel-screen { flex: 1; overflow: auto; }
-        .demo-bottom { text-align: center; padding: 32px 24px 60px; }
-        .demo-bottom h2 { font-size: 28px; font-weight: 800; margin-bottom: 12px; letter-spacing: -.02em; }
-        .demo-bottom p { font-size: 16px; color: #4d7c78; margin-bottom: 28px; }
+        .demo-bottom { background: linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #0891b2 100%); text-align: center; padding: 64px 24px; color: #ffffff; }
+        .demo-bottom h2 { font-size: 30px; font-weight: 800; margin-bottom: 12px; letter-spacing: -.02em; }
+        .demo-bottom p { font-size: 16px; color: rgba(255,255,255,.8); margin-bottom: 32px; }
         .demo-bottom-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-        .btn-main { font-size: 15px; font-weight: 600; padding: 13px 28px; background: #0d9488; color: #fff; border-radius: 10px; text-decoration: none; transition: background .2s; }
-        .btn-main:hover { background: #0f766e; color: #fff; }
-        .btn-sec { font-size: 15px; font-weight: 600; padding: 13px 28px; background: transparent; color: #99f6e4; border-radius: 10px; text-decoration: none; border: 1px solid #133835; transition: background .2s; }
-        .btn-sec:hover { background: rgba(13,148,136,.08); }
+        .btn-main { font-size: 15px; font-weight: 600; padding: 13px 28px; background: #ffffff; color: #0d9488; border-radius: 10px; text-decoration: none; transition: all .2s; }
+        .btn-main:hover { background: #f0fdf4; color: #0f766e; }
+        .btn-sec { font-size: 15px; font-weight: 600; padding: 13px 28px; background: transparent; color: #ffffff; border-radius: 10px; text-decoration: none; border: 1px solid rgba(255,255,255,.4); transition: background .2s; }
+        .btn-sec:hover { background: rgba(255,255,255,.12); }
         @media (max-width: 700px) {
           .panel-body { flex-direction: column; height: auto; }
           .panel-sidebar { width: 100%; height: auto; display: flex; flex-wrap: wrap; gap: 4px; padding: 10px; }
@@ -670,7 +666,7 @@ export default function DemoPage() {
               <span className="demo-badge">DEMO</span>
             </div>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <Link href="/" style={{ fontSize: 13, color: '#4d7c78', textDecoration: 'none' }}>← Wróć na stronę</Link>
+              <Link href="/" style={{ fontSize: 13, color: '#94a3b8', textDecoration: 'none' }}>← Wróć na stronę</Link>
               <Link href="mailto:unity.housegostyn@gmail.com" className="demo-cta-btn">Chcę taki panel →</Link>
             </div>
           </div>
@@ -678,7 +674,7 @@ export default function DemoPage() {
 
         {/* HERO */}
         <div className="demo-hero">
-          <h1>Tak wygląda<br /><span style={{ color: '#14b8a6' }}>panel Unity House</span></h1>
+          <h1>Tak wygląda<br /><span style={{ color: '#0d9488' }}>panel Unity House</span></h1>
           <p>Interaktywna demonstracja wszystkich modułów — finanse, głosowania, rozliczenia, liczniki i więcej.</p>
           <div className="demo-note">
             <span>Auto-prezentacja</span> · kliknij zakładkę żeby zatrzymać i zbadać moduł
@@ -704,7 +700,7 @@ export default function DemoPage() {
           )}
           <div className="panel-hint">
             {paused
-              ? <span onClick={() => setPaused(false)} style={{ cursor: 'pointer', color: '#0d9488' }}>▶ Wznów autoprezentację</span>
+              ? <span onClick={() => setPaused(false)} style={{ cursor: 'pointer' }}>▶ Wznów autoprezentację</span>
               : <span>Kliknij zakładkę, żeby zatrzymać</span>
             }
           </div>
