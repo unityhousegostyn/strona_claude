@@ -42,15 +42,15 @@ function useNavEntries(role: string): NavEntry[] {
     ...(!isNajemca ? [
       { section: 'Wspólnota' },
       { href: '/admin/votes', label: t('nav.votes'), icon: '🗳️' },
-      { href: '/admin/water-meters', label: 'Liczniki wody', icon: '💧' },
       {
         key: 'rozliczenia',
         group: t('nav.settlements'),
         icon: '🧾',
         subItems: [
           { href: '/admin/settlements', label: 'Zestawienie', icon: '📋' },
-          { href: '/admin/settlements/zawiadomienia', label: t('nav.zawiadomienia'), icon: '📄' },
-          { href: '/admin/settlements/nota-wody-zbiorczy', label: 'Noty wody', icon: '💧' },
+          { href: '/admin/water-meters', label: 'Liczniki wody', icon: '💧' },
+          { href: '/admin/settlements/nota-wody-zbiorczy', label: 'Noty wody', icon: '📄' },
+          { href: '/admin/settlements/zawiadomienia', label: t('nav.zawiadomienia'), icon: '📨' },
         ],
       },
     ] : []),
@@ -67,6 +67,7 @@ function useNavEntries(role: string): NavEntry[] {
         { href: '/admin/finanse/budzet', label: t('nav.budzet'), icon: '📋' },
         { href: '/admin/finanse/lokaty', label: t('nav.lokaty'), icon: '🏦' },
         { href: '/admin/finanse/raporty', label: t('nav.raporty'), icon: '📊' },
+        ...(role === 'super_admin' ? [{ href: '/admin/ksef', label: 'KSeF', icon: '🗂️' }] : []),
       ],
     })
   }
@@ -80,7 +81,6 @@ function useNavEntries(role: string): NavEntry[] {
     entries.push({ href: '/admin/messages', label: t('nav.messages'), icon: '✉️' })
     if (role === 'super_admin') {
       entries.push({ href: '/admin/audit', label: t('nav.audit'), icon: '🔍' })
-      entries.push({ href: '/admin/ksef', label: 'KSeF', icon: '🧾' })
     }
   }
 
