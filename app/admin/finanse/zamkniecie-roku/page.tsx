@@ -36,7 +36,6 @@ export default async function ZamkniecieRokuPage({
       closures={closures}
       currentYear={currentYear}
       isSuperAdmin={profile.role === 'super_admin'}
-      printUrl={(year) => `/admin/finanse/zamkniecie-roku/raport?communityId=${communityId}&year=${year}`}
     />
   )
 }

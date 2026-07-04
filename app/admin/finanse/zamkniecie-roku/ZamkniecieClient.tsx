@@ -14,13 +14,15 @@ interface Props {
   closures: YearClosureSummary[]
   currentYear: number
   isSuperAdmin: boolean
-  printUrl: (year: number) => string
 }
 
 export default function ZamkniecieClient({
   communityId, communityName, closures: initialClosures,
-  currentYear, isSuperAdmin, printUrl,
+  currentYear, isSuperAdmin,
 }: Props) {
+  function printUrl(year: number) {
+    return `/admin/finanse/zamkniecie-roku/raport?communityId=${communityId}&year=${year}`
+  }
   const [isPending, startTransition] = useTransition()
   const [closures, setClosures] = useState(initialClosures)
   const [selectedYear, setSelectedYear] = useState(currentYear - 1)
