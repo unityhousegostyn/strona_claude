@@ -225,6 +225,15 @@ export async function upsertEntry(data: {
   if (!aptCheck || aptCheck.community_id !== data.community_id)
     return { error: 'Lokal nie należy do tej wspólnoty' }
 
+  // Year-closed check: block editing if fiscal year is locked
+  const { data: yearClosed } = await admin
+    .from('year_closures')
+    .select('id')
+    .eq('community_id', data.community_id)
+    .eq('year', data.year)
+    .maybeSingle()
+  if (yearClosed) return { error: `Rok ${data.year} jest zamknięty — edycja zablokowana` }
+
   const { error } = await admin.from('settlement_entries').upsert({
     apartment_id: data.apartment_id,
     community_id: data.community_id,

@@ -50,6 +50,7 @@ function useNavEntries(role: string): NavEntry[] {
           { href: '/admin/settlements', label: 'Zestawienie', icon: '📋' },
           { href: '/admin/water-meters', label: 'Liczniki wody', icon: '💧' },
           { href: '/admin/settlements/nota-wody-zbiorczy', label: 'Noty wody', icon: '📄' },
+          { href: '/admin/settlements/wezwania', label: 'Wezwania do zapłaty', icon: '⚠️' },
           { href: '/admin/settlements/zawiadomienia', label: t('nav.zawiadomienia'), icon: '📨' },
         ],
       },
@@ -67,7 +68,10 @@ function useNavEntries(role: string): NavEntry[] {
         { href: '/admin/finanse/budzet', label: t('nav.budzet'), icon: '📋' },
         { href: '/admin/finanse/lokaty', label: t('nav.lokaty'), icon: '🏦' },
         { href: '/admin/finanse/raporty', label: t('nav.raporty'), icon: '📊' },
-        ...(role === 'super_admin' ? [{ href: '/admin/ksef', label: 'KSeF', icon: '🗂️' }] : []),
+        ...(role === 'super_admin' ? [
+          { href: '/admin/finanse/zamkniecie-roku', label: 'Zamknięcie roku', icon: '🔒' },
+          { href: '/admin/ksef', label: 'KSeF', icon: '🗂️' },
+        ] : []),
       ],
     })
   }
