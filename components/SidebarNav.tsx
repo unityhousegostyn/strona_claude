@@ -39,6 +39,11 @@ function useNavEntries(role: string): NavEntry[] {
     { href: '/admin/contacts', label: t('nav.contacts'), icon: '📞' },
     ...(!isNajemca ? [{ href: '/admin/documents', label: t('nav.documents'), icon: '📁' }] : []),
 
+    ...(isNajemca ? [
+      { section: 'Moje konto' },
+      { href: '/admin/settlements/moje-konto', label: 'Rozliczenie', icon: '💳' },
+    ] : []),
+
     ...(!isNajemca ? [
       { section: 'Wspólnota' },
       { href: '/admin/votes', label: t('nav.votes'), icon: '🗳️' },
@@ -47,11 +52,14 @@ function useNavEntries(role: string): NavEntry[] {
         group: t('nav.settlements'),
         icon: '🧾',
         subItems: [
+          ...(role === 'user' ? [{ href: '/admin/settlements/moje-konto', label: 'Moje konto', icon: '💳' }] : []),
           { href: '/admin/settlements', label: 'Zestawienie', icon: '📋' },
           { href: '/admin/water-meters', label: 'Liczniki wody', icon: '💧' },
           { href: '/admin/settlements/nota-wody-zbiorczy', label: 'Noty wody', icon: '📄' },
-          { href: '/admin/settlements/wezwania', label: 'Wezwania do zapłaty', icon: '⚠️' },
-          { href: '/admin/settlements/zawiadomienia', label: t('nav.zawiadomienia'), icon: '📨' },
+          ...(isAdminPlus ? [
+            { href: '/admin/settlements/wezwania', label: 'Wezwania do zapłaty', icon: '⚠️' },
+            { href: '/admin/settlements/zawiadomienia', label: t('nav.zawiadomienia'), icon: '📨' },
+          ] : []),
         ],
       },
     ] : []),
