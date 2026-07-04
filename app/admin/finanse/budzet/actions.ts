@@ -12,7 +12,6 @@ async function requireAdminPlus() {
   return { error: null, profile: auth.profile }
 }
 
-/** requireAdminPlus + izolacja wspólnoty: admin widzi/edytuje tylko swoją */
 async function requireAdminPlusForCommunity(communityId: string) {
   const result = await requireAdminPlus()
   if (result.error) return result
@@ -25,8 +24,14 @@ export interface BudgetItem {
   category: string
   planned: number
   actual: number
-  variance: number   // actual - planned (ujemna = oszczędność)
-  pct: number        // (actual/planned)*100, 0 gdy brak planu
+  /** actual - planned; ujemna = oszczędność */
+  variance: number
+  /** planned - actual; ujemna = przekroczenie */
+  remaining: number
+  /** (actual/planned)*100; 0 gdy brak planu */
+  pct: number
+  /** prognoza roczna = actual * (12/month); null gdy rok historyczny lub brak danych */
+  forecast: number | null
   overBudget: boolean
 }
 
@@ -36,83 +41,104 @@ export interface BudgetData {
   items: BudgetItem[]
   totalPlanned: number
   totalActual: number
-  totalVariance: number
+  totalRemaining: number
+  totalForecast: number | null
+  /** miesiąc użyty do prognozy (1–12); 12 dla lat historycznych */
+  forecastMonth: number
 }
 
-
+/** Pobierz dane budżetu (plan + wykonanie) dla danej wspólnoty i roku */
 export async function getBudget(communityId: string, year: number): Promise<{
   data: BudgetData | null
   error?: string
 }> {
-  // requireAdminPlus bez izolacji = admin mógł czytać budżety obcych wspólnot
   const auth = await requireAdminPlusForCommunity(communityId)
   if (auth.error) return { data: null, error: auth.error }
 
   const admin = getSupabaseAdminClient()
+  const currentYear = new Date().getFullYear()
+  const currentMonth = new Date().getMonth() + 1 // 1–12
+  const forecastMonth = year === currentYear ? currentMonth : 12
 
-  // Plan budżetowy
-  const { data: planRows } = await admin
-    .from('community_budgets')
-    .select('category, planned_amount')
-    .eq('community_id', communityId)
-    .eq('year', year)
+  const [planRes, expRes] = await Promise.all([
+    admin.from('community_budgets')
+      .select('category, planned_amount')
+      .eq('community_id', communityId)
+      .eq('year', year),
+    admin.from('community_expenses')
+      .select('category, amount')
+      .eq('community_id', communityId)
+      .gte('expense_date', `${year}-01-01`)
+      .lte('expense_date', `${year}-12-31`),
+  ])
 
   const planMap = new Map<string, number>()
-  for (const r of planRows ?? []) {
-    planMap.set(r.category, Number(r.planned_amount))
-  }
-
-  // Rzeczywiste koszty w danym roku
-  const { data: expenses } = await admin
-    .from('community_expenses')
-    .select('category, amount')
-    .eq('community_id', communityId)
-    .gte('expense_date', `${year}-01-01`)
-    .lte('expense_date', `${year}-12-31`)
+  for (const r of planRes.data ?? []) planMap.set(r.category, Number(r.planned_amount))
 
   const actualMap = new Map<string, number>()
-  for (const e of expenses ?? []) {
+  for (const e of expRes.data ?? []) {
     const cat = e.category ?? 'pozostałe'
     actualMap.set(cat, (actualMap.get(cat) ?? 0) + Number(e.amount))
   }
 
-  // Połącz wszystkie kategorie (z planu + z rzeczywistych)
   const allCats = new Set([...planMap.keys(), ...actualMap.keys()])
 
   const items: BudgetItem[] = BUDGET_CATEGORIES
-    .filter(c => allCats.has(c.value) || planMap.has(c.value))
+    .filter(c => allCats.has(c.value))
     .map(c => {
       const planned = planMap.get(c.value) ?? 0
-      const actual = actualMap.get(c.value) ?? 0
-      const variance = actual - planned
+      const actual  = actualMap.get(c.value) ?? 0
+      const variance  = actual - planned
+      const remaining = planned - actual
       const pct = planned > 0 ? Math.round((actual / planned) * 100) : (actual > 0 ? 999 : 0)
-      return { category: c.value, planned, actual, variance, pct, overBudget: pct > 110 && planned > 0 }
+      const forecast = actual > 0 && forecastMonth > 0
+        ? Math.round((actual / forecastMonth) * 12 * 100) / 100
+        : null
+      return {
+        category: c.value,
+        planned, actual, variance, remaining, pct, forecast,
+        overBudget: pct > 110 && planned > 0,
+      }
     })
 
-  // Dodaj kategorie z kosztów które nie ma w BUDGET_CATEGORIES
+  // Kategorie z kosztów spoza stałej listy
   for (const cat of actualMap.keys()) {
-    if (!BUDGET_CATEGORIES.find(c => c.value === cat) && !items.find(i => i.category === cat)) {
-      const actual = actualMap.get(cat) ?? 0
+    if (!BUDGET_CATEGORIES.find(c => c.value === cat)) {
+      const actual  = actualMap.get(cat) ?? 0
       const planned = planMap.get(cat) ?? 0
-      items.push({ category: cat, planned, actual, variance: actual - planned, pct: planned > 0 ? Math.round((actual/planned)*100) : 999, overBudget: false })
+      const pct = planned > 0 ? Math.round((actual / planned) * 100) : 999
+      items.push({
+        category: cat, planned, actual,
+        variance: actual - planned,
+        remaining: planned - actual,
+        pct,
+        forecast: actual > 0 ? Math.round((actual / forecastMonth) * 12 * 100) / 100 : null,
+        overBudget: false,
+      })
     }
   }
 
-  const totalPlanned = items.reduce((s, i) => s + i.planned, 0)
-  const totalActual  = items.reduce((s, i) => s + i.actual, 0)
+  const totalPlanned   = items.reduce((s, i) => s + i.planned, 0)
+  const totalActual    = items.reduce((s, i) => s + i.actual, 0)
+  const totalRemaining = totalPlanned - totalActual
+  const forecasts      = items.map(i => i.forecast).filter((f): f is number => f !== null)
+  const totalForecast  = forecasts.length > 0
+    ? Math.round(forecasts.reduce((s, f) => s + f, 0) * 100) / 100
+    : null
 
   return {
     data: {
-      communityId,
-      year,
-      items,
-      totalPlanned,
-      totalActual,
-      totalVariance: totalActual - totalPlanned,
-    }
+      communityId, year, items,
+      totalPlanned:   Math.round(totalPlanned   * 100) / 100,
+      totalActual:    Math.round(totalActual    * 100) / 100,
+      totalRemaining: Math.round(totalRemaining * 100) / 100,
+      totalForecast,
+      forecastMonth,
+    },
   }
 }
 
+/** Zapisz pozycje planu budżetowego */
 export async function saveBudgetItems(
   communityId: string,
   year: number,
@@ -130,64 +156,58 @@ export async function saveBudgetItems(
     updated_at: new Date().toISOString(),
   }))
 
-  const { error } = await admin
+  // Usuń stare pozycje dla tego roku (czyste nadpisanie)
+  const { error: delErr } = await admin
     .from('community_budgets')
-    .upsert(rows, { onConflict: 'community_id,year,category' })
+    .delete()
+    .eq('community_id', communityId)
+    .eq('year', year)
+  if (delErr) return { error: delErr.message }
 
+  if (rows.length === 0) {
+    revalidatePath('/admin/finanse/budzet')
+    return {}
+  }
+
+  const { error } = await admin.from('community_budgets').insert(rows)
   if (error) return { error: error.message }
+
   revalidatePath('/admin/finanse/budzet')
   return {}
 }
 
-export async function seedBudgetFromExpenses(
+/** Pobierz rzeczywiste wykonanie (sumy kosztów per kategoria) dla danego roku.
+ *  Używane jako podpowiedź przy ustawianiu planu na rok N+1. */
+export async function getPreviousYearExecution(
   communityId: string,
   year: number,
-): Promise<{ seeded: number; error?: string }> {
+): Promise<{ data: Record<string, number>; error?: string }> {
   const auth = await requireAdminPlusForCommunity(communityId)
-  if (auth.error) return { seeded: 0, error: auth.error }
+  if (auth.error) return { data: {}, error: auth.error }
 
   const admin = getSupabaseAdminClient()
-
-  // Pobierz wszystkie koszty danej wspólnoty za rok
-  const { data: expenses, error: fetchErr } = await admin
+  const { data, error } = await admin
     .from('community_expenses')
     .select('category, amount')
     .eq('community_id', communityId)
     .gte('expense_date', `${year}-01-01`)
     .lte('expense_date', `${year}-12-31`)
-    .not('expense_date', 'is', null)
 
-  if (fetchErr) return { seeded: 0, error: fetchErr.message }
-  if (!expenses?.length) return { seeded: 0, error: 'Brak kosztów dla wybranego roku.' }
+  if (error) return { data: {}, error: error.message }
 
-  // Suma per kategoria
-  const sumMap = new Map<string, number>()
-  for (const e of expenses) {
-    const cat = (e.category?.trim() || 'pozostałe')
-    sumMap.set(cat, (sumMap.get(cat) ?? 0) + Number(e.amount))
+  const result: Record<string, number> = {}
+  for (const e of data ?? []) {
+    const cat = e.category ?? 'pozostałe'
+    result[cat] = Math.round(((result[cat] ?? 0) + Number(e.amount)) * 100) / 100
   }
-
-  const rows = Array.from(sumMap.entries()).map(([category, total]) => ({
-    community_id: communityId,
-    year,
-    category,
-    planned_amount: Math.round(total * 100) / 100,
-    updated_at: new Date().toISOString(),
-  }))
-
-  const { error: upsertErr } = await admin
-    .from('community_budgets')
-    .upsert(rows, { onConflict: 'community_id,year,category' })
-
-  if (upsertErr) return { seeded: 0, error: upsertErr.message }
-  revalidatePath('/admin/finanse/budzet')
-  return { seeded: rows.length }
+  return { data: result }
 }
 
+/** Pobierz dostępne lata (z kosztów + bieżący + następny) */
 export async function getAvailableYears(communityId: string): Promise<number[]> {
-  // Brak auth check = dowolny zalogowany user mógł odczytać lata kosztów wspólnoty
   const auth = await requireAdminPlusForCommunity(communityId)
   if (auth.error) return [new Date().getFullYear()]
+
   const admin = getSupabaseAdminClient()
   const { data } = await admin
     .from('community_expenses')
@@ -195,10 +215,8 @@ export async function getAvailableYears(communityId: string): Promise<number[]> 
     .eq('community_id', communityId)
     .not('expense_date', 'is', null)
 
-  const years = new Set<number>()
   const currentYear = new Date().getFullYear()
-  years.add(currentYear)
-  years.add(currentYear - 1)
+  const years = new Set<number>([currentYear, currentYear + 1, currentYear - 1])
 
   for (const row of data ?? []) {
     const y = new Date(row.expense_date).getFullYear()
