@@ -6,9 +6,12 @@ import Link from 'next/link'
 const SCREENS = [
   { id: 'dashboard',    label: 'Dashboard',      icon: '🏠' },
   { id: 'finanse',      label: 'Finanse',         icon: '💰' },
+  { id: 'budzet',       label: 'Budżet',          icon: '📋' },
   { id: 'glosowania',   label: 'Głosowania',      icon: '🗳' },
   { id: 'rozliczenia',  label: 'Rozliczenia',     icon: '🧾' },
+  { id: 'wezwania',     label: 'Wezwania',        icon: '⚠️' },
   { id: 'liczniki',     label: 'Liczniki wody',   icon: '🌊' },
+  { id: 'mieszkaniec',  label: 'Moje konto',      icon: '💳' },
   { id: 'dokumenty',    label: 'Dokumenty',       icon: '📁' },
 ]
 
@@ -20,12 +23,16 @@ const SIDEBAR_ITEMS = [
   { icon: '─',  label: 'FINANSE',           id: null, section: true },
   { icon: '💰', label: 'Koszty',            id: 'finanse' },
   { icon: '📈', label: 'Przychody',         id: 'finanse' },
+  { icon: '📋', label: 'Budżet',            id: 'budzet' },
   { icon: '🏦', label: 'Lokaty',            id: 'finanse' },
   { icon: '📊', label: 'Raporty',           id: 'finanse' },
+  { icon: '🔒', label: 'Zamknięcie roku',   id: null },
   { icon: '─',  label: 'WSPÓLNOTA',         id: null, section: true },
   { icon: '🗳', label: 'Głosowania',        id: 'glosowania' },
   { icon: '🧾', label: 'Rozliczenia',       id: 'rozliczenia' },
+  { icon: '⚠️', label: 'Wezwania',          id: 'wezwania' },
   { icon: '🌊', label: 'Liczniki wody',     id: 'liczniki' },
+  { icon: '💳', label: 'Moje konto',        id: 'mieszkaniec' },
   { icon: '📁', label: 'Dokumenty',         id: 'dokumenty' },
   { icon: '👥', label: 'Użytkownicy',       id: null },
 ]
@@ -394,12 +401,179 @@ function ScreenDokumenty({ active }: { active: boolean }) {
   )
 }
 
+function ScreenBudzet({ active }: { active: boolean }) {
+  const categories = [
+    { name: 'Konserwacja i naprawy', plan: 18000, exec: 14200 },
+    { name: 'Sprzątanie',            plan:  9600, exec:  9600 },
+    { name: 'Ubezpieczenie',         plan:  4400, exec:  4400 },
+    { name: 'Wynagrodzenie zarządcy',plan: 12000, exec: 11000 },
+    { name: 'Media — woda/śmieci',   plan: 22000, exec: 19800 },
+    { name: 'Fundusz remontowy',     plan: 36000, exec: 28000 },
+  ]
+  const totalPlan = categories.reduce((s, c) => s + c.plan, 0)
+  const totalExec = categories.reduce((s, c) => s + c.exec, 0)
+  return (
+    <div style={{ padding: '20px 24px', overflow: 'auto', height: '100%', background: '#030f0e' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#f0fdfa' }}>Budżet 2026</div>
+          <div style={{ fontSize: 13, color: '#4d7c78' }}>Plan vs. wykonanie · stan na czerwiec</div>
+        </div>
+        <div style={{ fontSize: 12, padding: '6px 14px', background: '#091918', border: '1px solid #0f2d2a', borderRadius: 8, color: '#99f6e4', cursor: 'pointer' }}>↓ Eksport Excel</div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 20 }}>
+        {[
+          { l: 'Plan roczny', v: totalPlan, c: '#60a5fa' },
+          { l: 'Wykonanie YTD', v: totalExec, c: '#14b8a6' },
+          { l: 'Pozostało', v: totalPlan - totalExec, c: '#22c55e' },
+        ].map(c => (
+          <div key={c.l} style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '14px' }}>
+            <div style={{ fontSize: 11, color: '#4d7c78', marginBottom: 6 }}>{c.l}</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: c.c }}>
+              {active ? <AnimNumber target={c.v} suffix=" zł" /> : '—'}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '16px' }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#99f6e4', marginBottom: 14 }}>Kategorie — plan vs. wykonanie</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {categories.map((cat, i) => {
+            const pct = Math.round((cat.exec / cat.plan) * 100)
+            const over = cat.exec > cat.plan
+            return (
+              <div key={i} style={{ opacity: active ? 1 : 0, transition: `opacity .3s ${i * 0.08}s` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <span style={{ fontSize: 12, color: '#f0fdfa' }}>{cat.name}</span>
+                  <span style={{ fontSize: 11, color: over ? '#ef4444' : '#4d7c78' }}>
+                    {cat.exec.toLocaleString('pl-PL')} / {cat.plan.toLocaleString('pl-PL')} zł · <span style={{ color: over ? '#ef4444' : '#22c55e' }}>{pct}%</span>
+                  </span>
+                </div>
+                <div style={{ background: '#0f2d2a', borderRadius: 4, height: 6, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', borderRadius: 4, background: over ? '#ef4444' : pct > 80 ? '#f59e0b' : '#0d9488', width: `${Math.min(pct, 100)}%`, transition: 'width .6s ease' }} />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ScreenWezwania({ active }: { active: boolean }) {
+  const debtors = [
+    { l: 'Lokal 4',  n: 'Nowak Katarzyna',  debt: 1240 },
+    { l: 'Lokal 9',  n: 'Wiśniewski Tomasz', debt: 890 },
+    { l: 'Lokal 13', n: 'Zając Piotr',       debt: 3420 },
+    { l: 'Lokal 17', n: 'Kaczmarek Anna',    debt: 560 },
+  ]
+  return (
+    <div style={{ padding: '20px 24px', overflow: 'auto', height: '100%', background: '#030f0e' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#f0fdfa' }}>⚠️ Wezwania do zapłaty</div>
+          <div style={{ fontSize: 13, color: '#4d7c78' }}>Rok 2026 · min. zadłużenie: 100 zł</div>
+        </div>
+        <div style={{ fontSize: 12, padding: '6px 14px', background: '#ef4444', borderRadius: 8, color: '#fff', cursor: 'pointer' }}>🖨 Drukuj wszystkie (4)</div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 20 }}>
+        {[
+          { l: 'Dłużnicy', v: active ? 4 : 0, c: '#ef4444' },
+          { l: 'Łączne zadłużenie', v: active ? 6110 : 0, c: '#ef4444', s: ' zł' },
+          { l: 'Wszystkich lokali', v: active ? 18 : 0, c: '#f0fdfa' },
+        ].map(c => (
+          <div key={c.l} style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '14px' }}>
+            <div style={{ fontSize: 11, color: '#4d7c78', marginBottom: 6 }}>{c.l}</div>
+            <div style={{ fontSize: 24, fontWeight: 800, color: c.c }}><AnimNumber target={c.v} suffix={c.s ?? ''} /></div>
+          </div>
+        ))}
+      </div>
+      <div style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '16px' }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#ef4444', marginBottom: 12 }}>🔴 Lokale z niedopłatą</div>
+        {debtors.map((d, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: i < debtors.length - 1 ? '1px solid #0f2d2a' : 'none', opacity: active ? 1 : 0, transition: `opacity .3s ${i * 0.1}s` }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#f0fdfa' }}>{d.l} · {d.n}</div>
+              <div style={{ fontSize: 11, color: '#4d7c78', marginTop: 2 }}>Rok 2026</div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#ef4444' }}>{d.debt.toLocaleString('pl-PL')} zł</div>
+              <div style={{ fontSize: 11, padding: '4px 10px', background: 'rgba(239,68,68,.1)', color: '#ef4444', borderRadius: 8, cursor: 'pointer', border: '1px solid rgba(239,68,68,.2)' }}>🖨 Wezwanie</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ScreenMieszkanie({ active }: { active: boolean }) {
+  const months = ['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru']
+  const paid =   [485, 485, 485, 485, 485, 485, 0, 0, 0, 0, 0, 0]
+  const due =    [485, 485, 485, 485, 485, 485, 0, 0, 0, 0, 0, 0]
+  const water =  [3.2, 2.8, 3.5, 3.1, 3.4, 3.2, 0, 0, 0, 0, 0, 0]
+  const maxW = 4
+  return (
+    <div style={{ padding: '20px 24px', overflow: 'auto', height: '100%', background: '#030f0e' }}>
+      <div style={{ fontSize: 20, fontWeight: 700, color: '#f0fdfa', marginBottom: 4 }}>💳 Moje konto</div>
+      <div style={{ fontSize: 13, color: '#4d7c78', marginBottom: 20 }}>Lokal 12 · Kowalski Jan · Wspólnota Gostyń</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 20 }}>
+        {[
+          { l: 'Saldo 2026', v: 120, col: '#14b8a6', suf: ' zł', note: '✓ Nadpłata' },
+          { l: 'Saldo otwarcia', v: 120, col: '#99f6e4', suf: ' zł', note: 'z 2025' },
+          { l: 'Naliczono 2026', v: 2910, col: '#f0fdfa', suf: ' zł', note: 'łącznie' },
+          { l: 'Wpłacono 2026', v: 2910, col: '#22c55e', suf: ' zł', note: 'łącznie' },
+        ].map(c => (
+          <div key={c.l} style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '14px' }}>
+            <div style={{ fontSize: 10, color: '#4d7c78', marginBottom: 6 }}>{c.l}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: c.col }}>{active ? <AnimNumber target={c.v} suffix={c.suf} /> : '—'}</div>
+            <div style={{ fontSize: 10, color: '#4d7c78', marginTop: 3 }}>{c.note}</div>
+          </div>
+        ))}
+      </div>
+      {/* Water chart */}
+      <div style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '16px', marginBottom: 12 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#99f6e4', marginBottom: 12 }}>🚿 Zużycie wody — 2026</div>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 60 }}>
+          {water.map((w, i) => (
+            <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, height: '100%', justifyContent: 'flex-end' }}>
+              <div style={{ width: '100%', background: w > 0 ? 'rgba(96,165,250,.65)' : '#0c1a1a', borderRadius: '4px 4px 0 0', height: w > 0 ? `${(w / maxW) * 54}px` : '2px', transition: 'height .5s .2s ease' }} title={w > 0 ? `${w} m³` : ''} />
+              <div style={{ fontSize: 9, color: '#4d7c78' }}>{months[i]}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ fontSize: 11, color: '#4d7c78', marginTop: 10 }}>
+          Łącznie: <span style={{ color: '#60a5fa', fontWeight: 600 }}>{water.reduce((s,v)=>s+v,0).toFixed(1)} m³</span> · Noty: Q1 · Q2 · Q3 · Q4
+        </div>
+      </div>
+      {/* Mini table */}
+      <div style={{ background: '#091918', border: '1px solid #0f2d2a', borderRadius: 12, padding: '12px 16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 0 }}>
+          {['Miesiąc','Naliczono','Wpłacono','Saldo'].map(h => (
+            <div key={h} style={{ fontSize: 10, color: '#4d7c78', padding: '4px 8px', fontWeight: 600 }}>{h}</div>
+          ))}
+          {['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec'].map((m, i) => [
+            <div key={`m${i}`} style={{ fontSize: 11, color: '#99f6e4', padding: '5px 8px', borderTop: '1px solid #0f2d2a', opacity: active ? 1 : 0, transition: `opacity .3s ${i*0.06}s` }}>{m}</div>,
+            <div key={`d${i}`} style={{ fontSize: 11, color: '#f0fdfa', padding: '5px 8px', borderTop: '1px solid #0f2d2a', opacity: active ? 1 : 0, transition: `opacity .3s ${i*0.06}s` }}>485,00 zł</div>,
+            <div key={`p${i}`} style={{ fontSize: 11, color: '#22c55e', padding: '5px 8px', borderTop: '1px solid #0f2d2a', opacity: active ? 1 : 0, transition: `opacity .3s ${i*0.06}s` }}>485,00 zł</div>,
+            <div key={`s${i}`} style={{ fontSize: 11, color: '#14b8a6', padding: '5px 8px', borderTop: '1px solid #0f2d2a', opacity: active ? 1 : 0, transition: `opacity .3s ${i*0.06}s` }}>0,00 zł</div>,
+          ])}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const SCREEN_COMPONENTS: Record<string, (props: { active: boolean }) => React.ReactElement> = {
   dashboard:   ScreenDashboard,
   finanse:     ScreenFinanse,
+  budzet:      ScreenBudzet,
   glosowania:  ScreenGlosowania,
   rozliczenia: ScreenRozliczenia,
+  wezwania:    ScreenWezwania,
   liczniki:    ScreenLiczniki,
+  mieszkaniec: ScreenMieszkanie,
   dokumenty:   ScreenDokumenty,
 }
 
