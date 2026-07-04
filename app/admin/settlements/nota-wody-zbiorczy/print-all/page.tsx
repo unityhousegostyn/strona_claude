@@ -51,8 +51,8 @@ export default async function NotaWodyPrintAllPage({
 
   if (profile.role === 'admin' && profile.community_id !== communityId) redirect('/admin/settlements')
 
-  const year = parseInt(sp.year ?? String(new Date().getFullYear()))
-  const quarter = parseInt(sp.quarter ?? '1')
+  const year = parseInt(sp.year ?? '') || new Date().getFullYear()
+  const quarter = Math.max(1, parseInt(sp.quarter ?? '1') || 1)
 
   const admin = getSupabaseAdminClient()
 

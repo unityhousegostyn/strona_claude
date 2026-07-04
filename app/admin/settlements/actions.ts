@@ -215,6 +215,16 @@ export async function upsertEntry(data: {
   if (data.month < 1 || data.month > 12) return { error: 'Nieprawidlowy miesiac' }
 
   const admin = getSupabaseAdminClient()
+
+  // IDOR fix: verify apartment belongs to the stated community
+  const { data: aptCheck } = await admin
+    .from('settlement_apartments')
+    .select('community_id')
+    .eq('id', data.apartment_id)
+    .single()
+  if (!aptCheck || aptCheck.community_id !== data.community_id)
+    return { error: 'Lokal nie należy do tej wspólnoty' }
+
   const { error } = await admin.from('settlement_entries').upsert({
     apartment_id: data.apartment_id,
     community_id: data.community_id,
@@ -455,12 +465,22 @@ export async function getWaterReading(
   const auth = await requireAdminOrAbove()
   if (auth.error !== null) return { value: null, error: auth.error }
 
+  const admin = getSupabaseAdminClient()
+
+  // Community isolation fix: verify apartment belongs to caller's community
+  const { data: apt } = await admin
+    .from('settlement_apartments')
+    .select('community_id')
+    .eq('id', apartmentId)
+    .single()
+  if (!apt) return { value: null, error: 'Lokal nie istnieje' }
+  const guardErrW = guardCommunity(auth, apt.community_id)
+  if (guardErrW) return { value: null, error: guardErrW }
+
   // Poprawna obsługa przełomu roku (miesiąc 0 = grudzień roku poprzedniego)
   const actualYear = month < 1 ? year - 1 : month > 12 ? year + 1 : year
   const actualMonth = month < 1 ? 12 : month > 12 ? month - 12 : month
   const ym = `${actualYear}-${String(actualMonth).padStart(2, '0')}`
-
-  const admin = getSupabaseAdminClient()
   const { data } = await admin
     .from('water_meter_readings')
     .select('reading_value')

@@ -46,7 +46,7 @@ export default async function NotaWodyZbiorczyPage({
 
   if (profile.role === 'admin' && profile.community_id !== communityId) redirect('/admin/settlements')
 
-  const year = parseInt(sp.year ?? String(new Date().getFullYear()))
+  const year = parseInt(sp.year ?? '') || new Date().getFullYear()
 
   // Pobierz stawki
   const ratesRes = await admin.from('settlement_rates').select('*')
@@ -56,7 +56,7 @@ export default async function NotaWodyZbiorczyPage({
   const reconMonths = rates[0]?.water_reconciliation_months ?? 3
   const numPeriods = Math.floor(12 / reconMonths)
 
-  const quarter = Math.min(parseInt(sp.quarter ?? '1'), numPeriods)
+  const quarter = Math.min(Math.max(1, parseInt(sp.quarter ?? '1') || 1), numPeriods)
 
   // Pobierz lokale + rozliczenia wody dla tego okresu
   const [aptsRes, recsRes, communityRes] = await Promise.all([
