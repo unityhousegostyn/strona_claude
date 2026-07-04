@@ -148,33 +148,42 @@ export default async function DashboardPage() {
     return (
       <div className="space-y-5">
 
-        {/* ── Header + System Health ─────────────────────────────── */}
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h2 className="text-2xl font-bold text-[#f0fdfa]">
-              Witaj, {profile.full_name?.split(' ')[0] ?? 'Super Admin'} 👋
-            </h2>
-            <p className="text-sm text-[#115e59] mt-1">
-              {now.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Warsaw' })}
-            </p>
-          </div>
-          <div className="flex items-center gap-3 bg-[#0c2825] border border-[#134e48] rounded-xl px-4 py-2.5">
-            <div className="flex gap-1.5">
-              {[
-                (pendingCount.count ?? 0) > 0,
-                staleOpenTickets.length > 0,
-                expiringVotes48h.length > 0,
-                negativeBalComms.length > 0,
-              ].map((bad, i) => (
-                <div key={i} className={`w-2.5 h-2.5 rounded-full ${bad ? (i > 1 ? 'bg-red-500' : 'bg-yellow-500') : 'bg-teal-500'}`} />
-              ))}
+        {/* ── Hero Banner ────────────────────────────────────────── */}
+        <div className="relative bg-gradient-to-br from-teal-600 via-teal-600 to-teal-700 rounded-2xl p-6 text-white overflow-hidden">
+          {/* Decorative circles */}
+          <div className="absolute -right-8 -top-8 w-40 h-40 bg-white/10 rounded-full pointer-events-none" />
+          <div className="absolute right-10 -bottom-6 w-20 h-20 bg-white/5 rounded-full pointer-events-none" />
+
+          <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <p className="text-teal-100 text-sm mb-1">
+                {now.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Warsaw' })}
+              </p>
+              <h2 className="text-2xl font-bold">
+                Dzień dobry, {profile.full_name?.split(' ')[0] ?? 'Admin'} 👋
+              </h2>
+              <p className="text-teal-100 text-sm mt-1">
+                Zarządzasz {commCount.count ?? 0} wspólnotami · {totalApartments} mieszkań · {userCount.count ?? 0} aktywnych kont
+              </p>
             </div>
-            <span className={`text-sm font-semibold ${healthColor}`}>Stan systemu: {healthLabel}</span>
-            {healthProblems > 0 && (
-              <span className="text-xs text-[#1f5c55]">
-                · {healthProblems} {healthProblems === 1 ? 'kwestia wymaga uwagi' : 'kwestie wymagają uwagi'}
-              </span>
-            )}
+
+            {/* Health badge */}
+            <div className="flex items-center gap-3 bg-white/15 border border-white/20 rounded-xl px-4 py-3 shrink-0">
+              <div className="flex gap-1.5">
+                {[
+                  (pendingCount.count ?? 0) > 0,
+                  staleOpenTickets.length > 0,
+                  expiringVotes48h.length > 0,
+                  negativeBalComms.length > 0,
+                ].map((bad, i) => (
+                  <div key={i} className={`w-3 h-3 rounded-full border-2 border-white/30 ${bad ? (i > 1 ? 'bg-red-400' : 'bg-yellow-300') : 'bg-white'}`} />
+                ))}
+              </div>
+              <div>
+                <p className="text-xs text-teal-100 leading-tight">Stan systemu</p>
+                <p className="text-sm font-bold leading-tight">{healthLabel}</p>
+              </div>
+            </div>
           </div>
         </div>
 

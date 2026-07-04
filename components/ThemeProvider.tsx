@@ -18,7 +18,16 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
 
   useEffect(() => {
     const saved = localStorage.getItem('theme') as Theme | null
-    const initial = saved ?? 'light'
+    const migrated = localStorage.getItem('theme_v2')
+    let initial: Theme = 'light'
+    if (!migrated) {
+      // One-time migration to light mode after redesign
+      localStorage.setItem('theme_v2', '1')
+      localStorage.setItem('theme', 'light')
+      initial = 'light'
+    } else {
+      initial = saved ?? 'light'
+    }
     setTheme(initial)
     applyTheme(initial)
   }, [])

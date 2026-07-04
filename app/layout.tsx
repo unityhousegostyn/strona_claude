@@ -40,13 +40,15 @@ export default function RootLayout({
   return (
     <html
       lang="pl"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased light`}
     >
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
         <meta name="theme-color" content="#0d9488" />
+        {/* Apply saved theme before React hydrates to prevent flash */}
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('theme');if(t==='dark'){document.documentElement.classList.remove('light');document.documentElement.classList.add('dark');}}catch(e){}` }} />
       </head>
-      <body className="min-h-full flex flex-col bg-[#051210]">
+      <body className="min-h-full flex flex-col bg-[#f0f2f5]">
         <ThemeProvider>
           {children}
           <CookieBanner />
