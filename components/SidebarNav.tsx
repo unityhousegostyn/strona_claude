@@ -54,8 +54,10 @@ function useNavEntries(role: string): NavEntry[] {
         subItems: [
           ...(role === 'user' ? [{ href: '/admin/settlements/moje-konto', label: 'Moje konto', icon: '💳' }] : []),
           { href: '/admin/settlements', label: 'Zestawienie', icon: '📋' },
-          { href: '/admin/water-meters', label: 'Liczniki wody', icon: '💧' },
-          { href: '/admin/settlements/nota-wody-zbiorczy', label: 'Noty wody', icon: '📄' },
+          ...(isAdminPlus ? [
+            { href: '/admin/water-meters', label: 'Liczniki wody', icon: '💧' },
+            { href: '/admin/settlements/nota-wody-zbiorczy', label: 'Noty wody', icon: '📄' },
+          ] : []),
           ...(isAdminPlus ? [
             { href: '/admin/settlements/wezwania', label: 'Wezwania do zapłaty', icon: '⚠️' },
             { href: '/admin/settlements/zawiadomienia', label: t('nav.zawiadomienia'), icon: '📨' },
