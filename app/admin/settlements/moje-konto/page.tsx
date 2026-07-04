@@ -250,7 +250,7 @@ export default async function MojeKontoPage({
                 <th className="px-3 py-2 text-left text-[#0f766e] uppercase tracking-wide">Miesiąc</th>
                 <th className="px-3 py-2 text-right text-[#0f766e] uppercase tracking-wide">Naliczono</th>
                 <th className="px-3 py-2 text-right text-[#0f766e] uppercase tracking-wide">Wpłacono</th>
-                <th className="px-3 py-2 text-right text-[#0f766e] uppercase tracking-wide">Woda m³</th>
+                <th className="px-3 py-2 text-right text-[#0f766e] uppercase tracking-wide">Woda</th>
                 <th className="px-3 py-2 text-right text-[#0f766e] uppercase tracking-wide">Saldo</th>
               </tr>
             </thead>
@@ -270,9 +270,14 @@ export default async function MojeKontoPage({
                     {row.paid > 0 ? pln(row.paid) : '—'}
                   </td>
                   <td className="px-3 py-2 text-right text-[#ccfbf1]">
-                    {row.entry?.water_m3 ? (
-                      <span className="text-blue-400">{row.entry.water_m3.toFixed(2)} m³</span>
-                    ) : '—'}
+                    {row.hasRates && row.water > 0 ? (
+                      <span className="text-blue-400">
+                        {pln(row.water)}
+                        {(row.entry?.water_m3 ?? 0) > 0 && (
+                          <span className="block text-[10px] text-blue-600">{row.entry!.water_m3.toFixed(2)} m³</span>
+                        )}
+                      </span>
+                    ) : <span className="text-[#115e59]">—</span>}
                   </td>
                   <td className={`px-3 py-2 text-right font-semibold ${row.balance_end >= 0 ? 'text-teal-400' : 'text-red-400'}`}>
                     {pln(row.balance_end)}
@@ -283,8 +288,13 @@ export default async function MojeKontoPage({
                 <td className="px-3 py-2 font-bold text-[#99f6e4]">RAZEM</td>
                 <td className="px-3 py-2 text-right font-bold text-[#f0fdfa]">{pln(totalDue)}</td>
                 <td className="px-3 py-2 text-right font-bold text-teal-400">{pln(totalPaid)}</td>
-                <td className="px-3 py-2 text-right text-[#ccfbf1]">
-                  {waterEntries.reduce((s, e) => s + e.water_m3, 0).toFixed(2)} m³
+                <td className="px-3 py-2 text-right text-blue-400 font-bold">
+                  {pln(rows.reduce((s, r) => s + r.water, 0))}
+                  {waterEntries.reduce((s, e) => s + e.water_m3, 0) > 0 && (
+                    <span className="block text-[10px] text-blue-600 font-normal">
+                      {waterEntries.reduce((s, e) => s + e.water_m3, 0).toFixed(2)} m³
+                    </span>
+                  )}
                 </td>
                 <td className={`px-3 py-2 text-right font-bold ${finalBalance >= 0 ? 'text-teal-400' : 'text-red-400'}`}>
                   {pln(finalBalance)}
@@ -295,58 +305,85 @@ export default async function MojeKontoPage({
         </div>
       </div>
 
-      {/* Wykres zużycia wody */}
-      {hasWaterMeter && (waterReconRows ?? []).length > 0 && (
-        <div className="bg-[#081918] border border-[#0f2d2a] rounded-2xl p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-[#ccfbf1]">🚿 Zużycie wody — {selectedYear}</h3>
-            <span className="text-xs text-[#0f766e]">Licznik indywidualny</span>
-          </div>
+      {/* Wykres wody — licznik (m³) lub ryczałt (PLN) */}
+      {(() => {
+        const waterRows = rows.filter(r => r.hasRates && r.water > 0)
+        if (waterRows.length === 0) return null
+        const hasMeterData = hasWaterMeter && (waterReconRows ?? []).length > 0
+        const maxWaterPln = Math.max(...waterRows.map(r => r.water), 1)
+        return (
+          <div className="bg-[#081918] border border-[#0f2d2a] rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-[#ccfbf1]">🚿 Opłaty za wodę — {selectedYear}</h3>
+              <span className="text-xs text-[#0f766e]">
+                {hasMeterData ? 'Licznik indywidualny' : 'Ryczałt'}
+              </span>
+            </div>
 
-          {/* Bar chart */}
-          <div className="flex gap-2 items-end h-24">
-            {MONTHS.map((mLabel, idx) => {
-              const m = idx + 1
-              const wr = (waterReconRows ?? []).find(r => r.month === m)
-              const val = wr?.water_m3 ?? 0
-              const h = val > 0 ? Math.max(4, Math.round((val / maxWater) * 90)) : 0
-              return (
-                <div key={m} className="flex-1 flex flex-col items-center gap-1">
-                  <div className="w-full flex items-end justify-center h-24">
-                    {h > 0 ? (
-                      <div
-                        style={{ height: `${h}px` }}
-                        title={`${MONTHS_LONG[idx]}: ${val.toFixed(2)} m³`}
-                        className="w-full rounded-t-sm bg-blue-600/70 hover:bg-blue-500/80 transition"
-                      />
-                    ) : (
-                      <div className="w-full" style={{ height: '2px' }} />
-                    )}
-                  </div>
-                  <span className="text-[10px] text-[#115e59]">{mLabel}</span>
+            {/* Bar chart — m³ jeśli licznik, PLN jeśli ryczałt */}
+            <div className="flex gap-2 items-end h-24">
+              {MONTHS.map((mLabel, idx) => {
+                const m = idx + 1
+                const row = rows.find(r => r.month === m)
+                if (hasMeterData) {
+                  const wr = (waterReconRows ?? []).find(r => r.month === m)
+                  const val = wr?.water_m3 ?? 0
+                  const h = val > 0 ? Math.max(4, Math.round((val / maxWater) * 90)) : 0
+                  return (
+                    <div key={m} className="flex-1 flex flex-col items-center gap-1">
+                      <div className="w-full flex items-end justify-center h-24">
+                        {h > 0
+                          ? <div style={{ height: `${h}px` }} title={`${MONTHS_LONG[idx]}: ${val.toFixed(2)} m³`} className="w-full rounded-t-sm bg-blue-600/70 hover:bg-blue-500/80 transition" />
+                          : <div className="w-full" style={{ height: '2px' }} />}
+                      </div>
+                      <span className="text-[10px] text-[#115e59]">{mLabel}</span>
+                    </div>
+                  )
+                } else {
+                  const val = row?.water ?? 0
+                  const h = val > 0 ? Math.max(4, Math.round((val / maxWaterPln) * 90)) : 0
+                  return (
+                    <div key={m} className="flex-1 flex flex-col items-center gap-1">
+                      <div className="w-full flex items-end justify-center h-24">
+                        {h > 0
+                          ? <div style={{ height: `${h}px` }} title={`${MONTHS_LONG[idx]}: ${pln(val)}`} className="w-full rounded-t-sm bg-blue-600/70 hover:bg-blue-500/80 transition" />
+                          : <div className="w-full" style={{ height: '2px' }} />}
+                      </div>
+                      <span className="text-[10px] text-[#115e59]">{mLabel}</span>
+                    </div>
+                  )
+                }
+              })}
+            </div>
+
+            {hasMeterData ? (
+              <>
+                <div className="mt-3 grid grid-cols-3 sm:grid-cols-6 gap-2">
+                  {(waterReconRows ?? []).map(r => (
+                    <div key={r.month} className="bg-[#051210] rounded-lg p-2 text-center">
+                      <p className="text-[10px] text-[#115e59]">{MONTHS[r.month - 1]}</p>
+                      <p className="text-sm font-bold text-blue-400">{r.water_m3.toFixed(1)}</p>
+                      <p className="text-[10px] text-[#115e59]">m³</p>
+                    </div>
+                  ))}
                 </div>
-              )
-            })}
+                <p className="text-xs text-[#115e59] mt-3">
+                  Łączne zużycie {selectedYear}: <strong className="text-blue-400">
+                    {(waterReconRows ?? []).reduce((s, r) => s + r.water_m3, 0).toFixed(2)} m³
+                  </strong>
+                </p>
+              </>
+            ) : (
+              <p className="text-xs text-[#115e59] mt-3">
+                Łączne opłaty za wodę {selectedYear}: <strong className="text-blue-400">
+                  {pln(waterRows.reduce((s, r) => s + r.water, 0))}
+                </strong>
+                {' · '}rozliczenie ryczałtowe (bez licznika indywidualnego)
+              </p>
+            )}
           </div>
-
-          {/* Values */}
-          <div className="mt-3 grid grid-cols-3 sm:grid-cols-6 gap-2">
-            {(waterReconRows ?? []).map(r => (
-              <div key={r.month} className="bg-[#051210] rounded-lg p-2 text-center">
-                <p className="text-[10px] text-[#115e59]">{MONTHS[r.month - 1]}</p>
-                <p className="text-sm font-bold text-blue-400">{r.water_m3.toFixed(1)}</p>
-                <p className="text-[10px] text-[#115e59]">m³</p>
-              </div>
-            ))}
-          </div>
-
-          <p className="text-xs text-[#115e59] mt-3">
-            Łączne zużycie {selectedYear}: <strong className="text-blue-400">
-              {(waterReconRows ?? []).reduce((s, r) => s + r.water_m3, 0).toFixed(2)} m³
-            </strong>
-          </p>
-        </div>
-      )}
+        )
+      })()}
 
       {/* Noty wody — linki */}
       {hasWaterMeter && (
