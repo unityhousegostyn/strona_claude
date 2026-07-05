@@ -58,6 +58,21 @@ export async function bulkImportMT940(
   if (!items.length) return { imported: 0, skipped: 0, errors: [] }
   if (items.length > 500) return { imported: 0, skipped: 0, errors: ['Za dużo rekordów (max 500)'] }
 
+  // Walidacja każdego rekordu przed importem
+  for (const item of items) {
+    if (!item.apartment_id || !item.community_id) return { imported: 0, skipped: 0, errors: ['Brak apartment_id lub community_id'] }
+    if (typeof item.amount !== 'number' || !isFinite(item.amount) || item.amount <= 0) {
+      return { imported: 0, skipped: 0, errors: [`Nieprawidłowa kwota: ${item.amount} — musi być dodatnią liczbą`] }
+    }
+    if (item.amount > 1_000_000) return { imported: 0, skipped: 0, errors: [`Kwota przekracza limit 1 000 000 zł`] }
+    if (!Number.isInteger(item.year) || item.year < 2000 || item.year > 2100) {
+      return { imported: 0, skipped: 0, errors: [`Nieprawidłowy rok: ${item.year}`] }
+    }
+    if (!Number.isInteger(item.month) || item.month < 1 || item.month > 12) {
+      return { imported: 0, skipped: 0, errors: [`Nieprawidłowy miesiąc: ${item.month}`] }
+    }
+  }
+
   const admin = getSupabaseAdminClient()
   let imported = 0, skipped = 0
   const errors: string[] = []

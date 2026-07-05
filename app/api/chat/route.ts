@@ -27,6 +27,10 @@ export async function POST(req: NextRequest) {
 
     const { question } = await req.json()
     if (!question?.trim()) return NextResponse.json({ error: 'Brak pytania' }, { status: 400 })
+    // Max 2000 znaków — zapobiega celowemu inflowaniu promptu do Claude (DoS przez tokeny)
+    if (typeof question !== 'string' || question.trim().length > 2000) {
+      return NextResponse.json({ error: 'Pytanie jest za długie (max 2000 znaków)' }, { status: 400 })
+    }
 
     const admin = getSupabaseAdminClient()
     const communityId = profile.community_id
