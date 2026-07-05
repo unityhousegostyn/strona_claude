@@ -25,7 +25,9 @@ export async function addIncome(data: {
     if (profile.role === 'admin' && profile.community_id !== data.community_id)
       return { error: 'Brak uprawnień do tej wspólnoty' }
     if (!data.description.trim()) return { error: 'Opis jest wymagany' }
+    if (data.description.trim().length > 500) return { error: 'Opis może mieć maksymalnie 500 znaków' }
     if (!data.amount || data.amount <= 0) return { error: 'Kwota musi być większa niż 0' }
+    if (data.amount > 10_000_000) return { error: 'Kwota przekracza dozwolony limit (10 000 000 zł)' }
     if (!data.income_date) return { error: 'Data jest wymagana' }
 
     const admin = getSupabaseAdminClient()
@@ -58,7 +60,9 @@ export async function updateIncome(id: string, data: {
     const { profile } = await getActor()
     if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
     if (!data.description.trim()) return { error: 'Opis jest wymagany' }
+    if (data.description.trim().length > 500) return { error: 'Opis może mieć maksymalnie 500 znaków' }
     if (!data.amount || data.amount <= 0) return { error: 'Kwota musi być większa niż 0' }
+    if (data.amount > 10_000_000) return { error: 'Kwota przekracza dozwolony limit (10 000 000 zł)' }
     const admin = getSupabaseAdminClient()
 
     if (profile.role === 'admin') {

@@ -20,6 +20,7 @@ export async function sendMessageToResidents(data: {
     if (!subject) return { error: 'Temat jest wymagany' }
     if (!body) return { error: 'Treść wiadomości jest wymagana' }
     if (subject.length > 200) return { error: 'Temat jest za długi (max 200 znaków)' }
+    if (body.length > 10_000) return { error: 'Treść wiadomości jest za długa (max 10 000 znaków)' }
 
     const admin = getSupabaseAdminClient()
 

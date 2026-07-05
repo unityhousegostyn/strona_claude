@@ -36,6 +36,10 @@ export async function addDeposit(formData: {
     if (profile.role === 'admin' && profile.community_id !== formData.community_id)
       return { error: 'Brak uprawnień do tej wspólnoty' }
     if (!formData.amount || formData.amount <= 0) return { error: 'Kwota musi być większa od 0' }
+    if (formData.amount > 10_000_000) return { error: 'Kwota przekracza dozwolony limit (10 000 000 zł)' }
+    if (formData.interest_rate !== undefined && formData.interest_rate !== null && (formData.interest_rate < 0 || formData.interest_rate > 100)) return { error: 'Oprocentowanie musi być w zakresie 0–100%' }
+    if (formData.bank_name && formData.bank_name.trim().length > 100) return { error: 'Nazwa banku może mieć maksymalnie 100 znaków' }
+    if (formData.description && formData.description.trim().length > 500) return { error: 'Opis może mieć maksymalnie 500 znaków' }
     if (!formData.start_date) return { error: 'Podaj datę założenia' }
 
     const admin = getSupabaseAdminClient()

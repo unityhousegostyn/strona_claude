@@ -83,6 +83,10 @@ export async function addUser(data: {
     if (data.role === 'super_admin' && actorProfile.role !== 'super_admin') {
       return { error: 'Tylko Super Admin może tworzyć konta Super Admin' }
     }
+    // Walidacja hasła — bcrypt ma limit 72 bajtów; bardzo długie hasła mogą powodować DoS
+    if (!data.password || data.password.length < 8 || data.password.length > 128) {
+      return { error: 'Hasło musi mieć 8–128 znaków' }
+    }
 
     const admin = getSupabaseAdminClient()
 

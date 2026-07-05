@@ -71,6 +71,7 @@ export async function createVote(data: {
     return { error: 'Brak uprawnień do tej wspólnoty' }
 
   if (!data.title.trim()) return { error: 'Tytuł jest wymagany' }
+  if (data.title.trim().length > 200) return { error: 'Tytuł może mieć maksymalnie 200 znaków' }
 
   if (data.link_url) {
     try { new URL(data.link_url) } catch {
@@ -451,6 +452,7 @@ export async function updateVote(voteId: string, data: {
   if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
 
   if (!data.title.trim()) return { error: 'Tytuł jest wymagany' }
+  if (data.title.trim().length > 200) return { error: 'Tytuł może mieć maksymalnie 200 znaków' }
 
   if (data.link_url) {
     try { new URL(data.link_url) } catch {

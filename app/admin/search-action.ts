@@ -12,6 +12,7 @@ export interface ApartmentResult {
 
 export async function searchApartments(query: string): Promise<ApartmentResult[]> {
   if (!query || query.trim().length < 2) return []
+  if (query.trim().length > 100) return []
 
   const supabase = await getSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()

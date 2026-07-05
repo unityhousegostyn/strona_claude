@@ -28,7 +28,10 @@ export async function addExpense(data: {
   if (profile.role === 'admin' && profile.community_id !== data.community_id)
     return { error: 'Brak uprawnień do tej wspólnoty' }
   if (!data.description.trim()) return { error: 'Opis jest wymagany' }
+  if (data.description.trim().length > 500) return { error: 'Opis może mieć maksymalnie 500 znaków' }
+  if (data.invoice_number && data.invoice_number.trim().length > 100) return { error: 'Nr faktury może mieć maksymalnie 100 znaków' }
   if (!data.amount || data.amount <= 0) return { error: 'Kwota musi być większa niż 0' }
+  if (data.amount > 10_000_000) return { error: 'Kwota przekracza dozwolony limit (10 000 000 zł)' }
   if (!data.expense_date) return { error: 'Data jest wymagana' }
 
   const admin = getSupabaseAdminClient()
@@ -60,6 +63,11 @@ export async function updateExpense(id: string, data: {
 }): Promise<{ error?: string }> {
   const { profile } = await getActor()
   if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
+  if (!data.description.trim()) return { error: 'Opis jest wymagany' }
+  if (data.description.trim().length > 500) return { error: 'Opis może mieć maksymalnie 500 znaków' }
+  if (data.invoice_number && data.invoice_number.trim().length > 100) return { error: 'Nr faktury może mieć maksymalnie 100 znaków' }
+  if (!data.amount || data.amount <= 0) return { error: 'Kwota musi być większa niż 0' }
+  if (data.amount > 10_000_000) return { error: 'Kwota przekracza dozwolony limit (10 000 000 zł)' }
 
   const admin = getSupabaseAdminClient()
 
@@ -277,6 +285,9 @@ export async function importExpensesCSV(
     if (profile.role === 'user' || profile.role === 'najemca') return { imported: 0, errors: ['Brak uprawnień'] }
     if (profile.role === 'admin' && profile.community_id !== community_id)
       return { imported: 0, errors: ['Brak uprawnień do tej wspólnoty'] }
+
+    // Limit rozmiaru CSV — ochrona przed memory DoS
+    if (!csvText || csvText.length > 500_000) return { imported: 0, errors: ['Plik CSV jest za duży (max 500 KB)'] }
 
     const rawLines = csvText.split('\n').map(l => l.replace(/\r$/, '')).filter(l => l.trim().length > 0)
     if (rawLines.length > 0 && isBankExport(rawLines[0])) {

@@ -30,6 +30,8 @@ export async function submitRequest(formData: {
     const { user, profile } = await getActor()
     if (!profile.community_id) return { error: 'Brak przypisanej wspólnoty' }
     if (!formData.title.trim()) return { error: 'Podaj tytuł wniosku' }
+    if (formData.title.trim().length > 200) return { error: 'Tytuł może mieć maksymalnie 200 znaków' }
+    if (formData.description && formData.description.trim().length > 2000) return { error: 'Opis może mieć maksymalnie 2000 znaków' }
 
     const admin = getSupabaseAdminClient()
     const { error } = await admin.from('community_requests').insert({
@@ -58,6 +60,7 @@ export async function updateRequestStatus(
   try {
     const { profile } = await getActor()
     if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
+    if (adminNote && adminNote.trim().length > 1000) return { error: 'Notatka może mieć maksymalnie 1000 znaków' }
 
     const admin = getSupabaseAdminClient()
 
