@@ -144,8 +144,9 @@ function useNavEntries(role: string): NavEntry[] {
     if (role === 'super_admin') {
       entries.push({ href: '/admin/communities', label: t('nav.communities'), icon: '🏢' })
     }
-    entries.push({ href: '/admin/users',    label: t('nav.users'),    icon: '👥' })
-    entries.push({ href: '/admin/messages', label: t('nav.messages'), icon: '✉️' })
+    entries.push({ href: '/admin/users',     label: t('nav.users'),    icon: '👥' })
+    entries.push({ href: '/admin/messages',  label: t('nav.messages'), icon: '✉️' })
+    entries.push({ href: '/admin/analytics', label: 'Analytics',       icon: '📈' })
     if (role === 'super_admin') {
       entries.push({ href: '/admin/audit', label: t('nav.audit'), icon: '🔍' })
     }

@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { getAuthProfileAction } from '@/lib/getAuthProfile'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import { ksefAuth, ksefQueryInvoices, guessCategory, type KsefEnvironment } from '@/lib/ksef'
+import { sendKsefSyncEmail } from '@/lib/email'
 
 // ── Auth helper ───────────────────────────────────────────────────────────────
 
@@ -788,6 +789,25 @@ export async function runKsefSync(communityId: string): Promise<{
 
     revalidatePath('/admin/ksef')
     return { error: msg }
+  }
+
+  // Email do super_adminów jeśli są nowe faktury
+  const totalImported = imported + autoImported
+  if (totalImported > 0) {
+    const admin2 = getSupabaseAdminClient()
+    const { data: adminProfiles } = await admin2.from('profiles').select('id').eq('role', 'super_admin')
+    const adminIds = new Set((adminProfiles ?? []).map((p: any) => p.id))
+    const { data: { users: allUsers } } = await admin2.auth.admin.listUsers({ perPage: 1000 })
+    const adminEmails = allUsers
+      .filter(u => adminIds.has(u.id) && u.email)
+      .map(u => u.email as string)
+    if (adminEmails.length > 0) {
+      const { data: community } = await admin2.from('communities').select('name').eq('id', communityId).single()
+      await sendKsefSyncEmail({
+        to: adminEmails,
+        results: [{ communityName: community?.name ?? communityId, imported: totalImported, fetched, dateFrom: windowStartISO, dateTo: dateToISO }],
+      }).catch(e => console.error('[ksef-sync manual] email error:', e?.message))
+    }
   }
 
   revalidatePath('/admin/ksef')
