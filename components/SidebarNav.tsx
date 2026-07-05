@@ -134,6 +134,7 @@ function useNavEntries(role: string): NavEntry[] {
         ...(role === 'super_admin' ? [
           { href: '/admin/finanse/zamkniecie-roku', label: 'Zamknięcie roku',   icon: '🔒' },
           { href: '/admin/ksef',                    label: 'KSeF',              icon: '🗂️' },
+          { href: '/admin/finanse/mt940',           label: 'Import MT940',      icon: '🏦' },
         ] : []),
       ],
     })

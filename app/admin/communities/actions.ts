@@ -29,7 +29,28 @@ export async function createCommunity(formData: { name: string; address: string 
   revalidatePath('/admin/communities')
 }
 
-export async function updateCommunity(id: string, formData: { name: string; address: string; water_meter_enabled?: boolean; bank_account?: string; legal_basis?: string; opening_balance_eksploatacyjny?: number; opening_balance_remont?: number; opening_balance_date?: string }) {
+/** Lookup NIP w Białej Liście MF (darmowe, bez klucza API) */
+export async function lookupNIP(nip: string): Promise<{ name?: string; address?: string; error?: string }> {
+  await requireSuperAdmin()
+  const cleaned = nip.replace(/[\s-]/g, '')
+  if (!/^\d{10}$/.test(cleaned)) return { error: 'NIP musi mieć 10 cyfr' }
+  const date = new Date().toISOString().slice(0, 10)
+  try {
+    const res = await fetch(
+      `https://wl-api.mf.gov.pl/api/search/nip/${cleaned}?date=${date}`,
+      { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) }
+    )
+    if (!res.ok) return { error: res.status === 404 ? 'Nie znaleziono podmiotu o tym NIP' : `Błąd API MF (${res.status})` }
+    const json = await res.json()
+    const subject = json?.result?.subject
+    if (!subject) return { error: 'Brak danych w odpowiedzi API' }
+    return { name: subject.name ?? undefined, address: (subject.workingAddress ?? subject.residenceAddress) ?? undefined }
+  } catch (e: any) {
+    return { error: `Błąd połączenia z API MF: ${e?.message ?? 'timeout'}` }
+  }
+}
+
+export async function updateCommunity(id: string, formData: { name: string; address: string; nip?: string; water_meter_enabled?: boolean; bank_account?: string; legal_basis?: string; opening_balance_eksploatacyjny?: number; opening_balance_remont?: number; opening_balance_date?: string }) {
   await requireSuperAdmin()
 
   const name = formData.name.trim()
@@ -43,6 +64,7 @@ export async function updateCommunity(id: string, formData: { name: string; addr
 
   const admin = getSupabaseAdminClient()
   const updateData: Record<string, unknown> = { name, address }
+  if (formData.nip !== undefined) updateData.nip = formData.nip.replace(/[\s-]/g, '').slice(0, 10) || null
   if (formData.water_meter_enabled !== undefined) updateData.water_meter_enabled = formData.water_meter_enabled
   if (formData.bank_account !== undefined) updateData.bank_account = formData.bank_account.trim() || null
   if (formData.legal_basis !== undefined) updateData.legal_basis = formData.legal_basis.trim() || null

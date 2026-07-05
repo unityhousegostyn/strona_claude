@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser'
-import { updateCommunity, deleteCommunity } from '../actions'
+import { updateCommunity, deleteCommunity, lookupNIP } from '../actions'
 
 export default function EditCommunityPage() {
   const router = useRouter()
@@ -12,6 +12,7 @@ export default function EditCommunityPage() {
 
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
+  const [nip, setNip] = useState('')
   const [waterMeterEnabled, setWaterMeterEnabled] = useState(false)
   const [bankAccount, setBankAccount] = useState('')
   const [legalBasis, setLegalBasis] = useState('')
@@ -20,6 +21,8 @@ export default function EditCommunityPage() {
   const [openingBalanceDate, setOpeningBalanceDate] = useState('')
   const [loading, setLoading] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [gusLoading, setGusLoading] = useState(false)
+  const [gusMsg, setGusMsg] = useState<{ text: string; ok: boolean } | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -32,6 +35,7 @@ export default function EditCommunityPage() {
       if (data) {
         setName(data.name)
         setAddress(data.address)
+        setNip(data.nip ?? '')
         setWaterMeterEnabled(data.water_meter_enabled ?? false)
         setBankAccount(data.bank_account ?? '')
         setLegalBasis(data.legal_basis ?? '')
@@ -50,10 +54,11 @@ export default function EditCommunityPage() {
     }
     setLoading(true)
     setError(null)
+    setGusMsg(null)
 
     try {
       await updateCommunity(id as string, {
-        name, address,
+        name, address, nip,
         water_meter_enabled: waterMeterEnabled,
         bank_account: bankAccount,
         legal_basis: legalBasis,
@@ -65,6 +70,20 @@ export default function EditCommunityPage() {
     } catch (e: any) {
       setError(e.message ?? 'Błąd podczas zapisywania.')
       setLoading(false)
+    }
+  }
+
+  const handleGUS = async () => {
+    setGusLoading(true)
+    setGusMsg(null)
+    const result = await lookupNIP(nip)
+    setGusLoading(false)
+    if (result.error) {
+      setGusMsg({ text: result.error, ok: false })
+    } else {
+      if (result.name) setName(result.name)
+      if (result.address) setAddress(result.address)
+      setGusMsg({ text: `Pobrano: ${result.name ?? ''}`, ok: true })
     }
   }
 
@@ -92,6 +111,37 @@ export default function EditCommunityPage() {
       )}
 
       <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-6 space-y-4">
+
+        {/* NIP + GUS */}
+        <div>
+          <label className="block text-sm font-medium text-[#99f6e4] mb-1">NIP wspólnoty</label>
+          <div className="flex gap-2">
+            <input
+              className="input flex-1"
+              placeholder="np. 7812345678"
+              value={nip}
+              onChange={(e) => { setNip(e.target.value); setGusMsg(null) }}
+              maxLength={13}
+            />
+            <button
+              type="button"
+              onClick={handleGUS}
+              disabled={gusLoading || nip.replace(/[\s-]/g, '').length !== 10}
+              className="px-4 py-2 text-xs font-semibold bg-teal-700 hover:bg-teal-600 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg transition flex items-center gap-1.5 whitespace-nowrap"
+            >
+              {gusLoading
+                ? <><span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Pobieranie…</>
+                : '🏛️ Pobierz z GUS'}
+            </button>
+          </div>
+          {gusMsg && (
+            <p className={`text-xs mt-1.5 ${gusMsg.ok ? 'text-teal-400' : 'text-red-400'}`}>
+              {gusMsg.ok ? '✓' : '✕'} {gusMsg.text}
+            </p>
+          )}
+          <p className="text-xs text-[#115e59] mt-1">Uzupełnij NIP i kliknij "Pobierz z GUS" — system automatycznie wypełni nazwę i adres z Białej Listy MF</p>
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-[#99f6e4] mb-1">Nazwa wspólnoty</label>
           <input
