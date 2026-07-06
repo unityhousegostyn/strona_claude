@@ -192,6 +192,8 @@ export async function saveKsefSettings(data: {
   if (auth.error) return { error: auth.error }
 
   if (data.nip && !/^\d{10}$/.test(data.nip)) return { error: 'NIP musi mieć dokładnie 10 cyfr' }
+  // Runtime guard — TypeScript nie chroni Server Actions przed nieprawidłowymi wartościami
+  if (!['prod', 'test'].includes(data.environment)) return { error: 'Nieprawidłowe środowisko KSeF' }
 
   const admin = getSupabaseAdminClient()
   const { data: existing } = await admin.from('ksef_settings').select('id').eq('community_id', data.community_id).maybeSingle()

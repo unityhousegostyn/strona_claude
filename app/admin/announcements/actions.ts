@@ -29,6 +29,10 @@ export async function createAnnouncement(formData: {
   if (!title || title.length < 3 || title.length > 150) return { error: 'Tytuł musi mieć 3–150 znaków' }
   if (!content || content.length < 10 || content.length > 5000) return { error: 'Treść musi mieć 10–5000 znaków' }
   if (!['all', 'one', 'selected'].includes(formData.target)) return { error: 'Nieprawidłowy cel ogłoszenia' }
+  // Limit community_ids — bez tego można podać tysiące ID → masowy INSERT + spam email
+  if (formData.target === 'selected' && formData.community_ids.length > 100) {
+    return { error: 'Za dużo wspólnot (max 100)' }
+  }
 
   // Admin może dodawać ogłoszenia tylko do swojej wspólnoty
   if (profile.role === 'admin') {
@@ -145,6 +149,9 @@ export async function updateAnnouncement(
     if (!title || title.length < 3 || title.length > 150) return { error: 'Tytuł musi mieć 3–150 znaków' }
     if (!content || content.length < 10 || content.length > 5000) return { error: 'Treść musi mieć 10–5000 znaków' }
     if (!['all', 'one', 'selected'].includes(formData.target)) return { error: 'Nieprawidłowy cel ogłoszenia' }
+    if (formData.target === 'selected' && formData.community_ids.length > 100) {
+      return { error: 'Za dużo wspólnot (max 100)' }
+    }
 
     if (profile.role === 'admin') {
       if (formData.target !== 'one' || formData.community_id !== profile.community_id) {

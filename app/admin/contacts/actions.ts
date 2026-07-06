@@ -23,8 +23,19 @@ export async function createContact(data: {
     const name = data.name?.trim()
     const role = data.role?.trim()
     if (!name || name.length < 2) return { error: 'Nazwa musi mieć min. 2 znaki' }
+    if (name.length > 100) return { error: 'Nazwa może mieć max 100 znaków' }
     if (!role || role.length < 2) return { error: 'Stanowisko musi mieć min. 2 znaki' }
+    if (role.length > 100) return { error: 'Stanowisko może mieć max 100 znaków' }
     if (!data.phone && !data.email) return { error: 'Podaj numer telefonu lub email' }
+    const phone = data.phone?.trim() || null
+    const email = data.email?.trim() || null
+    const description = data.description?.trim() || null
+    if (phone && phone.length > 30) return { error: 'Numer telefonu może mieć max 30 znaków' }
+    if (email && (email.length > 200 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) return { error: 'Nieprawidłowy adres email' }
+    if (description && description.length > 500) return { error: 'Opis może mieć max 500 znaków' }
+    if (!['other', 'management', 'maintenance', 'emergency', 'utility'].includes(data.category ?? '')) {
+      data.category = 'other'
+    }
 
     const admin = getSupabaseAdminClient()
     const communityId = profile.role === 'super_admin' ? data.communityId : profile.community_id
@@ -33,9 +44,9 @@ export async function createContact(data: {
       name,
       role,
       category: data.category || 'other',
-      phone: data.phone?.trim() || null,
-      email: data.email?.trim() || null,
-      description: data.description?.trim() || null,
+      phone,
+      email,
+      description,
       community_id: communityId,
     })
 
