@@ -281,7 +281,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
               step="0.01"
               value={initialBalance}
               onChange={e => setInitialBalance(parseFloat(e.target.value) || 0)}
-              className="w-28 bg-[#0c2220] border border-[#0f2d2a] rounded-lg px-3 py-1.5 text-sm text-[#f0fdfa] focus:outline-none focus:border-green-500"
+              className="w-28 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500"
             />
             <span className="text-sm text-[#115e59]">zł</span>
             <button
@@ -394,7 +394,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                                 value={editPaid}
                                 onChange={e => setEditPaid(e.target.value)}
                                 placeholder="0.00"
-                                className="w-28 bg-[#0c2220] border border-[#0f2d2a] rounded-lg px-3 py-1.5 text-sm text-[#f0fdfa] focus:outline-none focus:border-green-500"
+                                className="w-28 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500"
                               />
                             </div>
                             {isMeterBilling ? (
@@ -407,7 +407,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                                   value={editWaterM3}
                                   onChange={e => setEditWaterM3(e.target.value)}
                                   placeholder="0.000"
-                                  className="w-28 bg-[#0c2220] border border-[#0f2d2a] rounded-lg px-3 py-1.5 text-sm text-[#f0fdfa] focus:outline-none focus:border-green-500"
+                                  className="w-28 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500"
                                 />
                                 {meterLoading && (
                                   <p className="text-xs text-[#0f766e] mt-1">⏳ pobieranie z licznika…</p>
@@ -475,7 +475,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                                   value={editCorrection}
                                   onChange={e => setEditCorrection(e.target.value)}
                                   placeholder="0.00"
-                                  className="w-28 bg-[#0c2220] border border-[#0f2d2a] rounded-lg px-3 py-1.5 text-sm text-[#f0fdfa] focus:outline-none focus:border-green-500"
+                                  className="w-28 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500"
                                 />
                               </div>
                             )}
@@ -491,7 +491,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                                 value={editPersons}
                                 onChange={e => setEditPersons(e.target.value)}
                                 placeholder={String(apartment.persons_count)}
-                                className="w-24 bg-[#0c2220] border border-[#0f2d2a] rounded-lg px-3 py-1.5 text-sm text-[#f0fdfa] focus:outline-none focus:border-amber-500"
+                                className="w-24 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-amber-400 focus:border-amber-400"
                               />
                             </div>
                             <div className="flex-1 min-w-40">
@@ -501,7 +501,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                                 value={editNotes}
                                 onChange={e => setEditNotes(e.target.value)}
                                 placeholder="opcjonalnie..."
-                                className="w-full bg-[#0c2220] border border-[#0f2d2a] rounded-lg px-3 py-1.5 text-sm text-[#f0fdfa] focus:outline-none focus:border-green-500"
+                                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500"
                               />
                             </div>
                             <button
@@ -639,7 +639,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                           value={qStart}
                           onChange={e => setQStart(e.target.value)}
                           placeholder="0.000"
-                          className="w-28 bg-[#0c2220] border border-[#0f2d2a] rounded-lg px-3 py-1.5 text-sm text-[#f0fdfa] focus:outline-none focus:border-green-500"
+                          className="w-28 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500"
                         />
                         {!qMeterLoading && qMeterHint?.start != null && (
                           <p className="text-xs text-teal-400 mt-1">
@@ -661,7 +661,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                           value={qEnd}
                           onChange={e => setQEnd(e.target.value)}
                           placeholder="0.000"
-                          className="w-28 bg-[#0c2220] border border-[#0f2d2a] rounded-lg px-3 py-1.5 text-sm text-[#f0fdfa] focus:outline-none focus:border-green-500"
+                          className="w-28 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500"
                         />
                         {!qMeterLoading && qMeterHint?.end != null && (
                           <p className="text-xs text-teal-400 mt-1">
@@ -682,7 +682,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                           value={qNotes}
                           onChange={e => setQNotes(e.target.value)}
                           placeholder="opcjonalnie..."
-                          className="w-full bg-[#0c2220] border border-[#0f2d2a] rounded-lg px-3 py-1.5 text-sm text-[#f0fdfa] focus:outline-none focus:border-green-500"
+                          className="w-full bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500"
                         />
                       </div>
                       <button
