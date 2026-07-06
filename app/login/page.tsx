@@ -48,7 +48,7 @@ function LoginForm() {
       if (aalData?.nextLevel === 'aal2' && aalData?.currentLevel !== 'aal2') {
         window.location.href = '/mfa-verify'
       } else {
-        recordLogin().catch(() => {})
+        await recordLogin().catch(() => {})
         window.location.href = '/admin/dashboard'
       }
     } catch (e: any) {

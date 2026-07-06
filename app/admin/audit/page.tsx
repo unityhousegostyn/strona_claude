@@ -74,6 +74,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
                     {log.meta?.title ? ` — "${log.meta.title}"` : ''}
                     {log.meta?.name ? ` — "${log.meta.name}"` : ''}
                     {log.meta?.to ? ` → ${log.meta.to === 'open' ? 'Otwarte' : 'Zamknięte'}` : ''}
+                    {log.action === 'login' && log.meta?.ip ? ` · IP: ${log.meta.ip}` : ''}
                   </p>
                 </div>
                 <span className="text-xs text-[#115e59] flex-shrink-0">

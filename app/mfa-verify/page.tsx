@@ -60,7 +60,7 @@ export default function MFAVerifyPage() {
         return
       }
 
-      recordLogin().catch(() => {})
+      await recordLogin().catch(() => {})
       window.location.href = '/admin/dashboard'
     } catch (e: any) {
       setError(e?.message === 'timeout' ? 'Serwer nie odpowiada. Spróbuj ponownie.' : 'Wystąpił błąd. Spróbuj ponownie.')
