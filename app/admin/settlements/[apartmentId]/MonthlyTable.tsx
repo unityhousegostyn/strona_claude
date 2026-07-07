@@ -208,14 +208,14 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
     return getRatesForMonth(rates, year, endM)
   }
 
-  // Bazowy m³ za okres — suma kolumny "woda (z zaliczki)" dla miesięcy okresu / cena za m³.
-  // Bierzemy dokładnie miesiące okresu (np. 1–6 dla okresu I półrocznego),
-  // nie stosujemy żadnego przesunięcia — wpłaty są księgowane w miesiącu
-  // w którym zostały przyjęte.
+  // Bazowy m³ za okres — suma kolumny "woda (z zaliczki)" dla miesięcy PŁATNOŚCI / cena za m³.
+  // Zaliczka na wodę za miesiąc M wpływa w miesiącu M+1 (płatna za poprzedni miesiąc),
+  // więc dla okresu I (sty–cze) sumujemy wpłaty z miesięcy lut–lip (offset +1).
+  // Dla kwartału IV miesiąc 13 (styczeń następnego roku) jest filtrowany — liczy się 0.
   function quarterPaidWaterM3(quarter: number): number {
     const pr = ratesForPeriod(quarter)
     if (!pr) return 0
-    const startM = (quarter - 1) * reconMonths + 1
+    const startM = (quarter - 1) * reconMonths + 2
     const monthsInQ = Array.from({ length: reconMonths }, (_, i) => startM + i)
     const sumWater = monthsInQ.reduce((s, m) => {
       const row = rows.find(r => r.month === m)
@@ -566,7 +566,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
             <h3 className="text-sm font-semibold text-[#ccfbf1]">💧 Rozliczenie {periodName} wody</h3>
             <p className="text-xs text-[#115e59] mt-0.5">
               {isZaliczkaBilling
-                ? <>Porównanie z sumą kolumny „woda" za miesiące okresu × {pln(latestRates?.water_price_m3 ?? 0)}/m³</>
+                : <>Porównanie z sumą zaliczek wpłaconych za miesiące okresu (offset +1) × {pln(latestRates?.water_price_m3 ?? 0)}/m³</>
                 : <>Ryczałt {latestRates?.water_ryczalt_m3 ?? '?'} m³/mies × {pln(latestRates?.water_price_m3 ?? 0)}/m³ × {reconMonths} mies.</>
               }
             </p>

@@ -100,8 +100,8 @@ export default async function NotaWodyPage({
     const endM = quarter * reconMonths
     const rateForPeriod = getRatesForMonth(rates as SettlementRate[], year, endM) ?? rates[0]
     const priceForPeriod = (rateForPeriod as SettlementRate | null)?.water_price_m3 ?? waterPrice
-    // Sumujemy miesiące okresu bezpośrednio (sty–cze dla okresu I)
-    const offsetStartM = (quarter - 1) * reconMonths + 1
+    // Zaliczka za miesiąc M wpływa w M+1 → dla okresu sty–cze liczymy lut–lip (offset +1)
+    const offsetStartM = (quarter - 1) * reconMonths + 2
     const offsetMonths = Array.from({ length: reconMonths }, (_, i) => offsetStartM + i)
     const sumWater = offsetMonths.reduce((s, m) => {
       const row = rows.find(r => r.month === m)
