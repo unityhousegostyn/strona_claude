@@ -189,6 +189,10 @@ export async function sendBulkInvitations(data: {
     if (data.community_id !== actorProfile.community_id) throw new Error('Brak uprawnień do tej wspólnoty')
   }
 
+  // Limit anty-spam — bez tego można zakolejkować wysyłkę tysięcy emaili
+  if (!data.contacts.length) throw new Error('Brak kontaktów')
+  if (data.contacts.length > 500) throw new Error('Za dużo kontaktów (max 500)')
+
   const admin = getSupabaseAdminClient()
 
   const { data: community } = await admin.from('communities').select('name').eq('id', data.community_id).single()

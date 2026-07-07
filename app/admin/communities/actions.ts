@@ -59,6 +59,9 @@ export async function updateCommunity(id: string, formData: { name: string; addr
   if (!name || name.length < 3 || name.length > 100) throw new Error('Nazwa musi mieć 3–100 znaków')
   if (!address || address.length < 5 || address.length > 200) throw new Error('Adres musi mieć 5–200 znaków')
   if (!id) throw new Error('Brak ID wspólnoty')
+  if (formData.bank_account && formData.bank_account.trim().length > 50) throw new Error('Numer konta może mieć maksymalnie 50 znaków')
+  if (formData.legal_basis && formData.legal_basis.trim().length > 500) throw new Error('Podstawa prawna może mieć maksymalnie 500 znaków')
+  if (formData.opening_balance_date && formData.opening_balance_date.trim() && !/^\d{4}-\d{2}-\d{2}$/.test(formData.opening_balance_date.trim())) throw new Error('Nieprawidłowy format daty salda (oczekiwano YYYY-MM-DD)')
   if (formData.opening_balance_eksploatacyjny !== undefined && isNaN(formData.opening_balance_eksploatacyjny)) throw new Error('Saldo początkowe funduszu eksploatacyjnego musi być liczbą')
   if (formData.opening_balance_remont !== undefined && isNaN(formData.opening_balance_remont)) throw new Error('Saldo początkowe funduszu remontowego musi być liczbą')
 

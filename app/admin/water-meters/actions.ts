@@ -384,6 +384,12 @@ export async function submitWaterReading(data: {
     if (auth.error !== null) return { error: auth.error }
     if (auth.profile.role !== 'user') return { error: 'Tylko mieszkańcy mogą zgłaszać odczyty' }
 
+    // Walidacja wartości odczytu i daty — TypeScript nie chroni przed arbitralnymi wartościami z sieci
+    if (data.reading_value === undefined || data.reading_value <= 0 || data.reading_value > 999999)
+      return { error: 'Wartość odczytu musi być w zakresie 0.001–999999 m³' }
+    if (!data.reading_date || !/^\d{4}-\d{2}-\d{2}$/.test(data.reading_date))
+      return { error: 'Nieprawidłowy format daty odczytu (oczekiwano YYYY-MM-DD)' }
+
     const admin = getSupabaseAdminClient()
 
     // Sprawdź czy lokal należy do tego usera.

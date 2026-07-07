@@ -21,6 +21,12 @@ export async function POST(req: NextRequest) {
     if (!title || !body) {
       return NextResponse.json({ error: 'title and body required' }, { status: 400 })
     }
+    if (typeof title !== 'string' || title.trim().length > 200)
+      return NextResponse.json({ error: 'title max 200 znaków' }, { status: 400 })
+    if (typeof body !== 'string' || body.trim().length > 1000)
+      return NextResponse.json({ error: 'body max 1000 znaków' }, { status: 400 })
+    if (url !== undefined && url !== null && (typeof url !== 'string' || url.length > 500))
+      return NextResponse.json({ error: 'url max 500 znaków' }, { status: 400 })
 
     // Admin (zarządca) może wysłać push WYŁĄCZNIE do swojej wspólnoty — bez tego
     // mógłby podać communityId innej wspólnoty (albo nic nie podać, co wysyłało

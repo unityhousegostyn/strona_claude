@@ -35,6 +35,8 @@ export async function addDeposit(formData: {
     if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
     if (profile.role === 'admin' && profile.community_id !== formData.community_id)
       return { error: 'Brak uprawnień do tej wspólnoty' }
+    // Typ lokaty — walidacja runtime, TypeScript nie chroni wartości z sieci
+    if (!['lokata', 'konto_oszczednosciowe'].includes(formData.type)) return { error: 'Nieprawidłowy typ (lokata lub konto_oszczednosciowe)' }
     if (!formData.amount || formData.amount <= 0) return { error: 'Kwota musi być większa od 0' }
     if (formData.amount > 10_000_000) return { error: 'Kwota przekracza dozwolony limit (10 000 000 zł)' }
     if (formData.interest_rate !== undefined && formData.interest_rate !== null && (formData.interest_rate < 0 || formData.interest_rate > 100)) return { error: 'Oprocentowanie musi być w zakresie 0–100%' }

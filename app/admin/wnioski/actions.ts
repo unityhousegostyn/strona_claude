@@ -32,6 +32,9 @@ export async function submitRequest(formData: {
     if (!formData.title.trim()) return { error: 'Podaj tytuł wniosku' }
     if (formData.title.trim().length > 200) return { error: 'Tytuł może mieć maksymalnie 200 znaków' }
     if (formData.description && formData.description.trim().length > 2000) return { error: 'Opis może mieć maksymalnie 2000 znaków' }
+    // Typ wniosku — walidacja runtime (TypeScript nie chroni przed arbitralnymi wartościami z sieci)
+    const VALID_TYPES: RequestType[] = ['zaswiadczenie_zamieszkania', 'zaswiadczenie_niezalegania', 'zmiana_danych', 'naprawa', 'dokumenty', 'inne']
+    if (!VALID_TYPES.includes(formData.type)) return { error: 'Nieprawidłowy typ wniosku' }
 
     const admin = getSupabaseAdminClient()
     const { error } = await admin.from('community_requests').insert({
@@ -61,6 +64,9 @@ export async function updateRequestStatus(
     const { profile } = await getActor()
     if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
     if (adminNote && adminNote.trim().length > 1000) return { error: 'Notatka może mieć maksymalnie 1000 znaków' }
+    // Status — walidacja runtime, TypeScript nie chroni serwera przed arbitralnymi wartościami
+    const VALID_STATUSES: RequestStatus[] = ['new', 'in_progress', 'done', 'rejected']
+    if (!VALID_STATUSES.includes(status)) return { error: 'Nieprawidłowy status' }
 
     const admin = getSupabaseAdminClient()
 

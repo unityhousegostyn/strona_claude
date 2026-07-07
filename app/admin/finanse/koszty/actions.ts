@@ -357,6 +357,7 @@ export async function bulkUpdateCategory(
     const { profile } = await getActor()
     if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
     if (!ids.length) return { error: 'Brak zaznaczonych wpisów' }
+    if (ids.length > 200) return { error: 'Zbyt wiele wpisów (max 200)' }
     const admin = getSupabaseAdminClient()
 
     if (profile.role === 'admin') {
@@ -444,6 +445,7 @@ export async function bulkDeleteExpenses(ids: string[]): Promise<{ error?: strin
     const { profile } = await getActor()
     if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
     if (!ids.length) return { error: 'Brak zaznaczonych wpisów' }
+    if (ids.length > 200) return { error: 'Zbyt wiele wpisów (max 200)' }
     const admin = getSupabaseAdminClient()
 
     if (profile.role === 'admin') {

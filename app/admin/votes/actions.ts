@@ -72,6 +72,8 @@ export async function createVote(data: {
 
   if (!data.title.trim()) return { error: 'Tytuł jest wymagany' }
   if (data.title.trim().length > 200) return { error: 'Tytuł może mieć maksymalnie 200 znaków' }
+  if (data.description && data.description.trim().length > 5000) return { error: 'Opis może mieć maksymalnie 5000 znaków' }
+  if (!['by_share', 'one_per_owner'].includes(data.voting_method)) return { error: 'Nieprawidłowa metoda głosowania' }
 
   if (data.link_url) {
     try { new URL(data.link_url) } catch {
@@ -168,6 +170,9 @@ export async function castVote(data: {
   // Prawo głosu na zebraniu wspólnoty mają WŁAŚCICIELE lokali (art. 23 UoWL),
   // nie najemcy/lokatorzy — najemca nie może oddać wiążącego głosu nad uchwałą.
   if (profile.role === 'najemca') return { error: 'Najemcy nie mają prawa głosu w głosowaniach wspólnoty' }
+
+  // Walidacja choice — TypeScript nie chroni wartości przysłanych przez sieć
+  if (!['yes', 'no', 'abstain'].includes(data.choice)) return { error: 'Nieprawidłowa opcja głosowania' }
 
   // Rate limiting — 5 błędnych prób PIN w 15 minut
   if (!checkPinRateLimit(user.id)) {
@@ -453,6 +458,7 @@ export async function updateVote(voteId: string, data: {
 
   if (!data.title.trim()) return { error: 'Tytuł jest wymagany' }
   if (data.title.trim().length > 200) return { error: 'Tytuł może mieć maksymalnie 200 znaków' }
+  if (data.description && data.description.trim().length > 5000) return { error: 'Opis może mieć maksymalnie 5000 znaków' }
 
   if (data.link_url) {
     try { new URL(data.link_url) } catch {
