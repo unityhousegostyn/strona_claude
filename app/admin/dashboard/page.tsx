@@ -636,10 +636,13 @@ export default async function DashboardPage() {
       {/* Karta rozliczeniowa */}
       {myApartment && (() => {
         const currentMonth = new Date().getMonth() + 1
-        const currentRow = settlementRows.find(r => r.month === currentMonth)
         const finalBalance = settlementRows[11]?.balance_end ?? 0
         const totalPaid = settlementRows.reduce((s, r) => s + r.paid, 0)
         const totalDue = settlementRows.reduce((s, r) => s + r.total_due, 0)
+        // Bilans YTD: co zapłacono minus co naliczono do bieżącego miesiąca włącznie
+        const ytdDue  = settlementRows.filter(r => r.month <= currentMonth).reduce((s, r) => s + r.total_due, 0)
+        const ytdPaid = settlementRows.filter(r => r.month <= currentMonth).reduce((s, r) => s + r.paid, 0)
+        const ytdBalance = ytdPaid - ytdDue // >0 nadpłata, <0 zaległość
 
         return (
           <div className="bg-[#081918] border border-[#0f2d2a] rounded-2xl p-5">
@@ -668,14 +671,14 @@ export default async function DashboardPage() {
                 </p>
               </div>
 
-              {/* Bieżący miesiąc */}
-              <div className="bg-[#051210] border border-[#0f2d2a] rounded-xl p-3">
-                <p className="text-xs text-[#115e59] mb-1">Naliczono ten mies.</p>
-                <p className="text-lg font-bold text-[#f0fdfa]">
-                  {currentRow?.hasRates ? pln(currentRow.total_due) : '—'}
+              {/* Bilans YTD (wpłacono − naliczono do dziś) */}
+              <div className={`rounded-xl p-3 ${ytdBalance >= 0 ? 'bg-teal-950/20 border border-teal-900/50' : 'bg-red-950/20 border border-red-900/50'}`}>
+                <p className="text-xs text-[#115e59] mb-1">Bilans do dziś</p>
+                <p className={`text-lg font-bold ${ytdBalance >= 0 ? 'text-teal-400' : 'text-red-400'}`}>
+                  {ytdBalance >= 0 ? '+' : ''}{pln(ytdBalance)}
                 </p>
-                <p className="text-xs text-[#115e59] mt-0.5">
-                  {currentRow?.hasRates ? 'do zapłaty' : 'brak stawek'}
+                <p className={`text-xs mt-0.5 ${ytdBalance >= 0 ? 'text-teal-600' : 'text-red-600'}`}>
+                  {ytdBalance >= 0 ? 'do przodu' : 'zaległość'}
                 </p>
               </div>
 
