@@ -77,8 +77,9 @@ export default async function NotaWodyPage({
   const numPeriods = Math.floor(12 / reconMonths)
   if (quarter > numPeriods) notFound()
 
-  const startMonth = (quarter - 1) * reconMonths + 1
-  const rate = getRatesForMonth(rates, year, startMonth) ?? rates[0] ?? null
+  // Stawka z ostatniego miesiąca okresu — spójnie z syncWaterToSettlements
+  const endM = quarter * reconMonths
+  const rate = getRatesForMonth(rates, year, endM) ?? sortedRates[0] ?? null
   const waterPrice = rate?.water_price_m3 ?? 0
 
   const periodTag = getPeriodTag(quarter, reconMonths)
@@ -97,9 +98,6 @@ export default async function NotaWodyPage({
     const entries = (entriesRes.data ?? []) as unknown as SettlementEntry[]
     const apt = apartment as unknown as SettlementApartment
     const rows = buildYearlyTable(apt, rates as SettlementRate[], entries, year)
-    const endM = quarter * reconMonths
-    const rateForPeriod = getRatesForMonth(rates as SettlementRate[], year, endM) ?? rates[0]
-    const priceForPeriod = (rateForPeriod as SettlementRate | null)?.water_price_m3 ?? waterPrice
     // Zaliczka za miesiąc M wpływa w M+1 → dla okresu sty–cze liczymy lut–lip (offset +1)
     const offsetStartM = (quarter - 1) * reconMonths + 2
     const offsetMonths = Array.from({ length: reconMonths }, (_, i) => offsetStartM + i)
