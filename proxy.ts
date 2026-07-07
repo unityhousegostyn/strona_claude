@@ -60,6 +60,13 @@ export async function proxy(request: NextRequest) {
     )
   }
 
+  // /api/ routes mają własny auth — pomijamy getUser/profiles (oszczędza ~400ms na request)
+  if (pathname.startsWith('/api/')) {
+    const apiRes = NextResponse.next({ request })
+    addSecurityHeaders(apiRes)
+    return apiRes
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
