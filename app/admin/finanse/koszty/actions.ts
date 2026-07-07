@@ -33,6 +33,7 @@ export async function addExpense(data: {
   if (!data.amount || data.amount <= 0) return { error: 'Kwota musi być większa niż 0' }
   if (data.amount > 10_000_000) return { error: 'Kwota przekracza dozwolony limit (10 000 000 zł)' }
   if (!data.expense_date) return { error: 'Data jest wymagana' }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data.expense_date)) return { error: 'Nieprawidłowy format daty (oczekiwano YYYY-MM-DD)' }
 
   const admin = getSupabaseAdminClient()
   const { data: row, error } = await admin.from('community_expenses').insert({
@@ -68,6 +69,8 @@ export async function updateExpense(id: string, data: {
   if (data.invoice_number && data.invoice_number.trim().length > 100) return { error: 'Nr faktury może mieć maksymalnie 100 znaków' }
   if (!data.amount || data.amount <= 0) return { error: 'Kwota musi być większa niż 0' }
   if (data.amount > 10_000_000) return { error: 'Kwota przekracza dozwolony limit (10 000 000 zł)' }
+  if (!data.expense_date) return { error: 'Data jest wymagana' }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data.expense_date)) return { error: 'Nieprawidłowy format daty (oczekiwano YYYY-MM-DD)' }
 
   const admin = getSupabaseAdminClient()
 

@@ -494,8 +494,9 @@ export async function rejectReading(id: string, reason: string): Promise<{ error
     if (auth.profile.role === 'admin' && reading.community_id !== auth.profile.community_id)
       return { error: 'Brak uprawnień do tej wspólnoty' }
 
+    const safeReason = (reason || '').trim().slice(0, 500)
     await admin.from('water_meter_readings')
-      .update({ status: 'rejected', rejection_reason: reason || null })
+      .update({ status: 'rejected', rejection_reason: safeReason || null })
       .eq('id', id)
 
     await logActivity({ userId: auth.user.id, action: 'reject_water_reading', targetType: 'water_meter', targetId: id })

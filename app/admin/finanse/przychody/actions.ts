@@ -29,6 +29,7 @@ export async function addIncome(data: {
     if (!data.amount || data.amount <= 0) return { error: 'Kwota musi być większa niż 0' }
     if (data.amount > 10_000_000) return { error: 'Kwota przekracza dozwolony limit (10 000 000 zł)' }
     if (!data.income_date) return { error: 'Data jest wymagana' }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(data.income_date)) return { error: 'Nieprawidłowy format daty (oczekiwano YYYY-MM-DD)' }
 
     const admin = getSupabaseAdminClient()
     const { data: row, error } = await admin.from('community_income').insert({
@@ -63,6 +64,8 @@ export async function updateIncome(id: string, data: {
     if (data.description.trim().length > 500) return { error: 'Opis może mieć maksymalnie 500 znaków' }
     if (!data.amount || data.amount <= 0) return { error: 'Kwota musi być większa niż 0' }
     if (data.amount > 10_000_000) return { error: 'Kwota przekracza dozwolony limit (10 000 000 zł)' }
+    if (!data.income_date) return { error: 'Data jest wymagana' }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(data.income_date)) return { error: 'Nieprawidłowy format daty (oczekiwano YYYY-MM-DD)' }
     const admin = getSupabaseAdminClient()
 
     if (profile.role === 'admin') {

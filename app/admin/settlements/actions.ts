@@ -138,6 +138,7 @@ export async function createRates(data: {
   if (guardErr) return { error: guardErr }
 
   if (!data.effective_from) return { error: 'Data obowiązywania jest wymagana' }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data.effective_from)) return { error: 'Nieprawidłowy format daty stawki (oczekiwano YYYY-MM-DD)' }
 
   const admin = getSupabaseAdminClient()
   const { error } = await admin.from('settlement_rates').insert(data)
@@ -169,6 +170,7 @@ export async function updateRates(id: string, data: {
   if (guardErr) return { error: guardErr }
 
   if (!data.effective_from) return { error: 'Data obowiązywania jest wymagana' }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data.effective_from)) return { error: 'Nieprawidłowy format daty stawki (oczekiwano YYYY-MM-DD)' }
 
   const { error } = await admin.from('settlement_rates').update(data).eq('id', id)
   if (error) return { error: error.message }
@@ -213,6 +215,7 @@ export async function upsertEntry(data: {
 
   if (data.paid < 0) return { error: 'Wplata nie moze byc ujemna' }
   if (data.month < 1 || data.month > 12) return { error: 'Nieprawidlowy miesiac' }
+  if (!Number.isInteger(data.year) || data.year < 2000 || data.year > 2100) return { error: 'Nieprawidłowy rok' }
 
   const admin = getSupabaseAdminClient()
 
@@ -307,6 +310,8 @@ export async function importEntriesCSV(
   if (auth.error !== null) return { imported: 0, skipped: 0, errors: [auth.error] }
   const guardErr = guardCommunity(auth, community_id)
   if (guardErr) return { imported: 0, skipped: 0, errors: [guardErr] }
+
+  if (!csvText || csvText.length > 500_000) return { imported: 0, skipped: 0, errors: ['Plik CSV jest za duży (max 500 KB)'] }
 
   const admin = getSupabaseAdminClient()
 

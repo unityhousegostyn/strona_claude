@@ -528,6 +528,10 @@ export async function importQueueItem(
   if (!item) return { error: 'Faktura nie istnieje w kolejce' }
   if (item.status === 'imported') return { error: 'Faktura została już zaimportowana' }
 
+  if (!expenseDate || !/^\d{4}-\d{2}-\d{2}$/.test(expenseDate)) return { error: 'Nieprawidłowy format daty faktury (oczekiwano YYYY-MM-DD)' }
+  if (!description || description.trim().length === 0) return { error: 'Opis faktury jest wymagany' }
+  if (description.trim().length > 500) return { error: 'Opis faktury może mieć maksymalnie 500 znaków' }
+
   const { data: expense, error: expErr } = await admin.from('community_expenses').insert({
     community_id: communityId,
     category,

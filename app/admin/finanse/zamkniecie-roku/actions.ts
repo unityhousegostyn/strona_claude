@@ -143,6 +143,8 @@ export async function closeYear(
   const auth = await requireSuperAdmin()
   if (auth.error) return { error: auth.error }
 
+  if (notes && notes.trim().length > 1000) return { error: 'Notatka może mieć maksymalnie 1000 znaków' }
+
   const admin = getSupabaseAdminClient()
 
   // Sprawdź czy już zamknięty

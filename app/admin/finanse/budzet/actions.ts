@@ -147,6 +147,18 @@ export async function saveBudgetItems(
   const auth = await requireAdminPlusForCommunity(communityId)
   if (auth.error) return { error: auth.error }
 
+  // Walidacja parametrów przed importem
+  if (!Number.isInteger(year) || year < 2020 || year > 2100) return { error: 'Nieprawidłowy rok budżetu' }
+  if (items.length > 50) return { error: 'Za dużo pozycji budżetu (max 50)' }
+  for (const item of items) {
+    if (!item.category || item.category.trim().length === 0) return { error: 'Kategoria nie może być pusta' }
+    if (item.category.trim().length > 100) return { error: `Kategoria zbyt długa (max 100 znaków): "${item.category.slice(0, 30)}"` }
+    if (typeof item.planned_amount !== 'number' || !isFinite(item.planned_amount))
+      return { error: `Nieprawidłowa kwota dla kategorii "${item.category}"` }
+    if (item.planned_amount < 0) return { error: `Kwota planu nie może być ujemna (${item.category})` }
+    if (item.planned_amount > 100_000_000) return { error: `Kwota przekracza limit 100 000 000 zł (${item.category})` }
+  }
+
   const admin = getSupabaseAdminClient()
   const rows = items.map(item => ({
     community_id: communityId,
