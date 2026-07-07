@@ -60,7 +60,9 @@ export default function MFAVerifyPage() {
         return
       }
 
-      await recordLogin().catch(() => {})
+      // Pobierz aktualną sesję po weryfikacji MFA (aal2) — access_token do audit logu
+      const { data: { session: mfaSession } } = await supabase.auth.getSession()
+      await recordLogin(mfaSession?.access_token).catch(() => {})
       window.location.href = '/admin/dashboard'
     } catch (e: any) {
       setError(e?.message === 'timeout' ? 'Serwer nie odpowiada. Spróbuj ponownie.' : 'Wystąpił błąd. Spróbuj ponownie.')

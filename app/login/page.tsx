@@ -38,7 +38,7 @@ function LoginForm() {
 
     try {
       const supabase = getSupabaseBrowserClient()
-      const { error } = await Promise.race([
+      const { data: authData, error } = await Promise.race([
         supabase.auth.signInWithPassword({ email: email.trim(), password }),
         timeout,
       ])
@@ -48,7 +48,7 @@ function LoginForm() {
       if (aalData?.nextLevel === 'aal2' && aalData?.currentLevel !== 'aal2') {
         window.location.href = '/mfa-verify'
       } else {
-        await recordLogin().catch(() => {})
+        await recordLogin(authData?.session?.access_token).catch(() => {})
         window.location.href = '/admin/dashboard'
       }
     } catch (e: any) {

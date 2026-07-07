@@ -9,14 +9,17 @@ export async function logActivity(params: {
 }) {
   try {
     const admin = getSupabaseAdminClient()
-    await admin.from('activity_logs').insert({
+    const { error } = await admin.from('activity_logs').insert({
       user_id: params.userId,
       action: params.action,
       target_type: params.targetType ?? null,
       target_id: params.targetId ?? null,
       meta: params.meta ?? null,
     })
-  } catch {
-    // Nie przerywaj głównej operacji jeśli log się nie zapisze
+    if (error) {
+      console.error('[audit] logActivity DB error:', error.message, { userId: params.userId, action: params.action })
+    }
+  } catch (e) {
+    console.error('[audit] logActivity exception:', e)
   }
 }
