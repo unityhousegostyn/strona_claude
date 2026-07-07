@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react'
 import { parseMT940, matchTransactions, type MatchResult, type Apartment } from '@/lib/parseMT940'
+import { parsePKOCSV } from '@/lib/parsePKOCSV'
 import { bulkImportMT940, type BulkImportItem } from './actions'
 
 const MONTHS_PL = ['', 'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',
@@ -44,17 +45,19 @@ export default function MT940Client({ communityId, communityName, apartments }: 
     setFileName(file.name)
     setParsing(true)
 
+    const isCSV = file.name.toLowerCase().endsWith('.csv')
     const reader = new FileReader()
     reader.onload = (e) => {
       const text = e.target?.result as string
-      const stmt = parseMT940(text)
+      const stmt = isCSV ? parsePKOCSV(text) : parseMT940(text)
       setAccountNo(stmt.accountNumber ?? '')
       if (stmt.rawErrors.length) setParseErrors(stmt.rawErrors)
       const results = matchTransactions(stmt.transactions, apartments)
       setMatches(results)
       setParsing(false)
     }
-    reader.readAsText(file, 'windows-1250')  // polskie banki często używają CP1250
+    // CSV z PKO BP jest UTF-8; MT940 często CP1250
+    reader.readAsText(file, isCSV ? 'utf-8' : 'windows-1250')
   }
 
   function onDrop(e: React.DragEvent) {
@@ -116,8 +119,8 @@ export default function MT940Client({ communityId, communityName, apartments }: 
           onClick={() => fileRef.current?.click()}
         >
           <div className="text-5xl mb-4">🏦</div>
-          <p className="text-[#f0fdfa] font-semibold mb-1">Przeciągnij plik MT940 lub kliknij</p>
-          <p className="text-xs text-[#115e59]">Formaty: .sta, .mt940, .txt — wyciąg bankowy SWIFT MT940</p>
+          <p className="text-[#f0fdfa] font-semibold mb-1">Przeciągnij plik wyciągu lub kliknij</p>
+          <p className="text-xs text-[#115e59]">MT940: .sta, .mt940, .txt &nbsp;|&nbsp; PKO BP CSV: .csv</p>
           <input ref={fileRef} type="file" accept=".sta,.mt940,.txt,.csv" className="hidden" onChange={onFileChange} />
         </div>
       )}
