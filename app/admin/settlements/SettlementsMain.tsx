@@ -3,7 +3,7 @@
 import { useState, useTransition, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createApartment, deleteApartment, createRates, deleteRates, updateRates, importEntriesCSV } from './actions'
+import { createApartment, updateApartment, deleteApartment, createRates, deleteRates, updateRates, importEntriesCSV } from './actions'
 import { pln, shareStr, buildYearlyTable } from '@/lib/settlementCalc'
 import type { SettlementApartment, SettlementRate, SettlementEntry } from '@/lib/settlementCalc'
 
@@ -43,6 +43,8 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
   const [error, setError] = useState<string | null>(null)
   const [editRateId, setEditRateId] = useState<string | null>(null)
   const [editRateForm, setEditRateForm] = useState(EMPTY_RATES)
+  const [editAptId, setEditAptId] = useState<string | null>(null)
+  const [editAptForm, setEditAptForm] = useState(EMPTY_APT)
 
   // Import CSV
   const [csvDragOver, setCsvDragOver] = useState(false)
@@ -125,6 +127,44 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
     if (!confirm('Zarchiwizować ten lokal?')) return
     startTransition(async () => {
       await deleteApartment(id)
+      router.refresh()
+    })
+  }
+
+  const handleEditAptOpen = (apt: SettlementApartment) => {
+    setEditAptId(apt.id)
+    setEditAptForm({
+      number: apt.number,
+      owner_name: apt.owner_name,
+      area_m2: String(apt.area_m2),
+      share_numerator: apt.share_numerator != null ? String(apt.share_numerator) : '',
+      share_denominator: apt.share_denominator != null ? String(apt.share_denominator) : '',
+      persons_count: String(apt.persons_count),
+      has_meter: apt.has_meter,
+      floor: apt.floor != null ? String(apt.floor) : '',
+      notes: (apt as any).notes ?? '',
+    })
+    setShowAptForm(false)
+    setError(null)
+  }
+
+  const handleUpdateApt = () => {
+    if (!editAptId) return
+    setError(null)
+    startTransition(async () => {
+      const result = await updateApartment(editAptId, {
+        number: editAptForm.number,
+        owner_name: editAptForm.owner_name,
+        area_m2: parseFloat(editAptForm.area_m2),
+        share_numerator: editAptForm.share_numerator ? parseInt(editAptForm.share_numerator) : null,
+        share_denominator: editAptForm.share_denominator ? parseInt(editAptForm.share_denominator) : null,
+        persons_count: parseInt(editAptForm.persons_count),
+        has_meter: editAptForm.has_meter,
+        floor: editAptForm.floor ? parseInt(editAptForm.floor) : null,
+      })
+      if (result?.error) { setError(result.error); return }
+      setEditAptId(null)
+      setEditAptForm(EMPTY_APT)
       router.refresh()
     })
   }
@@ -309,6 +349,64 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                 </button>
               </div>
 
+              {/* Formularz edycji lokalu */}
+              {editAptId && (
+                <div className="bg-[#081918] border border-teal-800/50 rounded-xl p-5 space-y-4">
+                  <h3 className="font-semibold text-[#ccfbf1]">Edytuj lokal</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-[#0f766e] mb-1">Nr lokalu *</label>
+                      <input className="input w-full" value={editAptForm.number}
+                        onChange={e => setEditAptForm(p => ({ ...p, number: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-[#0f766e] mb-1">Właściciel *</label>
+                      <input className="input w-full" value={editAptForm.owner_name}
+                        onChange={e => setEditAptForm(p => ({ ...p, owner_name: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-[#0f766e] mb-1">Powierzchnia m² *</label>
+                      <input className="input w-full" type="number" step="0.0001" value={editAptForm.area_m2}
+                        onChange={e => setEditAptForm(p => ({ ...p, area_m2: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-[#0f766e] mb-1">Liczba osób *</label>
+                      <input className="input w-full" type="number" min="1" value={editAptForm.persons_count}
+                        onChange={e => setEditAptForm(p => ({ ...p, persons_count: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-[#0f766e] mb-1">Udział KW (licznik)</label>
+                      <input className="input w-full" type="number" value={editAptForm.share_numerator}
+                        onChange={e => setEditAptForm(p => ({ ...p, share_numerator: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-[#0f766e] mb-1">Udział KW (mianownik)</label>
+                      <input className="input w-full" type="number" value={editAptForm.share_denominator}
+                        onChange={e => setEditAptForm(p => ({ ...p, share_denominator: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-[#0f766e] mb-1">Piętro</label>
+                      <input className="input w-full" type="number" value={editAptForm.floor}
+                        onChange={e => setEditAptForm(p => ({ ...p, floor: e.target.value }))} />
+                    </div>
+                    <div className="flex items-center gap-3 pt-5">
+                      <input type="checkbox" id="edit_has_meter" checked={editAptForm.has_meter}
+                        onChange={e => setEditAptForm(p => ({ ...p, has_meter: e.target.checked }))}
+                        className="w-4 h-4 accent-green-600" />
+                      <label htmlFor="edit_has_meter" className="text-sm text-[#99f6e4]">Ma wodomierz</label>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <button onClick={handleUpdateApt} disabled={isPending}
+                      className="bg-teal-600 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">
+                      {isPending ? 'Zapisywanie...' : 'Zapisz zmiany'}
+                    </button>
+                    <button onClick={() => { setEditAptId(null); setEditAptForm(EMPTY_APT) }}
+                      className="text-sm text-[#115e59] hover:text-[#99f6e4]">Anuluj</button>
+                  </div>
+                </div>
+              )}
+
               {/* Formularz dodania lokalu */}
               {showAptForm && (
                 <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-5 space-y-4">
@@ -410,11 +508,17 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                               )
                             })()}
                           </td>
-                          <td className="py-3 flex items-center gap-3">
+                          <td className="py-3 flex items-center gap-2 flex-shrink-0">
                             <Link href={`/admin/settlements/${apt.id}`}
-                              className="text-xs text-teal-400 hover:text-teal-300 transition font-medium">
+                              className="text-xs text-teal-400 hover:text-teal-300 transition font-medium whitespace-nowrap">
                               Rozliczenie →
                             </Link>
+                            <button
+                              onClick={() => editAptId === apt.id ? (setEditAptId(null), setEditAptForm(EMPTY_APT)) : handleEditAptOpen(apt)}
+                              disabled={isPending}
+                              title="Edytuj lokal"
+                              className={`text-xs px-1.5 py-0.5 rounded transition ${editAptId === apt.id ? 'text-teal-300 bg-teal-900/30' : 'text-[#0f766e] hover:text-[#99f6e4]'}`}
+                            >✏️</button>
                             <button onClick={() => handleDeleteApt(apt.id)} disabled={isPending}
                               className="text-xs text-[#115e59] hover:text-red-400 transition">✕</button>
                           </td>
