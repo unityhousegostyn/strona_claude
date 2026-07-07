@@ -2,6 +2,7 @@
  * Parser plików MT940 (wyciągi bankowe SWIFT).
  * Obsługuje najpopularniejsze warianty PKO BP, Pekao, mBank, ING, Santander.
  */
+import { createHash } from 'crypto'
 
 export interface MT940Transaction {
   /** Data waluty RRMMDD */
@@ -18,6 +19,20 @@ export interface MT940Transaction {
   title?: string
   /** Nadawca lub odbiorca (wyodrębniony z opisu) */
   counterparty?: string
+  /** SHA-256 hash do deduplication — unikalny identyfikator transakcji */
+  txHash: string
+}
+
+/** Generuje SHA-256 hash z kluczowych pól transakcji */
+export function computeTxHash(
+  valueDate: string,
+  amount: number,
+  direction: string,
+  ref: string | undefined,
+  description: string,
+): string {
+  const raw = `${valueDate}|${amount.toFixed(2)}|${direction}|${ref ?? ''}|${description}`
+  return createHash('sha256').update(raw).digest('hex')
 }
 
 export interface MT940Statement {
@@ -136,6 +151,7 @@ export function parseMT940(content: string): MT940Statement {
 
       const descRaw    = block.line86 ?? ''
       const { title, counterparty } = extractDescription(descRaw)
+      const txHash     = computeTxHash(valueDate, amount, direction, ref, descRaw)
 
       result.transactions.push({
         valueDate,
@@ -145,6 +161,7 @@ export function parseMT940(content: string): MT940Statement {
         ref,
         title,
         counterparty,
+        txHash,
       })
     } catch (e: any) {
       result.rawErrors.push(`Błąd parsowania bloku: ${e?.message}`)

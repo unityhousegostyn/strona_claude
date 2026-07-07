@@ -92,6 +92,7 @@ export default function MT940Client({ communityId, communityName, apartments }: 
         year,
         month,
         amount: m.tx.amount,
+        txHash: m.tx.txHash,
       })
     })
 

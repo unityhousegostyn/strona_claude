@@ -38,6 +38,8 @@ export interface BulkImportItem {
   month: number
   /** Kwota do dodania do istniejącej wpłaty (nie zastępuje) */
   amount: number
+  /** SHA-256 hash transakcji bankowej — do deduplication */
+  txHash: string
 }
 
 export interface BulkImportResult {
@@ -70,6 +72,9 @@ export async function bulkImportMT940(
     }
     if (!Number.isInteger(item.month) || item.month < 1 || item.month > 12) {
       return { imported: 0, skipped: 0, errors: [`Nieprawidłowy miesiąc: ${item.month}`] }
+    }
+    if (!item.txHash || typeof item.txHash !== 'string' || !/^[0-9a-f]{64}$/.test(item.txHash)) {
+      return { imported: 0, skipped: 0, errors: ['Brak lub nieprawidłowy hash transakcji'] }
     }
   }
 
@@ -112,6 +117,18 @@ export async function bulkImportMT940(
         continue
       }
 
+      // Deduplication — sprawdź czy ta transakcja była już zaimportowana
+      const { data: dupCheck } = await admin
+        .from('mt940_imported_transactions')
+        .select('id')
+        .eq('tx_hash', item.txHash)
+        .eq('community_id', item.community_id)
+        .maybeSingle()
+      if (dupCheck) {
+        skipped++
+        continue
+      }
+
       // Pobierz istniejący wpis żeby dodać do wpłaty (nie zastąpić)
       const { data: existing } = await admin
         .from('settlement_entries')
@@ -140,6 +157,13 @@ export async function bulkImportMT940(
         errors.push(`Lokal ${item.apartment_id} ${item.year}/${item.month}: ${error.message}`)
         skipped++
       } else {
+        // Zarejestruj hash — chroni przed ponownym importem tego samego przelewu
+        await admin.from('mt940_imported_transactions').insert({
+          tx_hash:      item.txHash,
+          community_id: item.community_id,
+          imported_by:  auth.user!.id,
+          meta: { apartment_id: item.apartment_id, year: item.year, month: item.month, amount: item.amount },
+        })
         imported++
         await logActivity({
           userId: auth.user!.id,
