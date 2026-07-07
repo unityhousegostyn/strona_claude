@@ -208,21 +208,14 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
     return getRatesForMonth(rates, year, endM)
   }
 
-  // Bazowy m³ za kwartał — suma "wody" naliczonej w 3 miesiącach / cena za m³.
-  // Dla modelu 'zaliczka' row.water to już kwota z wpłaty mieszkańca, więc ta
-  // suma jest dokładnie m³-odpowiednikiem tego, co faktycznie wpłacił za wodę.
-  //
-  // Przesunięcie o +1 miesiąc: odczyt licznika za kwartał I (sty–mar) robiony
-  // jest 1 kwietnia i pokrywa zużycie ze stycznia–marca, ale wpłaty (zaliczki),
-  // które faktycznie sfinansowały tę wodę, są zaksięgowane pod miesiącami
-  // luty–kwiecień (wpłata "za styczeń" wpada na wpis z lutego, itd.). Dla
-  // kwartału IV miesiąc 13 (styczeń następnego roku) nie istnieje w danych tego
-  // roku — liczy się jako 0, czyli ta jedna wpłata zostanie doliczona przy
-  // następnym roczniku, gdy admin wpisze ją w styczniu.
+  // Bazowy m³ za okres — suma kolumny "woda (z zaliczki)" dla miesięcy okresu / cena za m³.
+  // Bierzemy dokładnie miesiące okresu (np. 1–6 dla okresu I półrocznego),
+  // nie stosujemy żadnego przesunięcia — wpłaty są księgowane w miesiącu
+  // w którym zostały przyjęte.
   function quarterPaidWaterM3(quarter: number): number {
     const pr = ratesForPeriod(quarter)
     if (!pr) return 0
-    const startM = (quarter - 1) * reconMonths + 2
+    const startM = (quarter - 1) * reconMonths + 1
     const monthsInQ = Array.from({ length: reconMonths }, (_, i) => startM + i)
     const sumWater = monthsInQ.reduce((s, m) => {
       const row = rows.find(r => r.month === m)
@@ -573,7 +566,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
             <h3 className="text-sm font-semibold text-[#ccfbf1]">💧 Rozliczenie {periodName} wody</h3>
             <p className="text-xs text-[#115e59] mt-0.5">
               {isZaliczkaBilling
-                ? <>Porównanie z sumą zaliczek na wodę wpłaconych za miesiąc po odczycie × {pln(latestRates?.water_price_m3 ?? 0)}/m³</>
+                ? <>Porównanie z sumą kolumny „woda" za miesiące okresu × {pln(latestRates?.water_price_m3 ?? 0)}/m³</>
                 : <>Ryczałt {latestRates?.water_ryczalt_m3 ?? '?'} m³/mies × {pln(latestRates?.water_price_m3 ?? 0)}/m³ × {reconMonths} mies.</>
               }
             </p>

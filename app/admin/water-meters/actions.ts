@@ -337,7 +337,7 @@ export async function syncWaterToSettlements(
         // wpłata za miesiąc X wpada w rozliczeniu w miesiącu X+1)
         let ryczalt_m3: number
         if (billingType === 'zaliczka' && aptRows) {
-          const paidMonthsStart = (p - 1) * reconMonths + 2
+          const paidMonthsStart = (p - 1) * reconMonths + 1  // miesiące okresu bez offsetu
           const sumWaterZl = Array.from({ length: reconMonths }, (_, i) => paidMonthsStart + i)
             .filter(m => m <= 12)
             .reduce((s, m) => s + (aptRows!.find(r => r.month === m)?.water ?? 0), 0)
