@@ -566,7 +566,7 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
             <h3 className="text-sm font-semibold text-[#ccfbf1]">💧 Rozliczenie {periodName} wody</h3>
             <p className="text-xs text-[#115e59] mt-0.5">
               {isZaliczkaBilling
-                : <>Porównanie z sumą zaliczek wpłaconych za miesiące okresu (offset +1) × {pln(latestRates?.water_price_m3 ?? 0)}/m³</>
+                ? <>Porównanie z sumą zaliczek za miesiące okresu (zaliczka płacona za poprzedni mies.) × {pln(latestRates?.water_price_m3 ?? 0)}/m³</>
                 : <>Ryczałt {latestRates?.water_ryczalt_m3 ?? '?'} m³/mies × {pln(latestRates?.water_price_m3 ?? 0)}/m³ × {reconMonths} mies.</>
               }
             </p>
