@@ -3,7 +3,6 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser'
-import { recordLogin } from './actions'
 import Link from 'next/link'
 
 function LoginForm() {
@@ -48,7 +47,13 @@ function LoginForm() {
       if (aalData?.nextLevel === 'aal2' && aalData?.currentLevel !== 'aal2') {
         window.location.href = '/mfa-verify'
       } else {
-        await recordLogin(authData?.session?.access_token).catch(() => {})
+        // API route — nie podlega middleware redirect dla /login
+        await fetch('/api/log-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: authData?.session?.access_token }),
+          keepalive: true,
+        }).catch(() => {})
         window.location.href = '/admin/dashboard'
       }
     } catch (e: any) {

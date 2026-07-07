@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser'
-import { recordLogin } from '../login/actions'
 
 export default function MFAVerifyPage() {
   const supabase = getSupabaseBrowserClient()
@@ -62,7 +61,12 @@ export default function MFAVerifyPage() {
 
       // Pobierz aktualną sesję po weryfikacji MFA (aal2) — access_token do audit logu
       const { data: { session: mfaSession } } = await supabase.auth.getSession()
-      await recordLogin(mfaSession?.access_token).catch(() => {})
+      await fetch('/api/log-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: mfaSession?.access_token }),
+        keepalive: true,
+      }).catch(() => {})
       window.location.href = '/admin/dashboard'
     } catch (e: any) {
       setError(e?.message === 'timeout' ? 'Serwer nie odpowiada. Spróbuj ponownie.' : 'Wystąpił błąd. Spróbuj ponownie.')
