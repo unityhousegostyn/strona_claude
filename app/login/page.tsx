@@ -48,12 +48,16 @@ function LoginForm() {
         window.location.href = '/mfa-verify'
       } else {
         // API route — nie podlega middleware redirect dla /login
-        await fetch('/api/log-login', {
+        const logRes = await fetch('/api/log-login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token: authData?.session?.access_token }),
           keepalive: true,
-        }).catch(() => {})
+        }).catch((err) => { console.warn('[log-login] fetch error:', err); return null })
+        if (logRes && !logRes.ok) {
+          const body = await logRes.json().catch(() => null)
+          console.warn('[log-login] failed:', logRes.status, body)
+        }
         window.location.href = '/admin/dashboard'
       }
     } catch (e: any) {

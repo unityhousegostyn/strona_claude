@@ -24,7 +24,8 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error } = await admin.auth.getUser(token)
 
     if (error || !user) {
-      return NextResponse.json({ ok: false }, { status: 401 })
+      console.error('[log-login] getUser failed:', error?.message ?? 'no user')
+      return NextResponse.json({ ok: false, reason: 'auth' }, { status: 401 })
     }
 
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
@@ -38,6 +39,7 @@ export async function POST(request: NextRequest) {
       meta: { ip, ua: ua.slice(0, 200) },
     })
 
+    console.log('[log-login] ok — user:', user.id)
     return NextResponse.json({ ok: true })
   } catch (e) {
     console.error('[log-login] error:', e)
