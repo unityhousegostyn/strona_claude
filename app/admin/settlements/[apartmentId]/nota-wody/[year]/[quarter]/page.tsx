@@ -1,7 +1,7 @@
 import { redirect, notFound } from 'next/navigation'
 import { getAuthProfile, canAccessApartment } from '@/lib/getAuthProfile'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
-import { getRatesForMonth, type SettlementRate } from '@/lib/settlementCalc'
+import { getRatesForMonth, buildYearlyTable, type SettlementRate, type SettlementApartment, type SettlementEntry } from '@/lib/settlementCalc'
 import type { Community } from '@/types'
 import { formatDocDate } from '@/lib/documentBranding'
 import DocumentPaper from '@/components/print/DocumentPaper'
@@ -56,11 +56,12 @@ export default async function NotaWodyPage({
 
   if (!canAccessApartment(profile, user, apartment)) redirect('/admin/settlements')
 
-  const [communityRes, ratesRes, recRes] = await Promise.all([
+  const [communityRes, ratesRes, recRes, entriesRes] = await Promise.all([
     admin.from('communities').select('*').eq('id', apartment.community_id).single(),
     admin.from('settlement_rates').select('*').eq('community_id', apartment.community_id),
     admin.from('settlement_water_reconciliation').select('*')
       .eq('apartment_id', apartmentId).eq('year', year).eq('quarter', quarter).maybeSingle(),
+    admin.from('settlement_entries').select('*').eq('apartment_id', apartmentId).eq('year', year),
   ])
 
   if (!communityRes.data) notFound()
@@ -83,13 +84,37 @@ export default async function NotaWodyPage({
   const periodTag = getPeriodTag(quarter, reconMonths)
   const periodShort = getPeriodShort(quarter, reconMonths)
 
-  const actualCost = Math.round(rec.actual_m3 * waterPrice * 100) / 100
-  const paidForWater = Math.round(rec.ryczalt_m3 * waterPrice * 100) / 100
-  const correction = rec.correction_amount as number
-  const isDopłata = correction >= 0
-
-  const generatedAt = formatDocDate()
   const isZaliczka = rate?.water_billing_type === 'zaliczka'
+  const generatedAt = formatDocDate()
+
+  const actualCost = Math.round(rec.actual_m3 * waterPrice * 100) / 100
+
+  // Dla modelu zaliczka: przelicz sumę wpłat na wodę live (rec.ryczalt_m3 w DB
+  // może być nieaktualne jeśli wpłaty były edytowane po zapisaniu rozliczenia).
+  let paidForWater: number
+  let correction: number
+  if (isZaliczka) {
+    const entries = (entriesRes.data ?? []) as unknown as SettlementEntry[]
+    const apt = apartment as unknown as SettlementApartment
+    const rows = buildYearlyTable(apt, rates as SettlementRate[], entries, year)
+    const endM = quarter * reconMonths
+    const rateForPeriod = getRatesForMonth(rates as SettlementRate[], year, endM) ?? rates[0]
+    const priceForPeriod = (rateForPeriod as SettlementRate | null)?.water_price_m3 ?? waterPrice
+    // +1 offset: zaliczki sfinansowane przez wpłaty z miesiąca następnego po odczycie
+    const offsetStartM = (quarter - 1) * reconMonths + 2
+    const offsetMonths = Array.from({ length: reconMonths }, (_, i) => offsetStartM + i)
+    const sumWater = offsetMonths.reduce((s, m) => {
+      const row = rows.find(r => r.month === m)
+      return s + (row?.water ?? 0)
+    }, 0)
+    paidForWater = Math.round(sumWater * 100) / 100
+    correction = Math.round((actualCost - paidForWater) * 100) / 100
+  } else {
+    paidForWater = Math.round(rec.ryczalt_m3 * waterPrice * 100) / 100
+    correction = rec.correction_amount as number
+  }
+
+  const isDopłata = correction >= 0
 
   return (
     <div className="max-w-2xl mx-auto">

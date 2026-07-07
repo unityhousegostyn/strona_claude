@@ -595,10 +595,25 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                             Odczyt: {Math.round(rec.meter_reading_start)} → {Math.round(rec.meter_reading_end)} m³
                           </span>
                           <span className="text-[#0f766e]">Zużycie: {Math.round(rec.actual_m3)} m³</span>
-                          <span className="text-[#0f766e]">{isZaliczkaBilling ? 'Z wpłat' : 'Ryczałt'}: {Math.round(rec.ryczalt_m3)} m³</span>
-                          <span className={`font-semibold ${rec.correction_amount >= 0 ? 'text-red-400' : 'text-teal-400'}`}>
-                            {rec.correction_amount >= 0 ? 'Dopłata' : 'Nadpłata'}: {pln(Math.abs(rec.correction_amount))}
-                          </span>
+                          {(() => {
+                            // Dla modelu zaliczka ryczalt_m3 w DB może być nieaktualne po edycji wpłat
+                            // — przeliczamy live, żeby display i nota zawsze pokazywały poprawne wartości
+                            const liveRyczalt = isZaliczkaBilling ? quarterPaidWaterM3(q) : rec.ryczalt_m3
+                            const pr = ratesForPeriod(q)
+                            const liveCorrAmt = isZaliczkaBilling && pr
+                              ? Math.round((rec.actual_m3 - liveRyczalt) * pr.water_price_m3 * 100) / 100
+                              : rec.correction_amount
+                            return (
+                              <>
+                                <span className="text-[#0f766e]">
+                                  {isZaliczkaBilling ? 'Z wpłat' : 'Ryczałt'}: {liveRyczalt.toFixed(2)} m³
+                                </span>
+                                <span className={`font-semibold ${liveCorrAmt >= 0 ? 'text-red-400' : 'text-teal-400'}`}>
+                                  {liveCorrAmt >= 0 ? 'Dopłata' : 'Nadpłata'}: {pln(Math.abs(liveCorrAmt))}
+                                </span>
+                              </>
+                            )
+                          })()}
                         </div>
                       ) : (
                         <span className="text-xs text-[#115e59]">Brak odczytu</span>
@@ -705,11 +720,12 @@ export default function MonthlyTable({ apartment, rates, entries, reconciliation
                       {qStart && qEnd && ratesForPeriod(q) && isZaliczkaBilling && (() => {
                         const pr = ratesForPeriod(q)!
                         const baseline = quarterPaidWaterM3(q)
-                        const correctionM3 = Math.round(parseFloat(qEnd) - parseFloat(qStart) - baseline)
-                        const correctionZl = Math.round(correctionM3 * pr.water_price_m3 * 100) / 100
+                        const actualM3 = parseFloat(qEnd) - parseFloat(qStart)
+                        // Nie zaokrąglaj correctionM3 przed mnożeniem — strata precyzji zawyżała kwotę
+                        const correctionZl = Math.round((actualM3 - baseline) * pr.water_price_m3 * 100) / 100
                         return (
                           <span className="text-xs text-[#0f766e]">
-                            Zużycie: {Math.round(parseFloat(qEnd) - parseFloat(qStart))} m³, wpłacono za wodę: {Math.round(baseline)} m³ ({pln(Math.round(baseline) * pr.water_price_m3)})
+                            Zużycie: {actualM3.toFixed(2)} m³, wpłacono za wodę: {baseline.toFixed(2)} m³ ({pln(baseline * pr.water_price_m3)})
                             <br />
                             {correctionZl >= 0 ? 'Dopłata' : 'Nadpłata'}: {pln(Math.abs(correctionZl))}
                           </span>
