@@ -44,6 +44,7 @@ export default function BoardClient({ initialPosts, currentUserId, currentRole, 
   const [replyText, setReplyText] = useState<Record<string, string>>({})
   const [replyError, setReplyError] = useState<Record<string, string>>({})
   const [filterCommunity, setFilterCommunity] = useState<string>('all')
+  const [searchQuery, setSearchQuery] = useState('')
 
   const isAdminOrAbove = currentRole === 'admin' || currentRole === 'super_admin'
   const isSuperAdmin = currentRole === 'super_admin'
@@ -109,9 +110,16 @@ export default function BoardClient({ initialPosts, currentUserId, currentRole, 
 
   const authorName = (a: Post['author']) => a?.full_name ?? a?.email ?? 'Użytkownik'
 
-  const filteredPosts = isSuperAdmin && filterCommunity !== 'all'
+  const communityPosts = isSuperAdmin && filterCommunity !== 'all'
     ? posts.filter((p) => (p as any).community_id === filterCommunity)
     : posts
+
+  const filteredPosts = searchQuery.trim()
+    ? communityPosts.filter(p =>
+        p.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (p.author?.full_name ?? p.author?.email ?? '').toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : communityPosts
 
   const pinned = filteredPosts.filter((p) => p.pinned)
   const regular = filteredPosts.filter((p) => !p.pinned)
@@ -135,6 +143,19 @@ export default function BoardClient({ initialPosts, currentUserId, currentRole, 
           </select>
         </div>
       )}
+
+      {/* Wyszukiwarka */}
+      <div className="relative">
+        <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-[#115e59]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          className="input w-full pl-9 text-sm"
+          placeholder="Szukaj wiadomości lub autora…"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+        />
+      </div>
 
       {/* Formularz nowego posta */}
       <div className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-4 space-y-3">

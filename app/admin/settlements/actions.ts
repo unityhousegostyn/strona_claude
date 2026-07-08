@@ -141,9 +141,26 @@ export async function createRates(data: {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(data.effective_from)) return { error: 'Nieprawidłowy format daty stawki (oczekiwano YYYY-MM-DD)' }
 
   const admin = getSupabaseAdminClient()
-  const { error } = await admin.from('settlement_rates').insert(data)
+  const { data: inserted, error } = await admin.from('settlement_rates').insert(data).select('id').single()
   if (error) return { error: error.message }
   await logActivity({ userId: auth.user!.id, action: 'create_rates', targetType: 'settlement_rates', meta: { community_id: data.community_id, effective_from: data.effective_from } })
+  // Zapisz snapshot historii
+  await admin.from('settlement_rate_history').insert({
+    rate_id: inserted.id,
+    community_id: data.community_id,
+    changed_by: auth.user!.id,
+    action: 'created',
+    effective_from: data.effective_from,
+    water_price_m3: data.water_price_m3,
+    water_ryczalt_m3: data.water_ryczalt_m3,
+    garbage_per_person: data.garbage_per_person,
+    renovation_rate_m2: data.renovation_rate_m2,
+    operating_rate_m2: data.operating_rate_m2,
+    manager_fee_type: data.manager_fee_type,
+    manager_fee_value: data.manager_fee_value,
+    water_billing_type: data.water_billing_type,
+    water_reconciliation_months: data.water_reconciliation_months,
+  })
   revalidatePath('/admin/settlements')
   return {}
 }
@@ -175,6 +192,23 @@ export async function updateRates(id: string, data: {
   const { error } = await admin.from('settlement_rates').update(data).eq('id', id)
   if (error) return { error: error.message }
   await logActivity({ userId: auth.user!.id, action: 'update_rates', targetType: 'settlement_rates', targetId: id, meta: { effective_from: data.effective_from } })
+  // Zapisz snapshot historii
+  await admin.from('settlement_rate_history').insert({
+    rate_id: id,
+    community_id: rate.community_id,
+    changed_by: auth.user!.id,
+    action: 'updated',
+    effective_from: data.effective_from,
+    water_price_m3: data.water_price_m3,
+    water_ryczalt_m3: data.water_ryczalt_m3,
+    garbage_per_person: data.garbage_per_person,
+    renovation_rate_m2: data.renovation_rate_m2,
+    operating_rate_m2: data.operating_rate_m2,
+    manager_fee_type: data.manager_fee_type,
+    manager_fee_value: data.manager_fee_value,
+    water_billing_type: data.water_billing_type,
+    water_reconciliation_months: data.water_reconciliation_months,
+  })
   revalidatePath('/admin/settlements', 'layout')
   return {}
 }
@@ -184,15 +218,80 @@ export async function deleteRates(id: string): Promise<{ error?: string }> {
   if (auth.error !== null) return { error: auth.error }
 
   const admin = getSupabaseAdminClient()
-  const { data: rate } = await admin.from('settlement_rates').select('community_id').eq('id', id).single()
+  const { data: rate } = await admin.from('settlement_rates').select('community_id, effective_from').eq('id', id).single()
   if (!rate) return { error: 'Stawki nie istnieją' }
   const guardErr = guardCommunity(auth, rate.community_id)
   if (guardErr) return { error: guardErr }
+
+  // Zapisz fakt usunięcia w historii przed DELETE
+  await admin.from('settlement_rate_history').insert({
+    rate_id: id,
+    community_id: rate.community_id,
+    changed_by: auth.user!.id,
+    action: 'deleted',
+    effective_from: rate.effective_from,
+  })
 
   const { error } = await admin.from('settlement_rates').delete().eq('id', id)
   if (error) return { error: error.message }
   revalidatePath('/admin/settlements')
   return {}
+}
+
+export async function getRateHistory(communityId: string): Promise<{
+  data?: Array<{
+    id: string
+    rate_id: string
+    action: string
+    changed_at: string
+    effective_from: string | null
+    changed_by_name: string | null
+    water_price_m3: number | null
+    water_ryczalt_m3: number | null
+    garbage_per_person: number | null
+    renovation_rate_m2: number | null
+    operating_rate_m2: number | null
+    manager_fee_type: string | null
+    manager_fee_value: number | null
+    water_billing_type: string | null
+    water_reconciliation_months: number | null
+  }>
+  error?: string
+}> {
+  const auth = await requireAdminOrAbove()
+  if (auth.error !== null) return { error: auth.error }
+  const guardErr = guardCommunity(auth, communityId)
+  if (guardErr) return { error: guardErr }
+
+  const admin = getSupabaseAdminClient()
+  const { data, error } = await admin
+    .from('settlement_rate_history')
+    .select('*, changer:profiles!changed_by(full_name, email)')
+    .eq('community_id', communityId)
+    .order('changed_at', { ascending: false })
+    .limit(50)
+
+  if (error) return { error: error.message }
+
+  return {
+    data: (data ?? []).map((r: any) => ({
+      id: r.id,
+      rate_id: r.rate_id,
+      action: r.action,
+      changed_at: r.changed_at,
+      effective_from: r.effective_from,
+      changed_by_name: r.changer?.full_name ?? r.changer?.email ?? null,
+      water_price_m3: r.water_price_m3,
+      water_ryczalt_m3: r.water_ryczalt_m3,
+      garbage_per_person: r.garbage_per_person,
+      renovation_rate_m2: r.renovation_rate_m2,
+      operating_rate_m2: r.operating_rate_m2,
+      manager_fee_type: r.manager_fee_type,
+      manager_fee_value: r.manager_fee_value,
+      water_billing_type: r.water_billing_type,
+      water_reconciliation_months: r.water_reconciliation_months,
+    })),
+  }
 }
 
 // ── WPISY MIESIĘCZNE ─────────────────────────────────────────────────────────

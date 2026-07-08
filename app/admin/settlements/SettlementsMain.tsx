@@ -3,7 +3,7 @@
 import { useState, useTransition, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createApartment, updateApartment, deleteApartment, createRates, deleteRates, updateRates, importEntriesCSV } from './actions'
+import { createApartment, updateApartment, deleteApartment, createRates, deleteRates, updateRates, importEntriesCSV, getRateHistory } from './actions'
 import { pln, shareStr, buildYearlyTable } from '@/lib/settlementCalc'
 import type { SettlementApartment, SettlementRate, SettlementEntry } from '@/lib/settlementCalc'
 
@@ -34,7 +34,7 @@ const EMPTY_RATES = {
 export default function SettlementsMain({ communities, selectedCommunityId, apartments, rates, entries = [], isAdmin = false }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [tab, setTab] = useState<'apartments' | 'rates' | 'report' | 'import'>('apartments')
+  const [tab, setTab] = useState<'apartments' | 'rates' | 'report' | 'import' | 'rate-history'>('apartments')
   const [reportFilter, setReportFilter] = useState<'all' | 'debt' | 'overpay'>('all')
   const [showAptForm, setShowAptForm] = useState(false)
   const [showRatesForm, setShowRatesForm] = useState(false)
@@ -45,6 +45,8 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
   const [editRateForm, setEditRateForm] = useState(EMPTY_RATES)
   const [editAptId, setEditAptId] = useState<string | null>(null)
   const [editAptForm, setEditAptForm] = useState(EMPTY_APT)
+  const [rateHistory, setRateHistory] = useState<Awaited<ReturnType<typeof getRateHistory>>['data']>([])
+  const [rateHistoryLoading, setRateHistoryLoading] = useState(false)
 
   // Import CSV
   const [csvDragOver, setCsvDragOver] = useState(false)
@@ -287,16 +289,26 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
           {/* Zakładki + Przelicz */}
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex gap-1 bg-[#081918] rounded-xl p-1 border border-[#0f2d2a]">
-              {(['apartments', 'rates', 'report', 'import'] as const).map(t => (
+              {(['apartments', 'rates', 'rate-history', 'report', 'import'] as const).map(t => (
                 <button
                   key={t}
-                  onClick={() => setTab(t)}
+                  onClick={() => {
+                    setTab(t)
+                    if (t === 'rate-history' && selectedCommunityId && !rateHistoryLoading) {
+                      setRateHistoryLoading(true)
+                      getRateHistory(selectedCommunityId).then(res => {
+                        setRateHistory(res.data ?? [])
+                        setRateHistoryLoading(false)
+                      })
+                    }
+                  }}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
                     tab === t ? 'bg-[#0c2220] text-[#f0fdfa]' : 'text-[#115e59] hover:text-[#99f6e4]'
                   }`}
                 >
                   {t === 'apartments' ? `🏠 Lokale (${apartments.length})`
                     : t === 'rates' ? '📊 Stawki'
+                    : t === 'rate-history' ? '🕐 Historia stawek'
                     : t === 'report' ? '📋 Raport'
                     : '📥 Import'}
                 </button>
@@ -748,6 +760,58 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                       )}
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── HISTORIA STAWEK ── */}
+          {tab === 'rate-history' && (
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-[#ccfbf1]">Historia zmian stawek</h3>
+              {rateHistoryLoading && (
+                <p className="text-sm text-[#115e59]">Ładowanie…</p>
+              )}
+              {!rateHistoryLoading && (!rateHistory || rateHistory.length === 0) && (
+                <p className="text-sm text-[#115e59]">Brak wpisów w historii. Historia jest zapisywana od teraz przy każdej zmianie stawki.</p>
+              )}
+              {!rateHistoryLoading && rateHistory && rateHistory.length > 0 && (
+                <div className="space-y-3">
+                  {rateHistory.map(entry => {
+                    const actionLabel = entry.action === 'created' ? 'Dodano' : entry.action === 'updated' ? 'Zmieniono' : 'Usunięto'
+                    const actionColor = entry.action === 'created' ? 'text-teal-400' : entry.action === 'updated' ? 'text-yellow-400' : 'text-red-400'
+                    return (
+                      <div key={entry.id} className="bg-[#081918] border border-[#0f2d2a] rounded-xl p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs font-semibold ${actionColor}`}>{actionLabel}</span>
+                            {entry.effective_from && (
+                              <span className="text-xs text-[#0f766e]">od {entry.effective_from}</span>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs text-[#0f766e]">
+                              {new Date(entry.changed_at).toLocaleString('pl-PL', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                            {entry.changed_by_name && (
+                              <p className="text-xs text-[#115e59]">{entry.changed_by_name}</p>
+                            )}
+                          </div>
+                        </div>
+                        {entry.action !== 'deleted' && (
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1 mt-2">
+                            {entry.water_price_m3 != null && <div className="text-xs text-[#99f6e4]">Woda (wodomierz): <span className="text-[#f0fdfa]">{entry.water_price_m3} zł/m³</span></div>}
+                            {entry.water_ryczalt_m3 != null && <div className="text-xs text-[#99f6e4]">Woda (ryczałt): <span className="text-[#f0fdfa]">{entry.water_ryczalt_m3} zł/m³</span></div>}
+                            {entry.garbage_per_person != null && <div className="text-xs text-[#99f6e4]">Śmieci/os.: <span className="text-[#f0fdfa]">{entry.garbage_per_person} zł</span></div>}
+                            {entry.renovation_rate_m2 != null && <div className="text-xs text-[#99f6e4]">Remontowy/m²: <span className="text-[#f0fdfa]">{entry.renovation_rate_m2} zł</span></div>}
+                            {entry.operating_rate_m2 != null && <div className="text-xs text-[#99f6e4]">Eksploatacja/m²: <span className="text-[#f0fdfa]">{entry.operating_rate_m2} zł</span></div>}
+                            {entry.manager_fee_value != null && <div className="text-xs text-[#99f6e4]">Zarządca: <span className="text-[#f0fdfa]">{entry.manager_fee_value} {entry.manager_fee_type === 'per_m2' ? 'zł/m²' : 'zł (ryczałt)'}</span></div>}
+                            {entry.water_billing_type && <div className="text-xs text-[#99f6e4]">Rozliczenie wody: <span className="text-[#f0fdfa]">{entry.water_billing_type}</span></div>}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               )}
             </div>
