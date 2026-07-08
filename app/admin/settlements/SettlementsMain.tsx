@@ -510,8 +510,11 @@ export default function SettlementsMain({ communities, selectedCommunityId, apar
                           </td>
                           <td className="py-3 flex items-center gap-2 flex-shrink-0">
                             <Link href={`/admin/settlements/${apt.id}`}
-                              className="text-xs text-teal-400 hover:text-teal-300 transition font-medium whitespace-nowrap">
-                              Rozliczenie →
+                              title="Rozliczenie lokalu"
+                              className="text-[#0f766e] hover:text-teal-300 transition">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="12" y2="15"/>
+                              </svg>
                             </Link>
                             <button
                               onClick={() => editAptId === apt.id ? (setEditAptId(null), setEditAptForm(EMPTY_APT)) : handleEditAptOpen(apt)}
