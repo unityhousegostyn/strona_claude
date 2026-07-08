@@ -83,6 +83,13 @@ export async function addUser(data: {
     if (data.role === 'super_admin' && actorProfile.role !== 'super_admin') {
       return { error: 'Tylko Super Admin może tworzyć konta Super Admin' }
     }
+    // Walidacja emaila — Supabase może zaakceptować nieprawidłowy email; sprawdzamy tu
+    if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) {
+      return { error: 'Nieprawidłowy adres email' }
+    }
+    if (data.email.trim().length > 200) {
+      return { error: 'Email może mieć maksymalnie 200 znaków' }
+    }
     // Walidacja hasła — bcrypt ma limit 72 bajtów; bardzo długie hasła mogą powodować DoS
     if (!data.password || data.password.length < 8 || data.password.length > 128) {
       return { error: 'Hasło musi mieć 8–128 znaków' }

@@ -24,6 +24,9 @@ export async function addIncome(data: {
     if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
     if (profile.role === 'admin' && profile.community_id !== data.community_id)
       return { error: 'Brak uprawnień do tej wspólnoty' }
+    // Walidacja kategorii — TypeScript nie chroni serwera przed arbitralnymi wartościami z sieci
+    const validCategories = INCOME_CATEGORIES.map(c => c.value)
+    if (!validCategories.includes(data.category as IncomeCategory)) return { error: 'Nieprawidłowa kategoria przychodu' }
     if (!data.description.trim()) return { error: 'Opis jest wymagany' }
     if (data.description.trim().length > 500) return { error: 'Opis może mieć maksymalnie 500 znaków' }
     if (!data.amount || data.amount <= 0) return { error: 'Kwota musi być większa niż 0' }
@@ -60,6 +63,9 @@ export async function updateIncome(id: string, data: {
   try {
     const { profile } = await getActor()
     if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
+    // Walidacja kategorii — TypeScript nie chroni serwera przed arbitralnymi wartościami z sieci
+    const validCategoriesU = INCOME_CATEGORIES.map(c => c.value)
+    if (!validCategoriesU.includes(data.category as IncomeCategory)) return { error: 'Nieprawidłowa kategoria przychodu' }
     if (!data.description.trim()) return { error: 'Opis jest wymagany' }
     if (data.description.trim().length > 500) return { error: 'Opis może mieć maksymalnie 500 znaków' }
     if (!data.amount || data.amount <= 0) return { error: 'Kwota musi być większa niż 0' }

@@ -3,6 +3,7 @@
 import { getAuthProfileAction } from '@/lib/getAuthProfile'
 import { getSupabaseAdminClient } from '@/lib/supabase/server'
 import { sendCustomEmail } from '@/lib/email'
+import { logActivity } from '@/lib/audit'
 
 export async function sendMessageToResidents(data: {
   subject: string
@@ -21,6 +22,10 @@ export async function sendMessageToResidents(data: {
     if (!body) return { error: 'Treść wiadomości jest wymagana' }
     if (subject.length > 200) return { error: 'Temat jest za długi (max 200 znaków)' }
     if (body.length > 10_000) return { error: 'Treść wiadomości jest za długa (max 10 000 znaków)' }
+    // Limit odbiorców — bez tego można podać tysiące ID → masowy email + potencjalny DoS
+    if (Array.isArray(data.recipient_ids) && data.recipient_ids.length > 500) {
+      return { error: 'Za dużo odbiorców (max 500)' }
+    }
 
     const admin = getSupabaseAdminClient()
 
@@ -56,6 +61,17 @@ export async function sendMessageToResidents(data: {
       subject,
       body,
       senderName: auth.profile.full_name ?? 'Zarząd',
+    })
+
+    await logActivity({
+      userId: auth.user!.id,
+      action: 'send_message_to_residents',
+      meta: {
+        subject,
+        communityId,
+        recipientCount: recipients.length,
+        recipientIds: data.recipient_ids === 'all' ? 'all' : data.recipient_ids,
+      },
     })
 
     return { sent: recipients.length }

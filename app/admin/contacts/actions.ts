@@ -33,7 +33,7 @@ export async function createContact(data: {
     if (phone && phone.length > 30) return { error: 'Numer telefonu może mieć max 30 znaków' }
     if (email && (email.length > 200 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) return { error: 'Nieprawidłowy adres email' }
     if (description && description.length > 500) return { error: 'Opis może mieć max 500 znaków' }
-    if (!['other', 'management', 'maintenance', 'emergency', 'utility'].includes(data.category ?? '')) {
+    if (!['manager', 'emergency', 'service', 'security', 'other'].includes(data.category ?? '')) {
       data.category = 'other'
     }
 

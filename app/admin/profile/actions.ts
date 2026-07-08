@@ -29,6 +29,7 @@ export async function updateProfile(data: { full_name: string }) {
 export async function changePassword(data: { password: string; confirm: string }) {
   if (data.password !== data.confirm) throw new Error('Hasła nie są identyczne')
   if (data.password.length < 8) throw new Error('Hasło musi mieć minimum 8 znaków')
+  if (data.password.length > 128) throw new Error('Hasło może mieć maksymalnie 128 znaków')
 
   const supabase = await getSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
