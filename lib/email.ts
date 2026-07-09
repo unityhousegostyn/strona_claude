@@ -20,6 +20,17 @@ function isConfigured() {
 
 const FROM = () => process.env.EMAIL_FROM ?? `Zarząd Wspólnoty <${process.env.EMAIL_USER}>`
 
+/** HTML-escape dla danych użytkownika wstrzykiwanych do szablonów emaili.
+ *  Zapobiega HTML injection / phishingowi przez spreparowane nazwy/treści. */
+function esc(s: unknown): string {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 async function sendMail(options: { to: string | string[]; subject: string; html: string }) {
   if (!isConfigured()) return
   const transport = createTransport()
@@ -128,7 +139,7 @@ export async function sendEmailVerification(params: {
       <p style="margin:0 0 24px;font-size:14px;color:#64748b;">Rejestracja konta mieszkańca</p>
 
       <p style="font-size:15px;color:#334155;line-height:1.7;">
-        Szanowny/a <strong>${params.fullName}</strong>,
+        Szanowny/a <strong>${esc(params.fullName)}</strong>,
       </p>
       <p style="font-size:15px;color:#334155;line-height:1.7;margin-top:0;">
         Dziękujemy za rejestrację w Panelu Zarządzania Wspólnotą. W celu potwierdzenia adresu e-mail
@@ -228,14 +239,14 @@ export async function sendCustomEmail(params: {
     subject: params.subject,
     html: layout(`
       <p style="margin:0 0 4px;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#64748b;">WIADOMOŚĆ OD ZARZĄDU</p>
-      <h1 style="margin:0 0 32px;font-size:22px;font-weight:700;color:#d97706;">${params.subject}</h1>
+      <h1 style="margin:0 0 32px;font-size:22px;font-weight:700;color:#d97706;">${esc(params.subject)}</h1>
 
       <div style="font-size:15px;color:#334155;line-height:1.8;white-space:pre-line;">
-        ${params.body.replace(/\n/g, '<br>')}
+        ${esc(params.body).replace(/\n/g, '<br>')}
       </div>
 
       <p style="margin:40px 0 0;font-size:13px;color:#94a3b8;border-top:1px solid #f1f5f9;padding-top:16px;">
-        Wiadomość wysłana przez: <strong>${sender}</strong>
+        Wiadomość wysłana przez: <strong>${esc(sender)}</strong>
       </p>
     `),
   })
@@ -252,10 +263,10 @@ export async function sendAnnouncementEmail(params: {
     subject: `Ogłoszenie zarządu: ${params.title}`,
     html: layout(`
       <p style="margin:0 0 4px;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#64748b;">OGŁOSZENIE ZARZĄDU</p>
-      <h1 style="margin:0 0 32px;font-size:22px;font-weight:700;color:#d97706;">${params.title}</h1>
+      <h1 style="margin:0 0 32px;font-size:22px;font-weight:700;color:#d97706;">${esc(params.title)}</h1>
 
       <div style="font-size:15px;color:#334155;line-height:1.8;">
-        ${params.content.replace(/\n/g, '<br>')}
+        ${esc(params.content).replace(/\n/g, '<br>')}
       </div>
 
       <div style="text-align:center;margin:40px 0 16px;">
@@ -282,8 +293,8 @@ export async function sendNewUserPendingEmail(params: {
       </p>
 
       <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
-        ${infoBox('Imię i nazwisko', params.userName)}
-        ${infoBox('Adres e-mail', params.userEmail)}
+        ${infoBox('Imię i nazwisko', esc(params.userName))}
+        ${infoBox('Adres e-mail', esc(params.userEmail))}
         ${infoBox('Status', 'Oczekuje na akceptację')}
       </table>
 
@@ -314,14 +325,14 @@ export async function sendNewTicketEmail(params: {
       <p style="margin:0 0 24px;font-size:14px;color:#64748b;">Mieszkaniec złożył nowe zgłoszenie</p>
 
       <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
-        ${infoBox('Zgłoszenie', params.ticketTitle)}
-        ${infoBox('Zgłaszający', params.authorName)}
-        ${infoBox('Wspólnota', params.communityName)}
+        ${infoBox('Zgłoszenie', esc(params.ticketTitle))}
+        ${infoBox('Zgłaszający', esc(params.authorName))}
+        ${infoBox('Wspólnota', esc(params.communityName))}
         ${infoBox('Status', 'Otwarte')}
       </table>
 
       <p style="font-size:13px;font-weight:600;color:#64748b;margin:0 0 4px;">Opis zgłoszenia:</p>
-      ${quote(params.ticketDescription.replace(/\n/g, '<br>'))}
+      ${quote(esc(params.ticketDescription).replace(/\n/g, '<br>'))}
 
       <div style="text-align:center;margin:32px 0;">
         ${btn(`${APP_URL}/admin/tickets/${params.ticketId}`, 'Zobacz zgłoszenie')}
@@ -345,12 +356,12 @@ export async function sendNewCommentEmail(params: {
       <p style="margin:0 0 24px;font-size:14px;color:#64748b;">Ktoś skomentował Państwa zgłoszenie</p>
 
       <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
-        ${infoBox('Zgłoszenie', params.ticketTitle)}
-        ${infoBox('Odpowiedział/a', params.authorName)}
+        ${infoBox('Zgłoszenie', esc(params.ticketTitle))}
+        ${infoBox('Odpowiedział/a', esc(params.authorName))}
       </table>
 
       <p style="font-size:13px;font-weight:600;color:#64748b;margin:0 0 4px;">Treść odpowiedzi:</p>
-      ${quote(params.comment.replace(/\n/g, '<br>'))}
+      ${quote(esc(params.comment).replace(/\n/g, '<br>'))}
 
       <div style="text-align:center;margin:32px 0;">
         ${btn(`${APP_URL}/admin/tickets/${params.ticketId}`, 'Zobacz zgłoszenie')}
@@ -368,7 +379,7 @@ export async function sendInvitationEmail(params: {
   fullName?: string
   expiresAt: Date
 }) {
-  const greeting = params.fullName ? `Szanowny/a <strong>${params.fullName}</strong>,` : 'Szanowny/a Mieszkańcu,'
+  const greeting = params.fullName ? `Szanowny/a <strong>${esc(params.fullName)}</strong>,` : 'Szanowny/a Mieszkańcu,'
   const expiryStr = params.expiresAt.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' })
 
   await sendMail({
@@ -444,7 +455,7 @@ function invitationLayout(communityName: string, content: string) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Zaproszenie — ${communityName}</title>
+  <title>Zaproszenie — ${esc(communityName)}</title>
 </head>
 <body style="margin:0;padding:0;background:#0e0b07;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#0e0b07;padding:40px 16px;">
@@ -461,7 +472,7 @@ function invitationLayout(communityName: string, content: string) {
                 </td>
                 <td style="padding-left:12px;">
                   <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:#4d7a5f;">Panel Zarządzania</p>
-                  <p style="margin:2px 0 0;font-size:16px;font-weight:700;color:#ecfdf5;">${communityName}</p>
+                  <p style="margin:2px 0 0;font-size:16px;font-weight:700;color:#ecfdf5;">${esc(communityName)}</p>
                 </td>
               </tr>
             </table>
@@ -519,11 +530,11 @@ export async function sendNewVoteEmail(params: {
     subject: `Nowe głosowanie: ${params.voteTitle}`,
     html: layout(`
       <p style="margin:0 0 4px;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#64748b;">NOWE GŁOSOWANIE</p>
-      <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#d97706;">${params.voteTitle}</h1>
-      <p style="margin:0 0 28px;font-size:13px;color:#64748b;">${params.communityName}</p>
+      <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#d97706;">${esc(params.voteTitle)}</h1>
+      <p style="margin:0 0 28px;font-size:13px;color:#64748b;">${esc(params.communityName)}</p>
 
       ${params.voteDescription
-        ? `<div style="font-size:15px;color:#334155;line-height:1.8;margin-bottom:24px;">${params.voteDescription.replace(/\n/g, '<br>')}</div>`
+        ? `<div style="font-size:15px;color:#334155;line-height:1.8;margin-bottom:24px;">${esc(params.voteDescription).replace(/\n/g, '<br>')}</div>`
         : ''}
 
       ${deadlineStr
@@ -577,8 +588,8 @@ export async function sendVoteClosedEmail(params: {
     subject: `Zakończono głosowanie: ${params.voteTitle}`,
     html: layout(`
       <p style="margin:0 0 4px;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#64748b;">WYNIKI GŁOSOWANIA</p>
-      <h1 style="margin:0 0 4px;font-size:22px;font-weight:700;color:#d97706;">${params.voteTitle}</h1>
-      <p style="margin:0 0 24px;font-size:13px;color:#64748b;">${params.communityName}${params.resolutionNumber !== '—' ? ` &nbsp;·&nbsp; Uchwała nr ${params.resolutionNumber}` : ''}</p>
+      <h1 style="margin:0 0 4px;font-size:22px;font-weight:700;color:#d97706;">${esc(params.voteTitle)}</h1>
+      <p style="margin:0 0 24px;font-size:13px;color:#64748b;">${esc(params.communityName)}${params.resolutionNumber !== '—' ? ` &nbsp;·&nbsp; Uchwała nr ${esc(params.resolutionNumber)}` : ''}</p>
 
       <!-- Werdykt -->
       <div style="background:#f8fafc;border-left:4px solid ${verdictColor};border-radius:0 8px 8px 0;padding:14px 20px;margin:0 0 24px;">
@@ -627,8 +638,8 @@ export async function sendVoteReminderEmail(params: {
     subject: `⏰ Przypomnienie: trwa głosowanie — ${params.voteTitle}`,
     html: layout(`
       <p style="margin:0 0 4px;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#64748b;">PRZYPOMNIENIE O GŁOSOWANIU</p>
-      <h1 style="margin:0 0 4px;font-size:22px;font-weight:700;color:#0d9488;">${params.voteTitle}${resNum}</h1>
-      <p style="margin:0 0 28px;font-size:13px;color:#64748b;">${params.communityName}</p>
+      <h1 style="margin:0 0 4px;font-size:22px;font-weight:700;color:#0d9488;">${esc(params.voteTitle)}${esc(resNum)}</h1>
+      <p style="margin:0 0 28px;font-size:13px;color:#64748b;">${esc(params.communityName)}</p>
 
       <div style="background:#f0fdfa;border-left:4px solid #0d9488;border-radius:0 8px 8px 0;padding:16px 20px;margin:0 0 24px;">
         <p style="margin:0;font-size:15px;color:#134e4a;line-height:1.7;">
@@ -685,7 +696,7 @@ export async function sendKsefSyncEmail(params: {
     .filter(r => r.imported > 0)
     .map(r => `
       <tr>
-        <td style="padding:10px 16px;font-size:14px;color:#1e293b;border-bottom:1px solid #f1f5f9;">${r.communityName}</td>
+        <td style="padding:10px 16px;font-size:14px;color:#1e293b;border-bottom:1px solid #f1f5f9;">${esc(r.communityName)}</td>
         <td style="padding:10px 16px;font-size:14px;color:#0f766e;font-weight:700;text-align:center;border-bottom:1px solid #f1f5f9;">${r.imported}</td>
         <td style="padding:10px 16px;font-size:13px;color:#64748b;border-bottom:1px solid #f1f5f9;">${r.dateFrom} – ${r.dateTo}</td>
       </tr>`)

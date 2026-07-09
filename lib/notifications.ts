@@ -50,6 +50,11 @@ export async function createNotificationForMany(
  * (do powiadamiania przy nowym zgłoszeniu od mieszkańca)
  */
 export async function getAdminUserIds(communityId: string): Promise<string[]> {
+  // Walidacja UUID — bez tego możliwa jest iniekcja do filtra PostgREST
+  // np. communityId = "x),role.eq.super_admin" → wyciek wszystkich super_adminów
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(communityId)) {
+    return []
+  }
   const admin = getSupabaseAdminClient()
   const { data } = await admin
     .from('profiles')
