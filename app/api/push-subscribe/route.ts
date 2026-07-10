@@ -8,8 +8,12 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { subscription } = await req.json()
-    if (!subscription?.endpoint) {
+    // Walidacja endpoint — brak limitu długości pozwala na zapis bardzo długiego stringa (DoS/DB bloat)
+    if (!subscription?.endpoint || typeof subscription.endpoint !== 'string') {
       return NextResponse.json({ error: 'Invalid subscription' }, { status: 400 })
+    }
+    if (subscription.endpoint.length > 2048) {
+      return NextResponse.json({ error: 'Endpoint too long' }, { status: 400 })
     }
 
     const admin = getSupabaseAdminClient()

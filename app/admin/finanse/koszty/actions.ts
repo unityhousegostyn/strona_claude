@@ -27,6 +27,9 @@ export async function addExpense(data: {
   if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
   if (profile.role === 'admin' && profile.community_id !== data.community_id)
     return { error: 'Brak uprawnień do tej wspólnoty' }
+  // Walidacja kategorii — TypeScript nie chroni serwera przed arbitralnymi wartościami z sieci
+  const validExpCats = EXPENSE_CATEGORIES.map(c => c.value)
+  if (!validExpCats.includes(data.category as ExpenseCategory)) return { error: 'Nieprawidłowa kategoria kosztu' }
   if (!data.description.trim()) return { error: 'Opis jest wymagany' }
   if (data.description.trim().length > 500) return { error: 'Opis może mieć maksymalnie 500 znaków' }
   if (data.invoice_number && data.invoice_number.trim().length > 100) return { error: 'Nr faktury może mieć maksymalnie 100 znaków' }
@@ -64,6 +67,9 @@ export async function updateExpense(id: string, data: {
 }): Promise<{ error?: string }> {
   const { profile } = await getActor()
   if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
+  // Walidacja kategorii — TypeScript nie chroni serwera przed arbitralnymi wartościami z sieci
+  const validExpCatsU = EXPENSE_CATEGORIES.map(c => c.value)
+  if (!validExpCatsU.includes(data.category as ExpenseCategory)) return { error: 'Nieprawidłowa kategoria kosztu' }
   if (!data.description.trim()) return { error: 'Opis jest wymagany' }
   if (data.description.trim().length > 500) return { error: 'Opis może mieć maksymalnie 500 znaków' }
   if (data.invoice_number && data.invoice_number.trim().length > 100) return { error: 'Nr faktury może mieć maksymalnie 100 znaków' }
@@ -361,6 +367,9 @@ export async function bulkUpdateCategory(
     if (profile.role === 'user' || profile.role === 'najemca') return { error: 'Brak uprawnień' }
     if (!ids.length) return { error: 'Brak zaznaczonych wpisów' }
     if (ids.length > 200) return { error: 'Zbyt wiele wpisów (max 200)' }
+    // Walidacja kategorii — TypeScript nie chroni serwera przed arbitralnymi wartościami z sieci
+    const validBulkCats = EXPENSE_CATEGORIES.map(c => c.value)
+    if (!validBulkCats.includes(category as ExpenseCategory)) return { error: 'Nieprawidłowa kategoria kosztu' }
     const admin = getSupabaseAdminClient()
 
     if (profile.role === 'admin') {

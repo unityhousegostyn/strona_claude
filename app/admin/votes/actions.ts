@@ -76,7 +76,11 @@ export async function createVote(data: {
   if (!['by_share', 'one_per_owner'].includes(data.voting_method)) return { error: 'Nieprawidłowa metoda głosowania' }
 
   if (data.link_url) {
-    try { new URL(data.link_url) } catch {
+    try {
+      const u = new URL(data.link_url)
+      // Dozwolone tylko http(s) — javascript: i inne schematy mogą być XSS
+      if (!['http:', 'https:'].includes(u.protocol)) return { error: 'Link musi zaczynać się od http:// lub https://' }
+    } catch {
       return { error: 'Nieprawidłowy adres URL linku' }
     }
   }
@@ -461,7 +465,10 @@ export async function updateVote(voteId: string, data: {
   if (data.description && data.description.trim().length > 5000) return { error: 'Opis może mieć maksymalnie 5000 znaków' }
 
   if (data.link_url) {
-    try { new URL(data.link_url) } catch {
+    try {
+      const u = new URL(data.link_url)
+      if (!['http:', 'https:'].includes(u.protocol)) return { error: 'Link musi zaczynać się od http:// lub https://' }
+    } catch {
       return { error: 'Nieprawidłowy adres URL linku' }
     }
   }
