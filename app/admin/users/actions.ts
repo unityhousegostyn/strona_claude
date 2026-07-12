@@ -75,6 +75,10 @@ export async function addUser(data: {
   try {
     const { user: actor, profile: actorProfile } = await requireAdminOrSuperAdmin()
 
+    // Runtime allowlist — TypeScript nie chroni Server Actions przed arbitralną wartością z sieci
+    const VALID_ROLES = ['user', 'najemca', 'admin', 'super_admin'] as const
+    if (!VALID_ROLES.includes(data.role as any)) return { error: 'Nieprawidłowa rola' }
+
     if (actorProfile.role === 'admin') {
       if (data.community_id !== actorProfile.community_id) return { error: 'Brak uprawnień do tej wspólnoty' }
       if (data.role !== 'user') return { error: 'Administrator może dodawać tylko mieszkańców' }
