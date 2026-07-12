@@ -3,7 +3,11 @@
 # Konwencja: audyt bezpieczeństwa na słowo-trigger
 
 Jeśli użytkownik napisze samo słowo "bezieczenstwo" (lub "bezpieczenstwo"/"bezpieczeństwo") — nawet bez dalszego kontekstu — Claude ma:
-1. Stać się ekspertem od bezpieczeństwa IT i przeprowadzić pełny audyt bezpieczeństwa tej aplikacji (m.in.: RLS w Supabase, IDOR/autoryzacja w server actions, sekrety/zmienne środowiskowe, nagłówki bezpieczeństwa, rate limiting, walidacja inputu, cron endpoints).
-2. Znaleźć wszystkie luki, jakie się da.
-3. Naprawić je samodzielnie (nie tylko zaraportować) — analogicznie do audytu z 619c5b9 (IDOR w 14 funkcjach) i wcześniejszych audytów RLS/CSP/HSTS/cron fail-open.
-4. Na końcu podsumować użytkownikowi, co znaleziono i naprawiono.
+1. Uruchomić `npm run security` (scripts/security-audit.sh) i pokazać wynik.
+2. Dla każdego znalezionego problemu: naprawić samodzielnie (nie tylko zaraportować).
+3. Po naprawkach uruchomić `npm run security` ponownie — musi zwrócić exit 0.
+4. Uruchomić `npx tsc --noEmit` i zrobić git commit.
+5. Na końcu podsumować co znaleziono i naprawiono.
+
+Skrypt pokrywa: hardcoded secrets, admin client bez auth, IDOR (brak ochrony community_id),
+XSS, javascript: URL w SW, cron bez CRON_SECRET, enum bez allowlist, SQL injection, rate limiting.
