@@ -139,6 +139,10 @@ export async function createRates(data: {
 
   if (!data.effective_from) return { error: 'Data obowiązywania jest wymagana' }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(data.effective_from)) return { error: 'Nieprawidłowy format daty stawki (oczekiwano YYYY-MM-DD)' }
+  // Runtime walidacja enumów — TypeScript nie chroni Server Actions przed arbitralnymi wartościami z sieci
+  if (!['per_m2', 'fixed'].includes(data.manager_fee_type)) return { error: 'Nieprawidłowy typ opłaty zarządcy' }
+  if (!['ryczalt', 'meter', 'zaliczka'].includes(data.water_billing_type)) return { error: 'Nieprawidłowy model rozliczenia wody' }
+  if (![1, 2, 3, 6, 12].includes(data.water_reconciliation_months)) return { error: 'Nieprawidłowy okres rozliczenia wody' }
 
   const admin = getSupabaseAdminClient()
   const { data: inserted, error } = await admin.from('settlement_rates').insert(data).select('id').single()
@@ -188,6 +192,10 @@ export async function updateRates(id: string, data: {
 
   if (!data.effective_from) return { error: 'Data obowiązywania jest wymagana' }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(data.effective_from)) return { error: 'Nieprawidłowy format daty stawki (oczekiwano YYYY-MM-DD)' }
+  // Runtime walidacja enumów — TypeScript nie chroni Server Actions przed arbitralnymi wartościami z sieci
+  if (!['per_m2', 'fixed'].includes(data.manager_fee_type)) return { error: 'Nieprawidłowy typ opłaty zarządcy' }
+  if (!['ryczalt', 'meter', 'zaliczka'].includes(data.water_billing_type)) return { error: 'Nieprawidłowy model rozliczenia wody' }
+  if (![1, 2, 3, 6, 12].includes(data.water_reconciliation_months)) return { error: 'Nieprawidłowy okres rozliczenia wody' }
 
   const { error } = await admin.from('settlement_rates').update(data).eq('id', id)
   if (error) return { error: error.message }
@@ -369,6 +377,10 @@ export async function upsertWaterReconciliation(data: {
 }): Promise<{ error?: string }> {
   const auth = await requireAdminOrAbove()
   if (auth.error !== null) return { error: auth.error }
+
+  // Walidacja zakresu quarter i year — brak granic pozwalałby zapisać np. quarter=999
+  if (!Number.isInteger(data.quarter) || data.quarter < 1 || data.quarter > 4) return { error: 'Nieprawidłowy kwartał (1-4)' }
+  if (!Number.isInteger(data.year) || data.year < 2000 || data.year > 2100) return { error: 'Nieprawidłowy rok' }
 
   const admin = getSupabaseAdminClient()
   const { data: apt } = await admin.from('settlement_apartments').select('community_id').eq('id', data.apartment_id).single()

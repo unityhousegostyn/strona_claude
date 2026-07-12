@@ -25,8 +25,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'title max 200 znaków' }, { status: 400 })
     if (typeof body !== 'string' || body.trim().length > 1000)
       return NextResponse.json({ error: 'body max 1000 znaków' }, { status: 400 })
-    if (url !== undefined && url !== null && (typeof url !== 'string' || url.length > 500))
-      return NextResponse.json({ error: 'url max 500 znaków' }, { status: 400 })
+    if (url !== undefined && url !== null) {
+      if (typeof url !== 'string' || url.length > 500)
+        return NextResponse.json({ error: 'url max 500 znaków' }, { status: 400 })
+      // Blokuj javascript: i inne niebezpieczne schematy — service worker wywołuje
+      // clients.openWindow(url), więc javascript: URL może wykonać kod w kontekście SW
+      if (url.length > 0 && !url.startsWith('/')) {
+        try {
+          const parsed = new URL(url)
+          if (!['http:', 'https:'].includes(parsed.protocol)) {
+            return NextResponse.json({ error: 'URL musi być ścieżką względną lub http(s)' }, { status: 400 })
+          }
+        } catch {
+          return NextResponse.json({ error: 'Nieprawidłowy URL powiadomienia' }, { status: 400 })
+        }
+      }
+    }
 
     // Admin (zarządca) może wysłać push WYŁĄCZNIE do swojej wspólnoty — bez tego
     // mógłby podać communityId innej wspólnoty (albo nic nie podać, co wysyłało

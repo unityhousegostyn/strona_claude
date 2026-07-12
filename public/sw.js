@@ -26,7 +26,22 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
-  const url = event.notification.data?.url ?? '/admin/dashboard'
+  const rawUrl = event.notification.data?.url ?? '/admin/dashboard'
+  // Defense-in-depth: dozwolone tylko ścieżki relative lub http(s).
+  // Blokuje javascript: i inne schematy — clients.openWindow(url) wykonałoby je.
+  let url = '/admin/dashboard'
+  if (typeof rawUrl === 'string') {
+    if (rawUrl.startsWith('/')) {
+      url = rawUrl
+    } else {
+      try {
+        const parsed = new URL(rawUrl)
+        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+          url = rawUrl
+        }
+      } catch { /* nieprawidłowy URL — użyj domyślnego */ }
+    }
+  }
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
       for (const client of windowClients) {
